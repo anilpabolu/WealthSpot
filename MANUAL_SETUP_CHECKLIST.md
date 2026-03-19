@@ -428,7 +428,20 @@ npx expo start
 
 ## Phase 9 — Verify Everything Works
 
-### Start All Services (4 terminals)
+### Option A: Docker Compose (All-in-One — Recommended)
+
+```powershell
+# Starts postgres, redis, api, celery-worker, web all at once
+docker compose up -d
+```
+
+> **Note:** If port conflicts occur (local PostgreSQL on 5432, etc.), stop the conflicting service first:
+> ```powershell
+> Stop-Service -Name "postgresql*" -Force  # If local PG is running
+> docker compose down && wsl --shutdown && Start-Sleep 5 && docker compose up -d  # Reset Docker networking
+> ```
+
+### Option B: Manual (4 terminals)
 
 | Terminal | Command | Expected |
 |----------|---------|----------|
@@ -468,17 +481,11 @@ Should return an access token. Other seed users:
 
 ## Known Issues & Workarounds
 
-### 1. Celery Worker — MISSING FILE ⚠️
+### 1. Celery Worker — No Tasks Defined Yet
 
-**Issue:** `docker-compose.yml` defines a `celery-worker` service that runs `celery -A app.celery_app worker`, but **no `celery_app.py` file exists** in the codebase.
+**Status:** ✅ **FIXED** — `app/celery_app.py` now exists and the Celery worker starts successfully.
 
-**Impact:** The Celery worker container will crash on startup. This only affects background task processing (email notifications, etc.).
-
-**Workaround:** Don't start the Celery worker. Skip it — the core API works without it:
-```powershell
-# Start only postgres + redis (not the full docker compose up)
-docker compose up postgres redis -d
-```
+**Note:** No `@task` decorated functions have been defined yet, so the worker has no tasks to process. The container runs fine but is idle until background tasks (e.g., email notifications, report generation) are implemented.
 
 ### 2. Clerk Provider — No Explicit `publishableKey` Prop
 
@@ -534,9 +541,8 @@ docker compose up postgres redis -d
 - Sentry error monitoring (needs DSN)
 
 ### ❌ Not Working / Incomplete
-- Celery background worker (`celery_app.py` missing)
+- Celery tasks not yet defined (worker runs but is idle)
 - Stripe integration (dependency exists but no config/code wired up)
-- Full Docker Compose stack (Celery service will crash)
 
 ---
 
@@ -544,7 +550,8 @@ docker compose up postgres redis -d
 
 | Action | Command |
 |--------|---------|
-| Start PostgreSQL + Redis | `docker compose up postgres redis -d` |
+| Start all services (Docker) | `docker compose up -d` |
+| Start only PostgreSQL + Redis | `docker compose up postgres redis -d` |
 | Check containers | `docker compose ps` |
 | Activate API venv | `cd services/api; .venv\Scripts\Activate.ps1` |
 | Install API deps | `pip install -e ".[dev]"` |
@@ -572,4 +579,21 @@ docker compose up postgres redis -d
 
 ---
 
-*Generated: March 18, 2026 — WealthSpot v0.1.0*
+---
+
+## Fixes Applied (March 18, 2026)
+
+The following issues were fixed during setup:
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | Web Dockerfile used `npm ci` but no `package-lock.json` existed | Changed to `npm install --legacy-peer-deps` |
+| 2 | API Dockerfile hatchling build failed (couldn't find package directory) | Added `[tool.hatch.build.targets.wheel] packages = ["app"]` to `pyproject.toml` |
+| 3 | `celery_app.py` missing — Celery worker crashed on start | Created `services/api/app/celery_app.py` with Celery instance |
+| 4 | Celery worker couldn't connect to Redis (used `localhost` inside Docker) | Added `CELERY_BROKER_URL: redis://redis:6379/1` to docker-compose environment |
+| 5 | `docker-compose.yml` had obsolete `version: "3.9"` field | Removed deprecated field |
+| 6 | GitHub remote repository not created yet | Added remote `origin` → `https://github.com/anilpabolu/WealthSpot.git` (repo needs to be created on GitHub) |
+
+---
+
+*Updated: March 18, 2026 — WealthSpot v0.1.0*

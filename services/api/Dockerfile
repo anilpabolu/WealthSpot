@@ -7,12 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[dev]" 2>/dev/null || pip install --no-cache-dir .
-
-# Copy app source
+# Copy source and install Python deps
 COPY . .
+RUN pip install --no-cache-dir .
 
 # Run with uvicorn
 ENV PYTHONDONTWRITEBYTECODE=1
