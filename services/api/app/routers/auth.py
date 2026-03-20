@@ -1,22 +1,26 @@
 """
-Auth router – login, register, refresh, webhook.
+Auth router – login, register, refresh, webhook, profile.
 """
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.middleware.audit import log_audit_event
+from app.middleware.auth import get_current_user
 from app.models.user import User, UserRole
 from app.schemas.user import (
     RefreshTokenRequest,
     TokenPair,
     UserCreate,
     UserRead,
+    UserUpdate,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -64,28 +68,36 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ) -> TokenPair:
     """
-    Demo login – in production use Clerk webhook or OAuth.
-    Finds or creates user by email and returns JWT pair.
+    Login – finds existing user by email and returns JWT pair.
+    Does NOT auto-create users. Use /auth/register for signup.
     """
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(
+        select(User).where(User.email == body.email, User.is_active.is_(True))
+    )
     user = result.scalar_one_or_none()
 
     if not user:
-        # Auto-create for demo
-        user = User(
-            email=body.email,
-            full_name=body.full_name,
-            phone=body.phone,
-            role=body.role or UserRole.INVESTOR,
-            referral_code=uuid.uuid4().hex[:8].upper(),
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="USER_NOT_REGISTERED",
         )
-        db.add(user)
-        await db.flush()
 
     access = create_access_token({"sub": str(user.id), "role": user.role.value})
     refresh = create_refresh_token({"sub": str(user.id)})
 
     return TokenPair(access_token=access, refresh_token=refresh)
+
+
+@router.get("/check")
+async def check_user_exists(
+    email: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, bool]:
+    """Check if a user with this email is registered (for Clerk gate)."""
+    result = await db.execute(
+        select(User.id).where(User.email == email, User.is_active.is_(True))
+    )
+    return {"exists": result.scalar_one_or_none() is not None}
 
 
 @router.post("/refresh", response_model=TokenPair)
@@ -112,3 +124,49 @@ async def refresh_token(
     refresh = create_refresh_token({"sub": str(user.id)})
 
     return TokenPair(access_token=access, refresh_token=refresh)
+
+
+# ── Profile ──────────────────────────────────────────────────────────────────
+
+
+class KycDocumentOut(BaseModel):
+    id: uuid.UUID
+    document_type: str
+    verification_status: str
+    created_at: Any
+
+    model_config = {"from_attributes": True}
+
+
+class UserMeResponse(UserRead):
+    """Full profile returned by /auth/me including KYC documents."""
+    kyc_documents: list[KycDocumentOut] = []
+    phone: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/me", response_model=UserMeResponse)
+async def get_me(
+    user: User = Depends(get_current_user),
+) -> User:
+    """Return the authenticated user's full profile including KYC documents."""
+    return user
+
+
+@router.put("/me", response_model=UserMeResponse)
+async def update_me(
+    body: UserUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Update authenticated user's profile fields."""
+    if body.full_name is not None:
+        user.full_name = body.full_name
+    if body.phone is not None:
+        user.phone = body.phone
+    if body.avatar_url is not None:
+        user.avatar_url = body.avatar_url
+    await db.flush()
+    return user
+

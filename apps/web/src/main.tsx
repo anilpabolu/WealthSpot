@@ -21,7 +21,18 @@ if (!rootElement) throw new Error('Root element not found')
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ClerkProvider afterSignOutUrl="/">
+    <ClerkProvider
+      publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+      afterSignOutUrl="/"
+      appearance={{
+        signIn: {
+          // Hide the sign-up link on the sign-in modal
+          elements: {
+            footerAction: { display: 'none' },
+          },
+        },
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <App />

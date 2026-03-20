@@ -32,6 +32,7 @@ class NotificationType(str, PyEnum):
     COMMUNITY_REPLY = "community_reply"
     REFERRAL_REWARD = "referral_reward"
     SYSTEM_ANNOUNCEMENT = "system_announcement"
+    ENQUIRY = "enquiry"
 
 
 class Notification(Base):

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { ShieldAlert, ArrowRight, Loader2 } from 'lucide-react'
+import { ShieldAlert, ArrowRight } from 'lucide-react'
 import { KYC_STATUS } from '@/lib/constants'
 
 interface KycGateProps {
@@ -27,8 +27,14 @@ export default function KycGate({
 }: KycGateProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-lg shadow-primary/20 animate-pulse">
+          <svg viewBox="0 0 40 40" className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
+            <path d="M13 20L18 25L27 16" />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-400 font-body animate-pulse">Verifying your identity…</p>
       </div>
     )
   }
@@ -68,7 +74,11 @@ export default function KycGate({
       fallback ?? (
         <div className="max-w-md mx-auto text-center py-16 px-4">
           <div className="mx-auto h-16 w-16 rounded-full bg-amber-50 flex items-center justify-center mb-4">
-            <Loader2 className="h-8 w-8 text-warning animate-spin" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-warning to-amber-500 flex items-center justify-center animate-pulse">
+              <svg viewBox="0 0 40 40" className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
+              </svg>
+            </div>
           </div>
           <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
             KYC Under Review

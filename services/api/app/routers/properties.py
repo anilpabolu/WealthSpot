@@ -7,6 +7,7 @@ from decimal import Decimal
 from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -24,6 +25,104 @@ from app.schemas.property import (
 )
 
 router = APIRouter(prefix="/properties", tags=["properties"])
+
+
+# ── Autocomplete / search suggestions ────────────────────────────────────────
+
+
+class SearchSuggestion(BaseModel):
+    text: str
+    type: str  # 'property' | 'city' | 'area' | 'builder'
+    slug: str | None = None
+
+
+@router.get("/autocomplete", response_model=list[SearchSuggestion])
+async def autocomplete(
+    q: str = Query(min_length=2, max_length=100),
+    limit: int = Query(8, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+) -> list[SearchSuggestion]:
+    """Fast autocomplete suggestions for property search — matches property name,
+    city, area/locality, and builder name."""
+    term = f"%{q}%"
+    results: list[SearchSuggestion] = []
+    seen: set[str] = set()
+
+    active_statuses = [PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED]
+
+    # Property titles
+    title_q = (
+        select(Property.title, Property.slug)
+        .where(Property.status.in_(active_statuses), Property.title.ilike(term))
+        .limit(limit)
+    )
+    for row in (await db.execute(title_q)).all():
+        key = f"property:{row[0]}"
+        if key not in seen:
+            seen.add(key)
+            results.append(SearchSuggestion(text=row[0], type="property", slug=row[1]))
+
+    # Cities
+    city_q = (
+        select(Property.city)
+        .where(Property.status.in_(active_statuses), Property.city.ilike(term))
+        .distinct()
+        .limit(limit)
+    )
+    for row in (await db.execute(city_q)).all():
+        key = f"city:{row[0]}"
+        if key not in seen:
+            seen.add(key)
+            results.append(SearchSuggestion(text=row[0], type="city"))
+
+    # Localities / areas
+    locality_q = (
+        select(Property.locality)
+        .where(
+            Property.status.in_(active_statuses),
+            Property.locality.isnot(None),
+            Property.locality.ilike(term),
+        )
+        .distinct()
+        .limit(limit)
+    )
+    for row in (await db.execute(locality_q)).all():
+        key = f"area:{row[0]}"
+        if key not in seen:
+            seen.add(key)
+            results.append(SearchSuggestion(text=row[0], type="area"))
+
+    # Builder / company names
+    builder_q = (
+        select(Builder.company_name)
+        .where(Builder.company_name.ilike(term))
+        .distinct()
+        .limit(limit)
+    )
+    for row in (await db.execute(builder_q)).all():
+        key = f"builder:{row[0]}"
+        if key not in seen:
+            seen.add(key)
+            results.append(SearchSuggestion(text=row[0], type="builder"))
+
+    # Referrer names
+    referrer_q = (
+        select(Property.referrer_name)
+        .where(
+            Property.status.in_(active_statuses),
+            Property.referrer_name.isnot(None),
+            Property.referrer_name.ilike(term),
+        )
+        .distinct()
+        .limit(limit)
+    )
+    for row in (await db.execute(referrer_q)).all():
+        key = f"referrer:{row[0]}"
+        if key not in seen:
+            seen.add(key)
+            results.append(SearchSuggestion(text=row[0], type="referrer"))
+
+    return results[:limit]
 
 
 # ── Public endpoints ─────────────────────────────────────────────────────────
@@ -64,10 +163,12 @@ async def list_properties(
     if irr_max is not None:
         query = query.where(Property.target_irr <= irr_max)
     if search:
-        query = query.where(
+        query = query.outerjoin(Builder, Property.builder_id == Builder.id).where(
             Property.title.ilike(f"%{search}%")
             | Property.city.ilike(f"%{search}%")
             | Property.locality.ilike(f"%{search}%")
+            | Property.referrer_name.ilike(f"%{search}%")
+            | Builder.company_name.ilike(f"%{search}%")
         )
 
     # Count
@@ -152,6 +253,76 @@ async def get_property(
     return PropertyDetail.model_validate(prop)
 
 
+class BuilderProfileResponse(BaseModel):
+    id: uuid.UUID
+    company_name: str
+    rera_number: str | None = None
+    cin: str | None = None
+    gstin: str | None = None
+    website: str | None = None
+    logo_url: str | None = None
+    description: str | None = None
+    verified: bool
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    city: str | None = None
+    experience_years: int | None = None
+    projects_completed: int = 0
+    total_sqft_delivered: int = 0
+    about: str | None = None
+    created_at: str
+    properties: list[PropertyListItem] = []
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/builders/{builder_id}", response_model=BuilderProfileResponse)
+async def get_builder_profile(
+    builder_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> BuilderProfileResponse:
+    """Public builder profile with their listed properties."""
+    result = await db.execute(
+        select(Builder).where(Builder.id == builder_id)
+    )
+    builder = result.scalar_one_or_none()
+    if not builder:
+        raise HTTPException(status_code=404, detail="Builder not found")
+
+    props_q = (
+        select(Property)
+        .where(
+            Property.builder_id == builder.id,
+            Property.status.in_([PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED]),
+        )
+        .order_by(Property.created_at.desc())
+    )
+    props = (await db.execute(props_q)).scalars().all()
+
+    return BuilderProfileResponse(
+        id=builder.id,
+        company_name=builder.company_name,
+        rera_number=builder.rera_number,
+        cin=builder.cin,
+        gstin=builder.gstin,
+        website=builder.website,
+        logo_url=builder.logo_url,
+        description=builder.description,
+        verified=builder.verified,
+        phone=builder.phone,
+        email=builder.email,
+        address=builder.address,
+        city=builder.city,
+        experience_years=builder.experience_years,
+        projects_completed=builder.projects_completed,
+        total_sqft_delivered=builder.total_sqft_delivered,
+        about=builder.about,
+        created_at=builder.created_at.isoformat(),
+        properties=[PropertyListItem.model_validate(p) for p in props],
+    )
+
+
 # ── Builder endpoints ────────────────────────────────────────────────────────
 
 
@@ -194,6 +365,11 @@ async def create_property(
         possession_date=body.possession_date,
         rera_id=body.rera_id,
         amenities=body.amenities,
+        highlights=body.highlights,
+        usp=body.usp,
+        video_url=body.video_url,
+        referrer_name=body.referrer_name,
+        referrer_phone=body.referrer_phone,
     )
     db.add(prop)
     await db.flush()
@@ -222,3 +398,25 @@ async def update_property(
 
     await db.flush()
     return PropertyDetail.model_validate(prop)
+
+
+@router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def soft_delete_property(
+    property_id: uuid.UUID,
+    user: User = Depends(require_role(UserRole.ADMIN, UserRole.SUPER_ADMIN)),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Soft-delete a property tile (admin/super_admin only). Sets status to ARCHIVED."""
+    query = select(Property).where(Property.id == property_id)
+    result = await db.execute(query)
+    prop = result.scalar_one_or_none()
+
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    if prop.status == PropertyStatus.ARCHIVED:
+        raise HTTPException(status_code=400, detail="Property is already archived")
+
+    prop.status = PropertyStatus.ARCHIVED
+    await db.flush()
+

@@ -10,10 +10,16 @@ import {
   ChevronRight,
   Camera,
   LogOut,
+  Gift,
+  Copy,
+  CheckCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useUser } from '@clerk/react'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 
-type Tab = 'profile' | 'notifications' | 'security' | 'bank' | 'documents' | 'kyc'
+type Tab = 'profile' | 'notifications' | 'security' | 'bank' | 'documents' | 'kyc' | 'referrals'
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -22,6 +28,7 @@ const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'bank', label: 'Bank Details', icon: CreditCard },
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'kyc', label: 'KYC Status', icon: Shield },
+  { id: 'referrals', label: 'Referrals', icon: Gift },
 ]
 
 export default function SettingsPage() {
@@ -30,7 +37,7 @@ export default function SettingsPage() {
   return (
     <MainLayout>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="font-display text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+        <h1 className="font-display text-2xl font-bold text-gray-900 mb-6">Mission Control ⚙️</h1>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
@@ -69,6 +76,7 @@ export default function SettingsPage() {
             {activeTab === 'bank' && <BankTab />}
             {activeTab === 'documents' && <DocumentsTab />}
             {activeTab === 'kyc' && <KycTab />}
+            {activeTab === 'referrals' && <ReferralsTab />}
           </div>
         </div>
       </div>
@@ -79,6 +87,14 @@ export default function SettingsPage() {
 /* ── Tab Panels ── */
 
 function ProfileTab() {
+  const { user: clerkUser } = useUser()
+  const { data: profile, isLoading } = useUserProfile()
+
+  const displayName = profile?.fullName ?? clerkUser?.fullName ?? '—'
+  const displayEmail = clerkUser?.primaryEmailAddress?.emailAddress ?? profile?.email ?? '—'
+  const displayPhone = profile?.phone ?? clerkUser?.primaryPhoneNumber?.phoneNumber ?? ''
+  const displayInitial = (displayName[0] ?? 'U').toUpperCase()
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h2 className="font-semibold text-gray-900 mb-6">Personal Information</h2>
@@ -86,35 +102,40 @@ function ProfileTab() {
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
-            R
-          </div>
+          {clerkUser?.imageUrl ? (
+            <img src={clerkUser.imageUrl} alt={displayName} className="w-20 h-20 rounded-full object-cover" />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
+              {displayInitial}
+            </div>
+          )}
           <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center shadow-md">
             <Camera className="h-3.5 w-3.5" />
           </button>
         </div>
         <div>
-          <p className="font-semibold text-gray-900">Rahul Mehta</p>
-          <p className="text-sm text-gray-500">rahul@example.com</p>
+          <p className="font-semibold text-gray-900">{isLoading ? 'Loading…' : displayName}</p>
+          <p className="text-sm text-gray-500">{displayEmail}</p>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {[
-          { label: 'Full Name', value: 'Rahul Mehta', type: 'text' },
-          { label: 'Email', value: 'rahul@example.com', type: 'email' },
-          { label: 'Phone', value: '+91 98765 43210', type: 'tel' },
-          { label: 'City', value: 'Bengaluru', type: 'text' },
-        ].map((field) => (
-          <div key={field.label}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-            <input
-              type={field.type}
-              defaultValue={field.value}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
-            />
-          </div>
-        ))}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input type="text" defaultValue={displayName} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" defaultValue={displayEmail} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <input type="tel" defaultValue={displayPhone} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <input type="text" defaultValue={profile?.role ?? '—'} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none capitalize" />
+        </div>
       </div>
 
       <div className="mt-6 flex justify-end">
@@ -220,75 +241,192 @@ function BankTab() {
   )
 }
 
+const KYC_STATUS_MAP: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
+  not_started: { label: 'Not Started', color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200', desc: 'Please complete KYC to start investing.' },
+  in_progress: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', desc: 'Your KYC submission is being processed.' },
+  under_review: { label: 'Under Review', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', desc: 'Our team is reviewing your documents.' },
+  approved: { label: 'Approved', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Your identity has been verified successfully.' },
+  rejected: { label: 'Rejected', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', desc: 'Your KYC was rejected. Please re-submit.' },
+}
+
+function KycTab() {
+  const { data: profile, isLoading } = useUserProfile()
+  const rawStatus = profile?.kycStatus?.toLowerCase() ?? 'not_started'
+  const meta = KYC_STATUS_MAP[rawStatus] ?? KYC_STATUS_MAP['not_started']!
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <h2 className="font-semibold text-gray-900 mb-4">KYC Verification</h2>
+      {isLoading ? (
+        <p className="text-sm text-gray-400">Loading…</p>
+      ) : meta ? (
+        <div className={`flex items-center gap-4 p-4 ${meta.bg} border ${meta.border} rounded-xl mb-6`}>
+          <div className={`w-12 h-12 rounded-full ${meta.bg} flex items-center justify-center`}>
+            <Shield className={`h-6 w-6 ${meta.color}`} />
+          </div>
+          <div>
+            <p className={`font-semibold ${meta.color}`}>KYC {meta.label}</p>
+            <p className={`text-sm ${meta.color} opacity-80`}>{meta.desc}</p>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function DocumentsTab() {
-  const docs = [
-    { name: 'PAN Card', status: 'verified', date: '2024-01-10' },
-    { name: 'Aadhaar Card', status: 'verified', date: '2024-01-10' },
-    { name: 'Address Proof', status: 'pending', date: '2024-02-15' },
-  ]
+  const { data: profile, isLoading } = useUserProfile()
+  const docs = profile?.kycDocuments ?? []
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h2 className="font-semibold text-gray-900 mb-6">Uploaded Documents</h2>
-      <div className="space-y-3">
-        {docs.map((doc) => (
-          <div key={doc.name} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
-            <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
-              <FileText className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 text-sm">{doc.name}</p>
-              <p className="text-xs text-gray-400">Uploaded {doc.date}</p>
-            </div>
-            <span
-              className={cn(
-                'text-xs font-semibold px-2 py-1 rounded-full',
-                doc.status === 'verified'
-                  ? 'text-emerald-700 bg-emerald-50'
-                  : 'text-amber-700 bg-amber-50'
-              )}
-            >
-              {doc.status === 'verified' ? 'Verified' : 'Pending'}
-            </span>
-          </div>
-        ))}
-      </div>
+      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+      {!isLoading && docs.length === 0 && (
+        <p className="text-sm text-gray-400">Not Available — no documents uploaded yet.</p>
+      )}
+      {!isLoading && docs.length > 0 && (
+        <div className="space-y-3">
+          {docs.map((doc) => {
+            const vs = doc.verificationStatus?.toLowerCase()
+            const isVerified = vs === 'approved' || vs === 'verified'
+            return (
+              <div key={doc.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
+                <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-gray-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm capitalize">{doc.documentType.replace(/_/g, ' ')}</p>
+                  <p className="text-xs text-gray-400">Uploaded {new Date(doc.createdAt).toLocaleDateString()}</p>
+                </div>
+                <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', isVerified ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50')}>
+                  {isVerified ? 'Verified' : doc.verificationStatus ?? 'Pending'}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
 
-function KycTab() {
+function ReferralsTab() {
+  const { data: stats, isLoading: statsLoading } = useReferralStats()
+  const { data: history, isLoading: histLoading } = useReferralHistory()
+  const [copied, setCopied] = useState(false)
+
+  const code = stats?.referralCode ?? '—'
+  const link = stats?.referralLink ?? window.location.origin + '/signup?ref=' + code
+
+  function handleCopy() {
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const shareText = encodeURIComponent(`Join WealthSpot and start investing in premium real estate! Use my referral code ${code}: ${link}`)
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-4">KYC Verification</h2>
-      <div className="flex items-center gap-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl mb-6">
-        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-          <Shield className="h-6 w-6 text-emerald-600" />
-        </div>
-        <div>
-          <p className="font-semibold text-emerald-800">KYC Approved</p>
-          <p className="text-sm text-emerald-600">Your identity has been verified successfully.</p>
-        </div>
+    <div className="space-y-5">
+      {/* Code card */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Gift className="h-5 w-5 text-primary" /> Your Referral Code</h2>
+        {statsLoading ? (
+          <p className="text-sm text-gray-400">Loading…</p>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 font-mono text-2xl font-bold text-primary tracking-widest bg-primary/5 px-5 py-3 rounded-xl text-center">
+                {code}
+              </div>
+              <button onClick={handleCopy} className="p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                {copied ? <CheckCheck className="h-5 w-5 text-emerald-600" /> : <Copy className="h-5 w-5 text-gray-500" />}
+              </button>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              {[
+                { label: 'Total Referrals', value: stats?.totalReferrals ?? 0 },
+                { label: 'Successful', value: stats?.successfulReferrals ?? 0 },
+                { label: 'Rewards', value: `₹${((stats?.totalRewards ?? 0) / 100).toLocaleString()}` },
+              ].map((m) => (
+                <div key={m.label} className="text-center bg-gray-50 rounded-xl py-3 px-2">
+                  <p className="font-bold text-gray-900 text-lg">{m.value}</p>
+                  <p className="text-xs text-gray-400">{m.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Share buttons */}
+            <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Share via</p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`https://wa.me/?text=${shareText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                WhatsApp
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0A66C2] text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                LinkedIn
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${shareText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                X / Twitter
+              </a>
+              <button onClick={handleCopy} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition">
+                {copied ? 'Copied!' : 'Copy Link'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="space-y-3">
-        {[
-          { step: 'Email Verification', status: 'done' },
-          { step: 'Phone Verification', status: 'done' },
-          { step: 'PAN Verification', status: 'done' },
-          { step: 'Aadhaar Verification', status: 'done' },
-          { step: 'Selfie Verification', status: 'done' },
-        ].map((s) => (
-          <div key={s.step} className="flex items-center gap-3 py-2">
-            <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 12 12" fill="none">
-                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span className="text-sm text-gray-700">{s.step}</span>
+      {/* History */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="font-semibold text-gray-900 mb-4">Referral History</h2>
+        {histLoading && <p className="text-sm text-gray-400">Loading…</p>}
+        {!histLoading && (!history || history.length === 0) && (
+          <p className="text-sm text-gray-400">No referrals yet. Share your code to get started!</p>
+        )}
+        {!histLoading && history && history.length > 0 && (
+          <div className="space-y-3">
+            {history.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                  {(item.refereeName[0] ?? '?').toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">{item.refereeName}</p>
+                  <p className="text-xs text-gray-400 truncate">{item.refereeEmail}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', item.status === 'invested' ? 'text-emerald-700 bg-emerald-50' : 'text-blue-700 bg-blue-50')}>
+                    {item.status === 'invested' ? 'Invested' : 'Signed Up'}
+                  </span>
+                  {item.rewardAmount > 0 && (
+                    <p className="text-xs text-gray-400 mt-0.5">+₹{(item.rewardAmount / 100).toLocaleString()}</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   )
 }
+

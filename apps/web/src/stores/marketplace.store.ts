@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
 export interface MarketplaceFilters {
+  search: string
   city: string
   assetType: string
   minInvestment: [number, number]
@@ -22,6 +23,7 @@ interface MarketplaceState {
 }
 
 const DEFAULT_FILTERS: MarketplaceFilters = {
+  search: '',
   city: '',
   assetType: '',
   minInvestment: [10000, 5000000],

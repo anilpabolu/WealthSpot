@@ -25,6 +25,10 @@ class UserRole(str, PyEnum):
     INVESTOR = "investor"
     BUILDER = "builder"
     LENDER = "lender"
+    FOUNDER = "founder"
+    COMMUNITY_LEAD = "community_lead"
+    APPROVER = "approver"
+    SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
 
 

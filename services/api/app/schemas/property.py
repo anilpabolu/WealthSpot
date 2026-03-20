@@ -22,6 +22,16 @@ class BuilderRead(BaseModel):
     rera_number: str | None = None
     logo_url: str | None = None
     verified: bool
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    city: str | None = None
+    experience_years: int | None = None
+    projects_completed: int = 0
+    total_sqft_delivered: int = 0
+    about: str | None = None
+    description: str | None = None
+    website: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -47,6 +57,11 @@ class PropertyBase(BaseModel):
     possession_date: str | None = None
     rera_id: str | None = None
     amenities: list[str] | None = None
+    highlights: list[str] | None = None
+    usp: str | None = None
+    video_url: str | None = None
+    referrer_name: str | None = None
+    referrer_phone: str | None = None
 
 
 class PropertyCreate(PropertyBase):
@@ -74,6 +89,8 @@ class PropertyListItem(BaseModel):
     city: str
     locality: str | None = None
     cover_image: str | None = None
+    gallery: list[str] | None = None
+    video_url: str | None = None
     target_amount: Decimal
     raised_amount: Decimal
     min_investment: Decimal
@@ -85,6 +102,12 @@ class PropertyListItem(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ReferrerRead(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+    user_id: uuid.UUID | None = None
 
 
 class PropertyDetail(PropertyListItem):
@@ -100,6 +123,12 @@ class PropertyDetail(PropertyListItem):
     gallery: list[str] | None = None
     documents: dict[str, Any] | None = None
     amenities: list[str] | None = None
+    highlights: list[str] | None = None
+    usp: str | None = None
+    video_url: str | None = None
+    referrer_name: str | None = None
+    referrer_phone: str | None = None
+    referrer_user_id: uuid.UUID | None = None
     builder: BuilderRead | None = None
     launch_date: datetime | None = None
     updated_at: datetime

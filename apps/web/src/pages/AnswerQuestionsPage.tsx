@@ -1,0 +1,221 @@
+import { useState } from 'react'
+import MainLayout from '@/components/layout/MainLayout'
+import { useUserStore } from '@/stores/user.store'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost } from '@/lib/api'
+import type { PaginatedPosts, CommunityPostSummary, CommunityReply } from '@/hooks/useCommunity'
+import {
+  HelpCircle,
+  Send,
+  Clock,
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  ArrowLeft,
+  ThumbsUp,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+const ALLOWED_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
+
+function relativeTime(iso: string) {
+  try {
+    const diff = Date.now() - new Date(iso).getTime()
+    const minutes = Math.floor(diff / 60_000)
+    if (minutes < 1) return 'just now'
+    if (minutes < 60) return `${minutes}m ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days < 30) return `${days}d ago`
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+  } catch {
+    return iso
+  }
+}
+
+function QuestionCard({ question }: { question: CommunityPostSummary }) {
+  const [draft, setDraft] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const qc = useQueryClient()
+
+  const submitAnswer = useMutation({
+    mutationFn: (body: string) =>
+      apiPost<CommunityReply>(`/community/posts/${question.id}/replies`, { body }),
+    onSuccess: () => {
+      setDraft('')
+      setSubmitted(true)
+      qc.invalidateQueries({ queryKey: ['unanswered-questions'] })
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!draft.trim()) return
+    submitAnswer.mutate(draft.trim())
+  }
+
+  return (
+    <article className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-4">
+        {/* Upvote column */}
+        <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
+          <ThumbsUp className="h-4 w-4 text-gray-300" />
+          <span className="text-sm font-bold text-gray-500">{question.upvotes}</span>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {/* Badge */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+              <HelpCircle className="h-3 w-3" />
+              Question
+            </span>
+            <span className="text-[10px] text-gray-400 flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              {question.replyCount} answers
+            </span>
+          </div>
+
+          <h3 className="font-semibold text-gray-900 leading-snug">{question.title}</h3>
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{question.bodyPreview}</p>
+
+          {/* Tags */}
+          {question.tags && question.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {question.tags.map((tag) => (
+                <span key={tag} className="text-[10px] font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Author & time */}
+          <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+            <span className="flex items-center gap-1">
+              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                {question.author?.fullName?.charAt(0) ?? '?'}
+              </div>
+              {question.author?.fullName ?? 'Anonymous'}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {relativeTime(question.createdAt)}
+            </span>
+          </div>
+
+          {/* Answer form */}
+          {submitted ? (
+            <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+              <div className="flex items-center gap-2 text-sm text-emerald-700">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="font-medium">Answer submitted for review!</span>
+              </div>
+              <p className="text-xs text-emerald-600 mt-1">
+                Your answer will be visible once approved by an admin.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="mt-4">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Write your answer to this question..."
+                rows={3}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                  type="submit"
+                  disabled={!draft.trim() || submitAnswer.isPending}
+                  className="btn-primary text-sm px-4 py-1.5 flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {submitAnswer.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
+                  Submit Answer
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </article>
+  )
+}
+
+export default function AnswerQuestionsPage() {
+  const { user, isAuthenticated } = useUserStore()
+  const role = user?.role ?? 'investor'
+  const authorized = isAuthenticated && ALLOWED_ROLES.has(role)
+
+  const { data, isLoading, isError } = useQuery<PaginatedPosts>({
+    queryKey: ['unanswered-questions'],
+    queryFn: () => apiGet<PaginatedPosts>('/community/questions/unanswered'),
+    enabled: authorized,
+  })
+
+  return (
+    <MainLayout>
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-2">
+          <Link to="/community" className="text-gray-400 hover:text-primary transition">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="font-display text-2xl font-bold text-gray-900">Answer Questions</h1>
+        </div>
+        <p className="text-gray-500 text-sm mb-8 ml-8">
+          Help the community by answering unanswered questions. Approved answers earn you contributor points.
+        </p>
+
+        {!authorized && (
+          <div className="text-center py-16 text-gray-400">
+            <HelpCircle className="h-12 w-12 mx-auto mb-3 opacity-40" />
+            <p className="font-medium text-gray-500">Access Restricted</p>
+            <p className="text-sm mt-1">Only knowledge contributors and admins can answer questions.</p>
+          </div>
+        )}
+
+        {authorized && isLoading && (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/60" />
+          </div>
+        )}
+
+        {authorized && isError && (
+          <div className="text-center py-16 text-red-500">
+            <p className="font-medium">Failed to load questions. Try again.</p>
+          </div>
+        )}
+
+        {authorized && !isLoading && !isError && (
+          <>
+            {data && data.items.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <CheckCircle2 className="h-12 w-12 mx-auto mb-3 opacity-40 text-emerald-400" />
+                <p className="font-medium text-gray-500">All caught up!</p>
+                <p className="text-sm mt-1">No unanswered questions right now. Check back later.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(data?.items ?? []).map((q) => (
+                  <QuestionCard key={q.id} question={q} />
+                ))}
+              </div>
+            )}
+
+            {data && data.totalPages > 1 && (
+              <p className="text-center text-xs text-gray-400 mt-6">
+                Showing page 1 of {data.totalPages} &middot; {data.total} questions
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </MainLayout>
+  )
+}

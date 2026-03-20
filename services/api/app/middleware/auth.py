@@ -47,6 +47,29 @@ async def get_current_user(
     return user
 
 
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """Same as get_current_user but returns None instead of raising 401 when unauthenticated."""
+    if credentials is None:
+        return None
+    try:
+        payload = decode_token(credentials.credentials)
+        user_id = payload.get("sub")
+        token_type = payload.get("type")
+        if user_id is None or token_type != "access":
+            return None
+    except JWTError:
+        return None
+
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
@@ -56,9 +79,13 @@ async def get_current_active_user(
 
 
 def require_role(*roles: UserRole):
-    """Factory for role-based access control dependency."""
+    """Factory for role-based access control dependency.
+    Super-admins bypass all role checks automatically.
+    """
 
     async def _check_role(user: User = Depends(get_current_user)) -> User:
+        if user.role == UserRole.SUPER_ADMIN:
+            return user  # unrestricted access
         if user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -67,6 +94,16 @@ def require_role(*roles: UserRole):
         return user
 
     return _check_role
+
+
+def require_super_admin(user: User = Depends(get_current_user)) -> User:
+    """Only super-admin users may proceed."""
+    if user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super-admin access required",
+        )
+    return user
 
 
 def require_kyc_approved(user: User = Depends(get_current_user)) -> User:

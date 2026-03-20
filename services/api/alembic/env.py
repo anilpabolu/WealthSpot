@@ -17,6 +17,9 @@ import app.models.user as _user_models  # pyright: ignore[reportUnusedImport]
 import app.models.property as _property_models  # pyright: ignore[reportUnusedImport]
 import app.models.investment as _investment_models  # pyright: ignore[reportUnusedImport]
 import app.models.community as _community_models  # pyright: ignore[reportUnusedImport]
+import app.models.approval as _approval_models  # pyright: ignore[reportUnusedImport]
+import app.models.opportunity as _opportunity_models  # pyright: ignore[reportUnusedImport]
+import app.models.platform_config as _platform_config_models  # pyright: ignore[reportUnusedImport]
 
 config = context.config
 settings = get_settings()

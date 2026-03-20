@@ -38,11 +38,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     celery_broker_url: str = "redis://localhost:6379/1"
 
-    # ── AWS S3 ───────────────────────────────────────────
+    # ── AWS S3 / MinIO ─────────────────────────────────────
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    aws_s3_bucket: str = "wealthspot-documents"
-    aws_region: str = "ap-south-1"
+    aws_s3_bucket: str = "wealthspot-media"
+    aws_region: str = "us-east-1"
+    s3_endpoint_url: str = ""  # Set to MinIO URL for local dev (e.g. http://localhost:9000)
+    s3_public_url: str = ""    # Public URL prefix for media (e.g. http://localhost:9000/wealthspot-media)
 
     # ── Razorpay ─────────────────────────────────────────
     razorpay_key_id: str = ""

@@ -13,6 +13,7 @@ import {
   Settings,
   HelpCircle,
 } from 'lucide-react'
+import { useUserStore } from '@/stores/user.store'
 
 const INVESTOR_NAV = [
   { label: 'Dashboard', href: '/portal/investor', icon: LayoutDashboard },
@@ -21,7 +22,7 @@ const INVESTOR_NAV = [
   { label: 'Transactions', href: '/portal/investor/transactions', icon: Receipt },
   { label: 'Lend', href: '/portal/investor/lender', icon: Landmark },
   { label: 'KYC Status', href: '/auth/kyc/identity', icon: FileCheck },
-  { label: 'Community', href: '/community', icon: Users },
+  { label: 'Community', href: '/community', icon: Users, roles: ['super_admin'] as string[] },
   { label: 'Refer & Earn', href: '/referral', icon: Share2 },
 ]
 
@@ -33,6 +34,12 @@ const INVESTOR_BOTTOM = [
 
 export default function InvestorSidebar() {
   const location = useLocation()
+  const userRole = useUserStore((s) => s.user?.role)
+
+  const visibleNav = INVESTOR_NAV.filter((item) => {
+    if (!('roles' in item) || !item.roles) return true
+    return userRole && item.roles.includes(userRole)
+  })
 
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 h-[calc(100vh-64px)] sticky top-16">
@@ -51,7 +58,7 @@ export default function InvestorSidebar() {
 
       {/* Main nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto" aria-label="Investor navigation">
-        {INVESTOR_NAV.map((item) => {
+        {visibleNav.map((item) => {
           const isActive =
             item.href === '/portal/investor'
               ? location.pathname === '/portal/investor'

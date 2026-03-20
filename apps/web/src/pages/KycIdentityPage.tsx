@@ -7,7 +7,7 @@ import { panSchema } from '@/lib/validators'
 import { useUserStore } from '@/stores/user.store'
 import {
   Shield, Upload, CheckCircle2, ArrowRight, ArrowLeft,
-  User, FileText, Camera, AlertCircle, Loader2,
+  User, FileText, Camera, AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -284,8 +284,10 @@ export default function KycIdentityPage() {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Submitting...
+                    <svg viewBox="0 0 40 40" className="h-4 w-4 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
+                    </svg>
+                    Submitting…
                   </>
                 ) : (
                   <>

@@ -32,6 +32,7 @@ export default {
       },
       fontFamily: {
         display: ['"Syne"', '"Bricolage Grotesque"', 'sans-serif'],
+        hero: ['"Orbitron"', '"Syne"', 'sans-serif'],
         body: ['"DM Sans"', '"Satoshi"', 'sans-serif'],
         mono: ['"DM Mono"', '"JetBrains Mono"', 'monospace'],
       },

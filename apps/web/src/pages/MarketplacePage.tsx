@@ -1,11 +1,14 @@
 import { MainLayout } from '@/components/layout'
 import PropertyCard from '@/components/wealth/PropertyCard'
-import { useProperties, type Property } from '@/hooks/useProperties'
+import { useProperties, usePropertyAutocomplete, type Property, type SearchSuggestion } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
-import { useNavigate } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X } from 'lucide-react'
-import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useUserStore } from '@/stores/user.store'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiDelete } from '@/lib/api'
 
 function FilterSidebar() {
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
@@ -47,7 +50,7 @@ function FilterSidebar() {
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Status</label>
         <div className="flex flex-wrap gap-2">
-          {['', 'active', 'funding', 'funded'].map((s) => (
+          {(['', 'upcoming', 'funding', 'funded'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilter('status', s)}
@@ -57,7 +60,7 @@ function FilterSidebar() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All'}
+              {s === '' ? 'All' : s === 'upcoming' ? 'Upcoming' : s === 'funding' ? 'Funding' : 'Fully Funded'}
             </button>
           ))}
         </div>
@@ -131,10 +134,178 @@ function FilterSidebar() {
   )
 }
 
+const SUGGESTION_ICONS: Record<SearchSuggestion['type'], React.ElementType> = {
+  property: Home,
+  city: MapPin,
+  area: MapPin,
+  builder: Building2,
+  referrer: User2,
+}
+
+const SUGGESTION_LABELS: Record<SearchSuggestion['type'], string> = {
+  property: 'Property',
+  city: 'City',
+  area: 'Area',
+  builder: 'Builder',
+  referrer: 'Referrer',
+}
+
+function SearchBar() {
+  const navigate = useNavigate()
+  const { filters, setFilter } = useMarketplaceStore()
+  const [inputValue, setInputValue] = useState(filters.search)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+
+  const { data: suggestions = [] } = usePropertyAutocomplete(debouncedQuery)
+
+  // Debounce the autocomplete query
+  const handleInputChange = useCallback((value: string) => {
+    setInputValue(value)
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(value.trim())
+    }, 300)
+  }, [])
+
+  // Submit search to filter properties
+  const handleSearch = useCallback((text: string) => {
+    setFilter('search', text)
+    setInputValue(text)
+    setShowDropdown(false)
+  }, [setFilter])
+
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback((s: SearchSuggestion) => {
+    if (s.type === 'property' && s.slug) {
+      navigate(`/marketplace/${s.slug}`)
+    } else if (s.type === 'city') {
+      setFilter('city', s.text)
+      setFilter('search', '')
+      setInputValue('')
+    } else {
+      handleSearch(s.text)
+    }
+    setShowDropdown(false)
+  }, [navigate, setFilter, handleSearch])
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Cleanup debounce timer
+  useEffect(() => () => clearTimeout(debounceRef.current), [])
+
+  return (
+    <div ref={wrapperRef} className="relative mb-6">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+      <input
+        type="search"
+        value={inputValue}
+        onChange={(e) => {
+          handleInputChange(e.target.value)
+          setShowDropdown(true)
+        }}
+        onFocus={() => { if (debouncedQuery.length >= 2) setShowDropdown(true) }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSearch(inputValue.trim())
+          if (e.key === 'Escape') setShowDropdown(false)
+        }}
+        placeholder="Search by property name, city, area, builder, or referrer..."
+        className="w-full pl-11 pr-10 py-3 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+      />
+      {inputValue && (
+        <button
+          onClick={() => { setInputValue(''); handleSearch(''); setDebouncedQuery('') }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          aria-label="Clear search"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+
+      {/* Autocomplete dropdown */}
+      {showDropdown && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
+          {suggestions.map((s, i) => {
+            const Icon = SUGGESTION_ICONS[s.type]
+            return (
+              <button
+                key={`${s.type}-${s.text}-${i}`}
+                onClick={() => handleSuggestionClick(s)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+              >
+                <Icon className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-sm text-gray-900 flex-1 truncate">{s.text}</span>
+                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold shrink-0">
+                  {SUGGESTION_LABELS[s.type]}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const VAULT_META: Record<string, { label: string; description: string; color: string; Icon: React.ElementType }> = {
+  wealth: {
+    label: 'Wealth Vault',
+    description: 'Institutional-grade real estate — RERA-verified properties earning passive rental income.',
+    color: 'bg-primary/10 border-primary/30 text-primary',
+    Icon: Building2,
+  },
+  opportunity: {
+    label: 'Opportunity Vault',
+    description: 'High-potential startup investments from vetted founders across industries.',
+    color: 'bg-violet-50 border-violet-200 text-violet-700',
+    Icon: Rocket,
+  },
+  community: {
+    label: 'Community Vault',
+    description: 'Community-driven opportunities — sports complexes, co-working spaces, and local businesses.',
+    color: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    Icon: Users,
+  },
+}
+
 export default function MarketplacePage() {
   const navigate = useNavigate()
-  const { filters, viewMode, setViewMode, setPage } = useMarketplaceStore()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { filters, viewMode, setViewMode, setPage, setFilter: _setFilter } = useMarketplaceStore()
   const { data, isLoading } = useProperties(filters)
+  const queryClient = useQueryClient()
+  const userRole = useUserStore((s) => s.user?.role)
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+
+  const handleDeleteProperty = async (propertyId: string) => {
+    try {
+      await apiDelete(`/properties/${propertyId}`)
+      queryClient.invalidateQueries({ queryKey: ['properties'] })
+    } catch {
+      alert('Failed to archive property. Please try again.')
+    }
+  }
+
+  const vaultParam = searchParams.get('vault') ?? ''
+  const vaultMeta = VAULT_META[vaultParam]
+
+  // Clear vault context banner
+  const clearVault = () => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('vault')
+    setSearchParams(next)
+  }
 
   const properties = data?.properties ?? ([] as Property[])
   const totalPages = data?.totalPages ?? 1
@@ -142,21 +313,32 @@ export default function MarketplacePage() {
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Vault context banner */}
+        {vaultMeta && (
+          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 mb-5 ${vaultMeta.color}`}>
+            <vaultMeta.Icon className="h-5 w-5 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">{vaultMeta.label}</p>
+              <p className="text-xs opacity-80 mt-0.5">{vaultMeta.description}</p>
+            </div>
+            <button
+              onClick={clearVault}
+              className="shrink-0 p-1 rounded hover:bg-black/10 transition-colors"
+              aria-label="Clear vault filter"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Page header */}
         <div className="mb-6">
           <h1 className="font-display text-3xl font-bold text-gray-900">Property Marketplace</h1>
           <p className="text-gray-500 mt-1">Discover RERA-verified investment opportunities</p>
         </div>
 
-        {/* Search bar */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="search"
-            placeholder="Search by property name, city, or RERA number..."
-            className="w-full pl-11 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-          />
-        </div>
+        {/* Search bar with autocomplete */}
+        <SearchBar />
 
         <div className="flex gap-8">
           <FilterSidebar />
@@ -209,14 +391,20 @@ export default function MarketplacePage() {
                       micromarket={p.micromarket}
                       assetType={p.assetType}
                       coverImage={p.coverImage}
+                      gallery={p.gallery}
+                      videoUrl={p.videoUrl}
                       targetIrr={p.targetIrr}
                       minInvestment={p.minInvestment}
                       raised={p.raised}
                       target={p.target}
                       investorCount={p.investorCount}
                       reraNumber={p.reraNumber}
+                      status={p.status as any}
                       onCardClick={() => navigate(`/marketplace/${p.slug}`)}
                       onInvestClick={() => navigate(`/marketplace/${p.slug}`)}
+                      isAdmin={isAdmin}
+                      propertyId={p.id}
+                      onDelete={handleDeleteProperty}
                     />
                   ))}
             </div>
@@ -225,8 +413,8 @@ export default function MarketplacePage() {
             {!isLoading && properties.length === 0 && (
               <div className="text-center py-20">
                 <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-1">No properties found</h3>
-                <p className="text-sm text-gray-500">Try adjusting your filters to see more results.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">Nothing here yet 🏗️</h3>
+                <p className="text-sm text-gray-500">Tweak those filters — your next goldmine could be one click away.</p>
               </div>
             )}
 

@@ -7,7 +7,7 @@ export interface UserProfile {
   name: string
   phone: string
   avatarUrl?: string
-  role: 'investor' | 'builder' | 'admin' | 'lender'
+  role: 'investor' | 'builder' | 'admin' | 'lender' | 'founder' | 'community_lead' | 'approver' | 'super_admin'
   kycStatus: string
   referralCode: string
   wealthPassActive: boolean
@@ -42,6 +42,7 @@ export const useUserStore = create<UserState>()(
 
         logout: () => {
           localStorage.removeItem('ws_token')
+          localStorage.removeItem('ws_refresh_token')
           set({ user: null, token: null, isAuthenticated: false }, false, 'logout')
         },
 

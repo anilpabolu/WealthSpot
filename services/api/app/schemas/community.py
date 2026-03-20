@@ -1,9 +1,10 @@
 """
-Community schemas – posts and replies.
+Community schemas – posts, replies, likes.
 """
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -23,7 +24,7 @@ class AuthorRead(BaseModel):
 # ── Posts ────────────────────────────────────────────────────────────────────
 
 class PostCreate(BaseModel):
-    title: str = Field(max_length=500)
+    title: str = Field(min_length=3, max_length=500)
     body: str = Field(min_length=1)
     post_type: PostType = PostType.DISCUSSION
     category: str | None = None
@@ -44,6 +45,8 @@ class PostRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     author: AuthorRead | None = None
+    # Computed per-request (not stored)
+    user_has_liked: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -53,13 +56,15 @@ class PostListItem(BaseModel):
     id: uuid.UUID
     post_type: PostType
     title: str
-    body_preview: str  # computed – first 200 chars
+    body_preview: str
     category: str | None = None
+    tags: list[str] | None = None
     upvotes: int
     reply_count: int
     is_pinned: bool
     author: AuthorRead | None = None
     created_at: datetime
+    user_has_liked: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -83,7 +88,17 @@ class ReplyRead(BaseModel):
     user_id: uuid.UUID
     body: str
     upvotes: int
+    is_approved: bool = True
+    approval_status: str | None = None
     created_at: datetime
     author: AuthorRead | None = None
+    user_has_liked: bool = False
 
     model_config = {"from_attributes": True}
+
+
+# ── Likes ────────────────────────────────────────────────────────────────────
+
+class LikeResponse(BaseModel):
+    liked: bool
+    like_count: int

@@ -1,16 +1,18 @@
 """
-Notification router – list, mark read, get unread count.
+Notification router – list, mark read, get unread count, enquiry.
 """
 
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.notification import Notification
+from app.models.property import Property
 from app.models.user import User
 from app.schemas.notification import MarkReadRequest, NotificationRead, PaginatedNotifications
 
@@ -88,5 +90,50 @@ async def mark_read(
         )
 
     await db.execute(stmt)
+    await db.commit()
+    return {"status": "ok"}
+
+
+class EnquiryRequest(BaseModel):
+    property_id: str
+    message: str = ""
+
+
+@router.post("/enquiry")
+async def send_enquiry(
+    payload: EnquiryRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """Send an enquiry about a property. Notifies the builder and/or referrer."""
+    # Look up the property to find builder and referrer
+    prop = (await db.execute(
+        select(Property).where(Property.id == payload.property_id)
+    )).scalar_one_or_none()
+
+    if not prop:
+        return {"status": "error", "message": "Property not found"}
+
+    recipients: list[str] = []
+    if prop.builder_id:
+        recipients.append(str(prop.builder_id))
+    if prop.referrer_user_id:
+        recipients.append(str(prop.referrer_user_id))
+
+    sender_name = user.full_name or user.email or "A user"
+    now = datetime.now(timezone.utc)
+
+    for recipient_id in recipients:
+        notif = Notification(
+            user_id=recipient_id,
+            type="enquiry",
+            channel="in_app",
+            title=f"New enquiry for {prop.title}",
+            body=payload.message or f"{sender_name} is interested in '{prop.title}'",
+            data={"property_id": str(prop.id), "enquirer_id": str(user.id)},
+            created_at=now,
+        )
+        db.add(notif)
+
     await db.commit()
     return {"status": "ok"}

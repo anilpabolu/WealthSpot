@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
-import PropertyCard from '@/components/wealth/PropertyCard'
+import OnboardingVideo from '@/components/OnboardingVideo'
 import {
   Shield,
   TrendingUp,
@@ -15,72 +16,50 @@ import {
   Wallet,
   Search,
 } from 'lucide-react'
-import { useFeaturedProperties, type Property } from '@/hooks/useProperties'
+
 
 /* ---------- Hero ---------- */
-function HeroSection() {
+function HeroSection({ onHowItWorks }: { onHowItWorks: () => void }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-white to-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left copy */}
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Zap className="h-4 w-4" />
-              SEBI-Compliant Fractional Ownership
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
-              Own Premium
-              <br />
-              Real Estate from{' '}
-              <span className="text-primary">₹10,000</span>
-            </h1>
-            <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-              WealthSpot makes fractional real estate investing accessible to everyone.
-              Earn up to 18% IRR on RERA-verified properties across India's top cities.
-            </p>
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-white to-gray-50 flex-1 flex items-center">
+      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-16">
+        <div className="space-y-6 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            <Zap className="h-4 w-4" />
+            SEBI-Compliant Fractional Ownership
+          </div>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
+            Own Premium
+            <br />
+            Real Estate from{' '}
+            <span className="text-primary">₹10,000</span>
+          </h1>
+          <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
+            WealthSpot makes fractional real estate investing accessible to everyone.
+            Earn up to 18% IRR on RERA-verified properties across India's top cities.
+          </p>
 
-            {/* CTA row */}
-            <div className="flex flex-wrap items-center gap-4">
-              <Link to="/marketplace" className="btn-primary text-base px-6 py-3 inline-flex items-center gap-2">
-                Explore Properties
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link to="/#how-it-works" className="btn-ghost text-base px-6 py-3">
-                How it Works
-              </Link>
-            </div>
-
-            {/* Trust badges */}
-            <div className="flex items-center gap-6 pt-2">
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Lock className="h-4 w-4 text-success" />
-                256-bit Encryption
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Shield className="h-4 w-4 text-primary" />
-                SEBI Registered
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <CheckCircle2 className="h-4 w-4 text-success" />
-                RERA Verified
-              </div>
-            </div>
+          {/* CTA row */}
+          <div className="flex flex-wrap items-center gap-4">
+            <button onClick={onHowItWorks} className="btn-primary text-base px-6 py-3 inline-flex items-center gap-2">
+              How it Works
+              <ArrowRight className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Right — hero image / illustration placeholder */}
-          <div className="hidden lg:block relative">
-            <div className="aspect-square max-w-lg mx-auto bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl flex items-center justify-center">
-              <Building2 className="h-32 w-32 text-primary/30" />
+          {/* Trust badges */}
+          <div className="flex items-center gap-6 pt-2">
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              <Lock className="h-4 w-4 text-success" />
+              256-bit Encryption
             </div>
-            {/* Floating stat cards */}
-            <div className="absolute top-8 right-0 bg-white shadow-lg rounded-xl p-4 animate-fade-up">
-              <p className="text-xs text-gray-500 font-semibold">Total Invested</p>
-              <p className="font-mono text-xl font-bold text-gray-900">₹42.5 Cr</p>
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              <Shield className="h-4 w-4 text-primary" />
+              SEBI Registered
             </div>
-            <div className="absolute bottom-12 left-0 bg-white shadow-lg rounded-xl p-4 animate-fade-up" style={{ animationDelay: '200ms' }}>
-              <p className="text-xs text-gray-500 font-semibold">Avg. IRR</p>
-              <p className="font-mono text-xl font-bold text-primary">14.2%</p>
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              RERA Verified
             </div>
           </div>
         </div>
@@ -155,56 +134,6 @@ function HowItWorks() {
   )
 }
 
-/* ---------- Featured Properties ---------- */
-function FeaturedProperties() {
-  const { data, isLoading } = useFeaturedProperties()
-  const properties = data?.properties ?? ([] as Property[])
-
-  return (
-    <section className="py-20 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="section-header">Featured Properties</h2>
-            <p className="text-gray-500 mt-1">Top-performing investment opportunities</p>
-          </div>
-          <Link
-            to="/marketplace"
-            className="btn-ghost text-sm inline-flex items-center gap-1"
-          >
-            View All <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" targetIrr={0} minInvestment={0} raised={0} target={0} />
-              ))
-            : properties.map((p) => (
-                <PropertyCard
-                  key={p.id}
-                  title={p.title}
-                  city={p.city}
-                  micromarket={p.micromarket}
-                  assetType={p.assetType}
-                  coverImage={p.coverImage}
-                  targetIrr={p.targetIrr}
-                  minInvestment={p.minInvestment}
-                  raised={p.raised}
-                  target={p.target}
-                  investorCount={p.investorCount}
-                  reraNumber={p.reraNumber}
-                  onCardClick={() => window.location.href = `/marketplace/${p.slug}`}
-                  onInvestClick={() => window.location.href = `/marketplace/${p.slug}`}
-                />
-              ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 /* ---------- Testimonials ---------- */
 function Testimonials() {
   const reviews = [
@@ -266,31 +195,24 @@ function Testimonials() {
 }
 
 /* ---------- CTA Section ---------- */
-function CtaSection() {
+function CtaSection({ onGetStarted }: { onGetStarted: () => void }) {
   return (
     <section className="py-20 bg-primary">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-          Start Building Your Real Estate Wealth Today
+          Your Wealth Story Starts Now 🚀
         </h2>
         <p className="text-primary-100 text-lg mb-8 max-w-2xl mx-auto opacity-90">
-          Join 8,000+ investors earning up to 18% IRR on verified properties.
-          Your first investment is just ₹10,000 away.
+          8,000+ investors are already in the game. ₹10,000 is all it takes to join — your future self will thank you.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Link
-            to="/auth/signup"
+          <button
+            onClick={onGetStarted}
             className="bg-white text-primary font-semibold px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
           >
-            Create Free Account
+            Claim Your Spot
             <ArrowRight className="h-5 w-5" />
-          </Link>
-          <Link
-            to="/marketplace"
-            className="border border-white/30 text-white font-semibold px-8 py-3 rounded-lg hover:bg-white/10 transition-colors"
-          >
-            Browse Properties
-          </Link>
+          </button>
         </div>
       </div>
     </section>
@@ -299,14 +221,33 @@ function CtaSection() {
 
 /* ---------- Landing Page ---------- */
 export default function LandingPage() {
+  const [showVideo, setShowVideo] = useState(false)
+  const [videoMode, setVideoMode] = useState<'browse' | 'signup'>('browse')
+
+  const openVideo = (mode: 'browse' | 'signup') => {
+    setVideoMode(mode)
+    setShowVideo(true)
+  }
+
   return (
     <MainLayout>
-      <HeroSection />
-      <StatsBar />
-      <FeaturedProperties />
+      {/* Hero + metrics fill exactly one viewport (minus navbar) */}
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <HeroSection onHowItWorks={() => openVideo('browse')} />
+        <StatsBar />
+      </div>
       <HowItWorks />
       <Testimonials />
-      <CtaSection />
+      <CtaSection onGetStarted={() => openVideo('signup')} />
+
+      {/* Video overlay */}
+      {showVideo && (
+        <OnboardingVideo
+          mode={videoMode}
+          onComplete={() => setShowVideo(false)}
+          onClose={() => setShowVideo(false)}
+        />
+      )}
     </MainLayout>
   )
 }

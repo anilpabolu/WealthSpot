@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import FundingBar from '@/components/wealth/FundingBar'
 import IrrBadge from '@/components/wealth/IrrBadge'
@@ -9,12 +9,27 @@ import { formatINR, formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
   MapPin, Calendar, Users, Building2, FileText, Shield,
   ArrowRight, ChevronLeft, Heart, Share2, CheckCircle2,
-  Clock, ChevronRight,
+  Clock, ChevronRight, Play, Star, Sparkles, Phone, ExternalLink, User2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { apiPost } from '@/lib/api'
 
-function PropertyGallery({ images, title }: { images: string[]; title: string }) {
+function PropertyGallery({ images, title, videoUrl }: { images: string[]; title: string; videoUrl?: string }) {
   const [activeIdx, setActiveIdx] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval>>()
+
+  const startAutoPlay = useCallback(() => {
+    if (images.length <= 1) return
+    clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
+    }, 5000)
+  }, [images.length])
+
+  useEffect(() => {
+    startAutoPlay()
+    return () => clearInterval(intervalRef.current)
+  }, [startAutoPlay])
 
   if (!images.length) {
     return (
@@ -26,7 +41,19 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
 
   return (
     <div className="space-y-3">
-      <div className="aspect-video rounded-xl overflow-hidden relative">
+      <div
+        className="aspect-video rounded-xl overflow-hidden relative"
+        onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX }}
+        onTouchEnd={(e) => {
+          const startX = (e.currentTarget as any)._touchX ?? 0
+          const diff = startX - e.changedTouches[0].clientX
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
+            else setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1))
+            startAutoPlay()
+          }
+        }}
+      >
         <img
           src={images[activeIdx]}
           alt={`${title} - Image ${activeIdx + 1}`}
@@ -35,20 +62,49 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
         {images.length > 1 && (
           <>
             <button
-              onClick={() => setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1))}
+              onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }}
               className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={() => setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))}
+              onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }}
               className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
+            {/* Dot indicators */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setActiveIdx(i); startAutoPlay() }}
+                  className={`h-2 rounded-full transition-all ${
+                    i === activeIdx ? 'w-5 bg-white' : 'w-2 bg-white/60'
+                  }`}
+                  aria-label={`Go to image ${i + 1}`}
+                />
+              ))}
+            </div>
           </>
+        )}
+        {/* Image counter */}
+        <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+          {activeIdx + 1} / {images.length}
+        </span>
+        {/* Video link */}
+        {videoUrl && (
+          <a
+            href={videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
+          >
+            <Play className="h-4 w-4 fill-white" />
+            Watch Video
+          </a>
         )}
       </div>
       {images.length > 1 && (
@@ -56,7 +112,7 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
           {images.map((img, i) => (
             <button
               key={i}
-              onClick={() => setActiveIdx(i)}
+              onClick={() => { setActiveIdx(i); startAutoPlay() }}
               className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 ring-2 transition-all ${
                 i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'
               }`}
@@ -231,7 +287,7 @@ export default function PropertyDetailPage() {
           {/* Left — Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Gallery */}
-            <PropertyGallery images={property.gallery ?? [property.coverImage]} title={property.title} />
+            <PropertyGallery images={property.gallery?.length ? property.gallery : [property.coverImage]} title={property.title} videoUrl={property.videoUrl} />
 
             {/* Title / Location */}
             <div>
@@ -265,11 +321,112 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
+            {/* Referrer Info */}
+            {property.referrerName && (
+              <div className="card p-6 border-l-4 border-l-amber-400 bg-amber-50/50">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                      <User2 className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Referred By</p>
+                      <p className="font-semibold text-gray-900">{property.referrerName}</p>
+                      {property.referrerPhone && (
+                        <p className="text-sm text-gray-500">{property.referrerPhone}</p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await apiPost('/notifications/enquiry', {
+                          property_id: property.id,
+                          message: `Enquiry for "${property.title}" from the property detail page`,
+                        })
+                        alert('Your enquiry has been sent! The referrer/builder will contact you shortly.')
+                      } catch {
+                        alert('Could not send enquiry. Please try again.')
+                      }
+                    }}
+                    className="btn-primary text-sm flex items-center gap-2 shrink-0"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Enquire Now
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Location Details */}
+            <div className="card p-6">
+              <h2 className="font-display text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                Location Details
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {property.address && (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-0.5">Address</p>
+                    <p className="text-sm font-medium text-gray-900">{property.address}</p>
+                  </div>
+                )}
+                {property.micromarket && (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-0.5">Area / Locality</p>
+                    <p className="text-sm font-medium text-gray-900">{property.micromarket}</p>
+                  </div>
+                )}
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-0.5">City</p>
+                  <p className="text-sm font-medium text-gray-900">{property.city}</p>
+                </div>
+                {property.reraNumber && (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-0.5">RERA ID</p>
+                    <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                      <Shield className="h-3.5 w-3.5 text-green-500" />
+                      {property.reraNumber}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Description */}
             <div className="card p-6">
               <h2 className="font-display text-lg font-bold text-gray-900 mb-3">About this Property</h2>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{property.description}</p>
             </div>
+
+            {/* Property Highlights */}
+            {property.highlights?.length > 0 && (
+              <div className="card p-6">
+                <h2 className="font-display text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-amber-500" />
+                  Property Highlights
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {property.highlights.map((h, i) => (
+                    <div key={i} className="flex items-start gap-2 p-3 bg-amber-50/50 rounded-lg">
+                      <CheckCircle2 className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <span className="text-sm text-gray-700">{h}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* USP */}
+            {property.usp && (
+              <div className="card p-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+                <h2 className="font-display text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Unique Selling Point
+                </h2>
+                <p className="text-sm text-gray-700 leading-relaxed">{property.usp}</p>
+              </div>
+            )}
 
             {/* Key Details */}
             <div className="card p-6">
@@ -317,7 +474,7 @@ export default function PropertyDetailPage() {
                     <Building2 className="h-6 w-6 text-gray-400" />
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold text-gray-900">{property.builderName}</p>
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success" />
@@ -325,6 +482,15 @@ export default function PropertyDetailPage() {
                   </p>
                 </div>
               </div>
+              {property.builderId && (
+                <Link
+                  to={`/builder/${property.builderId}`}
+                  className="mt-4 inline-flex items-center gap-2 text-sm text-primary font-semibold hover:underline"
+                >
+                  Want to know more about the builder? Click here
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              )}
             </div>
 
             {/* Documents */}

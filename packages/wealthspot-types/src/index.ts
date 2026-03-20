@@ -14,6 +14,11 @@ export {
   LoanStatus,
   KycDocumentType,
   DocumentVerificationStatus,
+  ApprovalCategory,
+  ApprovalStatus,
+  ApprovalPriority,
+  VaultType,
+  OpportunityStatus,
 } from "./enums";
 
 // Entity models
@@ -47,6 +52,16 @@ export type {
   AuditLog,
   Loan,
   LoanCreate,
+  ApprovalRequest,
+  ApprovalCreate,
+  ApprovalReview,
+  ApprovalStats,
+  Opportunity,
+  OpportunityCreate,
+  PlatformConfig,
+  PlatformConfigCreate,
+  PlatformConfigUpdate,
+  ControlCentreDashboard,
 } from "./models";
 
 // API response types

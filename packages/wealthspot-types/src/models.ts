@@ -13,6 +13,11 @@ import type {
   PostType,
   LoanStatus,
   DocumentVerificationStatus,
+  ApprovalCategory,
+  ApprovalStatus,
+  ApprovalPriority,
+  VaultType,
+  OpportunityStatus,
 } from "./enums";
 
 // ── User ────────────────────────────────────────────────────────────────────
@@ -359,4 +364,144 @@ export interface LoanCreate {
   principal: number;
   interest_rate: number;
   tenure_months: number;
+}
+
+// ── Approval Request ────────────────────────────────────────────────────────
+
+export interface ApprovalRequest {
+  id: string;
+  requester_id: string;
+  reviewer_id: string | null;
+  category: ApprovalCategory;
+  status: ApprovalStatus;
+  priority: ApprovalPriority;
+  title: string;
+  description: string | null;
+  resource_type: string | null;
+  resource_id: string | null;
+  payload: Record<string, unknown> | null;
+  review_note: string | null;
+  auto_approve: boolean;
+  created_at: string;
+  reviewed_at: string | null;
+  updated_at: string;
+  requester?: Pick<User, "id" | "email" | "full_name" | "avatar_url">;
+  reviewer?: Pick<User, "id" | "email" | "full_name" | "avatar_url">;
+}
+
+export interface ApprovalCreate {
+  category: ApprovalCategory;
+  title: string;
+  description?: string;
+  priority?: ApprovalPriority;
+  resource_type?: string;
+  resource_id?: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface ApprovalReview {
+  action: "approve" | "reject";
+  review_note?: string;
+}
+
+export interface ApprovalStats {
+  pending: number;
+  in_review: number;
+  approved: number;
+  rejected: number;
+}
+
+// ── Opportunity ─────────────────────────────────────────────────────────────
+
+export interface Opportunity {
+  id: string;
+  creator_id: string;
+  vault_type: VaultType;
+  status: OpportunityStatus;
+  approval_id: string | null;
+  title: string;
+  slug: string;
+  tagline: string | null;
+  description: string | null;
+  city: string | null;
+  state: string | null;
+  address: string | null;
+  target_amount: number | null;
+  raised_amount: number;
+  min_investment: number | null;
+  target_irr: number | null;
+  industry: string | null;
+  stage: string | null;
+  founder_name: string | null;
+  pitch_deck_url: string | null;
+  community_type: string | null;
+  collaboration_type: string | null;
+  cover_image: string | null;
+  gallery: string[] | null;
+  documents: Record<string, unknown> | null;
+  template_s3_key: string | null;
+  template_data: Record<string, unknown> | null;
+  investor_count: number;
+  launch_date: string | null;
+  created_at: string;
+  updated_at: string;
+  creator?: Pick<User, "id" | "full_name" | "avatar_url">;
+}
+
+export interface OpportunityCreate {
+  vault_type: VaultType;
+  title: string;
+  tagline?: string;
+  description?: string;
+  cover_image?: string;
+  // Wealth fields
+  city?: string;
+  state?: string;
+  address?: string;
+  target_amount?: number;
+  min_investment?: number;
+  target_irr?: number;
+  // Startup fields
+  industry?: string;
+  stage?: string;
+  founder_name?: string;
+  pitch_deck_url?: string;
+  // Community fields
+  community_type?: string;
+  collaboration_type?: string;
+}
+
+// ── Platform Config ─────────────────────────────────────────────────────────
+
+export interface PlatformConfig {
+  id: string;
+  section: string;
+  key: string;
+  value: unknown;
+  description: string | null;
+  is_active: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlatformConfigCreate {
+  section: string;
+  key: string;
+  value: unknown;
+  description?: string;
+}
+
+export interface PlatformConfigUpdate {
+  value?: unknown;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface ControlCentreDashboard {
+  total_users: number;
+  role_distribution: Record<string, number>;
+  pending_approvals: number;
+  total_opportunities: number;
+  active_configs: number;
 }

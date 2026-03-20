@@ -7,13 +7,11 @@ const FOOTER_LINKS = {
     { label: 'How it Works', href: '/#how-it-works' },
     { label: 'For Builders', href: '/builders' },
     { label: 'For Lenders', href: '/lenders' },
-    { label: 'Pricing', href: '/pricing' },
   ],
   Company: [
     { label: 'About Us', href: '/about' },
     { label: 'Careers', href: '/careers' },
     { label: 'Blog', href: '/blog' },
-    { label: 'Press', href: '/press' },
     { label: 'Contact', href: '/contact' },
   ],
   Legal: [
@@ -24,11 +22,9 @@ const FOOTER_LINKS = {
     { label: 'Grievance Officer', href: '/legal/grievance' },
   ],
   Resources: [
-    { label: 'Help Center', href: '/help' },
     { label: 'Community', href: '/community' },
     { label: 'Webinars', href: '/webinars' },
     { label: 'Tax Guide', href: '/resources/tax-guide' },
-    { label: 'API Docs', href: '/docs/api' },
   ],
 }
 

@@ -63,9 +63,28 @@ export const USER_ROLES = {
   BUILDER: 'builder',
   LENDER: 'lender',
   ADMIN: 'admin',
+  FOUNDER: 'founder',
+  COMMUNITY_LEAD: 'community_lead',
+  APPROVER: 'approver',
+  SUPER_ADMIN: 'super_admin',
 } as const
 
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES]
+
+/** Roles that can access the Approvals page */
+export const APPROVAL_ROLES: UserRole[] = ['admin', 'approver', 'super_admin']
+
+/** Pretty labels for user roles */
+export const ROLE_LABELS: Record<UserRole, string> = {
+  investor: 'Investor',
+  builder: 'Builder (Real Estate)',
+  lender: 'Lender',
+  admin: 'Admin',
+  founder: 'Founder (Startup)',
+  community_lead: 'Community Lead',
+  approver: 'Approver',
+  super_admin: 'Super Admin',
+}
 
 // ─── Indian Cities ────────────────────────────────────
 export const INDIAN_CITIES = [

@@ -32,6 +32,12 @@ interface ApiProperty {
   bedrooms?: number
   possessionDate?: string
   amenities?: string[]
+  highlights?: string[]
+  usp?: string
+  videoUrl?: string
+  referrerName?: string
+  referrerPhone?: string
+  referrerUserId?: string
   documents?: Record<string, unknown>
   builder?: {
     id: string
@@ -39,6 +45,16 @@ interface ApiProperty {
     reraNumber?: string
     logoUrl?: string
     verified: boolean
+    phone?: string
+    email?: string
+    address?: string
+    city?: string
+    experienceYears?: number
+    projectsCompleted?: number
+    totalSqftDelivered?: number
+    about?: string
+    description?: string
+    website?: string
   }
   launchDate?: string
   createdAt: string
@@ -70,8 +86,15 @@ export interface Property {
   builderId: string
   builderName: string
   builderLogo: string
+  builder: Property['builder'] | null
   fundingPercentage: number
   amenities: string[]
+  highlights: string[]
+  usp: string
+  videoUrl: string
+  referrerName: string
+  referrerPhone: string
+  referrerUserId: string
   documents: Array<{ name: string; url: string; type: string }>
   createdAt: string
 }
@@ -102,8 +125,31 @@ function mapProperty(p: ApiProperty): Property {
     builderId: p.builder?.id ?? '',
     builderName: p.builder?.companyName ?? '',
     builderLogo: p.builder?.logoUrl ?? '',
+    builder: p.builder ? {
+      id: p.builder.id,
+      companyName: p.builder.companyName,
+      reraNumber: p.builder.reraNumber,
+      logoUrl: p.builder.logoUrl,
+      verified: p.builder.verified,
+      phone: p.builder.phone,
+      email: p.builder.email,
+      address: p.builder.address,
+      city: p.builder.city,
+      experienceYears: p.builder.experienceYears,
+      projectsCompleted: p.builder.projectsCompleted,
+      totalSqftDelivered: p.builder.totalSqftDelivered,
+      about: p.builder.about,
+      description: p.builder.description,
+      website: p.builder.website,
+    } : null,
     fundingPercentage: p.fundingPercentage,
     amenities: p.amenities ?? [],
+    highlights: p.highlights ?? [],
+    usp: p.usp ?? '',
+    videoUrl: p.videoUrl ?? '',
+    referrerName: p.referrerName ?? '',
+    referrerPhone: p.referrerPhone ?? '',
+    referrerUserId: p.referrerUserId ?? '',
     documents: [],
     createdAt: p.createdAt,
   }
@@ -131,6 +177,7 @@ export function useProperties(filters: MarketplaceFilters) {
     queryFn: async (): Promise<PropertiesResponse> => {
       const raw = await apiGet<ApiPaginatedProperties>('/properties', {
         params: {
+          search: filters.search || undefined,
           city: filters.city || undefined,
           asset_type: filters.assetType || undefined,
           min_investment_min: filters.minInvestment[0],
@@ -186,5 +233,89 @@ export function usePropertyCities() {
     queryKey: ['properties', 'cities'],
     queryFn: () => apiGet<string[]>('/properties/cities'),
     staleTime: 300_000,
+  })
+}
+
+/** Autocomplete suggestions for the marketplace search bar */
+export interface SearchSuggestion {
+  text: string
+  type: 'property' | 'city' | 'area' | 'builder' | 'referrer'
+  slug?: string
+}
+
+export function usePropertyAutocomplete(query: string) {
+  return useQuery({
+    queryKey: ['properties', 'autocomplete', query],
+    queryFn: () => apiGet<SearchSuggestion[]>('/properties/autocomplete', { params: { q: query } }),
+    enabled: query.length >= 2,
+    staleTime: 30_000,
+  })
+}
+
+/** Full builder profile with their listed properties */
+export interface BuilderProfile {
+  id: string
+  companyName: string
+  reraNumber?: string
+  logoUrl?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experienceYears?: number
+  projectsCompleted?: number
+  totalSqftDelivered?: number
+  about?: string
+  description?: string
+  website?: string
+  properties: Property[]
+}
+
+interface ApiBuilderProfile {
+  id: string
+  company_name: string
+  rera_number?: string
+  logo_url?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experience_years?: number
+  projects_completed?: number
+  total_sqft_delivered?: number
+  about?: string
+  description?: string
+  website?: string
+  properties: ApiProperty[]
+}
+
+export function useBuilderProfile(builderId: string) {
+  return useQuery({
+    queryKey: ['builder', builderId],
+    queryFn: async (): Promise<BuilderProfile> => {
+      const raw = await apiGet<ApiBuilderProfile>(`/properties/builders/${builderId}`)
+      return {
+        id: raw.id,
+        companyName: raw.company_name,
+        reraNumber: raw.rera_number,
+        logoUrl: raw.logo_url,
+        verified: raw.verified,
+        phone: raw.phone,
+        email: raw.email,
+        address: raw.address,
+        city: raw.city,
+        experienceYears: raw.experience_years,
+        projectsCompleted: raw.projects_completed,
+        totalSqftDelivered: raw.total_sqft_delivered,
+        about: raw.about,
+        description: raw.description,
+        website: raw.website,
+        properties: raw.properties.map(mapProperty),
+      }
+    },
+    enabled: !!builderId,
+    staleTime: 120_000,
   })
 }

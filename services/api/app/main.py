@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.middleware.rate_limit import RateLimitMiddleware
-from app.routers import admin, auth, community, investments, lender, notifications, properties, referrals, webhooks
+from app.routers import admin, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points
 
 # Import all models so SQLAlchemy resolves relationship() string references
 import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
@@ -78,6 +78,14 @@ app.include_router(referrals.router, prefix=API_PREFIX)
 app.include_router(lender.router, prefix=API_PREFIX)
 app.include_router(notifications.router, prefix=API_PREFIX)
 app.include_router(webhooks.router, prefix=API_PREFIX)
+app.include_router(approvals.router, prefix=API_PREFIX)
+app.include_router(opportunities.router, prefix=API_PREFIX)
+app.include_router(control_centre.router, prefix=API_PREFIX)
+app.include_router(uploads.router, prefix=API_PREFIX)
+app.include_router(pincodes.router, prefix=API_PREFIX)
+app.include_router(companies.router, prefix=API_PREFIX)
+app.include_router(templates.router, prefix=API_PREFIX)
+app.include_router(points.router, prefix=API_PREFIX)
 
 
 # ── Health ───────────────────────────────────────────────────────────────────

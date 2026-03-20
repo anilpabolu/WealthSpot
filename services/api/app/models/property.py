@@ -39,6 +39,7 @@ class PropertyStatus(str, PyEnum):
     FUNDED = "funded"
     EXITED = "exited"
     REJECTED = "rejected"
+    ARCHIVED = "archived"  # soft-deleted by admin
 
 
 class Builder(Base):
@@ -58,6 +59,14 @@ class Builder(Base):
     logo_url: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    phone: Mapped[str | None] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(255))
+    address: Mapped[str | None] = mapped_column(Text)
+    city: Mapped[str | None] = mapped_column(String(100))
+    experience_years: Mapped[int | None] = mapped_column(Integer)
+    projects_completed: Mapped[int] = mapped_column(Integer, default=0)
+    total_sqft_delivered: Mapped[int] = mapped_column(Integer, default=0)
+    about: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -116,8 +125,20 @@ class Property(Base):
     # Media
     cover_image: Mapped[str | None] = mapped_column(Text)
     gallery: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    video_url: Mapped[str | None] = mapped_column(Text)
     documents: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     amenities: Mapped[list[str] | None] = mapped_column(ARRAY(String(100)))
+
+    # Highlights & USP
+    highlights: Mapped[list[str] | None] = mapped_column(ARRAY(Text), default=list)
+    usp: Mapped[str | None] = mapped_column(Text)
+
+    # Referrer (person who shared/listed this property)
+    referrer_name: Mapped[str | None] = mapped_column(String(255))
+    referrer_phone: Mapped[str | None] = mapped_column(String(20))
+    referrer_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
 
     # Counts
     investor_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -136,6 +157,7 @@ class Property(Base):
     # Relationships
     builder = relationship("Builder", back_populates="properties")
     investments = relationship("Investment", back_populates="property", lazy="selectin")
+    referrer = relationship("User", foreign_keys="[Property.referrer_user_id]", lazy="joined")
 
     @property
     def funding_percentage(self) -> float:
