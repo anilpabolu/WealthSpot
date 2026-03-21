@@ -7,7 +7,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:functional": "vitest run -c vitest.functional.config.ts",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
@@ -33,13 +36,16 @@
     "react-native-screens": "3.31.0",
     "react-native-svg": "15.2.0",
     "tailwindcss": "^3.4.0",
+    "zod": "^3.25.76",
     "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^8.0.0",
     "eslint-config-expo": "~7.0.0",
-    "typescript": "~5.3.0"
+    "typescript": "~5.3.0",
+    "vitest": "^2.1.8"
   },
   "private": true
 }

@@ -3,37 +3,22 @@
  * Summary metrics, asset allocation, holdings list.
  */
 
-import { View, Text, ScrollView, Pressable } from 'react-native'
-import { Link } from 'expo-router'
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
-
-const PORTFOLIO = {
-  totalInvested: 450000,
-  currentValue: 512000,
-  xirr: 13.8,
-  monthlyIncome: 2700,
-  properties: [
-    {
-      id: '1', name: 'Prestige Lakeside Habitat', city: 'Bengaluru',
-      invested: 200000, value: 228000, irr: 14.5, units: 8,
-    },
-    {
-      id: '2', name: 'Brigade Tech Park', city: 'Hyderabad',
-      invested: 150000, value: 168000, irr: 16.2, units: 3,
-    },
-    {
-      id: '3', name: 'Godrej Aqua Phase II', city: 'Pune',
-      invested: 100000, value: 116000, irr: 13.8, units: 10,
-    },
-  ],
-  allocation: [
-    { type: 'Residential', pct: 67, color: '#5B4FCF' },
-    { type: 'Commercial', pct: 33, color: '#FF6B35' },
-  ],
-}
+import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfolio'
 
 export default function PortfolioScreen() {
+  const { data: summary, isLoading: summaryLoading } = usePortfolioSummary()
+  const { data: holdings, isLoading: holdingsLoading } = usePortfolioProperties()
+
+  if (summaryLoading) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center">
+        <ActivityIndicator size="large" color="#5B4FCF" />
+      </View>
+    )
+  }
   return (
     <ScrollView className="flex-1 bg-surface">
       {/* Summary Cards */}
@@ -43,75 +28,80 @@ export default function PortfolioScreen() {
         <View className="flex-row justify-between mb-4">
           <View>
             <Text className="text-white/60 text-xs">Total Invested</Text>
-            <Text className="text-white font-bold text-xl">{formatINR(PORTFOLIO.totalInvested)}</Text>
+            <Text className="text-white font-bold text-xl">{formatINR(summary?.totalInvested ?? 0)}</Text>
           </View>
           <View className="items-end">
             <Text className="text-white/60 text-xs">Current Value</Text>
-            <Text className="text-white font-bold text-xl">{formatINR(PORTFOLIO.currentValue)}</Text>
+            <Text className="text-white font-bold text-xl">{formatINR(summary?.currentValue ?? 0)}</Text>
           </View>
         </View>
 
         <View className="flex-row bg-white/10 rounded-xl p-3 gap-4">
           <View className="flex-1 items-center">
             <Text className="text-white/60 text-[10px]">XIRR</Text>
-            <Text className="text-emerald-300 font-bold text-base">{PORTFOLIO.xirr}%</Text>
+            <Text className="text-emerald-300 font-bold text-base">{summary?.xirr?.toFixed(1) ?? '—'}%</Text>
           </View>
           <View className="w-px bg-white/20" />
           <View className="flex-1 items-center">
             <Text className="text-white/60 text-[10px]">Monthly Income</Text>
-            <Text className="text-white font-bold text-base">{formatINR(PORTFOLIO.monthlyIncome)}</Text>
+            <Text className="text-white font-bold text-base">{formatINR(summary?.monthlyIncome ?? 0)}</Text>
           </View>
           <View className="w-px bg-white/20" />
           <View className="flex-1 items-center">
             <Text className="text-white/60 text-[10px]">Properties</Text>
-            <Text className="text-white font-bold text-base">{PORTFOLIO.properties.length}</Text>
+            <Text className="text-white font-bold text-base">{summary?.propertiesCount ?? 0}</Text>
           </View>
         </View>
       </View>
 
       {/* Asset Allocation */}
       <View className="mx-4 mt-4 bg-white rounded-2xl p-4 shadow-sm">
-        <Text className="text-gray-900 font-bold text-base mb-3">Asset Allocation</Text>
-        <View className="flex-row h-3 rounded-full overflow-hidden">
-          {PORTFOLIO.allocation.map((a) => (
-            <View
-              key={a.type}
-              style={{ width: `${a.pct}%`, backgroundColor: a.color }}
-            />
-          ))}
+        <Text className="text-gray-900 font-bold text-base mb-3">Summary</Text>
+        <View className="flex-row justify-between py-2 border-b border-gray-50">
+          <Text className="text-gray-500 text-sm">Total Returns</Text>
+          <Text className="text-emerald-600 font-bold text-sm">{formatINR(summary?.totalReturns ?? 0)}</Text>
         </View>
-        <View className="flex-row mt-3 gap-4">
-          {PORTFOLIO.allocation.map((a) => (
-            <View key={a.type} className="flex-row items-center">
-              <View className="w-2.5 h-2.5 rounded-full mr-1.5" style={{ backgroundColor: a.color }} />
-              <Text className="text-gray-600 text-xs">{a.type} ({a.pct}%)</Text>
-            </View>
-          ))}
+        <View className="flex-row justify-between py-2">
+          <Text className="text-gray-500 text-sm">Unrealized Gain</Text>
+          <Text className="text-emerald-600 font-bold text-sm">{formatINR(summary?.unrealizedGains ?? 0)}</Text>
         </View>
       </View>
 
       {/* Holdings */}
       <View className="px-4 mt-4 mb-8">
         <Text className="text-gray-900 font-bold text-base mb-3">Your Holdings</Text>
-        {PORTFOLIO.properties.map((prop) => (
-          <Pressable key={prop.id} className="bg-white rounded-xl p-4 mb-2 shadow-sm">
+        {holdingsLoading && (
+          <View className="items-center py-8">
+            <ActivityIndicator size="small" color="#5B4FCF" />
+          </View>
+        )}
+        {(holdings ?? []).length === 0 && !holdingsLoading && (
+          <View className="items-center py-10">
+            <Ionicons name="pie-chart-outline" size={40} color="#D1D5DB" />
+            <Text className="text-gray-400 mt-2 text-sm">No holdings yet</Text>
+          </View>
+        )}
+        {(holdings ?? []).map((prop) => (
+          <Pressable key={prop.propertyId} className="bg-white rounded-xl p-4 mb-2 shadow-sm">
             <View className="flex-row justify-between items-start">
               <View className="flex-1 mr-3">
-                <Text className="text-gray-900 font-bold text-sm">{prop.name}</Text>
-                <Text className="text-gray-400 text-xs">{prop.city} · {prop.units} units</Text>
+                <Text className="text-gray-900 font-bold text-sm">{prop.propertyTitle}</Text>
+                <Text className="text-gray-400 text-xs">{prop.propertyCity} · {prop.units} units</Text>
               </View>
               <View className="items-end">
-                <Text className="text-emerald-600 font-bold text-sm">{prop.irr}% IRR</Text>
+                <Text className="text-emerald-600 font-bold text-sm">
+                  {(prop.currentValue - prop.investedAmount) >= 0 ? '+' : ''}{formatINR(prop.currentValue - prop.investedAmount)}
+                </Text>
               </View>
             </View>
             <View className="flex-row justify-between mt-3 pt-3 border-t border-gray-50">
               <View>
                 <Text className="text-gray-400 text-[10px]">Invested</Text>
-                <Text className="text-gray-900 font-bold text-sm">{formatINR(prop.invested)}</Text>
+                <Text className="text-gray-900 font-bold text-sm">{formatINR(prop.investedAmount)}</Text>
               </View>
               <View className="items-end">
                 <Text className="text-gray-400 text-[10px]">Current Value</Text>
-                <Text className="text-emerald-600 font-bold text-sm">{formatINR(prop.value)}</Text>
+                <Text className="text-emerald-600 font-bold text-sm">{formatINR(prop.currentValue)}</Text>
               </View>
             </View>
           </Pressable>

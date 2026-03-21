@@ -11,22 +11,22 @@ interface PropertyCardProps {
   slug: string
   title: string
   city: string
-  cover_image: string | null
-  asset_type: string
-  target_irr: number
-  min_investment: number
-  funding_percentage: number
+  coverImage: string | null
+  assetType: string
+  targetIrr: number
+  minInvestment: number
+  fundingPercentage: number
 }
 
 export default function PropertyCard({
   slug,
   title,
   city,
-  cover_image,
-  asset_type,
-  target_irr,
-  min_investment,
-  funding_percentage,
+  coverImage,
+  assetType,
+  targetIrr,
+  minInvestment,
+  fundingPercentage,
 }: PropertyCardProps) {
   const router = useRouter()
 
@@ -36,8 +36,8 @@ export default function PropertyCard({
       activeOpacity={0.8}
       onPress={() => router.push(`/property/${slug}`)}
     >
-      {cover_image ? (
-        <Image source={{ uri: cover_image }} className="w-full h-40" resizeMode="cover" />
+      {coverImage ? (
+        <Image source={{ uri: coverImage }} className="w-full h-40" resizeMode="cover" />
       ) : (
         <View className="w-full h-40 bg-gray-200 items-center justify-center">
           <Text className="text-gray-400 text-sm">No Image</Text>
@@ -49,29 +49,29 @@ export default function PropertyCard({
           {title}
         </Text>
         <Text className="text-xs text-gray-500 mt-0.5">
-          {city} · {asset_type}
+          {city} · {assetType}
         </Text>
 
         {/* Funding bar */}
         <View className="mt-2 bg-gray-100 h-2 rounded-full overflow-hidden">
           <View
             className="bg-primary h-full rounded-full"
-            style={{ width: `${Math.min(100, funding_percentage)}%` }}
+            style={{ width: `${Math.min(100, fundingPercentage)}%` }}
           />
         </View>
         <Text className="text-[10px] text-gray-400 mt-0.5">
-          {funding_percentage.toFixed(0)}% funded
+          {fundingPercentage.toFixed(0)}% funded
         </Text>
 
         {/* Bottom row */}
         <View className="flex-row justify-between items-center mt-2">
           <View>
             <Text className="text-[10px] text-gray-400">Min. Investment</Text>
-            <Text className="text-sm font-bold text-gray-900">{formatINR(min_investment)}</Text>
+            <Text className="text-sm font-bold text-gray-900">{formatINR(minInvestment)}</Text>
           </View>
           <View className="items-end">
             <Text className="text-[10px] text-gray-400">Target IRR</Text>
-            <Text className="text-sm font-bold text-primary">{target_irr}%</Text>
+            <Text className="text-sm font-bold text-primary">{targetIrr}%</Text>
           </View>
         </View>
       </View>

@@ -1,16 +1,30 @@
 /**
  * useAuth – authentication state for mobile.
+ * Works with the 8-role user store and SecureStore tokens.
  */
 
 import { useEffect, useState, useCallback } from 'react'
 import * as SecureStore from 'expo-secure-store'
 import { apiGet } from '../lib/api'
 import { useUserStore } from '../stores/user.store'
+import type { UserRole } from '../lib/constants'
+
+interface MeResponse {
+  id: string
+  email: string
+  fullName: string
+  phone: string
+  role: UserRole
+  kycStatus: string
+  avatarUrl: string | null
+  referralCode: string | null
+  wealthPassActive: boolean
+  createdAt: string
+}
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const { setUser, logout } = useUserStore()
+  const { isAuthenticated, setUser, setToken, logout } = useUserStore()
 
   useEffect(() => {
     checkAuth()
@@ -20,35 +34,27 @@ export function useAuth() {
     try {
       const token = await SecureStore.getItemAsync('ws-token')
       if (!token) {
-        setIsAuthenticated(false)
         setIsLoading(false)
         return
       }
-      const user = await apiGet<{
-        id: string
-        email: string
-        full_name: string
-        phone: string
-        role: 'investor' | 'builder' | 'lender' | 'admin'
-        kyc_status: string
-        avatar_url: string | null
-        referral_code: string | null
-      }>('/users/me')
+      setToken(token)
+      const user = await apiGet<MeResponse>('/auth/me')
       setUser({
         id: user.id,
         email: user.email,
-        fullName: user.full_name,
+        name: user.fullName ?? '',
         phone: user.phone ?? '',
         role: user.role,
-        kycStatus: user.kyc_status as 'NOT_STARTED' | 'IN_PROGRESS' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED',
-        avatarUrl: user.avatar_url,
-        referralCode: user.referral_code,
+        kycStatus: user.kycStatus,
+        avatarUrl: user.avatarUrl ?? undefined,
+        referralCode: user.referralCode ?? '',
+        wealthPassActive: user.wealthPassActive ?? false,
+        createdAt: user.createdAt ?? '',
       })
-      setIsAuthenticated(true)
     } catch {
       await SecureStore.deleteItemAsync('ws-token')
+      await SecureStore.deleteItemAsync('ws-refresh-token')
       logout()
-      setIsAuthenticated(false)
     } finally {
       setIsLoading(false)
     }
@@ -56,8 +62,8 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     await SecureStore.deleteItemAsync('ws-token')
+    await SecureStore.deleteItemAsync('ws-refresh-token')
     logout()
-    setIsAuthenticated(false)
   }, [logout])
 
   return { isLoading, isAuthenticated, signOut, checkAuth }

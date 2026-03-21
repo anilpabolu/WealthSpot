@@ -135,7 +135,7 @@ async def create_company(
         description=f"Onboarded {body.company_name}",
     )
 
-    await db.commit()
+    await db.flush()
     await db.refresh(company)
 
     return CompanyRead.model_validate(company)

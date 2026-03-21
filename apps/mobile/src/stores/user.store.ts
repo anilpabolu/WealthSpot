@@ -1,38 +1,47 @@
 /**
- * User store (Zustand + MMKV for RN).
+ * User store (Zustand) – mirrors web's user.store.ts with all 8 roles.
  */
 
 import { create } from 'zustand'
+import type { UserRole } from '../lib/constants'
 
-type KycStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'
-type UserRole = 'investor' | 'builder' | 'lender' | 'admin'
-
-interface UserProfile {
+export interface UserProfile {
   id: string
   email: string
-  fullName: string
+  name: string
   phone: string
+  avatarUrl?: string
   role: UserRole
-  kycStatus: KycStatus
-  avatarUrl: string | null
-  referralCode: string | null
+  kycStatus: string
+  referralCode: string
+  wealthPassActive: boolean
+  createdAt: string
 }
 
 interface UserState {
   user: UserProfile | null
   token: string | null
+  isAuthenticated: boolean
   setUser: (user: UserProfile) => void
   setToken: (token: string) => void
   logout: () => void
-  updateKycStatus: (status: KycStatus) => void
+  updateKycStatus: (status: string) => void
 }
 
 export const useUserStore = create<UserState>((set) => ({
   user: null,
   token: null,
-  setUser: (user) => set({ user }),
-  setToken: (token) => set({ token }),
-  logout: () => set({ user: null, token: null }),
+  isAuthenticated: false,
+
+  setUser: (user) =>
+    set({ user, isAuthenticated: true }),
+
+  setToken: (token) =>
+    set({ token }),
+
+  logout: () =>
+    set({ user: null, token: null, isAuthenticated: false }),
+
   updateKycStatus: (kycStatus) =>
     set((state) => ({
       user: state.user ? { ...state.user, kycStatus } : null,

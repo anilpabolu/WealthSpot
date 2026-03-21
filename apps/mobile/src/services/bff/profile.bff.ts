@@ -2,48 +2,52 @@
  * Mobile Profile BFF – user profile, settings, KYC status
  */
 
-import { apiGet, apiPost } from "../../lib/api";
+import { apiGet, apiPut } from "../../lib/api";
 
-export interface MobileProfileView {
+export interface ProfileView {
   user: {
     id: string;
-    full_name: string;
+    fullName: string;
     email: string;
     phone: string | null;
-    avatar_url: string | null;
+    avatarUrl: string | null;
     role: string;
-    kyc_status: string;
-    referral_code: string | null;
-    wealth_pass_active: boolean;
+    kycStatus: string;
+    referralCode: string | null;
+    wealthPassActive: boolean;
+    createdAt: string;
   };
   stats: {
-    investments_count: number;
-    total_invested: number;
-    referrals_count: number;
+    investmentsCount: number;
+    totalInvested: number;
+    referralsCount: number;
   };
 }
 
 export const mobileProfileBff = {
-  async getProfile(): Promise<MobileProfileView> {
+  async getProfile(): Promise<ProfileView> {
     const [user, portfolioSummary, referrals] = await Promise.all([
-      apiGet<MobileProfileView["user"]>("/users/me"),
-      apiGet<{ properties_count: number; total_invested: number }>(
+      apiGet<ProfileView["user"]>("/auth/me"),
+      apiGet<{ propertiesCount: number; totalInvested: number }>(
         "/investments/portfolio/summary"
       ),
-      apiGet<{ total: number }>("/referrals/stats"),
+      apiGet<{ totalReferrals: number }>("/referrals/stats"),
     ]);
 
     return {
       user,
       stats: {
-        investments_count: portfolioSummary.properties_count,
-        total_invested: portfolioSummary.total_invested,
-        referrals_count: referrals.total,
+        investmentsCount: portfolioSummary.propertiesCount,
+        totalInvested: portfolioSummary.totalInvested,
+        referralsCount: referrals.totalReferrals,
       },
     };
   },
 
-  async updateProfile(data: { full_name?: string; phone?: string }) {
-    return apiPost<{ success: boolean }>("/users/me", data);
+  async updateProfile(data: { fullName?: string; phone?: string }) {
+    return apiPut<{ success: boolean }>("/auth/me", {
+      full_name: data.fullName,
+      phone: data.phone,
+    });
   },
 };

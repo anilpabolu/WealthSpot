@@ -3,45 +3,21 @@
  * Posts list with categories and FAB for creating posts.
  */
 
-import { View, Text, ScrollView, Pressable, FlatList } from 'react-native'
+import { View, Text, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
+import { useCommunityPosts, useLikePost } from '@/hooks/useCommunity'
+import { formatRelativeTime } from '@/lib/formatters'
 
 const CATEGORIES = ['All', 'Discussion', 'Questions', 'Polls', 'Announcements']
 
-const POSTS = [
-  {
-    id: '1', author: 'Arun Mehta', avatar: 'AM',
-    title: 'Best cities for fractional investment in 2025?',
-    body: 'Looking at Bengaluru, Hyderabad and Pune. What are your thoughts on which city offers the best risk-adjusted returns currently?',
-    category: 'Discussion', upvotes: 24, replies: 8, timeAgo: '2h ago',
-  },
-  {
-    id: '2', author: 'Priya Sharma', avatar: 'PS',
-    title: 'Understanding RERA compliance for fractional properties',
-    body: 'Can someone explain how RERA applies to fractional ownership? Are all WealthSpot properties RERA registered?',
-    category: 'Questions', upvotes: 31, replies: 12, timeAgo: '5h ago',
-  },
-  {
-    id: '3', author: 'WealthSpot Team', avatar: 'WS',
-    title: '🎉 New Feature: Secondary Market Trading',
-    body: 'We are excited to announce that secondary market trading will be available from Q2 2025. You will be able to sell your fractions to other investors.',
-    category: 'Announcements', upvotes: 89, replies: 34, timeAgo: '1d ago',
-  },
-  {
-    id: '4', author: 'Rahul Gupta', avatar: 'RG',
-    title: 'Monthly rental income vs capital appreciation – which strategy?',
-    body: 'I have been investing for 6 months. Should I focus on properties with high rental yield or high IRR?',
-    category: 'Discussion', upvotes: 15, replies: 6, timeAgo: '1d ago',
-  },
-]
-
 export default function CommunityScreen() {
   const [activeCategory, setActiveCategory] = useState('All')
+  const category = activeCategory === 'All' ? undefined : activeCategory.toLowerCase()
+  const { data, isLoading } = useCommunityPosts({ category })
+  const likePost = useLikePost()
 
-  const filtered = POSTS.filter(
-    (p) => activeCategory === 'All' || p.category === activeCategory.slice(0, -1)
-  )
+  const posts = data?.items ?? []
 
   return (
     <View className="flex-1 bg-surface">
@@ -72,47 +48,75 @@ export default function CommunityScreen() {
 
       {/* Posts List */}
       <FlatList
-        data={filtered}
-        keyExtractor={(item: typeof filtered[number]) => item.id}
+        data={posts}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }: { item: typeof filtered[number] }) => (
-          <View className="bg-white rounded-2xl p-4 shadow-sm">
-            {/* Author */}
-            <View className="flex-row items-center mb-2">
-              <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center mr-2">
-                <Text className="text-primary text-xs font-bold">{item.avatar}</Text>
+        ListHeaderComponent={
+          isLoading ? (
+            <View className="items-center py-10">
+              <ActivityIndicator size="large" color="#5B4FCF" />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isLoading ? (
+            <View className="items-center py-20">
+              <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
+              <Text className="text-gray-400 mt-3 text-center">No posts yet</Text>
+            </View>
+          ) : null
+        }
+        renderItem={({ item }) => {
+          const authorName = item.author?.fullName ?? 'Unknown'
+          const initials = authorName
+            .split(' ')
+            .map((w: string) => w[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase()
+
+          return (
+            <View className="bg-white rounded-2xl p-4 shadow-sm">
+              {/* Author */}
+              <View className="flex-row items-center mb-2">
+                <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center mr-2">
+                  <Text className="text-primary text-xs font-bold">{initials}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-900 font-semibold text-sm">{authorName}</Text>
+                  <Text className="text-gray-400 text-[10px]">{formatRelativeTime(item.createdAt)}</Text>
+                </View>
+                <View className="bg-gray-100 px-2 py-0.5 rounded-full">
+                  <Text className="text-gray-500 text-[10px] font-semibold">{item.postType}</Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-gray-900 font-semibold text-sm">{item.author}</Text>
-                <Text className="text-gray-400 text-[10px]">{item.timeAgo}</Text>
-              </View>
-              <View className="bg-gray-100 px-2 py-0.5 rounded-full">
-                <Text className="text-gray-500 text-[10px] font-semibold">{item.category}</Text>
+
+              {/* Content */}
+              <Text className="text-gray-900 font-bold text-sm mb-1">{item.title}</Text>
+              <Text className="text-gray-600 text-xs leading-4" numberOfLines={3}>{item.bodyPreview}</Text>
+
+              {/* Actions */}
+              <View className="flex-row items-center mt-3 pt-3 border-t border-gray-50">
+                <Pressable
+                  className="flex-row items-center mr-5"
+                  onPress={() => likePost.mutate({ postId: item.id, currentlyLiked: item.userHasLiked })}
+                >
+                  <Ionicons name="arrow-up-outline" size={16} color="#5B4FCF" />
+                  <Text className="text-primary text-xs font-semibold ml-1">{item.upvotes}</Text>
+                </Pressable>
+                <Pressable className="flex-row items-center mr-5">
+                  <Ionicons name="chatbubble-outline" size={14} color="#9CA3AF" />
+                  <Text className="text-gray-500 text-xs ml-1">{item.replyCount}</Text>
+                </Pressable>
+                <Pressable className="flex-row items-center">
+                  <Ionicons name="share-outline" size={14} color="#9CA3AF" />
+                  <Text className="text-gray-500 text-xs ml-1">Share</Text>
+                </Pressable>
               </View>
             </View>
-
-            {/* Content */}
-            <Text className="text-gray-900 font-bold text-sm mb-1">{item.title}</Text>
-            <Text className="text-gray-600 text-xs leading-4" numberOfLines={3}>{item.body}</Text>
-
-            {/* Actions */}
-            <View className="flex-row items-center mt-3 pt-3 border-t border-gray-50">
-              <Pressable className="flex-row items-center mr-5">
-                <Ionicons name="arrow-up-outline" size={16} color="#5B4FCF" />
-                <Text className="text-primary text-xs font-semibold ml-1">{item.upvotes}</Text>
-              </Pressable>
-              <Pressable className="flex-row items-center mr-5">
-                <Ionicons name="chatbubble-outline" size={14} color="#9CA3AF" />
-                <Text className="text-gray-500 text-xs ml-1">{item.replies}</Text>
-              </Pressable>
-              <Pressable className="flex-row items-center">
-                <Ionicons name="share-outline" size={14} color="#9CA3AF" />
-                <Text className="text-gray-500 text-xs ml-1">Share</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
+          )
+        }}
       />
 
       {/* FAB */}

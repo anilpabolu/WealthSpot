@@ -12,3 +12,5 @@ export { mobileMarketplaceBff } from "./marketplace.bff";
 export { mobilePortfolioBff } from "./portfolio.bff";
 export { mobileCommunityBff } from "./community.bff";
 export { mobileProfileBff } from "./profile.bff";
+export { mobileAdminBff } from "./admin.bff";
+export { mobileKycBff } from "./kyc.bff";

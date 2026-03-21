@@ -3,62 +3,32 @@
  * Hero banner, quick stats, featured properties, how it works.
  */
 
-import { View, Text, ScrollView, Pressable, Image, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, Pressable, Image, RefreshControl, ActivityIndicator } from 'react-native'
 import { Link } from 'expo-router'
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { formatINR } from '@/lib/formatters'
-
-const STATS = [
-  { label: 'Total AUM', value: '₹247 Cr' },
-  { label: 'Properties', value: '58' },
-  { label: 'Investors', value: '12,400+' },
-  { label: 'Avg IRR', value: '14.2%' },
-]
-
-const FEATURED = [
-  {
-    id: '1',
-    slug: 'prestige-lakeside',
-    title: 'Prestige Lakeside Habitat',
-    city: 'Bengaluru',
-    coverImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400',
-    targetIrr: 14.5,
-    minInvestment: 25000,
-    fundingPct: 72,
-    assetType: 'Residential',
-  },
-  {
-    id: '2',
-    slug: 'brigade-tech-park',
-    title: 'Brigade Tech Park',
-    city: 'Hyderabad',
-    coverImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400',
-    targetIrr: 16.2,
-    minInvestment: 50000,
-    fundingPct: 45,
-    assetType: 'Commercial',
-  },
-  {
-    id: '3',
-    slug: 'godrej-aqua',
-    title: 'Godrej Aqua Phase II',
-    city: 'Pune',
-    coverImage: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-    targetIrr: 13.8,
-    minInvestment: 10000,
-    fundingPct: 89,
-    assetType: 'Residential',
-  },
-]
+import { formatINR, formatINRCompact } from '@/lib/formatters'
+import { useFeaturedProperties } from '@/hooks/useProperties'
+import { usePortfolioSummary } from '@/hooks/usePortfolio'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function HomeScreen() {
-  const [refreshing, setRefreshing] = useState(false)
+  const qc = useQueryClient()
+  const { data: featured, isLoading: featuredLoading } = useFeaturedProperties()
+  const { data: portfolio } = usePortfolioSummary()
 
+  const refreshing = featuredLoading
   const onRefresh = useCallback(() => {
-    setRefreshing(true)
-    setTimeout(() => setRefreshing(false), 1500)
-  }, [])
+    qc.invalidateQueries({ queryKey: ['properties'] })
+    qc.invalidateQueries({ queryKey: ['portfolio'] })
+  }, [qc])
+
+  const stats = [
+    { label: 'Portfolio', value: portfolio ? formatINRCompact(portfolio.currentValue) : '—' },
+    { label: 'Properties', value: portfolio ? String(portfolio.propertiesCount) : '—' },
+    { label: 'Monthly', value: portfolio ? formatINRCompact(portfolio.monthlyIncome) : '—' },
+    { label: 'XIRR', value: portfolio?.xirr ? `${portfolio.xirr.toFixed(1)}%` : '—' },
+  ]
 
   return (
     <ScrollView
@@ -92,10 +62,10 @@ export default function HomeScreen() {
 
       {/* Stats Bar */}
       <View className="flex-row mx-4 mt-[-20] bg-white rounded-2xl p-4 shadow-sm">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <View
             key={stat.label}
-            className={`flex-1 items-center ${i < STATS.length - 1 ? 'border-r border-gray-100' : ''}`}
+            className={`flex-1 items-center ${i < stats.length - 1 ? 'border-r border-gray-100' : ''}`}
           >
             <Text className="text-primary font-bold text-base">{stat.value}</Text>
             <Text className="text-gray-500 text-[10px] mt-0.5">{stat.label}</Text>
@@ -114,14 +84,26 @@ export default function HomeScreen() {
           </Link>
         </View>
 
-        {FEATURED.map((property) => (
+        {featuredLoading && (
+          <View className="items-center py-10">
+            <ActivityIndicator size="large" color="#5B4FCF" />
+          </View>
+        )}
+
+        {(featured?.properties ?? []).map((property: any) => (
           <Link key={property.id} href={`/property/${property.slug}`} asChild>
             <Pressable className="bg-white rounded-2xl mb-3 overflow-hidden shadow-sm">
-              <Image
-                source={{ uri: property.coverImage }}
-                className="w-full h-40"
-                resizeMode="cover"
-              />
+              {property.coverImage ? (
+                <Image
+                  source={{ uri: property.coverImage }}
+                  className="w-full h-40"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="w-full h-40 bg-gray-200 items-center justify-center">
+                  <Ionicons name="image-outline" size={32} color="#9CA3AF" />
+                </View>
+              )}
               <View className="absolute top-3 left-3 bg-primary/90 px-2.5 py-1 rounded-full">
                 <Text className="text-white text-xs font-semibold">{property.assetType}</Text>
               </View>
@@ -146,11 +128,11 @@ export default function HomeScreen() {
                   <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <View
                       className="h-full bg-primary rounded-full"
-                      style={{ width: `${property.fundingPct}%` }}
+                      style={{ width: `${property.fundingPercentage}%` }}
                     />
                   </View>
                   <Text className="text-[10px] text-gray-400 mt-1">
-                    {property.fundingPct}% funded
+                    {property.fundingPercentage}% funded
                   </Text>
                 </View>
               </View>

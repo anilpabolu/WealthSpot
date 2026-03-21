@@ -1,40 +1,66 @@
 /**
- * Mobile Portfolio BFF
+ * Mobile Portfolio BFF – matches web's portfolio.bff.ts patterns.
  */
 
 import { apiGet } from "../../lib/api";
 
-export interface MobilePortfolioView {
-  total_invested: number;
-  current_value: number;
-  monthly_income: number;
-  holdings: Array<{
-    property_id: string;
-    title: string;
-    city: string;
-    cover_image: string | null;
-    units_held: number;
-    current_value: number;
-    monthly_rental: number;
+export interface PortfolioPropertyHolding {
+  propertyId: string;
+  slug: string;
+  title: string;
+  city: string;
+  coverImage: string | null;
+  assetType: string;
+  unitsHeld: number;
+  investedAmount: number;
+  currentValue: number;
+  unrealizedGain: number;
+  monthlyRental: number;
+  status: string;
+}
+
+export interface PortfolioView {
+  summary: {
+    totalInvested: number;
+    currentValue: number;
+    totalReturns: number;
+    monthlyRentalIncome: number;
+    propertiesCount: number;
+    unrealizedGain: number;
+    xirr: number | null;
+  };
+  holdings: PortfolioPropertyHolding[];
+  transactions: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    description: string | null;
+    propertyTitle: string;
+    createdAt: string;
   }>;
 }
 
 export const mobilePortfolioBff = {
-  async getPortfolio(): Promise<MobilePortfolioView> {
-    const [summary, holdings] = await Promise.all([
-      apiGet<{
-        total_invested: number;
-        current_value: number;
-        monthly_rental_income: number;
-      }>("/investments/portfolio/summary"),
-      apiGet<MobilePortfolioView["holdings"]>("/investments/portfolio/holdings"),
+  async getPortfolio(): Promise<PortfolioView> {
+    const [summary, holdings, transactions] = await Promise.all([
+      apiGet<PortfolioView["summary"]>("/investments/portfolio/summary"),
+      apiGet<PortfolioView["holdings"]>("/investments/portfolio/holdings"),
+      apiGet<PortfolioView["transactions"]>("/investments/transactions", {
+        params: { limit: 20, sort: "-created_at" },
+      }),
     ]);
+    return { summary, holdings, transactions };
+  },
 
-    return {
-      total_invested: summary.total_invested,
-      current_value: summary.current_value,
-      monthly_income: summary.monthly_rental_income,
-      holdings,
-    };
+  async getPropertyInvestmentDetail(propertyId: string) {
+    const [holding, transactions] = await Promise.all([
+      apiGet<PortfolioPropertyHolding>(
+        `/investments/portfolio/holdings/${propertyId}`
+      ),
+      apiGet<PortfolioView["transactions"]>("/investments/transactions", {
+        params: { property_id: propertyId, limit: 50 },
+      }),
+    ]);
+    return { holding, transactions };
   },
 };

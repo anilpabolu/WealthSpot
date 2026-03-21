@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 # ── Set env vars BEFORE importing app ──────────────────────────────────────
 import os
@@ -36,7 +37,7 @@ from app.models.user import User, UserRole
 # ── Test engine uses same PostgreSQL but creates/drops a test schema ────────
 
 TEST_DB_URL = "postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5433/wealthspot"
-TEST_ENGINE = create_async_engine(TEST_DB_URL, echo=False)
+TEST_ENGINE = create_async_engine(TEST_DB_URL, echo=False, poolclass=NullPool)
 TestSessionFactory = async_sessionmaker(
     TEST_ENGINE,
     class_=AsyncSession,
@@ -52,7 +53,7 @@ def event_loop():
     loop.close()
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
     """
     Create a 'test_ws' schema, create all tables there, and drop it after.
@@ -97,63 +98,63 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 @pytest_asyncio.fixture
 async def test_user() -> User:
     """Create a test user in the DB and return it."""
+    unique = uuid.uuid4().hex[:8]
     async with TestSessionFactory() as session:
         from sqlalchemy import text
         await session.execute(text("SET search_path TO test_ws"))
         user = User(
             id=uuid.uuid4(),
-            email="testuser@wealthspot.in",
+            email=f"testuser-{unique}@wealthspot.in",
             full_name="Test User",
             phone="+919876543210",
             role=UserRole.INVESTOR,
             is_active=True,
-            referral_code="TESTCODE",
+            referral_code=f"TEST{unique[:4].upper()}",
         )
         session.add(user)
         await session.commit()
-        await session.refresh(user)
         return user
 
 
 @pytest_asyncio.fixture
 async def admin_user() -> User:
     """Create an admin test user."""
+    unique = uuid.uuid4().hex[:8]
     async with TestSessionFactory() as session:
         from sqlalchemy import text
         await session.execute(text("SET search_path TO test_ws"))
         user = User(
             id=uuid.uuid4(),
-            email="admin@wealthspot.in",
+            email=f"admin-{unique}@wealthspot.in",
             full_name="Admin User",
             phone="+919876543211",
             role=UserRole.SUPER_ADMIN,
             is_active=True,
-            referral_code="ADMINCODE",
+            referral_code=f"ADM{unique[:5].upper()}",
         )
         session.add(user)
         await session.commit()
-        await session.refresh(user)
         return user
 
 
 @pytest_asyncio.fixture
 async def builder_user() -> User:
     """Create a builder test user."""
+    unique = uuid.uuid4().hex[:8]
     async with TestSessionFactory() as session:
         from sqlalchemy import text
         await session.execute(text("SET search_path TO test_ws"))
         user = User(
             id=uuid.uuid4(),
-            email="builder@wealthspot.in",
+            email=f"builder-{unique}@wealthspot.in",
             full_name="Builder User",
             phone="+919876543212",
             role=UserRole.BUILDER,
             is_active=True,
-            referral_code="BUILDCODE",
+            referral_code=f"BLD{unique[:5].upper()}",
         )
         session.add(user)
         await session.commit()
-        await session.refresh(user)
         return user
 
 

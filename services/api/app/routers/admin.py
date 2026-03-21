@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.middleware.auth import require_role
@@ -133,7 +134,11 @@ async def approve_property(
     _admin: User = Depends(admin_dep),
 ) -> PropertyDetail:
     """Approve a property listing for the marketplace."""
-    result = await db.execute(select(Property).where(Property.slug == slug))
+    result = await db.execute(
+        select(Property)
+        .options(selectinload(Property.builder))
+        .where(Property.slug == slug)
+    )
     prop = result.scalar_one_or_none()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")

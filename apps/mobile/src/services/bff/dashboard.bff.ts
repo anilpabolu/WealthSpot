@@ -1,52 +1,70 @@
 /**
- * Mobile Dashboard BFF
+ * Mobile Dashboard BFF – matches web's dashboard.bff.ts patterns.
  */
 
 import { apiGet } from "../../lib/api";
 
-export interface MobileDashboardView {
-  greeting: string;
-  kyc_status: string;
-  portfolio_value: number;
-  monthly_income: number;
-  properties_count: number;
-  featured: Array<{
+export interface DashboardView {
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl: string | null;
+    role: string;
+    kycStatus: string;
+    wealthPassActive: boolean;
+  };
+  portfolio: {
+    totalInvested: number;
+    currentValue: number;
+    totalReturns: number;
+    monthlyRentalIncome: number;
+    propertiesCount: number;
+  };
+  recentTransactions: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    description: string | null;
+    createdAt: string;
+  }>;
+  activeProperties: Array<{
     id: string;
     slug: string;
     title: string;
-    cover_image: string | null;
+    coverImage: string | null;
     city: string;
-    target_irr: number;
-    funding_percentage: number;
+    targetIrr: number;
+    fundingPercentage: number;
+    status: string;
   }>;
+  greeting: string;
 }
 
 export const mobileDashboardBff = {
-  async getDashboard(): Promise<MobileDashboardView> {
-    const [user, portfolio, featured] = await Promise.all([
-      apiGet<{ full_name: string; kyc_status: string }>("/users/me"),
-      apiGet<{
-        current_value: number;
-        monthly_rental_income: number;
-        properties_count: number;
-      }>("/investments/portfolio/summary"),
-      apiGet<MobileDashboardView["featured"]>("/properties", {
-        status: "funding",
-        page_size: 3,
-        sort: "-launch_date",
+  async getDashboard(): Promise<DashboardView> {
+    const [user, portfolio, transactions, properties] = await Promise.all([
+      apiGet<DashboardView["user"]>("/auth/me"),
+      apiGet<DashboardView["portfolio"]>("/investments/portfolio/summary"),
+      apiGet<DashboardView["recentTransactions"]>("/investments/transactions", {
+        params: { limit: 5, sort: "-created_at" },
+      }),
+      apiGet<DashboardView["activeProperties"]>("/properties", {
+        params: { status: "funding", page_size: 3, sort: "-launch_date" },
       }),
     ]);
 
     const hour = new Date().getHours();
-    const timeOfDay = hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : "Evening";
+    const timeOfDay =
+      hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : "Evening";
+    const firstName = (user.fullName ?? "").split(" ")[0] || "there";
 
     return {
-      greeting: `Good ${timeOfDay}, ${user.full_name.split(" ")[0]}!`,
-      kyc_status: user.kyc_status,
-      portfolio_value: portfolio.current_value,
-      monthly_income: portfolio.monthly_rental_income,
-      properties_count: portfolio.properties_count,
-      featured,
+      user,
+      portfolio,
+      recentTransactions: transactions,
+      activeProperties: properties,
+      greeting: `Good ${timeOfDay}, ${firstName}!`,
     };
   },
 };

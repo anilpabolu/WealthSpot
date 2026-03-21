@@ -130,7 +130,7 @@ async def create_loan(
         tenure_months=payload.tenure_months,
     )
     db.add(loan)
-    await db.commit()
+    await db.flush()
     await db.refresh(loan)
 
     return LoanRead.model_validate(loan)

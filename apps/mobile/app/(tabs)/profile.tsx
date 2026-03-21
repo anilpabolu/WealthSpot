@@ -6,7 +6,9 @@
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native'
 import { Link, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { useUserStore } from '@/stores/user.store'
+import { useAuth } from '@/hooks/useAuth'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { useProfileCompletion } from '@/hooks/useProfileCompletion'
 
 const MENU_ITEMS = [
   { icon: 'person-outline' as const, label: 'Personal Details', route: '/kyc' },
@@ -20,13 +22,15 @@ const MENU_ITEMS = [
 ]
 
 export default function ProfileScreen() {
-  const { user, logout } = useUserStore()
+  const { signOut } = useAuth()
+  const { data: user } = useUserProfile()
+  const { percentage } = useProfileCompletion()
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Logout', style: 'destructive', onPress: () => {
-        logout()
+        signOut()
         router.replace('/')
       }},
     ])

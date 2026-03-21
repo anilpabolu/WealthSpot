@@ -3,51 +3,32 @@
  * Gallery, details, investment CTA.
  */
 
-import { View, Text, ScrollView, Pressable, Image, Dimensions } from 'react-native'
-import { useLocalSearchParams, Link } from 'expo-router'
+import { View, Text, ScrollView, Pressable, Image, Dimensions, ActivityIndicator } from 'react-native'
+import { useLocalSearchParams, Link, router } from 'expo-router'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
+import { useProperty } from '@/hooks/useProperties'
 
 const { width } = Dimensions.get('window')
 
-// Mock data – in production fetched from API
-const PROPERTY = {
-  slug: 'prestige-lakeside',
-  title: 'Prestige Lakeside Habitat',
-  tagline: 'Premium waterfront living in Bengaluru East',
-  city: 'Bengaluru',
-  state: 'Karnataka',
-  locality: 'Varthur',
-  assetType: 'Residential',
-  description: 'A premium residential project by Prestige Group located on the banks of Varthur Lake. Features world-class amenities, lush green landscapes, and excellent connectivity to IT hubs.',
-  coverImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-  gallery: [
-    'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
-  ],
-  targetAmount: 5000000,
-  raisedAmount: 3600000,
-  minInvestment: 25000,
-  unitPrice: 25000,
-  totalUnits: 200,
-  soldUnits: 144,
-  targetIrr: 14.5,
-  rentalYield: 3.2,
-  areaSqft: 1250,
-  possessionDate: 'Q4 2025',
-  reraId: 'PRM/KA/RERA/1251/303/PR/171015/000000',
-  investorCount: 89,
-  builder: { name: 'Prestige Group', verified: true },
-  amenities: ['Swimming Pool', 'Gym', 'Club House', 'Children\'s Play Area', 'Jogging Track', 'Indoor Games'],
-}
-
 export default function PropertyDetailScreen() {
   const { slug } = useLocalSearchParams()
+  const { data: property, isLoading } = useProperty(slug as string)
   const [activeImage, setActiveImage] = useState(0)
 
-  const fundingPct = (PROPERTY.raisedAmount / PROPERTY.targetAmount) * 100
+  if (isLoading || !property) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center">
+        <ActivityIndicator size="large" color="#5B4FCF" />
+      </View>
+    )
+  }
+
+  const fundingPct = property.fundingPercentage ?? ((property.raised / property.target) * 100)
+  const gallery = property.gallery.length > 0
+    ? property.gallery
+    : property.coverImage ? [property.coverImage] : []
 
   return (
     <View className="flex-1 bg-surface">
@@ -63,7 +44,7 @@ export default function PropertyDetailScreen() {
           }}
           scrollEventThrottle={16}
         >
-          {PROPERTY.gallery.map((img, i) => (
+          {gallery.map((img, i) => (
             <Image
               key={i}
               source={{ uri: img }}
@@ -75,7 +56,7 @@ export default function PropertyDetailScreen() {
 
         {/* Image Dots */}
         <View className="flex-row justify-center mt-2 gap-1.5">
-          {PROPERTY.gallery.map((_, i) => (
+          {gallery.map((_, i) => (
             <View
               key={i}
               className={`w-2 h-2 rounded-full ${i === activeImage ? 'bg-primary' : 'bg-gray-300'}`}
@@ -89,17 +70,17 @@ export default function PropertyDetailScreen() {
             <View className="flex-1 mr-3">
               <View className="flex-row items-center gap-2 mb-1">
                 <View className="bg-primary/10 px-2 py-0.5 rounded-full">
-                  <Text className="text-primary text-[10px] font-bold">{PROPERTY.assetType}</Text>
+                  <Text className="text-primary text-[10px] font-bold">{property.assetType}</Text>
                 </View>
-                {PROPERTY.builder.verified && (
+                {property.reraNumber ? (
                   <View className="bg-emerald-50 px-2 py-0.5 rounded-full flex-row items-center">
                     <Ionicons name="checkmark-circle" size={10} color="#059669" />
                     <Text className="text-emerald-700 text-[10px] font-semibold ml-0.5">RERA</Text>
                   </View>
-                )}
+                ) : null}
               </View>
-              <Text className="text-gray-900 font-bold text-xl">{PROPERTY.title}</Text>
-              <Text className="text-gray-500 text-sm">{PROPERTY.locality}, {PROPERTY.city}</Text>
+              <Text className="text-gray-900 font-bold text-xl">{property.title}</Text>
+              <Text className="text-gray-500 text-sm">{property.micromarket}, {property.city}</Text>
             </View>
           </View>
 
@@ -107,15 +88,15 @@ export default function PropertyDetailScreen() {
           <View className="flex-row bg-white rounded-2xl p-4 mt-4 shadow-sm">
             <View className="flex-1 items-center border-r border-gray-100">
               <Text className="text-[10px] text-gray-400 uppercase">Target IRR</Text>
-              <Text className="text-emerald-600 font-bold text-lg">{PROPERTY.targetIrr}%</Text>
+              <Text className="text-emerald-600 font-bold text-lg">{property.targetIrr}%</Text>
             </View>
             <View className="flex-1 items-center border-r border-gray-100">
               <Text className="text-[10px] text-gray-400 uppercase">Min Invest</Text>
-              <Text className="text-gray-900 font-bold text-lg">{formatINR(PROPERTY.minInvestment)}</Text>
+              <Text className="text-gray-900 font-bold text-lg">{formatINR(property.minInvestment)}</Text>
             </View>
             <View className="flex-1 items-center">
               <Text className="text-[10px] text-gray-400 uppercase">Rental Yield</Text>
-              <Text className="text-blue-600 font-bold text-lg">{PROPERTY.rentalYield}%</Text>
+              <Text className="text-blue-600 font-bold text-lg">{property.rentalYield}%</Text>
             </View>
           </View>
 
@@ -126,34 +107,34 @@ export default function PropertyDetailScreen() {
               <Text className="text-primary font-bold">{fundingPct.toFixed(0)}%</Text>
             </View>
             <View className="h-3 bg-gray-100 rounded-full overflow-hidden">
-              <View className="h-full bg-primary rounded-full" style={{ width: `${fundingPct}%` }} />
+              <View className="h-full bg-primary rounded-full" style={{ width: `${Math.min(fundingPct, 100)}%` }} />
             </View>
             <View className="flex-row justify-between mt-2">
-              <Text className="text-gray-400 text-xs">{formatINR(PROPERTY.raisedAmount)} raised</Text>
-              <Text className="text-gray-400 text-xs">of {formatINR(PROPERTY.targetAmount)}</Text>
+              <Text className="text-gray-400 text-xs">{formatINR(property.raised)} raised</Text>
+              <Text className="text-gray-400 text-xs">of {formatINR(property.target)}</Text>
             </View>
             <View className="flex-row items-center mt-2">
               <Ionicons name="people-outline" size={14} color="#9CA3AF" />
-              <Text className="text-gray-500 text-xs ml-1">{PROPERTY.investorCount} investors</Text>
+              <Text className="text-gray-500 text-xs ml-1">{property.investorCount} investors</Text>
             </View>
           </View>
 
           {/* Description */}
           <View className="bg-white rounded-2xl p-4 mt-3 shadow-sm">
             <Text className="text-gray-900 font-bold text-base mb-2">About This Property</Text>
-            <Text className="text-gray-600 text-sm leading-5">{PROPERTY.description}</Text>
+            <Text className="text-gray-600 text-sm leading-5">{property.description}</Text>
           </View>
 
           {/* Details Grid */}
           <View className="bg-white rounded-2xl p-4 mt-3 shadow-sm">
             <Text className="text-gray-900 font-bold text-base mb-3">Key Details</Text>
             {[
-              { label: 'Area', value: `${PROPERTY.areaSqft} sq.ft` },
-              { label: 'Possession', value: PROPERTY.possessionDate },
-              { label: 'Total Units', value: `${PROPERTY.totalUnits}` },
-              { label: 'Available Units', value: `${PROPERTY.totalUnits - PROPERTY.soldUnits}` },
-              { label: 'Unit Price', value: formatINR(PROPERTY.unitPrice) },
-              { label: 'Builder', value: PROPERTY.builder.name },
+              { label: 'Area', value: property.areaSqft ? `${property.areaSqft} sq.ft` : '—' },
+              { label: 'Possession', value: property.possessionDate || '—' },
+              { label: 'Total Units', value: `${property.totalUnits}` },
+              { label: 'Available Units', value: `${property.totalUnits - property.soldUnits}` },
+              { label: 'Unit Price', value: formatINR(property.unitPrice) },
+              { label: 'Builder', value: property.builderName || '—' },
             ].map((detail) => (
               <View key={detail.label} className="flex-row justify-between py-2 border-b border-gray-50">
                 <Text className="text-gray-500 text-sm">{detail.label}</Text>
@@ -163,16 +144,18 @@ export default function PropertyDetailScreen() {
           </View>
 
           {/* Amenities */}
-          <View className="bg-white rounded-2xl p-4 mt-3 mb-24 shadow-sm">
-            <Text className="text-gray-900 font-bold text-base mb-3">Amenities</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {PROPERTY.amenities.map((a) => (
-                <View key={a} className="bg-gray-50 px-3 py-1.5 rounded-full">
-                  <Text className="text-gray-600 text-xs">{a}</Text>
-                </View>
-              ))}
+          {property.amenities.length > 0 && (
+            <View className="bg-white rounded-2xl p-4 mt-3 mb-24 shadow-sm">
+              <Text className="text-gray-900 font-bold text-base mb-3">Amenities</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {property.amenities.map((a) => (
+                  <View key={a} className="bg-gray-50 px-3 py-1.5 rounded-full">
+                    <Text className="text-gray-600 text-xs">{a}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </View>
       </ScrollView>
 
@@ -180,9 +163,12 @@ export default function PropertyDetailScreen() {
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 flex-row items-center">
         <View className="flex-1 mr-3">
           <Text className="text-gray-400 text-[10px]">Starting from</Text>
-          <Text className="text-gray-900 font-bold text-lg">{formatINR(PROPERTY.minInvestment)}</Text>
+          <Text className="text-gray-900 font-bold text-lg">{formatINR(property.minInvestment)}</Text>
         </View>
-        <Pressable className="bg-primary px-8 py-3.5 rounded-xl">
+        <Pressable
+          onPress={() => router.push(`/invest/${property.id}`)}
+          className="bg-primary px-8 py-3.5 rounded-xl"
+        >
           <Text className="text-white font-bold text-base">INVEST NOW</Text>
         </Pressable>
       </View>

@@ -3,11 +3,13 @@
  * Step-by-step identity verification.
  */
 
-import { View, Text, ScrollView, Pressable, TextInput } from 'react-native'
+import { View, Text, ScrollView, Pressable, TextInput, ActivityIndicator, Alert } from 'react-native'
 import { router } from 'expo-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { useUserStore } from '@/stores/user.store'
+import { mobileKycBff, type KycStatusView } from '@/services/bff/kyc.bff'
+import * as ImagePicker from 'expo-image-picker'
 
 const STEPS = ['Personal', 'Documents', 'Selfie']
 
@@ -21,10 +23,79 @@ export default function KycScreen() {
     city: '',
     pincode: '',
   })
-  const [panUploaded, setPanUploaded] = useState(false)
-  const [aadhaarUploaded, setAadhaarUploaded] = useState(false)
-  const [selfieUploaded, setSelfieUploaded] = useState(false)
+  const [kycData, setKycData] = useState<KycStatusView | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const { updateKycStatus } = useUserStore()
+
+  useEffect(() => {
+    mobileKycBff.getKycStatus().then((data) => {
+      setKycData(data)
+      // Auto-advance to correct step based on progress
+      if (data.steps.panUploaded && data.steps.aadhaarUploaded) setStep(2)
+      else if (data.steps.panUploaded || data.steps.aadhaarUploaded) setStep(1)
+    }).catch(() => {
+      // First time KYC - no existing data
+    }).finally(() => setLoading(false))
+  }, [])
+
+  const panUploaded = kycData?.steps.panUploaded ?? false
+  const aadhaarUploaded = kycData?.steps.aadhaarUploaded ?? false
+  const selfieUploaded = kycData?.steps.selfieUploaded ?? false
+
+  const pickAndUpload = async (documentType: string) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    })
+    if (result.canceled || !result.assets?.[0]) return
+
+    const asset = result.assets[0]
+    setUploading(true)
+    try {
+      await mobileKycBff.uploadDocument(documentType, {
+        uri: asset.uri,
+        fileName: asset.fileName ?? `${documentType.toLowerCase()}.jpg`,
+        mimeType: asset.mimeType ?? 'image/jpeg',
+      })
+      // Refresh KYC status
+      const updated = await mobileKycBff.getKycStatus()
+      setKycData(updated)
+    } catch {
+      Alert.alert('Upload Failed', 'Could not upload document. Please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const takeSelfie = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert('Camera Permission', 'Camera access is required for selfie verification.')
+      return
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      cameraType: ImagePicker.CameraType.front,
+      quality: 0.8,
+    })
+    if (result.canceled || !result.assets?.[0]) return
+
+    const asset = result.assets[0]
+    setUploading(true)
+    try {
+      await mobileKycBff.uploadDocument('SELFIE', {
+        uri: asset.uri,
+        fileName: 'selfie.jpg',
+        mimeType: asset.mimeType ?? 'image/jpeg',
+      })
+      const updated = await mobileKycBff.getKycStatus()
+      setKycData(updated)
+    } catch {
+      Alert.alert('Upload Failed', 'Could not upload selfie. Please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleNext = () => {
     if (step < 2) setStep(step + 1)
@@ -42,6 +113,14 @@ export default function KycScreen() {
     if (step === 1) return panUploaded && aadhaarUploaded
     if (step === 2) return selfieUploaded
     return false
+  }
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center">
+        <ActivityIndicator size="large" color="#5B4FCF" />
+      </View>
+    )
   }
 
   return (
@@ -104,12 +183,13 @@ export default function KycScreen() {
             <Text className="text-gray-900 font-bold text-lg mb-4">Upload Documents</Text>
 
             {[
-              { label: 'PAN Card', uploaded: panUploaded, onUpload: () => setPanUploaded(true) },
-              { label: 'Aadhaar Card', uploaded: aadhaarUploaded, onUpload: () => setAadhaarUploaded(true) },
+              { label: 'PAN Card', uploaded: panUploaded, onUpload: () => pickAndUpload('PAN') },
+              { label: 'Aadhaar Card', uploaded: aadhaarUploaded, onUpload: () => pickAndUpload('AADHAAR') },
             ].map((doc) => (
               <Pressable
                 key={doc.label}
                 onPress={doc.onUpload}
+                disabled={uploading}
                 className={`border-2 border-dashed rounded-xl p-6 items-center mb-3 ${
                   doc.uploaded ? 'border-emerald-300 bg-emerald-50' : 'border-gray-200'
                 }`}
@@ -139,7 +219,8 @@ export default function KycScreen() {
             </Text>
 
             <Pressable
-              onPress={() => setSelfieUploaded(true)}
+              onPress={takeSelfie}
+              disabled={uploading}
               className={`w-40 h-40 rounded-full items-center justify-center ${
                 selfieUploaded ? 'bg-emerald-50' : 'bg-gray-50 border-2 border-dashed border-gray-200'
               }`}

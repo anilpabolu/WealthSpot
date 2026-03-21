@@ -3,21 +3,27 @@
  * Amount input → review → payment → confirmation.
  */
 
-import { View, Text, Pressable, TextInput, ScrollView } from 'react-native'
+import { View, Text, Pressable, TextInput, ScrollView, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
+import { useInitiateInvestment, useConfirmPayment } from '@/hooks/useInvestment'
+import { useProperty } from '@/hooks/useProperties'
 
 const STEPS = ['Amount', 'Review', 'Payment', 'Confirm']
 
 export default function InvestScreen() {
   const { id } = useLocalSearchParams()
+  const { data: property, isLoading: propertyLoading } = useProperty(id as string)
+  const initiateMutation = useInitiateInvestment()
+  const confirmMutation = useConfirmPayment()
+
   const [step, setStep] = useState(0)
   const [amount, setAmount] = useState('')
   const [processing, setProcessing] = useState(false)
 
-  const unitPrice = 25000
+  const unitPrice = property?.unitPrice ?? 25000
   const units = amount ? Math.floor(Number(amount) / unitPrice) : 0
   const totalAmount = units * unitPrice
 
@@ -26,13 +32,36 @@ export default function InvestScreen() {
     if (step < 3) setStep(step + 1)
   }
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    if (!property) return
     setProcessing(true)
-    // Simulate payment
-    setTimeout(() => {
-      setProcessing(false)
+    try {
+      const order = await initiateMutation.mutateAsync({
+        propertyId: property.id,
+        amount: totalAmount,
+        units,
+      })
+      // In production, launch Razorpay SDK with order.razorpayOrderId / order.key
+      // For now, auto-confirm (replace with real Razorpay integration)
+      await confirmMutation.mutateAsync({
+        orderId: order.orderId,
+        razorpayPaymentId: `pay_${Date.now()}`,
+        razorpaySignature: 'mock_signature',
+      })
       setStep(3) // success
-    }, 2000)
+    } catch {
+      // Payment failed - stay on payment step
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  if (propertyLoading) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center">
+        <ActivityIndicator size="large" color="#5B4FCF" />
+      </View>
+    )
   }
 
   return (
@@ -117,7 +146,7 @@ export default function InvestScreen() {
           <View className="bg-white rounded-2xl p-5 shadow-sm">
             <Text className="text-gray-900 font-bold text-lg mb-4">Review Investment</Text>
             {[
-              { label: 'Property', value: 'Prestige Lakeside Habitat' },
+              { label: 'Property', value: property?.title ?? 'Property' },
               { label: 'Units', value: String(units) },
               { label: 'Unit Price', value: formatINR(unitPrice) },
               { label: 'Total Amount', value: formatINR(totalAmount) },
@@ -174,7 +203,7 @@ export default function InvestScreen() {
             </View>
             <Text className="text-gray-900 font-bold text-xl mb-2">Investment Confirmed!</Text>
             <Text className="text-gray-500 text-center text-sm mb-6 px-8">
-              You have successfully invested {formatINR(totalAmount)} in Prestige Lakeside Habitat.
+              You have successfully invested {formatINR(totalAmount)} in {property?.title ?? 'this property'}.
               {'\n\n'}You will receive rental income proportional to your {units} units.
             </Text>
             <Pressable
