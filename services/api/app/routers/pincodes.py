@@ -3,6 +3,8 @@ Pincode lookup router – returns location details for an Indian pincode.
 Checks the local DB first, then falls back to the India Post API.
 """
 
+import logging
+
 import httpx
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -13,6 +15,7 @@ from app.models.pincode import IndianPincode
 from app.schemas.company import PincodeInfo
 
 router = APIRouter(prefix="/pincodes", tags=["pincodes"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/{pincode}", response_model=list[PincodeInfo])
@@ -59,7 +62,9 @@ async def lookup_pincode(
                     )
                     for po in post_offices[:5]
                 ]
-    except Exception:
-        pass  # API unavailable — return empty
+    except httpx.TimeoutException:
+        logger.warning("India Post API timeout for pincode %s", pincode)
+    except httpx.HTTPError as e:
+        logger.warning("India Post API error for pincode %s: %s", pincode, e)
 
     return []

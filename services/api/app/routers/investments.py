@@ -2,12 +2,16 @@
 Investment router – initiate, confirm payment, list.
 """
 
+import hashlib
+import hmac
+import logging
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_kyc_approved
 from app.middleware.audit import log_audit_event
@@ -24,6 +28,8 @@ from app.schemas.investment import (
 )
 
 router = APIRouter(prefix="/investments", tags=["investments"])
+settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=PaginatedInvestments)
@@ -158,7 +164,19 @@ async def confirm_payment(
     if investment.status != InvestmentStatus.PAYMENT_PENDING:
         raise HTTPException(status_code=400, detail="Invalid investment state")
 
-    # TODO: verify Razorpay signature in production
+    # Verify Razorpay signature if secret is configured
+    if settings.razorpay_key_secret and body.razorpay_signature:
+        sign_payload = f"{body.razorpay_order_id}|{body.razorpay_payment_id}"
+        expected = hmac.new(
+            settings.razorpay_key_secret.encode("utf-8"),
+            sign_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected, body.razorpay_signature):
+            raise HTTPException(status_code=400, detail="Invalid payment signature")
+    elif settings.razorpay_key_secret and not body.razorpay_signature:
+        logger.warning("Payment confirmation without signature for investment %s", investment.id)
+
     investment.status = InvestmentStatus.CONFIRMED
     investment.razorpay_payment_id = body.razorpay_payment_id
     investment.razorpay_order_id = body.razorpay_order_id

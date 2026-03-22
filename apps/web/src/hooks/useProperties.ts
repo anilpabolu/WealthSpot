@@ -62,6 +62,24 @@ interface ApiProperty {
 }
 
 /** Frontend-friendly property shape used throughout the app */
+export interface PropertyBuilder {
+  id: string
+  companyName: string
+  reraNumber?: string
+  logoUrl?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experienceYears?: number
+  projectsCompleted?: number
+  totalSqftDelivered?: number
+  about?: string
+  description?: string
+  website?: string
+}
+
 export interface Property {
   id: string
   slug: string
@@ -86,7 +104,7 @@ export interface Property {
   builderId: string
   builderName: string
   builderLogo: string
-  builder: Property['builder'] | null
+  builder: PropertyBuilder | null
   fundingPercentage: number
   amenities: string[]
   highlights: string[]

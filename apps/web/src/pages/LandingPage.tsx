@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import {

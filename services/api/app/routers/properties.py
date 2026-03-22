@@ -392,6 +392,15 @@ async def update_property(
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
 
+    # Builders can only update their own properties
+    if user.role == UserRole.BUILDER:
+        builder_result = await db.execute(
+            select(Builder).where(Builder.user_id == user.id)
+        )
+        builder = builder_result.scalar_one_or_none()
+        if not builder or prop.builder_id != builder.id:
+            raise HTTPException(status_code=403, detail="You can only update your own properties")
+
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(prop, field, value)

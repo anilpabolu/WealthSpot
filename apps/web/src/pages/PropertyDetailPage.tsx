@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import FundingBar from '@/components/wealth/FundingBar'
 import IrrBadge from '@/components/wealth/IrrBadge'
@@ -16,7 +16,7 @@ import { apiPost } from '@/lib/api'
 
 function PropertyGallery({ images, title, videoUrl }: { images: string[]; title: string; videoUrl?: string }) {
   const [activeIdx, setActiveIdx] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval>>()
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
 
   const startAutoPlay = useCallback(() => {
     if (images.length <= 1) return
@@ -43,10 +43,10 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
     <div className="space-y-3">
       <div
         className="aspect-video rounded-xl overflow-hidden relative"
-        onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX }}
+        onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0]?.clientX ?? 0 }}
         onTouchEnd={(e) => {
           const startX = (e.currentTarget as any)._touchX ?? 0
-          const diff = startX - e.changedTouches[0].clientX
+          const diff = startX - (e.changedTouches[0]?.clientX ?? 0)
           if (Math.abs(diff) > 50) {
             if (diff > 0) setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
             else setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1))

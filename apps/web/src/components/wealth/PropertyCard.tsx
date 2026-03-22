@@ -81,7 +81,7 @@ export default function PropertyCard({
   const hasMultiple = images.length > 1
 
   const [activeIdx, setActiveIdx] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval>>()
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const touchStartRef = useRef<number>(0)
 
   // Auto-advance every 4 seconds when multiple images
@@ -122,9 +122,9 @@ export default function PropertyCard({
       {/* Image Carousel */}
       <div
         className="aspect-video relative overflow-hidden"
-        onTouchStart={(e) => { touchStartRef.current = e.touches[0].clientX }}
+        onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? 0 }}
         onTouchEnd={(e) => {
-          const diff = touchStartRef.current - e.changedTouches[0].clientX
+          const diff = touchStartRef.current - (e.changedTouches[0]?.clientX ?? 0)
           if (Math.abs(diff) > 50) {
             if (diff > 0) setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
             else setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1))

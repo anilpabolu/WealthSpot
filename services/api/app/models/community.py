@@ -8,7 +8,7 @@ from enum import Enum as PyEnum
 from typing import Any, Sequence
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum, ForeignKey, Integer, String, Text,
+    Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -94,6 +94,9 @@ class CommunityReply(Base):
 
 class CommunityPostLike(Base):
     __tablename__ = "community_post_likes"
+    __table_args__ = (
+        UniqueConstraint("post_id", "user_id", name="uq_post_like_user"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -113,6 +116,9 @@ class CommunityPostLike(Base):
 
 class CommunityReplyLike(Base):
     __tablename__ = "community_reply_likes"
+    __table_args__ = (
+        UniqueConstraint("reply_id", "user_id", name="uq_reply_like_user"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
