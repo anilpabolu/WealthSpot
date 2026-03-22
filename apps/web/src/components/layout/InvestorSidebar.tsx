@@ -21,7 +21,7 @@ const INVESTOR_NAV = [
   { label: 'Marketplace', href: '/marketplace', icon: Building2 },
   { label: 'Transactions', href: '/portal/investor/transactions', icon: Receipt },
   { label: 'Lend', href: '/portal/investor/lender', icon: Landmark },
-  { label: 'KYC Status', href: '/auth/kyc/identity', icon: FileCheck },
+  { label: 'KYC Status', href: '/settings?tab=kyc', icon: FileCheck },
   { label: 'Community', href: '/community', icon: Users, roles: ['super_admin'] as string[] },
   { label: 'Refer & Earn', href: '/referral', icon: Share2 },
 ]

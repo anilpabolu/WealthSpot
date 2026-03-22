@@ -176,6 +176,8 @@ class AuditLog(Base):
     resource_type: Mapped[str] = mapped_column(String(50), nullable=False)
     resource_id: Mapped[str | None] = mapped_column(String(255))
     details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    old_value: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    new_value: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     ip_address: Mapped[str | None] = mapped_column(String(45))
     user_agent: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(

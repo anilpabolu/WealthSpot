@@ -3,7 +3,8 @@ import { z } from 'zod'
 // ─── PAN Card ─────────────────────────────────────────
 export const panSchema = z
   .string()
-  .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Invalid PAN format (e.g. ABCDE1234F)')
+  .transform((v) => v.toUpperCase())
+  .pipe(z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Invalid PAN format (e.g. ABCDE1234F)'))
 
 // ─── RERA Number ──────────────────────────────────────
 export const reraNumberSchema = z

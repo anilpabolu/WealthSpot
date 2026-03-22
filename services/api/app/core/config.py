@@ -53,6 +53,23 @@ class Settings(BaseSettings):
     # ── Sentry ───────────────────────────────────────────
     sentry_dsn: str = ""
 
+    # ── SMTP (Email) ─────────────────────────────────────
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "WealthSpot"
+
+    # ── Twilio (SMS / WhatsApp) ──────────────────────────
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+    twilio_whatsapp_number: str = ""
+
+    # ── Encryption (Fernet) ──────────────────────────────
+    encryption_key: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

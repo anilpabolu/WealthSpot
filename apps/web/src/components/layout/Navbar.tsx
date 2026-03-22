@@ -1,7 +1,7 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle } from 'lucide-react'
+import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -11,6 +11,7 @@ import OnboardingVideo from '@/components/OnboardingVideo'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
 import { APPROVAL_ROLES } from '@/lib/constants'
+import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 
 const AUTH_NAV_LINKS = [
   { label: 'Portfolio', href: '/portfolio', icon: PieChart },
@@ -24,10 +25,13 @@ interface NavbarProps {
 
 export default function Navbar(_props?: NavbarProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const { data: completion } = useProfileCompletionStatus()
 
   const ANSWER_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
 
@@ -155,6 +159,26 @@ export default function Navbar(_props?: NavbarProps) {
         </div>
       )}
     </header>
+
+      {/* Profile completion banner — unmissable for incomplete profiles */}
+      {isAuthenticated && completion && !completion.isComplete && location.pathname !== '/profile/complete' && (
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Zap className="h-4 w-4 shrink-0" />
+              <p className="text-sm font-semibold truncate">
+                Your profile is {completion.profileCompletionPct}% complete — finish it to unlock your referral code & premium features!
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/profile/complete')}
+              className="shrink-0 px-4 py-1.5 bg-white text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-50 transition shadow-sm"
+            >
+              Complete Now
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Get Started → video → signup flow */}
       {showVideo && (

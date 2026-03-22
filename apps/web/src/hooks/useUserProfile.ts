@@ -21,6 +21,9 @@ export interface UserProfile {
   isActive: boolean
   createdAt: string
   kycDocuments: KycDocument[]
+  emailVerified?: boolean
+  phoneVerified?: boolean
+  profileCompletionPct?: number
 }
 
 export function useUserProfile() {

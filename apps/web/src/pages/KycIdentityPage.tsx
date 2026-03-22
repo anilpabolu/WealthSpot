@@ -4,10 +4,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { panSchema } from '@/lib/validators'
-import { useUserStore } from '@/stores/user.store'
+import {
+  useSubmitKycDetails,
+  useUploadKycDocument,
+  useSubmitKycForReview,
+} from '@/hooks/useKycBank'
 import {
   Shield, Upload, CheckCircle2, ArrowRight, ArrowLeft,
-  User, FileText, Camera, AlertCircle,
+  User, FileText, Camera, Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -75,19 +79,31 @@ export default function KycIdentityPage() {
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null)
   const [selfieFile, setSelfieFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const { updateKycStatus } = useUserStore()
+  const [uploadProgress, setUploadProgress] = useState('')
+
+  const submitDetails = useSubmitKycDetails()
+  const uploadDoc = useUploadKycDocument()
+  const submitForReview = useSubmitKycForReview()
 
   const {
     register,
     formState: { errors },
     trigger,
+    getValues,
   } = useForm<KycFormData>({
     resolver: zodResolver(kycSchema),
   })
 
   const handleStep1Next = async () => {
     const valid = await trigger(['fullName', 'panNumber', 'dateOfBirth', 'address', 'city', 'pincode'])
-    if (valid) setStep(2)
+    if (!valid) return
+
+    try {
+      await submitDetails.mutateAsync(getValues())
+      setStep(2)
+    } catch {
+      // Error handled by mutation
+    }
   }
 
   const handleStep2Next = () => {
@@ -96,13 +112,29 @@ export default function KycIdentityPage() {
   }
 
   const handleFinalSubmit = async () => {
-    if (!selfieFile) return
+    if (!selfieFile || !panFile || !aadhaarFile) return
     setSubmitting(true)
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 2000))
-    updateKycStatus('under_review')
-    setStep(4) // success state
-    setSubmitting(false)
+
+    try {
+      // Upload all documents
+      setUploadProgress('Uploading PAN card…')
+      await uploadDoc.mutateAsync({ documentType: 'PAN', file: panFile })
+
+      setUploadProgress('Uploading Aadhaar card…')
+      await uploadDoc.mutateAsync({ documentType: 'AADHAAR', file: aadhaarFile })
+
+      setUploadProgress('Uploading selfie…')
+      await uploadDoc.mutateAsync({ documentType: 'SELFIE', file: selfieFile })
+
+      setUploadProgress('Submitting for review…')
+      await submitForReview.mutateAsync()
+
+      setStep(4) // success
+    } catch {
+      setUploadProgress('')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -227,10 +259,11 @@ export default function KycIdentityPage() {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-info shrink-0 mt-0.5" />
+              <Lock className="h-4 w-4 text-info shrink-0 mt-0.5" />
               <p className="text-xs text-gray-600">
-                Your documents are encrypted and stored securely. We comply with DPDP Act 2023 
-                for data protection.
+                <strong>Your data is safe.</strong> All documents are encrypted end-to-end using AES-256 
+                encryption and stored in a secure vault. We comply with DPDP Act 2023 and RERA guidelines 
+                for data protection. Your information is never shared with third parties.
               </p>
             </div>
 
@@ -287,7 +320,7 @@ export default function KycIdentityPage() {
                     <svg viewBox="0 0 40 40" className="h-4 w-4 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="3">
                       <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
                     </svg>
-                    Submitting…
+                    {uploadProgress || 'Submitting…'}
                   </>
                 ) : (
                   <>

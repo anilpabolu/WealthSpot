@@ -58,7 +58,7 @@ export default function KycGate({
             your documents for review.
           </p>
           <a
-            href="/auth/kyc/identity"
+            href="/settings?tab=kyc"
             className="btn-primary inline-flex items-center gap-2"
           >
             Re-submit KYC
@@ -97,7 +97,7 @@ export default function KycGate({
 
   // NOT_STARTED or IN_PROGRESS — redirect to KYC page
   if (kycStatus === KYC_STATUS.NOT_STARTED) {
-    return <Navigate to="/auth/kyc/identity" replace />
+    return <Navigate to="/settings?tab=kyc" replace />
   }
 
   // IN_PROGRESS
@@ -115,7 +115,7 @@ export default function KycGate({
           This is a one-time process and takes about 5 minutes.
         </p>
         <a
-          href="/auth/kyc/identity"
+          href="/settings?tab=kyc"
           className="btn-primary inline-flex items-center gap-2"
         >
           Complete KYC Now

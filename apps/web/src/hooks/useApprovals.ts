@@ -100,7 +100,7 @@ export function useAllApprovals(category?: string) {
         params: {
           ...(category && { category }),
           page: 1,
-          page_size: 200,
+          page_size: 100,
           sort_by: 'created_at',
           sort_order: 'desc',
         },

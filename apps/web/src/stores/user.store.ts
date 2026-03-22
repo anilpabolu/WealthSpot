@@ -12,6 +12,9 @@ export interface UserProfile {
   referralCode: string
   wealthPassActive: boolean
   createdAt: string
+  emailVerified?: boolean
+  phoneVerified?: boolean
+  profileCompletionPct?: number
 }
 
 interface UserState {

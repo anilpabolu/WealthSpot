@@ -137,3 +137,50 @@ async def send_enquiry(
 
     await db.commit()
     return {"status": "ok"}
+
+
+# ── Notification Preferences ─────────────────────────────────────────────────
+
+DEFAULT_NOTIFICATION_PREFS = {
+    "investment_confirmations": True,
+    "rental_income": True,
+    "property_updates": True,
+    "new_properties": False,
+    "community_activity": False,
+    "marketing_emails": False,
+}
+
+
+class NotificationPreferencesUpdate(BaseModel):
+    investment_confirmations: bool | None = None
+    rental_income: bool | None = None
+    property_updates: bool | None = None
+    new_properties: bool | None = None
+    community_activity: bool | None = None
+    marketing_emails: bool | None = None
+
+
+@router.get("/preferences")
+async def get_notification_preferences(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Return the user's notification preferences (merged with defaults)."""
+    saved = user.notification_preferences or {}
+    return {**DEFAULT_NOTIFICATION_PREFS, **saved}
+
+
+@router.put("/preferences")
+async def update_notification_preferences(
+    payload: NotificationPreferencesUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Update the user's notification preferences (partial update)."""
+    current = user.notification_preferences or {}
+    updates = payload.model_dump(exclude_none=True)
+    merged = {**DEFAULT_NOTIFICATION_PREFS, **current, **updates}
+    user.notification_preferences = merged
+    await db.commit()
+    await db.refresh(user)
+    return user.notification_preferences

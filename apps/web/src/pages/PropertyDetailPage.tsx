@@ -1,10 +1,11 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import FundingBar from '@/components/wealth/FundingBar'
 import IrrBadge from '@/components/wealth/IrrBadge'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useProperty } from '@/hooks/useProperties'
 import { useInvestmentStore } from '@/stores/investment.store'
+import { useKycStatus } from '@/hooks/useKycBank'
 import { formatINR, formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
   MapPin, Calendar, Users, Building2, FileText, Shield,
@@ -150,10 +151,13 @@ function InvestmentPanel({
   irr: number
 }) {
   const { startInvestment } = useInvestmentStore()
+  const { data: kycData } = useKycStatus()
+  const navigate = useNavigate()
   const [amount, setAmount] = useState(minInvestment)
   const units = Math.floor(amount / unitPrice)
   const daysLeft = daysRemaining(fundingDeadline)
   const isLive = status === 'funding' || status === 'active'
+  const kycApproved = kycData?.kycStatus?.toLowerCase() === 'approved'
 
   return (
     <div className="card p-6 sticky top-20">
@@ -204,7 +208,11 @@ function InvestmentPanel({
           </div>
 
           <button
-            onClick={() =>
+            onClick={() => {
+              if (!kycApproved) {
+                navigate('/settings?tab=kyc')
+                return
+              }
               startInvestment({
                 propertyId,
                 propertyName,
@@ -213,12 +221,19 @@ function InvestmentPanel({
                 minAmount: minInvestment,
                 unitPrice,
               })
-            }
+            }}
             className="btn-primary w-full text-base py-3 inline-flex items-center justify-center gap-2"
           >
             Invest Now
             <ArrowRight className="h-5 w-5" />
           </button>
+
+          {!kycApproved && (
+            <p className="text-center text-xs text-amber-600 mt-2">
+              KYC verification required before investing.{' '}
+              <Link to="/settings?tab=kyc" className="underline font-semibold">Complete KYC</Link>
+            </p>
+          )}
         </>
       )}
 

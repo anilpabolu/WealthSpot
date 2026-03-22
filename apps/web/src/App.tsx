@@ -87,6 +87,15 @@ export default function App() {
   const { user, isLoaded } = useUser()
   const redirectedRef = useRef(false)
 
+  // Capture ?ref=CODE from URL and stash in localStorage for post-signup apply
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const refCode = params.get('ref')
+    if (refCode) {
+      localStorage.setItem('ws_referral_code', refCode.toUpperCase())
+    }
+  }, [location.search])
+
   // Bridge Clerk auth → backend user store (role, JWT, profile)
   useBackendSync()
 
@@ -94,16 +103,18 @@ export default function App() {
     diagLog('nav', 'info', `Route \u2192 ${location.pathname}`)
   }, [location.pathname])
 
-  // Redirect signed-in users: first-timers → onboarding video, returning → vaults
+  // Redirect signed-in users on the landing page only:
+  // first-timers → onboarding video, returning → vaults.
+  // If the user is already on a deep link (e.g. /settings, /marketplace), stay there.
   useEffect(() => {
     if (!isLoaded || !user || redirectedRef.current) return
+    if (location.pathname !== '/') return          // don't redirect deep links
     const onboarded = localStorage.getItem('ws_onboarded')
     redirectedRef.current = true
     if (onboarded !== 'true') {
       localStorage.setItem('ws_onboarded', 'false')
       navigate('/onboarding')
     } else {
-      // Returning user — always open vaults as dashboard
       navigate('/vaults')
     }
   }, [isLoaded, user, navigate, location.pathname])

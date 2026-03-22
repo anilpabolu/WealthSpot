@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import {
   User,
@@ -13,11 +14,37 @@ import {
   Gift,
   Copy,
   CheckCheck,
+  Trash2,
+  Download,
+  Plus,
+  ShieldCheck,
+  Upload,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUser } from '@clerk/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
+import {
+  useKycStatus,
+  useKycDocuments,
+  useBankDetails,
+  useCreateBankDetail,
+  useDeleteBankDetail,
+  useDeleteKycDocument,
+  useKycDetails,
+  useSubmitKycDetails,
+  useUploadKycDocument,
+  useSubmitKycForReview,
+  type BankDetailCreate,
+} from '@/hooks/useKycBank'
+import { useNotificationPreferences, useUpdateNotificationPreferences, type NotificationPreferences } from '@/hooks/useNotificationPrefs'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { panSchema } from '@/lib/validators'
 
 type Tab = 'profile' | 'notifications' | 'security' | 'bank' | 'documents' | 'kyc' | 'referrals'
 
@@ -32,7 +59,16 @@ const TABS: { id: Tab; label: string; icon: typeof User }[] = [
 ]
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const [searchParams] = useSearchParams()
+  const tabParam = searchParams.get('tab') as Tab | null
+  const validTabs = TABS.map((t) => t.id)
+  const [activeTab, setActiveTab] = useState<Tab>(
+    tabParam && validTabs.includes(tabParam) ? tabParam : 'profile'
+  )
+
+  useEffect(() => {
+    if (tabParam && validTabs.includes(tabParam)) setActiveTab(tabParam)
+  }, [tabParam])
 
   return (
     <MainLayout>
@@ -145,33 +181,50 @@ function ProfileTab() {
   )
 }
 
+const NOTIFICATION_SETTINGS: { key: keyof NotificationPreferences; label: string; desc: string }[] = [
+  { key: 'investmentConfirmations', label: 'Investment confirmations', desc: 'When your investment is confirmed' },
+  { key: 'rentalIncome', label: 'Rental income', desc: 'When rental income is disbursed' },
+  { key: 'propertyUpdates', label: 'Property updates', desc: 'Updates from properties you invested in' },
+  { key: 'newProperties', label: 'New properties', desc: 'When new properties are listed' },
+  { key: 'communityActivity', label: 'Community activity', desc: 'Replies to your posts and mentions' },
+  { key: 'marketingEmails', label: 'Marketing emails', desc: 'Promotions and newsletters' },
+]
+
 function NotificationsTab() {
-  const settings = [
-    { label: 'Investment confirmations', desc: 'When your investment is confirmed', default: true },
-    { label: 'Rental income', desc: 'When rental income is disbursed', default: true },
-    { label: 'Property updates', desc: 'Updates from properties you invested in', default: true },
-    { label: 'New properties', desc: 'When new properties are listed', default: false },
-    { label: 'Community activity', desc: 'Replies to your posts and mentions', default: false },
-    { label: 'Marketing emails', desc: 'Promotions and newsletters', default: false },
-  ]
+  const { data: prefs, isLoading } = useNotificationPreferences()
+  const updatePrefs = useUpdateNotificationPreferences()
+
+  const handleToggle = (key: keyof NotificationPreferences) => {
+    if (!prefs) return
+    updatePrefs.mutate({ [key]: !prefs[key] })
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h2 className="font-semibold text-gray-900 mb-6">Notification Preferences</h2>
-      <div className="space-y-4">
-        {settings.map((s) => (
-          <div key={s.label} className="flex items-center justify-between py-2">
-            <div>
-              <p className="text-sm font-medium text-gray-900">{s.label}</p>
-              <p className="text-xs text-gray-500">{s.desc}</p>
+      {isLoading ? (
+        <p className="text-sm text-gray-400">Loading…</p>
+      ) : (
+        <div className="space-y-4">
+          {NOTIFICATION_SETTINGS.map((s) => (
+            <div key={s.key} className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{s.label}</p>
+                <p className="text-xs text-gray-500">{s.desc}</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prefs?.[s.key] ?? false}
+                  onChange={() => handleToggle(s.key)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked={s.default} className="sr-only peer" />
-              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
-            </label>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -212,31 +265,121 @@ function SecurityTab() {
 }
 
 function BankTab() {
+  const { data: banks, isLoading, refetch } = useBankDetails()
+  const createBank = useCreateBankDetail()
+  const deleteBank = useDeleteBankDetail()
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState<BankDetailCreate>({
+    accountHolderName: '',
+    accountNumber: '',
+    ifscCode: '',
+    bankName: '',
+    branchName: '',
+    accountType: 'savings',
+  })
+
+  const handleCreate = async () => {
+    if (!form.accountHolderName || !form.accountNumber || !form.ifscCode || !form.bankName) return
+    await createBank.mutateAsync(form)
+    await refetch()
+    setShowForm(false)
+    setForm({ accountHolderName: '', accountNumber: '', ifscCode: '', bankName: '', branchName: '', accountType: 'savings' })
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-6">Bank Account</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Linked bank account for rental income disbursement and withdrawals.
-      </p>
-
-      <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4 mb-6">
-        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-          <CreditCard className="h-6 w-6 text-blue-600" />
-        </div>
-        <div className="flex-1">
-          <p className="font-semibold text-gray-900 text-sm">HDFC Bank</p>
-          <p className="text-xs text-gray-500">A/C: ••••••••4521 | IFSC: HDFC0001234</p>
-        </div>
-        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-          Verified
-        </span>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-semibold text-gray-900">Bank Accounts</h2>
+        <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm px-4 py-2 inline-flex items-center gap-1.5">
+          <Plus className="h-3.5 w-3.5" />
+          Add Account
+        </button>
       </div>
 
-      <button className="btn-ghost text-sm flex items-center gap-2">
-        <CreditCard className="h-4 w-4" />
-        Change Bank Account
-        <ChevronRight className="h-4 w-4" />
-      </button>
+      {/* Security reassurance */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2 mb-6">
+        <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+        <p className="text-xs text-gray-600">
+          <strong>100% Secure.</strong> All bank details are encrypted end-to-end using AES-256 military-grade
+          encryption. Your account numbers are never stored in plain text. Only you can see your full details.
+        </p>
+      </div>
+
+      {showForm && (
+        <div className="border border-gray-200 rounded-xl p-4 mb-6 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-900">Add New Bank Account</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Account Holder Name</label>
+              <input value={form.accountHolderName} onChange={(e) => setForm({ ...form, accountHolderName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Full name as per bank" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Account Number</label>
+              <input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, '') })} className="w-full px-3 py-2 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Enter account number" maxLength={18} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">IFSC Code</label>
+              <input value={form.ifscCode} onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })} className="w-full px-3 py-2 text-sm font-mono uppercase border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC0001234" maxLength={11} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Bank Name</label>
+              <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC Bank" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Branch Name (Optional)</label>
+              <input value={form.branchName} onChange={(e) => setForm({ ...form, branchName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Branch name" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Account Type</label>
+              <select value={form.accountType} onChange={(e) => setForm({ ...form, accountType: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none">
+                <option value="savings">Savings</option>
+                <option value="current">Current</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowForm(false)} className="btn-ghost text-sm px-4 py-2">Cancel</button>
+            <button onClick={handleCreate} disabled={createBank.isPending} className="btn-primary text-sm px-4 py-2">
+              {createBank.isPending ? 'Saving…' : 'Save Account'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+      {!isLoading && (!banks || banks.length === 0) && !showForm && (
+        <p className="text-sm text-gray-400">No bank accounts linked yet. Add one to receive payouts.</p>
+      )}
+      {!isLoading && banks && banks.length > 0 && (
+        <div className="space-y-3">
+          {banks.map((bank) => (
+            <div key={bank.id} className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-sm">{bank.bankName}</p>
+                <p className="text-xs text-gray-500">
+                  A/C: {bank.accountNumberMasked} | IFSC: {bank.ifscCode}
+                </p>
+                <p className="text-xs text-gray-400">{bank.accountHolderName} · {bank.accountType}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {bank.isVerified && (
+                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Verified</span>
+                )}
+                <button
+                  onClick={() => { if (confirm('Delete this bank account?')) deleteBank.mutate(bank.id) }}
+                  className="p-2 text-gray-400 hover:text-red-500 transition"
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -250,58 +393,427 @@ const KYC_STATUS_MAP: Record<string, { label: string; color: string; bg: string;
 }
 
 function KycTab() {
-  const { data: profile, isLoading } = useUserProfile()
-  const rawStatus = profile?.kycStatus?.toLowerCase() ?? 'not_started'
+  const { data: kycStatus, isLoading } = useKycStatus()
+  const rawStatus = kycStatus?.kycStatus?.toLowerCase() ?? 'not_started'
   const meta = KYC_STATUS_MAP[rawStatus] ?? KYC_STATUS_MAP['not_started']!
+  const canSubmit = rawStatus === 'not_started' || rawStatus === 'rejected' || rawStatus === 'in_progress'
+  const showDetails = rawStatus === 'under_review' || rawStatus === 'approved' || rawStatus === 'in_progress'
+  const { data: kycDetails } = useKycDetails()
+  const [showForm, setShowForm] = useState(false)
+
+  return (
+    <div className="space-y-6">
+      {/* Status banner */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="font-semibold text-gray-900 mb-4">KYC Verification</h2>
+        {isLoading ? (
+          <p className="text-sm text-gray-400">Loading…</p>
+        ) : meta ? (
+          <>
+            <div className={`flex items-center gap-4 p-4 ${meta.bg} border ${meta.border} rounded-xl mb-6`}>
+              <div className={`w-12 h-12 rounded-full ${meta.bg} flex items-center justify-center`}>
+                <Shield className={`h-6 w-6 ${meta.color}`} />
+              </div>
+              <div>
+                <p className={`font-semibold ${meta.color}`}>KYC {meta.label}</p>
+                <p className={`text-sm ${meta.color} opacity-80`}>{kycStatus?.message || meta.desc}</p>
+              </div>
+            </div>
+            {canSubmit && !showForm && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="btn-primary inline-flex items-center gap-2 text-sm"
+              >
+                <Shield className="h-4 w-4" />
+                {rawStatus === 'rejected' ? 'Re-submit KYC' : rawStatus === 'in_progress' ? 'Continue KYC' : 'Start KYC Verification'}
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+          </>
+        ) : null}
+      </div>
+
+      {/* Read-only submitted details */}
+      {showDetails && kycDetails?.fullName && !showForm && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Submitted Details</h3>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <div>
+              <dt className="text-gray-500">Full Name</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.fullName}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">PAN Number</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.panNumberMasked ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Date of Birth</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.dateOfBirth ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">City</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.city ?? '—'}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-gray-500">Address</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.address ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Pincode</dt>
+              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.pincode ?? '—'}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
+
+      {/* Inline KYC form */}
+      {canSubmit && showForm && (
+        <KycInlineForm onComplete={() => setShowForm(false)} />
+      )}
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────── */
+/*  Inline KYC Wizard (embedded in Settings KYC tab)     */
+/* ────────────────────────────────────────────────────── */
+
+const kycFormSchema = z.object({
+  fullName: z.string().min(2, 'Name is required'),
+  panNumber: panSchema,
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  address: z.string().min(10, 'Full address is required'),
+  city: z.string().min(1, 'City is required'),
+  pincode: z.string().regex(/^\d{6}$/, 'Invalid pincode'),
+})
+
+type KycFormData = z.infer<typeof kycFormSchema>
+
+const KYC_STEPS = [
+  { num: 1, label: 'Personal Details', icon: User },
+  { num: 2, label: 'Document Upload', icon: FileText },
+  { num: 3, label: 'Selfie Verification', icon: Camera },
+]
+
+function KycStepIndicator({ currentStep }: { currentStep: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {KYC_STEPS.map((step, i) => (
+        <div key={step.num} className="flex items-center gap-2">
+          <div
+            className={cn(
+              'h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors',
+              currentStep > step.num
+                ? 'bg-emerald-500 text-white'
+                : currentStep === step.num
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-400',
+            )}
+          >
+            {currentStep > step.num ? <CheckCircle2 className="h-4 w-4" /> : step.num}
+          </div>
+          <span className={cn('text-sm font-medium hidden sm:block', currentStep >= step.num ? 'text-gray-900' : 'text-gray-400')}>
+            {step.label}
+          </span>
+          {i < KYC_STEPS.length - 1 && (
+            <div className={cn('w-8 h-0.5 mx-2', currentStep > step.num ? 'bg-emerald-500' : 'bg-gray-200')} />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function KycFileUpload({
+  label,
+  description,
+  file,
+  onFileChange,
+  accept,
+}: {
+  label: string
+  description: string
+  file: File | null
+  onFileChange: (f: File | null) => void
+  accept: string
+}) {
+  return (
+    <div>
+      <label className="text-sm font-medium text-gray-700 mb-1 block">{label}</label>
+      <div
+        className={cn(
+          'border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer',
+          file ? 'border-emerald-400 bg-green-50' : 'border-gray-200 hover:border-primary/30',
+        )}
+        onClick={() => {
+          const input = document.createElement('input')
+          input.type = 'file'
+          input.accept = accept
+          input.onchange = (e) => {
+            const f = (e.target as HTMLInputElement).files?.[0]
+            if (f) onFileChange(f)
+          }
+          input.click()
+        }}
+      >
+        {file ? (
+          <div className="flex items-center justify-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+            <span className="text-sm font-medium text-emerald-600">{file.name}</span>
+          </div>
+        ) : (
+          <>
+            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 font-medium">{description}</p>
+            <p className="text-xs text-gray-400 mt-1">Max 5 MB · JPG, PNG, or PDF</p>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function KycInlineForm({ onComplete }: { onComplete: () => void }) {
+  const [step, setStep] = useState(1)
+  const [panFile, setPanFile] = useState<File | null>(null)
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null)
+  const [selfieFile, setSelfieFile] = useState<File | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
+
+  const submitDetails = useSubmitKycDetails()
+  const uploadDoc = useUploadKycDocument()
+  const submitForReview = useSubmitKycForReview()
+
+  const {
+    register,
+    formState: { errors },
+    trigger,
+    getValues,
+  } = useForm<KycFormData>({ resolver: zodResolver(kycFormSchema) })
+
+  const handleStep1Next = async () => {
+    const valid = await trigger(['fullName', 'panNumber', 'dateOfBirth', 'address', 'city', 'pincode'])
+    if (!valid) return
+    try {
+      await submitDetails.mutateAsync(getValues())
+      setStep(2)
+    } catch { /* handled by mutation */ }
+  }
+
+  const handleStep2Next = () => {
+    if (!panFile || !aadhaarFile) return
+    setStep(3)
+  }
+
+  const handleFinalSubmit = async () => {
+    if (!selfieFile || !panFile || !aadhaarFile) return
+    setSubmitting(true)
+    try {
+      setUploadProgress('Uploading PAN card…')
+      await uploadDoc.mutateAsync({ documentType: 'PAN', file: panFile })
+      setUploadProgress('Uploading Aadhaar card…')
+      await uploadDoc.mutateAsync({ documentType: 'AADHAAR', file: aadhaarFile })
+      setUploadProgress('Uploading selfie…')
+      await uploadDoc.mutateAsync({ documentType: 'SELFIE', file: selfieFile })
+      setUploadProgress('Submitting for review…')
+      await submitForReview.mutateAsync()
+      setStep(4)
+    } catch {
+      setUploadProgress('')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (step === 4) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+        <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+        </div>
+        <h2 className="font-display text-xl font-bold text-gray-900 mb-2">KYC Submitted Successfully!</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Your documents are being reviewed. This usually takes 24-48 hours.
+          We'll notify you via email and SMS once approved.
+        </p>
+        <button onClick={onComplete} className="btn-primary inline-flex items-center gap-2">
+          Done
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-4">KYC Verification</h2>
-      {isLoading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
-      ) : meta ? (
-        <div className={`flex items-center gap-4 p-4 ${meta.bg} border ${meta.border} rounded-xl mb-6`}>
-          <div className={`w-12 h-12 rounded-full ${meta.bg} flex items-center justify-center`}>
-            <Shield className={`h-6 w-6 ${meta.color}`} />
+      <KycStepIndicator currentStep={step} />
+
+      {/* Step 1: Personal Details */}
+      {step === 1 && (
+        <div className="space-y-5">
+          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
+            Personal Details
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Full Name (as per PAN)</label>
+              <input {...register('fullName')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="Enter your full name" />
+              {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">PAN Number</label>
+              <input {...register('panNumber')} className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="ABCDE1234F" maxLength={10} />
+              {errors.panNumber && <p className="text-xs text-red-500 mt-1">{errors.panNumber.message}</p>}
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Date of Birth</label>
+              <input type="date" {...register('dateOfBirth')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+              {errors.dateOfBirth && <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>}
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Full Address</label>
+              <textarea {...register('address')} rows={2} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" placeholder="House no., Street, Area" />
+              {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">City</label>
+                <input {...register('city')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="City" />
+                {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Pincode</label>
+                <input {...register('pincode')} className="w-full px-3 py-2.5 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="560001" maxLength={6} />
+                {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode.message}</p>}
+              </div>
+            </div>
           </div>
-          <div>
-            <p className={`font-semibold ${meta.color}`}>KYC {meta.label}</p>
-            <p className={`text-sm ${meta.color} opacity-80`}>{meta.desc}</p>
+          <button onClick={handleStep1Next} disabled={submitDetails.isPending} className="btn-primary w-full py-3 inline-flex items-center justify-center gap-2 disabled:opacity-50">
+            {submitDetails.isPending ? 'Saving…' : 'Continue'}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Step 2: Document Upload */}
+      {step === 2 && (
+        <div className="space-y-5">
+          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Document Upload
+          </h3>
+          <div className="space-y-4">
+            <KycFileUpload label="PAN Card" description="Upload a clear photo of your PAN card" file={panFile} onFileChange={setPanFile} accept="image/*,.pdf" />
+            <KycFileUpload label="Aadhaar Card" description="Upload front side of your Aadhaar card" file={aadhaarFile} onFileChange={setAadhaarFile} accept="image/*,.pdf" />
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+            <Lock className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-600">
+              <strong>Your data is safe.</strong> All documents are encrypted end-to-end using AES-256
+              encryption and stored in a secure vault.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => setStep(1)} className="btn-ghost flex-1 py-3 inline-flex items-center justify-center gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+            <button onClick={handleStep2Next} disabled={!panFile || !aadhaarFile} className="btn-primary flex-1 py-3 inline-flex items-center justify-center gap-2 disabled:opacity-50">
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
-      ) : null}
+      )}
+
+      {/* Step 3: Selfie Verification */}
+      {step === 3 && (
+        <div className="space-y-5">
+          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Camera className="h-5 w-5 text-primary" />
+            Selfie Verification
+          </h3>
+          <p className="text-sm text-gray-600">
+            Take a clear selfie to match with your PAN card photo. Ensure good lighting and your face is clearly visible.
+          </p>
+          <KycFileUpload label="Selfie Photo" description="Upload a clear selfie or take one with your camera" file={selfieFile} onFileChange={setSelfieFile} accept="image/*" />
+          <div className="flex gap-3">
+            <button onClick={() => setStep(2)} className="btn-ghost flex-1 py-3 inline-flex items-center justify-center gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+            <button onClick={handleFinalSubmit} disabled={!selfieFile || submitting} className="btn-primary flex-1 py-3 inline-flex items-center justify-center gap-2 disabled:opacity-50">
+              {submitting ? (
+                <>{uploadProgress || 'Submitting…'}</>
+              ) : (
+                <>Submit for Review <ArrowRight className="h-4 w-4" /></>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function DocumentsTab() {
-  const { data: profile, isLoading } = useUserProfile()
-  const docs = profile?.kycDocuments ?? []
+  const { data: docs, isLoading } = useKycDocuments()
+  const deleteDoc = useDeleteKycDocument()
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h2 className="font-semibold text-gray-900 mb-6">Uploaded Documents</h2>
       {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
-      {!isLoading && docs.length === 0 && (
-        <p className="text-sm text-gray-400">Not Available — no documents uploaded yet.</p>
+      {!isLoading && (!docs || docs.length === 0) && (
+        <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm text-gray-400">No documents uploaded yet.</p>
+        </div>
       )}
-      {!isLoading && docs.length > 0 && (
+      {!isLoading && docs && docs.length > 0 && (
         <div className="space-y-3">
           {docs.map((doc) => {
             const vs = doc.verificationStatus?.toLowerCase()
             const isVerified = vs === 'approved' || vs === 'verified'
+            const isPending = vs === 'pending'
             return (
               <div key={doc.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
                 <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
                   <FileText className="h-5 w-5 text-gray-400" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm capitalize">{doc.documentType.replace(/_/g, ' ')}</p>
-                  <p className="text-xs text-gray-400">Uploaded {new Date(doc.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {doc.originalFilename || 'Document'} · {doc.fileSizeBytes ? `${(doc.fileSizeBytes / 1024).toFixed(0)} KB` : ''} · Uploaded {new Date(doc.createdAt).toLocaleDateString()}
+                  </p>
+                  {doc.rejectionReason && (
+                    <p className="text-xs text-red-500 mt-0.5">Rejection: {doc.rejectionReason}</p>
+                  )}
                 </div>
-                <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', isVerified ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50')}>
-                  {isVerified ? 'Verified' : doc.verificationStatus ?? 'Pending'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', isVerified ? 'text-emerald-700 bg-emerald-50' : isPending ? 'text-amber-700 bg-amber-50' : 'text-red-700 bg-red-50')}>
+                    {isVerified ? 'Verified' : isPending ? 'Pending' : doc.verificationStatus}
+                  </span>
+                  {doc.downloadUrl && (
+                    <a
+                      href={doc.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 text-gray-400 hover:text-primary transition"
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </a>
+                  )}
+                  {!isVerified && (
+                    <button
+                      onClick={() => { if (confirm('Delete this document?')) deleteDoc.mutate(doc.id) }}
+                      className="p-1.5 text-gray-400 hover:text-red-500 transition"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}

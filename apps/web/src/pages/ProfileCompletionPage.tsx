@@ -1,164 +1,788 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
-import { useProfileCompletion, type ProfileField } from '@/hooks/useProfileCompletion'
 import {
-  CheckCircle2,
-  XCircle,
-  User,
-  Shield,
-  Settings,
-  ArrowLeft,
-  ChevronRight,
-} from 'lucide-react'
+  useFullProfile,
+  useUpdateProfileSection,
+  useSendOtp,
+  useVerifyOtp,
+  useProfileCompletionStatus,
+  useUpdatePhone,
+} from '@/hooks/useProfileAPI'
 import { cn } from '@/lib/utils'
+import {
+  User, Heart, Wrench, MapPin, ShieldCheck,
+  ChevronRight, ChevronLeft, Sparkles, Trophy, Rocket,
+  Check, Copy, CheckCheck, ArrowLeft, Star, Zap, Gift,
+  Mail, Phone,
+} from 'lucide-react'
 
-const SECTION_META: Record<string, { icon: typeof User; color: string; route: string; description: string }> = {
-  'Personal Info': {
-    icon: User,
-    color: 'text-blue-600 bg-blue-50',
-    route: '/settings',
-    description: 'Your basic personal details — name, phone, and photo.',
-  },
-  'KYC Verification': {
-    icon: Shield,
-    color: 'text-amber-600 bg-amber-50',
-    route: '/auth/kyc/identity',
-    description: 'Identity documents required for investing on the platform.',
-  },
-  Account: {
-    icon: Settings,
-    color: 'text-purple-600 bg-purple-50',
-    route: '/settings',
-    description: 'Account settings and referral details.',
-  },
-}
+// ── Step config ─────────────────────────────────────────────────────────────
 
-function SectionCard({ section, fields }: { section: string; fields: ProfileField[] }) {
-  const meta = SECTION_META[section] ?? { icon: Settings, color: 'text-gray-600 bg-gray-50', route: '/settings', description: '' }
-  const Icon = meta.icon
-  const completed = fields.filter((f) => f.completed).length
-  const total = fields.length
-  const pct = Math.round((completed / total) * 100)
-  const allDone = completed === total
+const STEPS = [
+  { id: 1, title: 'About You', subtitle: 'Tell us who you are', icon: User, color: 'from-blue-500 to-indigo-600', emoji: '👤' },
+  { id: 2, title: 'Interests', subtitle: 'What excites you?', icon: Heart, color: 'from-pink-500 to-rose-600', emoji: '💡' },
+  { id: 3, title: 'Skills & Time', subtitle: 'How can you contribute?', icon: Wrench, color: 'from-amber-500 to-orange-600', emoji: '⚡' },
+  { id: 4, title: 'Address', subtitle: 'Where are you based?', icon: MapPin, color: 'from-emerald-500 to-teal-600', emoji: '📍' },
+  { id: 5, title: 'Verify', subtitle: 'Secure your account', icon: ShieldCheck, color: 'from-purple-500 to-violet-600', emoji: '🔒' },
+] as const
 
+// ── Chip selector ───────────────────────────────────────────────────────────
+
+function ChipSelect({ options, selected, onChange, multiple = true }: {
+  options: { value: string; label: string; icon?: string }[]
+  selected: string[]
+  onChange: (val: string[]) => void
+  multiple?: boolean
+}) {
+  const toggle = (val: string) => {
+    if (!multiple) { onChange([val]); return }
+    onChange(selected.includes(val) ? selected.filter(v => v !== val) : [...selected, val])
+  }
   return (
-    <div className={cn('border rounded-xl p-5 transition-colors', allDone ? 'border-emerald-200 bg-emerald-50/30' : 'border-gray-200 bg-white')}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center', meta.color)}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{section}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{meta.description}</p>
-          </div>
-        </div>
-        <span className={cn('text-xs font-bold px-2 py-1 rounded-full', allDone ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600')}>
-          {pct}%
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-4">
-        <div
-          className={cn('h-full rounded-full transition-all duration-500', allDone ? 'bg-emerald-500' : 'bg-primary')}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-
-      {/* Field checklist */}
-      <ul className="space-y-2">
-        {fields.map((field) => (
-          <li key={field.key} className="flex items-center gap-2 text-sm">
-            {field.completed ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-            ) : (
-              <XCircle className="h-4 w-4 text-red-400 shrink-0" />
-            )}
-            <span className={field.completed ? 'text-gray-600' : 'text-gray-900 font-medium'}>
-              {field.label}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {/* Action link */}
-      {!allDone && (
-        <Link
-          to={meta.route}
-          className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-dark transition"
+    <div className="flex flex-wrap gap-2">
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => toggle(o.value)}
+          className={cn(
+            'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200',
+            selected.includes(o.value)
+              ? 'border-primary bg-primary/10 text-primary shadow-sm shadow-primary/20 scale-105'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+          )}
         >
-          Complete this section
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Link>
-      )}
+          {o.icon && <span>{o.icon}</span>}
+          {o.label}
+          {selected.includes(o.value) && <Check className="h-3.5 w-3.5" />}
+        </button>
+      ))}
     </div>
   )
 }
 
+// ── Option data ─────────────────────────────────────────────────────────────
+
+const INCOME_OPTIONS = [
+  { value: 'below-5L', label: 'Below ₹5L', icon: '💰' },
+  { value: '5-10L', label: '₹5-10L', icon: '💰' },
+  { value: '10-25L', label: '₹10-25L', icon: '💎' },
+  { value: '25-50L', label: '₹25-50L', icon: '💎' },
+  { value: '50L-1Cr', label: '₹50L-1Cr', icon: '🏆' },
+  { value: '1Cr+', label: '₹1Cr+', icon: '👑' },
+]
+
+const RISK_OPTIONS = [
+  { value: 'conservative', label: 'Conservative', icon: '🛡️' },
+  { value: 'moderate', label: 'Moderate', icon: '⚖️' },
+  { value: 'aggressive', label: 'Aggressive', icon: '🚀' },
+]
+
+const HORIZON_OPTIONS = [
+  { value: '1-3 years', label: '1-3 Years', icon: '🌱' },
+  { value: '3-5 years', label: '3-5 Years', icon: '🌿' },
+  { value: '5-10 years', label: '5-10 Years', icon: '🌳' },
+  { value: '10+ years', label: '10+ Years', icon: '🏔️' },
+]
+
+const EXPERIENCE_OPTIONS = [
+  { value: 'beginner', label: 'Beginner', icon: '🌱' },
+  { value: 'intermediate', label: 'Intermediate', icon: '📈' },
+  { value: 'advanced', label: 'Advanced', icon: '🎯' },
+]
+
+const MONTHLY_OPTIONS = [
+  { value: '5K-10K', label: '₹5K-10K', icon: '💵' },
+  { value: '10K-25K', label: '₹10K-25K', icon: '💵' },
+  { value: '25K-50K', label: '₹25K-50K', icon: '💰' },
+  { value: '50K-1L', label: '₹50K-1L', icon: '💰' },
+  { value: '1L+', label: '₹1L+', icon: '💎' },
+]
+
+const INTEREST_OPTIONS = [
+  { value: 'residential', label: 'Residential', icon: '🏠' },
+  { value: 'commercial', label: 'Commercial', icon: '🏢' },
+  { value: 'co-working', label: 'Co-working', icon: '💼' },
+  { value: 'warehousing', label: 'Warehousing', icon: '🏭' },
+  { value: 'plots', label: 'Plots & Land', icon: '🌾' },
+  { value: 'student-housing', label: 'Student Housing', icon: '🎓' },
+  { value: 'senior-living', label: 'Senior Living', icon: '🏡' },
+  { value: 'hospitality', label: 'Hospitality', icon: '🏨' },
+]
+
+const CITY_OPTIONS = [
+  { value: 'Hyderabad', label: 'Hyderabad', icon: '🏛️' },
+  { value: 'Bengaluru', label: 'Bengaluru', icon: '🌆' },
+  { value: 'Mumbai', label: 'Mumbai', icon: '🌊' },
+  { value: 'Delhi NCR', label: 'Delhi NCR', icon: '🏗️' },
+  { value: 'Chennai', label: 'Chennai', icon: '🛕' },
+  { value: 'Pune', label: 'Pune', icon: '🏔️' },
+  { value: 'Goa', label: 'Goa', icon: '🏖️' },
+  { value: 'Kolkata', label: 'Kolkata', icon: '🌉' },
+]
+
+const SUBSCRIPTION_OPTIONS = [
+  { value: 'new_properties', label: 'New Properties', icon: '🏗️' },
+  { value: 'community', label: 'Community Updates', icon: '👥' },
+  { value: 'market_insights', label: 'Market Insights', icon: '📊' },
+  { value: 'webinars', label: 'Webinars & Events', icon: '🎯' },
+  { value: 'newsletters', label: 'Weekly Newsletter', icon: '📧' },
+]
+
+const SKILL_OPTIONS = [
+  { value: 'marketing', label: 'Marketing', icon: '📣' },
+  { value: 'finance', label: 'Finance', icon: '💹' },
+  { value: 'legal', label: 'Legal', icon: '⚖️' },
+  { value: 'tech', label: 'Technology', icon: '💻' },
+  { value: 'networking', label: 'Networking', icon: '🤝' },
+  { value: 'real-estate', label: 'Real Estate', icon: '🏗️' },
+  { value: 'design', label: 'Design', icon: '🎨' },
+  { value: 'sales', label: 'Sales', icon: '📈' },
+  { value: 'content', label: 'Content Writing', icon: '✍️' },
+]
+
+const HOURS_OPTIONS = [
+  { value: '1-2', label: '1-2 hrs/week', icon: '⏰' },
+  { value: '3-5', label: '3-5 hrs/week', icon: '⏰' },
+  { value: '5-10', label: '5-10 hrs/week', icon: '⚡' },
+  { value: '10+', label: '10+ hrs/week', icon: '🔥' },
+]
+
+const CONTRIBUTION_OPTIONS = [
+  { value: 'mentoring', label: 'Mentoring Others', icon: '🎓' },
+  { value: 'reviewing', label: 'Reviewing Deals', icon: '🔍' },
+  { value: 'referrals', label: 'Referring Investors', icon: '🤝' },
+  { value: 'content', label: 'Creating Content', icon: '✍️' },
+  { value: 'events', label: 'Organizing Events', icon: '🎉' },
+]
+
+const GENDER_OPTIONS = [
+  { value: 'male', label: 'Male', icon: '♂️' },
+  { value: 'female', label: 'Female', icon: '♀️' },
+  { value: 'non-binary', label: 'Non-binary', icon: '⚧' },
+  { value: 'prefer-not-to-say', label: 'Prefer not to say', icon: '🤫' },
+]
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Chandigarh',
+]
+
+// ── Step components ─────────────────────────────────────────────────────────
+
+type StepProps = { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }
+
+function Step1({ data, onChange }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-2">
+        <p className="text-gray-500 text-sm">Let's start with the basics — this helps us personalize your experience 🎯</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+          <input type="text" value={(data.full_name as string) || ''} placeholder="e.g. Anil Kumar"
+            onChange={e => onChange({ ...data, full_name: e.target.value })}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
+          <input type="date" value={(data.date_of_birth as string) || ''}
+            onChange={e => onChange({ ...data, date_of_birth: e.target.value })}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+        <ChipSelect options={GENDER_OPTIONS} selected={data.gender ? [data.gender as string] : []} onChange={v => onChange({ ...data, gender: v[0] ?? null })} multiple={false} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Occupation</label>
+        <input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
+          onChange={e => onChange({ ...data, occupation: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Annual Income</label>
+        <ChipSelect options={INCOME_OPTIONS} selected={data.annual_income ? [data.annual_income as string] : []} onChange={v => onChange({ ...data, annual_income: v[0] ?? null })} multiple={false} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">📈 Investment Experience</label>
+        <ChipSelect options={EXPERIENCE_OPTIONS} selected={data.investment_experience ? [data.investment_experience as string] : []} onChange={v => onChange({ ...data, investment_experience: v[0] ?? null })} multiple={false} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">🎯 Risk Appetite</label>
+        <ChipSelect options={RISK_OPTIONS} selected={data.risk_tolerance ? [data.risk_tolerance as string] : []} onChange={v => onChange({ ...data, risk_tolerance: v[0] ?? null })} multiple={false} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">⏳ Investment Horizon</label>
+        <ChipSelect options={HORIZON_OPTIONS} selected={data.investment_horizon ? [data.investment_horizon as string] : []} onChange={v => onChange({ ...data, investment_horizon: v[0] ?? null })} multiple={false} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">💵 Monthly Investment Capacity</label>
+        <ChipSelect options={MONTHLY_OPTIONS} selected={data.monthly_investment_capacity ? [data.monthly_investment_capacity as string] : []} onChange={v => onChange({ ...data, monthly_investment_capacity: v[0] ?? null })} multiple={false} />
+      </div>
+    </div>
+  )
+}
+
+function Step2({ data, onChange }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-2">
+        <p className="text-gray-500 text-sm">Pick what gets you excited — we'll curate opportunities just for you ✨</p>
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">🏗️ Asset Types I'm Interested In</label>
+        <ChipSelect options={INTEREST_OPTIONS} selected={(data.interests as string[]) || []} onChange={v => onChange({ ...data, interests: v })} />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">📍 Preferred Cities</label>
+        <ChipSelect options={CITY_OPTIONS} selected={(data.preferred_cities as string[]) || []} onChange={v => onChange({ ...data, preferred_cities: v })} />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">📬 I Want Updates On</label>
+        <ChipSelect options={SUBSCRIPTION_OPTIONS} selected={(data.subscription_topics as string[]) || []} onChange={v => onChange({ ...data, subscription_topics: v })} />
+      </div>
+    </div>
+  )
+}
+
+function Step3({ data, onChange }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-2">
+        <p className="text-gray-500 text-sm">WealthSpot is a community — your skills can unlock exclusive perks 🙌</p>
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">🛠️ Your Skills</label>
+        <ChipSelect options={SKILL_OPTIONS} selected={(data.skills as string[]) || []} onChange={v => onChange({ ...data, skills: v })} />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">⏰ Time You Can Contribute</label>
+        <ChipSelect options={HOURS_OPTIONS} selected={data.weekly_hours_available ? [data.weekly_hours_available as string] : []} onChange={v => onChange({ ...data, weekly_hours_available: v[0] ?? null })} multiple={false} />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">🤝 How You'd Like to Contribute</label>
+        <ChipSelect options={CONTRIBUTION_OPTIONS} selected={(data.contribution_interests as string[]) || []} onChange={v => onChange({ ...data, contribution_interests: v })} />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">✍️ Short Bio (optional)</label>
+        <textarea value={(data.bio as string) || ''} rows={3} placeholder="Tell us about yourself in a few words..."
+          onChange={e => onChange({ ...data, bio: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
+      </div>
+    </div>
+  )
+}
+
+function Step4({ data, onChange }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-2">
+        <p className="text-gray-500 text-sm">We need your address for legal compliance and document delivery 🏠</p>
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address Line 1</label>
+        <input type="text" value={(data.address_line1 as string) || ''} placeholder="House/Flat No, Building Name"
+          onChange={e => onChange({ ...data, address_line1: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address Line 2 (optional)</label>
+        <input type="text" value={(data.address_line2 as string) || ''} placeholder="Street, Locality"
+          onChange={e => onChange({ ...data, address_line2: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
+          <input type="text" value={(data.city as string) || ''} placeholder="e.g. Hyderabad"
+            onChange={e => onChange({ ...data, city: e.target.value })}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
+          <select value={(data.state as string) || ''}
+            onChange={e => onChange({ ...data, state: e.target.value })}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white">
+            <option value="">Select State</option>
+            {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pincode</label>
+          <input type="text" value={(data.pincode as string) || ''} placeholder="e.g. 500001" maxLength={6}
+            onChange={e => onChange({ ...data, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Country</label>
+          <input type="text" value={(data.country as string) || 'India'} readOnly
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Step5({ emailVerified, phoneVerified, email, phone }: {
+  emailVerified: boolean; phoneVerified: boolean; email: string; phone: string | null
+}) {
+  const sendOtp = useSendOtp()
+  const verifyOtp = useVerifyOtp()
+  const updatePhone = useUpdatePhone()
+  const [emailOtp, setEmailOtp] = useState('')
+  const [phoneOtp, setPhoneOtp] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [phoneSent, setPhoneSent] = useState(false)
+  const [emailCountdown, setEmailCountdown] = useState(0)
+  const [phoneCountdown, setPhoneCountdown] = useState(0)
+  const [phoneInput, setPhoneInput] = useState('')
+  const [phoneSaved, setPhoneSaved] = useState(!!phone)
+  const [emailDevHint, setEmailDevHint] = useState('')
+  const [phoneDevHint, setPhoneDevHint] = useState('')
+
+  useEffect(() => {
+    if (emailCountdown <= 0) return
+    const t = setTimeout(() => setEmailCountdown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [emailCountdown])
+
+  useEffect(() => {
+    if (phoneCountdown <= 0) return
+    const t = setTimeout(() => setPhoneCountdown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [phoneCountdown])
+
+  // Update phoneSaved when phone prop changes (after mutation invalidation)
+  useEffect(() => {
+    if (phone) setPhoneSaved(true)
+  }, [phone])
+
+  const handleSendEmail = async () => {
+    const res = await sendOtp.mutateAsync('email')
+    setEmailSent(true)
+    setEmailCountdown(60)
+    if (res.devOtp) { setEmailOtp(res.devOtp); setEmailDevHint('Dev mode: OTP auto-filled') }
+    else { setEmailDevHint('') }
+  }
+  const handleSendPhone = async () => {
+    const res = await sendOtp.mutateAsync('phone')
+    setPhoneSent(true)
+    setPhoneCountdown(60)
+    if (res.devOtp) { setPhoneOtp(res.devOtp); setPhoneDevHint('Dev mode: OTP auto-filled') }
+    else { setPhoneDevHint('') }
+  }
+  const handleVerifyEmail = async () => { await verifyOtp.mutateAsync({ channel: 'email', otp: emailOtp }); setEmailOtp('') }
+  const handleVerifyPhone = async () => { await verifyOtp.mutateAsync({ channel: 'phone', otp: phoneOtp }); setPhoneOtp('') }
+  const handleSavePhone = async () => {
+    const cleaned = phoneInput.replace(/\s/g, '')
+    if (cleaned.length < 10) return
+    await updatePhone.mutateAsync(cleaned)
+    setPhoneSaved(true)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-2">
+        <p className="text-gray-500 text-sm">One last step — verify your contact details to secure your account 🔐</p>
+      </div>
+
+      {/* Email Verification */}
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', emailVerified ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white')}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', emailVerified ? 'bg-emerald-100' : 'bg-blue-100')}>
+            <Mail className={cn('h-5 w-5', emailVerified ? 'text-emerald-600' : 'text-blue-600')} />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-gray-900">Email Verification</h4>
+            <p className="text-xs text-gray-500">{email}</p>
+          </div>
+          {emailVerified && (
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+              <Check className="h-3.5 w-3.5" /> Verified
+            </span>
+          )}
+        </div>
+        {!emailVerified && (
+          <div className="space-y-3">
+            {!emailSent ? (
+              <button onClick={handleSendEmail} disabled={sendOtp.isPending}
+                className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                {sendOtp.isPending ? 'Sending...' : '📧 Send Verification Code'}
+              </button>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input type="text" value={emailOtp} maxLength={6} placeholder="Enter 6-digit OTP"
+                    onChange={e => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-blue-300 focus:border-blue-500" />
+                  <button onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyOtp.isPending}
+                    className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                    {verifyOtp.isPending ? '...' : 'Verify'}
+                  </button>
+                </div>
+                <button onClick={handleSendEmail} disabled={emailCountdown > 0 || sendOtp.isPending}
+                  className="text-xs text-gray-500 hover:text-primary disabled:opacity-50">
+                  {emailCountdown > 0 ? `Resend in ${emailCountdown}s` : 'Resend code'}
+                </button>
+                {emailDevHint && (
+                  <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1">{emailDevHint}</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Phone Verification */}
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', phoneVerified ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white')}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', phoneVerified ? 'bg-emerald-100' : 'bg-purple-100')}>
+            <Phone className={cn('h-5 w-5', phoneVerified ? 'text-emerald-600' : 'text-purple-600')} />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-gray-900">Phone Verification</h4>
+            <p className="text-xs text-gray-500">{phone || 'No phone number added yet'}</p>
+          </div>
+          {phoneVerified && (
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+              <Check className="h-3.5 w-3.5" /> Verified
+            </span>
+          )}
+        </div>
+        {!phoneVerified && (
+          <div className="space-y-3">
+            {!phoneSaved ? (
+              <div className="space-y-2">
+                <p className="text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                  📱 Add your mobile number to receive verification OTP
+                </p>
+                <div className="flex gap-2">
+                  <input type="tel" value={phoneInput} placeholder="+91 9876543210"
+                    onChange={e => setPhoneInput(e.target.value.replace(/[^\d+\s]/g, '').slice(0, 15))}
+                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
+                  <button onClick={handleSavePhone} disabled={phoneInput.replace(/\s/g, '').length < 10 || updatePhone.isPending}
+                    className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+                    {updatePhone.isPending ? '...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ) : !phoneSent ? (
+              <button onClick={handleSendPhone} disabled={sendOtp.isPending}
+                className="w-full py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+                {sendOtp.isPending ? 'Sending...' : '📱 Send Verification Code'}
+              </button>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input type="text" value={phoneOtp} maxLength={6} placeholder="Enter 6-digit OTP"
+                    onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
+                  <button onClick={handleVerifyPhone} disabled={phoneOtp.length !== 6 || verifyOtp.isPending}
+                    className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+                    {verifyOtp.isPending ? '...' : 'Verify'}
+                  </button>
+                </div>
+                <button onClick={handleSendPhone} disabled={phoneCountdown > 0 || sendOtp.isPending}
+                  className="text-xs text-gray-500 hover:text-primary disabled:opacity-50">
+                  {phoneCountdown > 0 ? `Resend in ${phoneCountdown}s` : 'Resend code'}
+                </button>
+                {phoneDevHint && (
+                  <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1">{phoneDevHint}</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Celebration screen ──────────────────────────────────────────────────────
+
+function CelebrationScreen({ referralCode }: { referralCode: string | null }) {
+  const [copied, setCopied] = useState(false)
+  const navigate = useNavigate()
+  const referralLink = referralCode ? `${window.location.origin}/invite/${referralCode}` : ''
+
+  const handleCopy = useCallback(() => {
+    if (!referralLink) return
+    navigator.clipboard.writeText(referralLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [referralLink])
+
+  return (
+    <div className="text-center py-8 space-y-6">
+      <div className="relative inline-block">
+        <div className="h-24 w-24 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center mx-auto shadow-xl shadow-amber-300/40 animate-bounce">
+          <Trophy className="h-12 w-12 text-white" />
+        </div>
+        <Sparkles className="absolute -top-2 -right-2 h-8 w-8 text-amber-400 animate-pulse" />
+        <Star className="absolute -bottom-1 -left-3 h-6 w-6 text-yellow-500 animate-pulse" />
+      </div>
+
+      <div>
+        <h2 className="font-display text-3xl font-bold text-gray-900">You're 100% Verified! 🎉</h2>
+        <p className="text-gray-500 mt-2 max-w-sm mx-auto">Welcome to the WealthSpot community. Your profile is fully complete and verified.</p>
+      </div>
+
+      <div className="inline-flex items-center gap-2 bg-emerald-50 border-2 border-emerald-200 rounded-full px-6 py-3">
+        <ShieldCheck className="h-5 w-5 text-emerald-600" />
+        <span className="font-bold text-emerald-700">Fully Verified Investor</span>
+      </div>
+
+      {referralCode && (
+        <div className="bg-gradient-to-r from-primary/5 to-purple-50 border-2 border-primary/20 rounded-2xl p-6 max-w-sm mx-auto">
+          <div className="flex items-center gap-2 justify-center mb-3">
+            <Gift className="h-5 w-5 text-primary" />
+            <h3 className="font-bold text-gray-900">Your Referral Code</h3>
+          </div>
+          <div className="bg-white rounded-xl px-4 py-3 font-mono text-2xl font-bold text-primary tracking-wider border border-primary/20 mb-3">
+            {referralCode}
+          </div>
+          <button onClick={handleCopy}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition">
+            {copied ? <><CheckCheck className="h-4 w-4" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Referral Link</>}
+          </button>
+          <p className="text-xs text-gray-500 mt-2">Share with friends and earn rewards</p>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+        <button onClick={() => navigate('/vaults')}
+          className="px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition flex items-center gap-2 justify-center">
+          <Rocket className="h-4 w-4" /> Explore Opportunities
+        </button>
+        <button onClick={() => navigate('/settings')}
+          className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
+          View Settings
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Page (Wizard) ──────────────────────────────────────────────────────
+
 export default function ProfileCompletionPage() {
-  const { percentage, fields, isComplete, isLoading } = useProfileCompletion()
+  const { data: profile, isLoading: profileLoading } = useFullProfile()
+  const { data: completion, isLoading: completionLoading } = useProfileCompletionStatus()
+  const updateS1 = useUpdateProfileSection(1)
+  const updateS2 = useUpdateProfileSection(2)
+  const updateS3 = useUpdateProfileSection(3)
+  const updateS4 = useUpdateProfileSection(4)
 
-  // Group by section
-  const sections = useMemo(() => {
-    const map: Record<string, ProfileField[]> = {}
-    for (const f of fields) {
-      ;(map[f.section] ??= []).push(f)
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState<Record<string, unknown>>({})
+  const [showCelebration, setShowCelebration] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Populate form data from profile once loaded
+  useEffect(() => {
+    if (!profile) return
+    setFormData({
+      full_name: profile.fullName,
+      date_of_birth: profile.dateOfBirth,
+      gender: profile.gender,
+      occupation: profile.occupation,
+      annual_income: profile.annualIncome,
+      investment_experience: profile.investmentExperience,
+      risk_tolerance: profile.riskTolerance,
+      investment_horizon: profile.investmentHorizon,
+      monthly_investment_capacity: profile.monthlyInvestmentCapacity,
+      interests: profile.interests,
+      preferred_cities: profile.preferredCities,
+      subscription_topics: profile.subscriptionTopics,
+      skills: profile.skills,
+      weekly_hours_available: profile.weeklyHoursAvailable,
+      contribution_interests: profile.contributionInterests,
+      bio: profile.bio,
+      address_line1: profile.addressLine1,
+      address_line2: profile.addressLine2,
+      city: profile.city,
+      state: profile.state,
+      pincode: profile.pincode,
+      country: profile.country || 'India',
+    })
+  }, [profile])
+
+  // Show celebration if already 100%
+  useEffect(() => {
+    if (completion?.isComplete) setShowCelebration(true)
+  }, [completion?.isComplete])
+
+  const isLoading = profileLoading || completionLoading
+  const isSaving = updateS1.isPending || updateS2.isPending || updateS3.isPending || updateS4.isPending
+  const currentStep = STEPS[step - 1]
+
+  const saveCurrentStep = useCallback(async () => {
+    const handlers = [updateS1, updateS2, updateS3, updateS4]
+    if (step <= 4) {
+      await handlers[step - 1]!.mutateAsync(formData)
     }
-    return Object.entries(map)
-  }, [fields])
+  }, [step, formData, updateS1, updateS2, updateS3, updateS4])
 
-  const ringColor = isComplete ? 'border-emerald-500' : 'border-red-400'
-  const glowStyle = isComplete
-    ? '0 0 20px 4px rgba(52,211,153,0.4)'
-    : '0 0 20px 4px rgba(248,113,113,0.4)'
+  const handleNext = useCallback(async () => {
+    if (step <= 4) await saveCurrentStep()
+    if (step < 5) {
+      setStep(s => s + 1)
+      contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [step, saveCurrentStep])
+
+  const handlePrev = useCallback(() => {
+    if (step > 1) {
+      setStep(s => s - 1)
+      contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [step])
+
+  const handleFinish = useCallback(() => {
+    setShowCelebration(true)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-500 animate-pulse">Loading your profile...</p>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (showCelebration) {
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-2xl px-4 py-8">
+          <CelebrationScreen referralCode={completion?.referralCode ?? profile?.referralCode ?? null} />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  const pct = completion?.profileCompletionPct ?? 0
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6">
         {/* Back link */}
-        <Link
-          to="/vaults"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Vaults
+        <Link to="/vaults" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-4">
+          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
 
-        {/* Header with ring indicator */}
-        <div className="text-center mb-10">
-          {/* Percentage circle */}
-          <div className="flex justify-center mb-5">
-            <div
-              className={cn('h-28 w-28 rounded-full border-4 flex items-center justify-center transition-all', ringColor)}
-              style={{ boxShadow: glowStyle }}
-            >
-              {isLoading ? (
-                <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <span className={cn('font-display text-3xl font-bold', isComplete ? 'text-emerald-600' : 'text-gray-900')}>
-                  {percentage}%
-                </span>
-              )}
-            </div>
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-primary/5 rounded-full px-4 py-1.5 mb-3">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-primary">{pct}% Complete</span>
           </div>
-
-          <h1 className="font-display text-2xl font-bold text-gray-900">
-            {isComplete ? 'Profile Complete! 🎉' : 'Complete Your Profile'}
-          </h1>
-          <p className="text-gray-500 mt-2 max-w-md mx-auto">
-            {isComplete
-              ? 'You\'re all set. Your profile is fully verified and ready to go.'
-              : 'Fill in the missing sections below to unlock the full WealthSpot experience.'}
-          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900">Complete Your Profile</h1>
+          <p className="text-gray-500 mt-1 text-sm">Unlock premium features, personalized recommendations & your unique referral code</p>
         </div>
 
-        {/* Section cards */}
-        <div className="grid gap-6">
-          {sections.map(([section, sectionFields]) => (
-            <SectionCard key={section} section={section} fields={sectionFields} />
-          ))}
+        {/* Progress bar */}
+        <div className="relative mb-8">
+          <div className="flex justify-between mb-2">
+            {STEPS.map((s, i) => {
+              const SIcon = s.icon
+              const isCurrent = step === s.id
+              const isDone = completion?.sections && Object.values(completion.sections)[i]
+              return (
+                <button key={s.id} onClick={() => { if (s.id <= step) setStep(s.id) }}
+                  className={cn('flex flex-col items-center gap-1 transition-all group', s.id <= step ? 'opacity-100' : 'opacity-40')}>
+                  <div className={cn(
+                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all text-white bg-gradient-to-br',
+                    isCurrent ? `${s.color} shadow-lg scale-110` : isDone ? 'from-emerald-400 to-emerald-600' : 'from-gray-300 to-gray-400',
+                  )}>
+                    {isDone && !isCurrent ? <Check className="h-5 w-5" /> : <SIcon className="h-5 w-5" />}
+                  </div>
+                  <span className={cn('text-[10px] font-semibold hidden sm:block', isCurrent ? 'text-gray-900' : 'text-gray-400')}>
+                    {s.title}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden -mt-1">
+            <div className="h-full bg-gradient-to-r from-primary to-purple-600 rounded-full transition-all duration-500"
+              style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Step content card */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          {currentStep && (
+            <div className={cn('bg-gradient-to-r px-6 py-4 text-white', currentStep.color)}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{currentStep.emoji}</span>
+                <div>
+                  <h2 className="font-display text-lg font-bold">{currentStep.title}</h2>
+                  <p className="text-white/80 text-sm">{currentStep.subtitle}</p>
+                </div>
+                <div className="ml-auto text-sm font-semibold bg-white/20 rounded-full px-3 py-1">
+                  Step {step}/{STEPS.length}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={contentRef} className="p-6 max-h-[60vh] overflow-y-auto">
+            {step === 1 && <Step1 data={formData} onChange={setFormData} />}
+            {step === 2 && <Step2 data={formData} onChange={setFormData} />}
+            {step === 3 && <Step3 data={formData} onChange={setFormData} />}
+            {step === 4 && <Step4 data={formData} onChange={setFormData} />}
+            {step === 5 && profile && (
+              <Step5
+                emailVerified={completion?.emailVerified ?? false}
+                phoneVerified={completion?.phoneVerified ?? false}
+                email={profile.email}
+                phone={profile.phone}
+              />
+            )}
+          </div>
+
+          {/* Navigation */}
+          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between bg-gray-50/50">
+            <button onClick={handlePrev} disabled={step === 1}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-30 transition">
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+            {step < 5 ? (
+              <button onClick={handleNext} disabled={isSaving}
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition shadow-sm shadow-primary/20 disabled:opacity-50">
+                {isSaving ? 'Saving...' : 'Save & Continue'} <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button onClick={handleFinish} disabled={!completion?.emailVerified || !completion?.phoneVerified}
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition shadow-sm shadow-emerald-200 disabled:opacity-50">
+                <ShieldCheck className="h-4 w-4" />
+                {completion?.emailVerified && completion?.phoneVerified ? 'Complete Profile 🎉' : 'Verify to Continue'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>

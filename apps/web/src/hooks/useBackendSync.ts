@@ -57,6 +57,22 @@ export function useNotRegistered() {
   return { notRegistered: _notRegistered, email: _notRegisteredEmail, clear: () => setNotRegistered(null) }
 }
 
+/**
+ * Decode a JWT's payload and check if it's expired.
+ * Returns true if the token is expired or unparseable.
+ */
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return true
+    const payload = JSON.parse(atob(parts[1]!))
+    // 60s buffer so we refresh before it actually expires
+    return payload.exp * 1000 < Date.now() - 60_000
+  } catch {
+    return true
+  }
+}
+
 export function useBackendSync() {
   const { user, isSignedIn, isLoaded } = useUser()
   const { signOut } = useClerk()
@@ -109,6 +125,18 @@ export function useBackendSync() {
         createdAt: profile.createdAt,
       })
       diagLog('auth', 'info', `Backend sync complete — role: ${profile.role}`)
+
+      // Step 4: Auto-apply referral code if captured from ?ref= URL param
+      const pendingRef = localStorage.getItem('ws_referral_code')
+      if (pendingRef) {
+        try {
+          await apiPost('/referrals/apply', { code: pendingRef })
+          diagLog('auth', 'info', `Referral code ${pendingRef} applied`)
+        } catch {
+          // Already applied or invalid — silently ignore
+        }
+        localStorage.removeItem('ws_referral_code')
+      }
     } catch (err) {
       diagLog('auth', 'error', `Backend sync failed: ${err}`)
     } finally {
@@ -129,12 +157,16 @@ export function useBackendSync() {
     }
 
     // User signed in → sync with backend
-    // Also re-sync if Zustand says authenticated but the actual token is missing
-    // (happens when a 401 handler cleared localStorage but Zustand persisted stale state)
-    const tokenMissing = isAuthenticated && !localStorage.getItem('ws_token')
-    if (isSignedIn && user && (!isAuthenticated || tokenMissing) && !syncingRef.current) {
+    // Re-sync if: not authenticated, token missing, or token expired
+    const storedToken = localStorage.getItem('ws_token')
+    const tokenMissing = isAuthenticated && !storedToken
+    const tokenExpired = isAuthenticated && storedToken && isTokenExpired(storedToken)
+
+    if (isSignedIn && user && (!isAuthenticated || tokenMissing || tokenExpired) && !syncingRef.current) {
       if (tokenMissing) {
         diagLog('auth', 'warn', 'Token missing from storage — re-syncing with backend')
+      } else if (tokenExpired) {
+        diagLog('auth', 'warn', 'Token expired — re-syncing with backend')
       }
       doSync()
     }

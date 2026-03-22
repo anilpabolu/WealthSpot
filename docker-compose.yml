@@ -80,6 +80,7 @@ services:
       AWS_S3_BUCKET: wealthspot-media
       AWS_REGION: us-east-1
       S3_ENDPOINT_URL: http://minio:9000
+      ENCRYPTION_KEY: "awjAdm6ECmN0HZEwATo2a8ymurcteSo3jZI8w9v5MZs="
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,6 +104,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://wealthspot:wealthspot_dev@postgres:5432/wealthspot
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/1
+      ENCRYPTION_KEY: "awjAdm6ECmN0HZEwATo2a8ymurcteSo3jZI8w9v5MZs="
     depends_on:
       postgres:
         condition: service_healthy

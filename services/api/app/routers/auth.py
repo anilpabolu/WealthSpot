@@ -142,6 +142,9 @@ class UserMeResponse(UserRead):
     """Full profile returned by /auth/me including KYC documents."""
     kyc_documents: list[KycDocumentOut] = []
     phone: str | None = None
+    email_verified: bool = False
+    phone_verified: bool = False
+    profile_completion_pct: int = 0
 
     model_config = {"from_attributes": True}
 
