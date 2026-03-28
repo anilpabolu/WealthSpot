@@ -430,6 +430,8 @@ export interface Opportunity {
   raised_amount: number;
   min_investment: number | null;
   target_irr: number | null;
+  expected_irr: number | null;
+  actual_irr: number | null;
   industry: string | null;
   stage: string | null;
   founder_name: string | null;
@@ -446,6 +448,15 @@ export interface Opportunity {
   created_at: string;
   updated_at: string;
   creator?: Pick<User, "id" | "full_name" | "avatar_url">;
+}
+
+export interface VaultStats {
+  vault_type: string;
+  total_invested: number;
+  investor_count: number;
+  opportunity_count: number;
+  expected_irr: number | null;
+  actual_irr: number | null;
 }
 
 export interface OpportunityCreate {

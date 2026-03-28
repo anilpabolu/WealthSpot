@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Rocket, Building2, Users, CheckCircle2, Loader2 } from 'lucide-react'
+import { X, Rocket, Building2, Users, CheckCircle2, Loader2, Lock } from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { INDIAN_CITIES } from '@/lib/constants'
@@ -9,9 +9,9 @@ import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
 
 const VAULT_OPTIONS = [
-  { value: 'wealth', label: 'The Goldmine', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5' },
-  { value: 'opportunity', label: 'The Launchpad', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50' },
-  { value: 'community', label: 'The Hive', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50' },
+  { value: 'wealth', label: 'The Goldmine', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
+  { value: 'opportunity', label: 'The Launchpad', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50', comingSoon: true },
+  { value: 'community', label: 'The Hive', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50', comingSoon: false },
 ] as const
 
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
@@ -141,14 +141,20 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                 return (
                   <button
                     key={opt.value}
-                    onClick={() => handleVaultSelect(opt.value)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 ${opt.color} hover:shadow-md transition-all text-left`}
+                    onClick={() => !opt.comingSoon && handleVaultSelect(opt.value)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 ${opt.comingSoon ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : opt.color + ' hover:shadow-md cursor-pointer'} transition-all text-left relative`}
+                    disabled={opt.comingSoon}
                   >
                     <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
-                      <Icon className="h-6 w-6" />
+                      {opt.comingSoon ? <Lock className="h-6 w-6 text-gray-400" /> : <Icon className="h-6 w-6" />}
                     </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{opt.label}</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 flex items-center gap-2">
+                        {opt.label}
+                        {opt.comingSoon && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Coming Soon</span>
+                        )}
+                      </div>
                       <div className="text-xs text-gray-500">{opt.sublabel}</div>
                     </div>
                   </button>

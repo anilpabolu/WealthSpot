@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role, require_super_admin
 from app.models.approval import ApprovalCategory, ApprovalPriority, ApprovalRequest, ApprovalStatus
+from app.models.opportunity import Opportunity, OpportunityStatus
 from app.models.user import User, UserRole
 from app.schemas.approval import (
     ApprovalCreate,
@@ -114,7 +115,7 @@ async def review_approval(
     db: AsyncSession = Depends(get_db),
     reviewer: User = Depends(approver_dep),
 ) -> ApprovalRead:
-    """Approve or reject an approval request."""
+    """Approve or reject an approval request. Syncs linked opportunity status."""
     import uuid as _uuid
     result = await db.execute(
         select(ApprovalRequest).where(ApprovalRequest.id == _uuid.UUID(approval_id))
@@ -132,7 +133,16 @@ async def review_approval(
 
     if body.action == "approve":
         approval.status = ApprovalStatus.APPROVED
-        # Notify the requester
+
+        # Sync linked opportunity status to APPROVED
+        if approval.resource_type == "opportunity" and approval.resource_id:
+            opp_result = await db.execute(
+                select(Opportunity).where(Opportunity.id == _uuid.UUID(approval.resource_id))
+            )
+            opp = opp_result.scalar_one_or_none()
+            if opp and opp.status == OpportunityStatus.PENDING_APPROVAL:
+                opp.status = OpportunityStatus.APPROVED
+
         await create_notification(
             db,
             user_id=approval.requester_id,
@@ -144,6 +154,16 @@ async def review_approval(
     else:
         approval.status = ApprovalStatus.REJECTED
         note = body.review_note or "No reason provided."
+
+        # Sync linked opportunity status to REJECTED
+        if approval.resource_type == "opportunity" and approval.resource_id:
+            opp_result = await db.execute(
+                select(Opportunity).where(Opportunity.id == _uuid.UUID(approval.resource_id))
+            )
+            opp = opp_result.scalar_one_or_none()
+            if opp and opp.status == OpportunityStatus.PENDING_APPROVAL:
+                opp.status = OpportunityStatus.REJECTED
+
         await create_notification(
             db,
             user_id=approval.requester_id,

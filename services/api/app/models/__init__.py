@@ -14,6 +14,7 @@ from app.models.approval import (  # noqa: F401
 )
 from app.models.opportunity import Opportunity, VaultType, OpportunityStatus  # noqa: F401
 from app.models.opportunity_media import OpportunityMedia  # noqa: F401
+from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus  # noqa: F401
 from app.models.company import Company, EntityType, VerificationStatus  # noqa: F401
 from app.models.pincode import IndianPincode  # noqa: F401
 from app.models.platform_config import PlatformConfig  # noqa: F401

@@ -86,6 +86,8 @@ class Opportunity(Base):
     raised_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0"))
     min_investment: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     target_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    expected_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    actual_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     # Startup-specific (opportunity vault)
     industry: Mapped[str | None] = mapped_column(String(100))
     stage: Mapped[str | None] = mapped_column(String(50))  # pre-seed, seed, series-a, etc.
@@ -124,6 +126,7 @@ class Opportunity(Base):
     approval = relationship("ApprovalRequest", lazy="joined")
     media = relationship("OpportunityMedia", back_populates="opportunity", lazy="selectin", order_by="OpportunityMedia.sort_order")
     company = relationship("Company", back_populates="opportunities", lazy="joined")
+    investments = relationship("OpportunityInvestment", back_populates="opportunity", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.slug} vault={self.vault_type} status={self.status}>"

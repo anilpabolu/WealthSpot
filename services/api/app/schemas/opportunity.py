@@ -78,6 +78,8 @@ class OpportunityRead(BaseModel):
     raised_amount: float = 0
     min_investment: float | None = None
     target_irr: float | None = None
+    expected_irr: float | None = None
+    actual_irr: float | None = None
     industry: str | None = None
     stage: str | None = None
     founder_name: str | None = None
@@ -182,3 +184,44 @@ class OpportunityCreateRequest(BaseModel):
     # Community fields
     community_type: str | None = None
     collaboration_type: str | None = None
+
+
+class OpportunityUpdateRequest(BaseModel):
+    """Update request — all fields optional (approver edit)."""
+    title: str | None = Field(None, min_length=3, max_length=255)
+    tagline: str | None = Field(None, max_length=500)
+    description: str | None = None
+    company_id: str | None = None
+    # Address
+    address_line1: str | None = None
+    address_line2: str | None = None
+    landmark: str | None = None
+    locality: str | None = None
+    city: str | None = None
+    state: str | None = None
+    pincode: str | None = None
+    district: str | None = None
+    country: str | None = None
+    address: str | None = None
+    # Financials
+    target_amount: float | None = None
+    min_investment: float | None = None
+    target_irr: float | None = None
+    # Startup fields
+    industry: str | None = None
+    stage: str | None = None
+    founder_name: str | None = None
+    pitch_deck_url: str | None = None
+    # Community fields
+    community_type: str | None = None
+    collaboration_type: str | None = None
+
+
+class VaultStatsResponse(BaseModel):
+    """Aggregated statistics for a single vault type."""
+    vault_type: str
+    total_invested: float
+    investor_count: int
+    opportunity_count: int
+    expected_irr: float | None = None
+    actual_irr: float | None = None

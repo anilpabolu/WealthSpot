@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Terminal, X, Minimize2, Maximize2, Trash2, Copy, Check, Filter, ChevronDown, ChevronRight } from 'lucide-react'
+import { Terminal, X, Minimize2, Maximize2, Trash2, Copy, Check, Filter, ChevronDown, ChevronRight, Clipboard } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────
 export type LogCategory = 'ui' | 'api' | 'db' | 'nav' | 'system' | 'auth'
@@ -112,6 +112,7 @@ export default function DiagnosticPanel() {
   const [issueType, setIssueType] = useState<string>('all')
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const [copied, setCopied] = useState(false)
+  const [copiedEntryId, setCopiedEntryId] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -233,6 +234,23 @@ export default function DiagnosticPanel() {
     setLogs([])
     _stepCounter = 0
     diagLog('system', 'info', 'Logs cleared')
+  }
+
+  const handleCopyEntry = async (entry: LogEntry, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const lines = [
+      `Step:      ${entry.step.toString().padStart(3, '0')}`,
+      `Time:      ${entry.timestamp}`,
+      `Category:  ${CATEGORY_CONFIG[entry.category].label}`,
+      `Level:     ${entry.level.toUpperCase()}`,
+      `Message:   ${entry.message}`,
+    ]
+    if (entry.duration != null) lines.push(`Duration:  ${entry.duration}ms`)
+    if (entry.traceId) lines.push(`Trace ID:  ${entry.traceId}`)
+    if (entry.detail) lines.push(`Detail:\n${entry.detail}`)
+    await navigator.clipboard.writeText(lines.join('\n'))
+    setCopiedEntryId(entry.id)
+    setTimeout(() => setCopiedEntryId(null), 1200)
   }
 
   // ─── Floating trigger ─────────────────────────────
@@ -376,7 +394,7 @@ export default function DiagnosticPanel() {
               const hasDetail = !!entry.detail || !!entry.traceId
 
               return (
-                <div key={entry.id} className="border-b border-gray-800/50 hover:bg-white/[0.02]">
+                <div key={entry.id} className="border-b border-gray-800/50 hover:bg-white/[0.02] group/entry">
                   <div
                     className={`flex items-start gap-1.5 px-2 py-1 ${hasDetail ? 'cursor-pointer' : ''}`}
                     onClick={hasDetail ? () => toggleExpand(entry.id) : undefined}
@@ -413,6 +431,17 @@ export default function DiagnosticPanel() {
                         {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                       </span>
                     )}
+
+                    {/* Per-entry copy */}
+                    <button
+                      onClick={(e) => handleCopyEntry(entry, e)}
+                      className="shrink-0 p-0.5 text-gray-700 hover:text-gray-300 transition-colors opacity-0 group-hover/entry:opacity-100"
+                      title="Copy this entry"
+                    >
+                      {copiedEntryId === entry.id
+                        ? <Check className="h-3 w-3 text-green-400" />
+                        : <Clipboard className="h-3 w-3" />}
+                    </button>
                   </div>
 
                   {/* Expanded detail */}

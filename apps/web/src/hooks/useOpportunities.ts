@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '@/lib/api'
+import { apiGet, apiPost, apiPatch } from '@/lib/api'
 
 export interface OpportunityMedia {
   id: string
@@ -46,6 +46,8 @@ export interface OpportunityItem {
   raisedAmount: number
   minInvestment: number | null
   targetIrr: number | null
+  expectedIrr: number | null
+  actualIrr: number | null
   industry: string | null
   stage: string | null
   founderName: string | null
@@ -69,6 +71,15 @@ interface PaginatedOpportunities {
   page: number
   pageSize: number
   totalPages: number
+}
+
+export interface VaultStats {
+  vaultType: string
+  totalInvested: number
+  investorCount: number
+  opportunityCount: number
+  expectedIrr: number | null
+  actualIrr: number | null
 }
 
 export interface OpportunityCreatePayload {
@@ -101,6 +112,8 @@ export interface OpportunityCreatePayload {
   communityType?: string
   collaborationType?: string
 }
+
+export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload>
 
 export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number }) {
   return useQuery({
@@ -158,5 +171,48 @@ export function useCreateOpportunity() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
     },
+  })
+}
+
+export function useUpdateOpportunity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: OpportunityUpdatePayload }) =>
+      apiPatch<OpportunityItem>(`/opportunities/${id}`, {
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.tagline !== undefined && { tagline: data.tagline }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.companyId !== undefined && { company_id: data.companyId }),
+        ...(data.city !== undefined && { city: data.city }),
+        ...(data.state !== undefined && { state: data.state }),
+        ...(data.address !== undefined && { address: data.address }),
+        ...(data.addressLine1 !== undefined && { address_line1: data.addressLine1 }),
+        ...(data.addressLine2 !== undefined && { address_line2: data.addressLine2 }),
+        ...(data.landmark !== undefined && { landmark: data.landmark }),
+        ...(data.locality !== undefined && { locality: data.locality }),
+        ...(data.pincode !== undefined && { pincode: data.pincode }),
+        ...(data.district !== undefined && { district: data.district }),
+        ...(data.country !== undefined && { country: data.country }),
+        ...(data.targetAmount !== undefined && { target_amount: data.targetAmount }),
+        ...(data.minInvestment !== undefined && { min_investment: data.minInvestment }),
+        ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
+        ...(data.industry !== undefined && { industry: data.industry }),
+        ...(data.stage !== undefined && { stage: data.stage }),
+        ...(data.founderName !== undefined && { founder_name: data.founderName }),
+        ...(data.pitchDeckUrl !== undefined && { pitch_deck_url: data.pitchDeckUrl }),
+        ...(data.communityType !== undefined && { community_type: data.communityType }),
+        ...(data.collaborationType !== undefined && { collaboration_type: data.collaborationType }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['opportunities'] })
+    },
+  })
+}
+
+export function useVaultStats() {
+  return useQuery({
+    queryKey: ['vault-stats'],
+    queryFn: () => apiGet<VaultStats[]>('/opportunities/vault-stats'),
+    staleTime: 30_000,
   })
 }

@@ -20,10 +20,13 @@ import {
   Tag,
   FileText,
   ArrowRight,
+  Pencil,
+  Save,
 } from 'lucide-react'
 import { UserButton } from '@clerk/react'
 import { useApprovals, useAllApprovals, useApprovalStats, useReviewApproval, type Approval } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approval.store'
+import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -185,6 +188,226 @@ const BOARD_COLUMNS = STATUSES
   }))
 
 /* ------------------------------------------------------------------ */
+/*  Edit Opportunity Panel (inline in Detail Popup)                    */
+/* ------------------------------------------------------------------ */
+
+function EditOpportunityPanel({
+  opportunity,
+  onSaved,
+  onCancel,
+}: {
+  opportunity: OpportunityItem
+  onSaved: () => void
+  onCancel: () => void
+}) {
+  const updateMutation = useUpdateOpportunity()
+  const [form, setForm] = useState({
+    title: opportunity.title,
+    tagline: opportunity.tagline ?? '',
+    description: opportunity.description ?? '',
+    city: opportunity.city ?? '',
+    state: opportunity.state ?? '',
+    targetAmount: opportunity.targetAmount?.toString() ?? '',
+    minInvestment: opportunity.minInvestment?.toString() ?? '',
+    targetIrr: opportunity.targetIrr?.toString() ?? '',
+    industry: opportunity.industry ?? '',
+    stage: opportunity.stage ?? '',
+    founderName: opportunity.founderName ?? '',
+    communityType: opportunity.communityType ?? '',
+    collaborationType: opportunity.collaborationType ?? '',
+  })
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = async () => {
+    const data: Record<string, string | number | undefined> = {}
+    if (form.title !== opportunity.title) data.title = form.title
+    if (form.tagline !== (opportunity.tagline ?? '')) data.tagline = form.tagline
+    if (form.description !== (opportunity.description ?? '')) data.description = form.description
+    if (form.city !== (opportunity.city ?? '')) data.city = form.city
+    if (form.state !== (opportunity.state ?? '')) data.state = form.state
+    if (form.targetAmount !== (opportunity.targetAmount?.toString() ?? ''))
+      data.targetAmount = form.targetAmount ? Number(form.targetAmount) : undefined
+    if (form.minInvestment !== (opportunity.minInvestment?.toString() ?? ''))
+      data.minInvestment = form.minInvestment ? Number(form.minInvestment) : undefined
+    if (form.targetIrr !== (opportunity.targetIrr?.toString() ?? ''))
+      data.targetIrr = form.targetIrr ? Number(form.targetIrr) : undefined
+    if (form.industry !== (opportunity.industry ?? '')) data.industry = form.industry
+    if (form.stage !== (opportunity.stage ?? '')) data.stage = form.stage
+    if (form.founderName !== (opportunity.founderName ?? '')) data.founderName = form.founderName
+    if (form.communityType !== (opportunity.communityType ?? '')) data.communityType = form.communityType
+    if (form.collaborationType !== (opportunity.collaborationType ?? '')) data.collaborationType = form.collaborationType
+
+    if (Object.keys(data).length === 0) {
+      onSaved()
+      return
+    }
+
+    await updateMutation.mutateAsync({ id: opportunity.id, data })
+    onSaved()
+  }
+
+  const vt = opportunity.vaultType
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-1">
+        <Pencil className="h-4 w-4 text-primary" />
+        <h4 className="text-sm font-bold text-gray-900">Edit Opportunity Before Approving</h4>
+      </div>
+
+      {/* Common fields */}
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Title *</label>
+        <input
+          value={form.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Tagline</label>
+        <input
+          value={form.tagline}
+          onChange={(e) => handleChange('tagline', e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+        <textarea
+          rows={3}
+          value={form.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+          <input
+            value={form.city}
+            onChange={(e) => handleChange('city', e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">State</label>
+          <input
+            value={form.state}
+            onChange={(e) => handleChange('state', e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Financials */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Target Amount</label>
+          <input
+            type="number"
+            value={form.targetAmount}
+            onChange={(e) => handleChange('targetAmount', e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Min Investment</label>
+          <input
+            type="number"
+            value={form.minInvestment}
+            onChange={(e) => handleChange('minInvestment', e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Target IRR (%)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={form.targetIrr}
+            onChange={(e) => handleChange('targetIrr', e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Vault-specific fields */}
+      {vt === 'opportunity' && (
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Industry</label>
+            <input
+              value={form.industry}
+              onChange={(e) => handleChange('industry', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Stage</label>
+            <input
+              value={form.stage}
+              onChange={(e) => handleChange('stage', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Founder</label>
+            <input
+              value={form.founderName}
+              onChange={(e) => handleChange('founderName', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+          </div>
+        </div>
+      )}
+      {vt === 'community' && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Community Type</label>
+            <input
+              value={form.communityType}
+              onChange={(e) => handleChange('communityType', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Collaboration Type</label>
+            <input
+              value={form.collaborationType}
+              onChange={(e) => handleChange('collaborationType', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-2">
+        <button
+          onClick={onCancel}
+          className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={updateMutation.isPending || !form.title.trim()}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"
+        >
+          {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save Changes
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Detail Popup — visual representation of a request                  */
 /* ------------------------------------------------------------------ */
 
@@ -193,6 +416,12 @@ function DetailPopup({ approval, onClose, onReview }: {
   onClose: () => void
   onReview: (action: 'approve' | 'reject') => void
 }) {
+  const [editMode, setEditMode] = useState(false)
+  const isOpportunityApproval = approval.resourceType === 'opportunity' && !!approval.resourceId
+  const { data: opportunity, isLoading: oppLoading } = useOpportunity(
+    isOpportunityApproval ? approval.resourceId! : ''
+  )
+
   const catLabel = CATEGORIES.find((c) => c.value === approval.category)?.label ?? approval.category
   const statusCfg = STATUS_BADGE[approval.status] ?? STATUS_BADGE.pending!
   const StatusIcon = statusCfg.icon
@@ -297,9 +526,35 @@ function DetailPopup({ approval, onClose, onReview }: {
             </div>
           )}
 
+          {/* Edit Opportunity panel (inline) */}
+          {editMode && isOpportunityApproval && (
+            oppLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : opportunity ? (
+              <EditOpportunityPanel
+                opportunity={opportunity}
+                onSaved={() => setEditMode(false)}
+                onCancel={() => setEditMode(false)}
+              />
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-4">Could not load opportunity details.</p>
+            )
+          )}
+
           {/* Action buttons */}
-          {canAct && (
+          {canAct && !editMode && (
             <div className="flex gap-3 pt-1">
+              {isOpportunityApproval && (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </button>
+              )}
               <button
                 onClick={() => onReview('approve')}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"

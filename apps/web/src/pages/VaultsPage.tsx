@@ -21,9 +21,11 @@ import {
   Plus,
   ClipboardCheck,
   Terminal,
+  Lock,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
+import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 
 /* ------------------------------------------------------------------ */
 /*  Vault data                                                         */
@@ -42,12 +44,10 @@ const VAULTS = [
       'Institutional-grade real estate investments — RERA-verified properties across India\'s top cities. Earn passive rental income and long-term capital appreciation through fractional ownership.',
     risk: 'Moderate',
     riskColor: 'text-amber-600 bg-amber-50',
-    totalInvested: '₹42.5 Cr',
-    investors: '8,200+',
-    avgIrr: '14.2%',
     href: '/marketplace',
     cta: 'Explore Properties',
     videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    comingSoon: false,
   },
   {
     id: 'opportunity',
@@ -61,12 +61,10 @@ const VAULTS = [
       'Back high-potential startup ideas from vetted founders. From deep-tech to consumer brands — invest early in tomorrow\'s market leaders and earn equity-linked returns.',
     risk: 'High',
     riskColor: 'text-red-600 bg-red-50',
-    totalInvested: '₹8.7 Cr',
-    investors: '2,400+',
-    avgIrr: '22.5%',
     href: '/marketplace?vault=opportunity',
     cta: 'Discover Startups',
     videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    comingSoon: true,
   },
   {
     id: 'community',
@@ -80,12 +78,10 @@ const VAULTS = [
       'Community-driven opportunities where passionate individuals need collaborators — not just capital. Help establish sports complexes, co-working spaces, local businesses, and more by contributing your time, network, or expertise alongside funding.',
     risk: 'Low–Moderate',
     riskColor: 'text-emerald-600 bg-emerald-50',
-    totalInvested: '₹3.2 Cr',
-    investors: '1,150+',
-    avgIrr: '11.8%',
     href: '/marketplace?vault=community',
     cta: 'Join Opportunities',
     videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    comingSoon: false,
   },
 ]
 
@@ -180,14 +176,56 @@ function VaultVideoPopup({ title, videoSrc, onClose }: { title: string; videoSrc
 }
 
 /* ------------------------------------------------------------------ */
+/*  Helper: format INR compact                                         */
+/* ------------------------------------------------------------------ */
+
+function formatINRCompact(num: number): string {
+  if (num >= 1_00_00_000) return `₹${(num / 1_00_00_000).toFixed(1)} Cr`
+  if (num >= 1_00_000) return `₹${(num / 1_00_000).toFixed(1)} L`
+  if (num >= 1_000) return `₹${(num / 1_000).toFixed(0)}K`
+  return `₹${num.toLocaleString('en-IN')}`
+}
+
+/* ------------------------------------------------------------------ */
 /*  Vault Card                                                         */
 /* ------------------------------------------------------------------ */
 
-function VaultCard({ vault, onPlayVideo }: { vault: (typeof VAULTS)[number]; onPlayVideo: () => void }) {
+/* Default expected IRR per vault (shown when API returns null) */
+const DEFAULT_EXPECTED_IRR: Record<string, number> = {
+  wealth: 14,
+  opportunity: 18,
+}
+
+function VaultCard({
+  vault,
+  stats,
+  opportunities,
+  onPlayVideo,
+  onComingSoon,
+}: {
+  vault: (typeof VAULTS)[number]
+  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number }
+  opportunities: OpportunityItem[]
+  onPlayVideo: () => void
+  onComingSoon: () => void
+}) {
   const Icon = vault.icon
+  const isCommunity = vault.id === 'community'
+
+  const handleCTAClick = (e: React.MouseEvent) => {
+    if (vault.comingSoon) {
+      e.preventDefault()
+      onComingSoon()
+    }
+  }
+
+  /* Resolve expected IRR: API value → default → null (community has none) */
+  const expectedIrr = isCommunity
+    ? null
+    : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
 
   return (
-    <div className={`rounded-2xl border ${vault.border} bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow group flex flex-col h-[480px]`}>
+    <div className={`rounded-2xl border ${vault.border} bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow group flex flex-col`}>
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5`}>
         <div className="flex items-center gap-3">
@@ -195,13 +233,18 @@ function VaultCard({ vault, onPlayVideo }: { vault: (typeof VAULTS)[number]; onP
             <Icon className="h-6 w-6 text-white" />
           </div>
           <h3 className="font-display text-xl font-bold text-white flex-1">{vault.title}</h3>
+          {vault.comingSoon && (
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2.5 py-1 rounded-full">
+              <Lock className="h-3 w-3" />
+              Soon
+            </span>
+          )}
           <button
             onClick={onPlayVideo}
             className="relative shrink-0 group/tip"
             aria-label={`Watch ${vault.title} intro video`}
           >
             <PlayCircle className="h-7 w-7 text-white/70 hover:text-white transition-colors cursor-pointer" />
-            {/* Tooltip */}
             <span className="pointer-events-none absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg">
               Want to know more? Click here
             </span>
@@ -213,8 +256,8 @@ function VaultCard({ vault, onPlayVideo }: { vault: (typeof VAULTS)[number]; onP
       <div className="p-6 space-y-5 flex-1 flex flex-col">
         <p className="text-sm text-gray-600 leading-relaxed">{vault.description}</p>
 
-        {/* Metrics grid */}
-        <div className="grid grid-cols-2 gap-4 flex-1">
+        {/* Metrics grid — real data from API */}
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
               <AlertTriangle className="h-3.5 w-3.5 text-gray-400" />
@@ -229,32 +272,107 @@ function VaultCard({ vault, onPlayVideo }: { vault: (typeof VAULTS)[number]; onP
               <Wallet className="h-3.5 w-3.5 text-gray-400" />
               <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Total Invested</span>
             </div>
-            <p className="font-mono text-sm font-bold text-gray-900">{vault.totalInvested}</p>
+            <p className="font-mono text-sm font-bold text-gray-900">
+              {stats ? formatINRCompact(stats.totalInvested) : '—'}
+            </p>
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Investors</span>
-            </div>
-            <p className="font-mono text-sm font-bold text-gray-900">{vault.investors}</p>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Avg. IRR</span>
-            </div>
-            <p className={`font-mono text-sm font-bold ${vault.accent}`}>{vault.avgIrr}</p>
-          </div>
+
+          {isCommunity ? (
+            <>
+              {/* Community vault: Projects Launched / Projects Successful instead of Investors / IRR */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Rocket className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Projects Launched</span>
+                </div>
+                <p className="font-mono text-sm font-bold text-gray-900">
+                  {stats ? stats.opportunityCount.toLocaleString('en-IN') : '—'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Projects Successful</span>
+                </div>
+                <p className="font-mono text-sm font-bold text-gray-900">—</p>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Wealth / Opportunity vaults: Investors + IRR */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Investors</span>
+                </div>
+                <p className="font-mono text-sm font-bold text-gray-900">
+                  {stats ? stats.investorCount.toLocaleString('en-IN') : '—'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Expected IRR</span>
+                </div>
+                <p className={`font-mono text-sm font-bold ${vault.accent}`}>
+                  {expectedIrr != null ? `${expectedIrr}%` : '—'}
+                </p>
+              </div>
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-500">Actual IRR</span>
+                </div>
+                <p className="font-mono text-sm font-bold text-emerald-600">
+                  {stats?.actualIrr != null ? `${stats.actualIrr}%` : '—'}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
+        {/* Approved opportunities in this vault */}
+        {opportunities.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+              Active Opportunities ({opportunities.length})
+            </p>
+            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+              {opportunities.slice(0, 5).map((opp) => (
+                <div
+                  key={opp.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                >
+                  <span className="font-medium text-gray-800 truncate flex-1 mr-2">{opp.title}</span>
+                  <span className="text-gray-400 shrink-0">{opp.city ?? '—'}</span>
+                </div>
+              ))}
+              {opportunities.length > 5 && (
+                <p className="text-[10px] text-gray-400 text-center">+{opportunities.length - 5} more</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* CTA */}
-        <Link
-          to={vault.href}
-          className={`w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors bg-gradient-to-r ${vault.color} text-white hover:opacity-90 mt-auto`}
-        >
-          {vault.cta}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        {vault.comingSoon ? (
+          <button
+            onClick={onComingSoon}
+            className={`w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors bg-gray-200 text-gray-500 cursor-not-allowed mt-auto`}
+          >
+            <Lock className="h-4 w-4" />
+            Launching Soon — Stay Tuned!
+          </button>
+        ) : (
+          <Link
+            to={vault.href}
+            onClick={handleCTAClick}
+            className={`w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors bg-gradient-to-r ${vault.color} text-white hover:opacity-90 mt-auto`}
+          >
+            {vault.cta}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        )}
       </div>
     </div>
   )
@@ -318,8 +436,30 @@ export default function VaultsPage() {
   const [activeVideo, setActiveVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [activePillarVideo, setActivePillarVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
+  const [comingSoonToast, setComingSoonToast] = useState(false)
   const { isSignedIn } = useUser()
   const userRole = useUserStore((s) => s.user?.role)
+
+  // Fetch real vault stats from API
+  const { data: vaultStatsData } = useVaultStats()
+  const statsMap = new Map(
+    (vaultStatsData ?? []).map((s) => [s.vaultType, s])
+  )
+
+  // Fetch approved opportunities per vault for display
+  const { data: wealthOpps } = useOpportunities({ vaultType: 'wealth', status: 'approved' })
+  const { data: opportunityOpps } = useOpportunities({ vaultType: 'opportunity', status: 'approved' })
+  const { data: communityOpps } = useOpportunities({ vaultType: 'community', status: 'approved' })
+  const oppsMap: Record<string, OpportunityItem[]> = {
+    wealth: wealthOpps?.items ?? [],
+    opportunity: opportunityOpps?.items ?? [],
+    community: communityOpps?.items ?? [],
+  }
+
+  const showComingSoon = () => {
+    setComingSoonToast(true)
+    setTimeout(() => setComingSoonToast(false), 3000)
+  }
 
   const visibleLinks = QUICK_LINKS.filter((link) => {
     if (!('roles' in link)) return true
@@ -420,7 +560,10 @@ export default function VaultsPage() {
               <VaultCard
                 key={vault.id}
                 vault={vault}
+                stats={statsMap.get(vault.id)}
+                opportunities={oppsMap[vault.id] ?? []}
                 onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: vault.videoSrc })}
+                onComingSoon={showComingSoon}
               />
             ))}
           </div>
@@ -475,6 +618,19 @@ export default function VaultsPage() {
 
       {/* Create Opportunity modal */}
       <CreateOpportunityModal open={showCreateOpp} onClose={() => setShowCreateOpp(false)} />
+
+      {/* Coming soon toast */}
+      {comingSoonToast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-xl shadow-2xl">
+            <Lock className="h-5 w-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">The Launchpad is Coming Soon 🚀</p>
+              <p className="text-xs text-gray-400 mt-0.5">We're curating something special. Stay tuned!</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
