@@ -39,6 +39,7 @@ import {
   Shield,
   Briefcase,
   Calendar,
+  BarChart3,
 } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
@@ -84,15 +85,17 @@ import {
   type AppVideo,
 } from '@/hooks/useAppVideos'
 import { formatINR } from '@/lib/formatters'
+import VaultAnalyticsDashboard from '@/pages/VaultAnalyticsDashboard'
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'users' | 'approvals' | 'notifications' | 'content' | 'templates' | 'platform' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'approvals' | 'notifications' | 'content' | 'templates' | 'platform' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline'
 
 const SECTIONS: Array<{ id: Section; label: string; icon: typeof LayoutDashboard }> = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'vault-analytics', label: 'Vault Analytics', icon: BarChart3 },
   { id: 'users', label: 'Users & Roles', icon: Users },
   { id: 'approvals', label: 'Approval Config', icon: ClipboardCheck },
   { id: 'referral-tracking', label: 'Referral Tracking', icon: Gift },
@@ -1702,6 +1705,7 @@ export default function CommandControlPage() {
         {/* Content */}
         <main className="flex-1 p-6 sm:p-8 bg-gray-50 min-w-0">
           {activeSection === 'dashboard' && <DashboardTab />}
+          {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
           {activeSection === 'users' && <UsersTab />}
           {activeSection === 'approvals' && <ConfigTab section="approvals" title="Approval Configuration" />}
           {activeSection === 'notifications' && <ConfigTab section="notifications" title="Notification Settings" />}
