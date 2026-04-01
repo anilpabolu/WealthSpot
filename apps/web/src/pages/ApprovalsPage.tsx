@@ -1,7 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
-  Shield,
   ChevronDown,
   CheckCircle2,
   XCircle,
@@ -23,10 +21,11 @@ import {
   Pencil,
   Save,
 } from 'lucide-react'
-import { UserButton } from '@clerk/react'
-import { useApprovals, useAllApprovals, useApprovalStats, useReviewApproval, type Approval } from '@/hooks/useApprovals'
+import Navbar from '@/components/layout/Navbar'
+import { useApprovals, useAllApprovals, useReviewApproval, type Approval } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approval.store'
 import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
+import { useCompany, useUpdateCompany, type CompanyDetail } from '@/hooks/useCompanies'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -108,11 +107,20 @@ function ReviewModal({
   onClose: () => void
 }) {
   const [note, setNote] = useState('')
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const review = useReviewApproval()
 
   const handleSubmit = async () => {
-    await review.mutateAsync({ id: approval.id, action, reviewNote: note || undefined })
-    onClose()
+    try {
+      await review.mutateAsync({ id: approval.id, action, reviewNote: note || undefined })
+      const msg = action === 'approve'
+        ? 'Request approved successfully! Changes are now live.'
+        : 'Request has been rejected.'
+      setToast({ type: 'success', message: msg })
+      setTimeout(() => onClose(), 2000)
+    } catch {
+      setToast({ type: 'error', message: 'Action failed. Please try again.' })
+    }
   }
 
   return (
@@ -151,7 +159,7 @@ function ReviewModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={review.isPending || (action === 'reject' && !note.trim())}
+            disabled={review.isPending || (action === 'reject' && !note.trim()) || !!toast}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white transition-colors disabled:opacity-50 ${
               action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
             }`}
@@ -160,6 +168,18 @@ function ReviewModal({
             {action === 'approve' ? 'Approve' : 'Reject'}
           </button>
         </div>
+
+        {/* Toast */}
+        {toast && (
+          <div className={`mt-4 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
+            toast.type === 'success'
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+            {toast.message}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -408,6 +428,276 @@ function EditOpportunityPanel({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Edit Company Panel (inline in Detail Popup)                        */
+/* ------------------------------------------------------------------ */
+
+function EditCompanyPanel({
+  company,
+  onSaved,
+  onCancel,
+}: {
+  company: CompanyDetail
+  onSaved: () => void
+  onCancel: () => void
+}) {
+  const updateMutation = useUpdateCompany()
+  const [form, setForm] = useState({
+    companyName: company.companyName ?? '',
+    brandName: company.brandName ?? '',
+    entityType: company.entityType ?? 'private_limited',
+    cin: company.cin ?? '',
+    gstin: company.gstin ?? '',
+    pan: company.pan ?? '',
+    reraNumber: company.reraNumber ?? '',
+    website: company.website ?? '',
+    description: company.description ?? '',
+    contactName: company.contactName ?? '',
+    contactEmail: company.contactEmail ?? '',
+    contactPhone: company.contactPhone ?? '',
+    addressLine1: company.addressLine1 ?? '',
+    addressLine2: company.addressLine2 ?? '',
+    city: company.city ?? '',
+    state: company.state ?? '',
+    pincode: company.pincode ?? '',
+    country: company.country ?? 'India',
+    yearsInBusiness: company.yearsInBusiness?.toString() ?? '',
+    projectsCompleted: company.projectsCompleted?.toString() ?? '',
+    totalAreaDeveloped: company.totalAreaDeveloped ?? '',
+  })
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = async () => {
+    const data: Record<string, string | number | undefined> = {}
+    if (form.companyName !== (company.companyName ?? '')) data.companyName = form.companyName
+    if (form.brandName !== (company.brandName ?? '')) data.brandName = form.brandName
+    if (form.entityType !== (company.entityType ?? '')) data.entityType = form.entityType
+    if (form.cin !== (company.cin ?? '')) data.cin = form.cin
+    if (form.gstin !== (company.gstin ?? '')) data.gstin = form.gstin
+    if (form.pan !== (company.pan ?? '')) data.pan = form.pan
+    if (form.reraNumber !== (company.reraNumber ?? '')) data.reraNumber = form.reraNumber
+    if (form.website !== (company.website ?? '')) data.website = form.website
+    if (form.description !== (company.description ?? '')) data.description = form.description
+    if (form.contactName !== (company.contactName ?? '')) data.contactName = form.contactName
+    if (form.contactEmail !== (company.contactEmail ?? '')) data.contactEmail = form.contactEmail
+    if (form.contactPhone !== (company.contactPhone ?? '')) data.contactPhone = form.contactPhone
+    if (form.addressLine1 !== (company.addressLine1 ?? '')) data.addressLine1 = form.addressLine1
+    if (form.addressLine2 !== (company.addressLine2 ?? '')) data.addressLine2 = form.addressLine2
+    if (form.city !== (company.city ?? '')) data.city = form.city
+    if (form.state !== (company.state ?? '')) data.state = form.state
+    if (form.pincode !== (company.pincode ?? '')) data.pincode = form.pincode
+    if (form.country !== (company.country ?? '')) data.country = form.country
+    if (form.yearsInBusiness !== (company.yearsInBusiness?.toString() ?? ''))
+      data.yearsInBusiness = form.yearsInBusiness ? Number(form.yearsInBusiness) : undefined
+    if (form.projectsCompleted !== (company.projectsCompleted?.toString() ?? ''))
+      data.projectsCompleted = form.projectsCompleted ? Number(form.projectsCompleted) : undefined
+    if (form.totalAreaDeveloped !== (company.totalAreaDeveloped ?? ''))
+      data.totalAreaDeveloped = form.totalAreaDeveloped
+
+    if (Object.keys(data).length === 0) {
+      onSaved()
+      return
+    }
+
+    await updateMutation.mutateAsync({ id: company.id, data })
+    onSaved()
+  }
+
+  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-1">
+        <Pencil className="h-4 w-4 text-primary" />
+        <h4 className="text-sm font-bold text-gray-900">Edit Company Before Approving</h4>
+      </div>
+
+      {/* Basic Info */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Company Name *</label>
+          <input value={form.companyName} onChange={(e) => handleChange('companyName', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Brand Name</label>
+          <input value={form.brandName} onChange={(e) => handleChange('brandName', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Entity Type</label>
+          <select value={form.entityType} onChange={(e) => handleChange('entityType', e.target.value)} className={inputClass}>
+            <option value="private_limited">Private Limited</option>
+            <option value="public_limited">Public Limited</option>
+            <option value="llp">LLP</option>
+            <option value="partnership">Partnership</option>
+            <option value="proprietorship">Proprietorship</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">CIN</label>
+          <input value={form.cin} onChange={(e) => handleChange('cin', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      {/* Legal */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">GSTIN</label>
+          <input value={form.gstin} onChange={(e) => handleChange('gstin', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">PAN</label>
+          <input value={form.pan} onChange={(e) => handleChange('pan', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">RERA Number</label>
+          <input value={form.reraNumber} onChange={(e) => handleChange('reraNumber', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Website</label>
+        <input value={form.website} onChange={(e) => handleChange('website', e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+        <textarea rows={2} value={form.description} onChange={(e) => handleChange('description', e.target.value)} className={`${inputClass} resize-none`} />
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Name</label>
+          <input value={form.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Email</label>
+          <input value={form.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Phone</label>
+          <input value={form.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Address Line 1</label>
+          <input value={form.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Address Line 2</label>
+          <input value={form.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+          <input value={form.city} onChange={(e) => handleChange('city', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">State</label>
+          <input value={form.state} onChange={(e) => handleChange('state', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Pincode</label>
+          <input value={form.pincode} onChange={(e) => handleChange('pincode', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Country</label>
+          <input value={form.country} onChange={(e) => handleChange('country', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      {/* Track Record */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Years in Business</label>
+          <input type="number" value={form.yearsInBusiness} onChange={(e) => handleChange('yearsInBusiness', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Projects Completed</label>
+          <input type="number" value={form.projectsCompleted} onChange={(e) => handleChange('projectsCompleted', e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Total Area Developed</label>
+          <input value={form.totalAreaDeveloped} onChange={(e) => handleChange('totalAreaDeveloped', e.target.value)} className={inputClass} />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-2">
+        <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={updateMutation.isPending || !form.companyName.trim()}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"
+        >
+          {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save Changes
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Deal Lifecycle Controls                                            */
+/* ------------------------------------------------------------------ */
+
+function LifecycleControls({ opportunity }: { opportunity: OpportunityItem }) {
+  const updateMutation = useUpdateOpportunity()
+  const [closingDate, setClosingDate] = useState(opportunity.closingDate ?? '')
+
+  const handleStatusChange = async (newStatus: string) => {
+    const data: Record<string, string | undefined> = { status: newStatus }
+    if (newStatus === 'closed') data.closingDate = undefined
+    else if (closingDate) data.closingDate = closingDate
+    await updateMutation.mutateAsync({ id: opportunity.id, data })
+  }
+
+  const currentStatus = (opportunity.status ?? '').toLowerCase()
+
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 space-y-3">
+      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Deal Lifecycle</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs text-amber-600 mb-1">Closing Date</label>
+          <input
+            type="date"
+            value={closingDate ? closingDate.slice(0, 10) : ''}
+            onChange={(e) => setClosingDate(e.target.value)}
+            className="w-full rounded-lg border border-amber-300 px-3 py-1.5 text-sm focus:border-primary outline-none bg-white"
+          />
+        </div>
+        <button
+          onClick={() => handleStatusChange('closing_soon')}
+          disabled={updateMutation.isPending || currentStatus === 'closing_soon'}
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+        >
+          {updateMutation.isPending ? '…' : 'Mark Closing Soon'}
+        </button>
+        <button
+          onClick={() => handleStatusChange('closed')}
+          disabled={updateMutation.isPending || currentStatus === 'closed'}
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+        >
+          {updateMutation.isPending ? '…' : 'Close Deal'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Detail Popup — visual representation of a request                  */
 /* ------------------------------------------------------------------ */
 
@@ -417,10 +707,31 @@ function DetailPopup({ approval, onClose, onReview }: {
   onReview: (action: 'approve' | 'reject') => void
 }) {
   const [editMode, setEditMode] = useState(false)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
   const isOpportunityApproval = approval.resourceType === 'opportunity' && !!approval.resourceId
+  const isCompanyApproval = approval.resourceType === 'company' && !!approval.resourceId
+  const isEditable = isOpportunityApproval || isCompanyApproval
+
   const { data: opportunity, isLoading: oppLoading } = useOpportunity(
     isOpportunityApproval ? approval.resourceId! : ''
   )
+  const { data: company, isLoading: compLoading } = useCompany(
+    isCompanyApproval ? approval.resourceId! : ''
+  )
+
+  const review = useReviewApproval()
+
+  const handleSaveAndApprove = async () => {
+    try {
+      await review.mutateAsync({ id: approval.id, action: 'approve', reviewNote: 'Approved after editing details' })
+      setEditMode(false)
+      setToast({ type: 'success', message: 'Details updated and request approved! Changes are now live.' })
+      setTimeout(() => onClose(), 2500)
+    } catch {
+      setToast({ type: 'error', message: 'Approval failed. Please try again.' })
+    }
+  }
 
   const catLabel = CATEGORIES.find((c) => c.value === approval.category)?.label ?? approval.category
   const statusCfg = STATUS_BADGE[approval.status] ?? STATUS_BADGE.pending!
@@ -430,11 +741,11 @@ function DetailPopup({ approval, onClose, onReview }: {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Colored header band */}
-        <div className={`px-6 py-4 ${statusCfg.className} border-b`}>
+        <div className={`px-6 py-4 ${statusCfg.className} border-b shrink-0`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <StatusIcon className="h-5 w-5" />
@@ -449,7 +760,7 @@ function DetailPopup({ approval, onClose, onReview }: {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-5">
+        <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
           {/* Title */}
           <div>
             <h3 className="font-display text-lg font-bold text-gray-900">{approval.title}</h3>
@@ -535,7 +846,7 @@ function DetailPopup({ approval, onClose, onReview }: {
             ) : opportunity ? (
               <EditOpportunityPanel
                 opportunity={opportunity}
-                onSaved={() => setEditMode(false)}
+                onSaved={() => { setEditMode(false); handleSaveAndApprove() }}
                 onCancel={() => setEditMode(false)}
               />
             ) : (
@@ -543,10 +854,44 @@ function DetailPopup({ approval, onClose, onReview }: {
             )
           )}
 
+          {/* Edit Company panel (inline) */}
+          {editMode && isCompanyApproval && (
+            compLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : company ? (
+              <EditCompanyPanel
+                company={company}
+                onSaved={() => { setEditMode(false); handleSaveAndApprove() }}
+                onCancel={() => setEditMode(false)}
+              />
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-4">Could not load company details.</p>
+            )
+          )}
+
+          {/* Deal Lifecycle Controls (for approved/active opportunities) */}
+          {isOpportunityApproval && opportunity && ['approved', 'active', 'funding'].includes((opportunity.status ?? '').toLowerCase()) && !editMode && (
+            <LifecycleControls opportunity={opportunity} />
+          )}
+
+          {/* Toast notification */}
+          {toast && (
+            <div className={`rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
+              toast.type === 'success'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              {toast.message}
+            </div>
+          )}
+
           {/* Action buttons */}
-          {canAct && !editMode && (
+          {canAct && !editMode && !toast && (
             <div className="flex gap-3 pt-1">
-              {isOpportunityApproval && (
+              {isEditable && (
                 <button
                   onClick={() => setEditMode(true)}
                   className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
@@ -710,7 +1055,6 @@ function KanbanBoard({
 export default function ApprovalsPage() {
   const { filters, setFilter } = useApprovalStore()
   const { data, isLoading } = useApprovals()
-  const { data: stats } = useApprovalStats()
   const [view, setView] = useState<'board' | 'table'>('board')
   const [reviewAction, setReviewAction] = useState<{ approval: Approval; action: 'approve' | 'reject' } | null>(null)
   const [detailApproval, setDetailApproval] = useState<Approval | null>(null)
@@ -731,61 +1075,33 @@ export default function ApprovalsPage() {
   return (
     <>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-          <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link to="/vaults" className="flex items-center gap-2 shrink-0">
-                <Shield className="h-8 w-8 text-primary" />
-                <span className="font-display text-xl font-bold tracking-tight text-gray-900">
-                  Wealth<span className="text-primary">Spot</span>
-                </span>
-              </Link>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm font-semibold text-gray-600">Approvals</span>
-            </div>
+        {/* Shared Navbar */}
+        <Navbar />
 
-            <div className="flex items-center gap-3">
-              {/* View toggle */}
-              <div className="flex items-center rounded-lg border border-gray-200 bg-white p-0.5">
-                <button
-                  onClick={() => setView('board')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'board' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5 inline mr-1" />
-                  Board
-                </button>
-                <button
-                  onClick={() => setView('table')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'table' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  <List className="h-3.5 w-3.5 inline mr-1" />
-                  Table
-                </button>
-              </div>
-              <UserButton appearance={{ elements: { avatarBox: 'h-9 w-9 ring-2 ring-primary/20' } }} />
+        {/* Sub-header with view toggle */}
+        <div className="sticky top-16 z-40 bg-white border-b border-gray-200">
+          <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 flex h-12 items-center justify-between">
+            <span className="text-sm font-semibold text-gray-600">Approvals</span>
+            <div className="flex items-center rounded-lg border border-gray-200 bg-white p-0.5">
+              <button
+                onClick={() => setView('board')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'board' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5 inline mr-1" />
+                Board
+              </button>
+              <button
+                onClick={() => setView('table')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'table' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <List className="h-3.5 w-3.5 inline mr-1" />
+                Table
+              </button>
             </div>
           </div>
-        </header>
+        </div>
 
         <main className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 py-8">
-          {/* Stats bar */}
-          {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              {[
-                { label: 'Pending', value: stats.pending, color: 'text-amber-600 bg-amber-50' },
-                { label: 'In Review', value: stats.inReview, color: 'text-blue-600 bg-blue-50' },
-                { label: 'Approved', value: stats.approved, color: 'text-emerald-600 bg-emerald-50' },
-                { label: 'Rejected', value: stats.rejected, color: 'text-red-600 bg-red-50' },
-              ].map((s) => (
-                <div key={s.label} className={`rounded-xl px-5 py-4 ${s.color}`}>
-                  <p className="text-2xl font-bold font-mono">{s.value}</p>
-                  <p className="text-xs font-medium mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* === BOARD VIEW === */}
           {view === 'board' && (
             <>

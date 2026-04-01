@@ -34,6 +34,19 @@ from app.core.security import create_access_token, create_refresh_token
 from app.main import app
 from app.models.user import User, UserRole
 
+# ── Disable rate limiting for tests ─────────────────────────────────────────
+# Monkey-patch the dispatch method to always allow requests during tests.
+from app.middleware.rate_limit import RateLimitMiddleware
+
+_original_dispatch = RateLimitMiddleware.dispatch
+
+
+async def _noop_dispatch(self, request, call_next):
+    return await call_next(request)
+
+
+RateLimitMiddleware.dispatch = _noop_dispatch
+
 # ── Test engine uses same PostgreSQL but creates/drops a test schema ────────
 
 TEST_DB_URL = "postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5433/wealthspot"

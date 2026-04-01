@@ -10,7 +10,7 @@ from typing import Any, Sequence
 
 from sqlalchemy import (
     DateTime, Enum, ForeignKey, Integer, Numeric,
-    String, Text, Boolean,
+    String, Text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -112,6 +112,7 @@ class Opportunity(Base):
     investor_count: Mapped[int] = mapped_column(Integer, default=0)
     # Timestamps
     launch_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closing_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
@@ -127,6 +128,8 @@ class Opportunity(Base):
     media = relationship("OpportunityMedia", back_populates="opportunity", lazy="selectin", order_by="OpportunityMedia.sort_order")
     company = relationship("Company", back_populates="opportunities", lazy="joined")
     investments = relationship("OpportunityInvestment", back_populates="opportunity", lazy="selectin")
+    builder_questions = relationship("BuilderQuestion", lazy="selectin", order_by="BuilderQuestion.sort_order")
+    comm_mappings = relationship("OpportunityCommMapping", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.slug} vault={self.vault_type} status={self.status}>"

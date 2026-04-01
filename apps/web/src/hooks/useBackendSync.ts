@@ -4,13 +4,14 @@
  * Flow:
  * 1. User signs in via Clerk
  * 2. Check if user exists in backend DB via /auth/check
- * 3. If NOT registered → sign out of Clerk, flag notRegistered
- * 4. If registered → call /auth/login to get JWT → /auth/me for full profile
+ * 3. If NOT registered → auto-register in backend
+ * 4. Call /auth/login to get JWT → /auth/me for full profile
  * 5. Populate Zustand user store with role, profile, JWT
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { useUser, useClerk } from '@clerk/react'
+import { useUser } from '@clerk/react'
+import axios from 'axios'
 import { apiPost, apiGet } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 import type { UserProfile } from '@/stores/user.store'
@@ -75,7 +76,6 @@ function isTokenExpired(token: string): boolean {
 
 export function useBackendSync() {
   const { user, isSignedIn, isLoaded } = useUser()
-  const { signOut } = useClerk()
   const { setUser, setToken, logout, isAuthenticated } = useUserStore()
   const syncingRef = useRef(false)
 
@@ -98,10 +98,9 @@ export function useBackendSync() {
       const { exists } = await apiGet<{ exists: boolean }>(`/auth/check?email=${encodeURIComponent(email)}`)
 
       if (!exists) {
-        diagLog('auth', 'warn', `${email} is not registered. Signing out.`)
-        setNotRegistered(email)
-        await signOut()
-        return
+        diagLog('auth', 'info', `${email} not found in backend. Auto-registering…`)
+        await apiPost('/auth/register', { email, full_name: fullName })
+        setNotRegistered(null)
       }
 
       // Step 2: Login to get backend JWT
@@ -137,12 +136,52 @@ export function useBackendSync() {
         }
         localStorage.removeItem('ws_referral_code')
       }
+
+      // Step 5: Auto-apply property referral code if captured from ?pref= URL param
+      const pendingPref = localStorage.getItem('ws_property_referral_code')
+      if (pendingPref) {
+        try {
+          await apiPost('/referrals/apply', { code: pendingPref })
+          diagLog('auth', 'info', `Property referral code ${pendingPref} applied`)
+        } catch {
+          // Already applied or invalid — silently ignore
+        }
+        localStorage.removeItem('ws_property_referral_code')
+      }
     } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        const detail = (err.response.data as { detail?: string } | undefined)?.detail
+        if (detail === 'USER_NOT_REGISTERED') {
+          diagLog('auth', 'info', `${email} missing at login. Auto-registering and retrying…`)
+          await apiPost('/auth/register', { email, full_name: fullName })
+          const tokens = await apiPost<LoginResponse>('/auth/login', { email, full_name: fullName })
+          localStorage.setItem('ws_token', tokens.accessToken)
+          localStorage.setItem('ws_refresh_token', tokens.refreshToken)
+          setToken(tokens.accessToken)
+
+          const profile = await apiGet<MeResponse>('/auth/me')
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            name: profile.fullName,
+            phone: profile.phone ?? '',
+            avatarUrl: profile.avatarUrl ?? undefined,
+            role: profile.role,
+            kycStatus: profile.kycStatus,
+            referralCode: profile.referralCode ?? '',
+            wealthPassActive: profile.wealthPassActive,
+            createdAt: profile.createdAt,
+          })
+          setNotRegistered(null)
+          diagLog('auth', 'info', `Backend sync complete — role: ${profile.role}`)
+          return
+        }
+      }
       diagLog('auth', 'error', `Backend sync failed: ${err}`)
     } finally {
       syncingRef.current = false
     }
-  }, [user, signOut, setUser, setToken])
+  }, [user, setUser, setToken])
 
   useEffect(() => {
     if (!isLoaded) return

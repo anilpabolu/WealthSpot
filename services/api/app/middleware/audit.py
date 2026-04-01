@@ -12,6 +12,30 @@ from sqlalchemy import insert
 from app.core.database import async_session_factory
 from app.models.community import AuditLog
 
+# Keys whose values must be redacted in audit details
+_SENSITIVE_KEYS = frozenset({
+    "pan_number", "pan", "aadhaar", "aadhaar_number",
+    "bank_account_number", "account_number", "ifsc_code",
+    "otp", "otp_hash", "email_otp_hash", "phone_otp_hash",
+    "password", "password_hash", "secret", "token",
+    "razorpay_signature", "razorpay_key_secret",
+})
+
+
+def _redact_sensitive(data: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Deep-redact sensitive fields from audit detail dicts."""
+    if not data:
+        return data
+    redacted: dict[str, Any] = {}
+    for key, value in data.items():
+        if key.lower() in _SENSITIVE_KEYS:
+            redacted[key] = "***REDACTED***"
+        elif isinstance(value, dict):
+            redacted[key] = _redact_sensitive(value)
+        else:
+            redacted[key] = value
+    return redacted
+
 
 async def log_audit_event(
     *,
@@ -37,7 +61,7 @@ async def log_audit_event(
                 action=action,
                 resource_type=resource_type,
                 resource_id=resource_id,
-                details=details,
+                details=_redact_sensitive(details),
                 ip_address=ip_address,
                 user_agent=user_agent,
                 created_at=datetime.now(timezone.utc),

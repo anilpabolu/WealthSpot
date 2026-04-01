@@ -15,12 +15,11 @@ from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user
-from app.models.approval import ApprovalCategory, ApprovalPriority, ApprovalRequest, ApprovalStatus
+from app.models.approval import ApprovalCategory, ApprovalPriority, ApprovalRequest
 from app.models.community import (
     CommunityPost,
     CommunityPostLike,
@@ -263,6 +262,8 @@ async def get_post(
 @router.get("/posts/{post_id}/replies", response_model=list[ReplyRead])
 async def list_replies(
     post_id: uuid.UUID,
+    page: int = 1,
+    page_size: int = 20,
     db: AsyncSession = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ) -> list[ReplyRead]:
@@ -283,7 +284,9 @@ async def list_replies(
     if post.post_type == PostType.QUESTION and not is_privileged:
         query = query.where(CommunityReply.is_approved.is_(True))
 
-    query = query.order_by(CommunityReply.created_at.asc())
+    page = max(1, page)
+    page_size = max(1, min(page_size, 100))
+    query = query.order_by(CommunityReply.created_at.asc()).offset((page - 1) * page_size).limit(page_size)
     replies = (await db.execute(query)).scalars().all()
 
     # Liked by current user?
@@ -452,7 +455,7 @@ async def upvote_post(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, int]:
-    """Upvote a post (idempotent for simplicity)."""
+    """Upvote a post (idempotent toggle – uses like table to track uniqueness)."""
     result = await db.execute(
         select(CommunityPost).where(CommunityPost.id == post_id)
     )
@@ -460,8 +463,22 @@ async def upvote_post(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    post.upvotes += 1
-    await db.flush()
+    # Check if user already upvoted (reuse the like mechanism for dedup)
+    existing = (await db.execute(
+        select(CommunityPostLike).where(
+            CommunityPostLike.post_id == post_id,
+            CommunityPostLike.user_id == user.id,
+        )
+    )).scalar_one_or_none()
+
+    if existing:
+        # Already upvoted – idempotent, return current count
+        pass
+    else:
+        db.add(CommunityPostLike(post_id=post_id, user_id=user.id))
+        post.upvotes += 1
+        await db.flush()
+
     return {"upvotes": post.upvotes}
 
 

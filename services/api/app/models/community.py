@@ -154,12 +154,34 @@ class Referral(Base):
     code_used: Mapped[str] = mapped_column(String(12), nullable=False)
     reward_amount: Mapped[int] = mapped_column(Integer, default=0)  # in paise
     reward_claimed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # ── Property-level referral tracking ─────────────────────────────────────
+    referral_type: Mapped[str] = mapped_column(
+        String(20), default="platform",
+    )  # "platform" or "property"
+    opportunity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("opportunities.id"), nullable=True,
+    )
+    property_referral_code_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("property_referral_codes.id"), nullable=True,
+    )
+
+    # ── First-investment reward tracking ─────────────────────────────────────
+    first_investment_rewarded: Mapped[bool] = mapped_column(Boolean, default=False)
+    rewarded_investment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True,
+    )
+    rewarded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     referrer = relationship("User", foreign_keys=[referrer_id], lazy="joined")
     referee = relationship("User", foreign_keys=[referee_id], lazy="joined")
+    opportunity = relationship("Opportunity", lazy="joined")
 
 
 # ── Audit Log ────────────────────────────────────────────────────────────────

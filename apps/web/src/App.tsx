@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '@clerk/react'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
 
@@ -34,6 +35,8 @@ const CompanyOnboarding = lazy(() => import('@/pages/CompanyOnboardingPage'))
 const AnswerQuestions = lazy(() => import('@/pages/AnswerQuestionsPage'))
 const BuilderProfile = lazy(() => import('@/pages/BuilderProfilePage'))
 const ProfileCompletion = lazy(() => import('@/pages/ProfileCompletionPage'))
+const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetailPage'))
+const AdminReferrals = lazy(() => import('@/pages/AdminReferralsPage'))
 
 const LOADING_MESSAGES = [
   'Curating premium opportunities…',
@@ -94,6 +97,10 @@ export default function App() {
     if (refCode) {
       localStorage.setItem('ws_referral_code', refCode.toUpperCase())
     }
+    const prefCode = params.get('pref')
+    if (prefCode) {
+      localStorage.setItem('ws_property_referral_code', prefCode.toUpperCase())
+    }
   }, [location.search])
 
   // Bridge Clerk auth → backend user store (role, JWT, profile)
@@ -128,52 +135,54 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/:slug" element={<PropertyDetail />} />
+          <Route path="/opportunity/:slug" element={<OpportunityDetail />} />
           <Route path="/builder/:id" element={<BuilderProfile />} />
 
           {/* Investor portal */}
-          <Route path="/portal/investor" element={<InvestorDashboard />} />
-          <Route path="/portal/investor/portfolio" element={<InvestorPortfolio />} />
-          <Route path="/portal/investor/lender" element={<LenderDashboard />} />
+          <Route path="/portal/investor" element={<ProtectedRoute><InvestorDashboard /></ProtectedRoute>} />
+          <Route path="/portal/investor/portfolio" element={<ProtectedRoute><InvestorPortfolio /></ProtectedRoute>} />
+          <Route path="/portal/investor/lender" element={<ProtectedRoute><LenderDashboard /></ProtectedRoute>} />
 
           {/* Builder portal */}
-          <Route path="/portal/builder" element={<BuilderDashboard />} />
-          <Route path="/portal/builder/listings" element={<BuilderListings />} />
+          <Route path="/portal/builder" element={<ProtectedRoute><BuilderDashboard /></ProtectedRoute>} />
+          <Route path="/portal/builder/listings" element={<ProtectedRoute><BuilderListings /></ProtectedRoute>} />
 
           {/* Admin portal */}
-          <Route path="/portal/admin" element={<AdminDashboard />} />
-          <Route path="/portal/admin/users" element={<AdminUsers />} />
+          <Route path="/portal/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/portal/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+          <Route path="/portal/admin/referrals" element={<ProtectedRoute><AdminReferrals /></ProtectedRoute>} />
 
           {/* Auth */}
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/vaults" element={<Vaults />} />
-          <Route path="/auth/kyc/identity" element={<KycIdentity />} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route path="/vaults" element={<ProtectedRoute><Vaults /></ProtectedRoute>} />
+          <Route path="/auth/kyc/identity" element={<ProtectedRoute><KycIdentity /></ProtectedRoute>} />
 
           {/* Community & Referral */}
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/answer" element={<AnswerQuestions />} />
-          <Route path="/referral" element={<Referral />} />
+          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+          <Route path="/community/answer" element={<ProtectedRoute><AnswerQuestions /></ProtectedRoute>} />
+          <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
 
           {/* Approvals & Command Control */}
-          <Route path="/approvals" element={<Approvals />} />
-          <Route path="/control-centre" element={<CommandControl />} />
+          <Route path="/approvals" element={<ProtectedRoute><Approvals /></ProtectedRoute>} />
+          <Route path="/control-centre" element={<ProtectedRoute><CommandControl /></ProtectedRoute>} />
 
           {/* Settings */}
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
           {/* Profile completion */}
-          <Route path="/profile/complete" element={<ProfileCompletion />} />
+          <Route path="/profile/complete" element={<ProtectedRoute><ProfileCompletion /></ProtectedRoute>} />
 
           {/* Portfolio */}
-          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
 
           {/* Contribute pillar pages */}
-          <Route path="/contribute/wealth" element={<ContributeWealth />} />
-          <Route path="/contribute/time" element={<ContributeTime />} />
-          <Route path="/contribute/network" element={<ContributeNetwork />} />
-          <Route path="/contribute/education" element={<ContributeEducation />} />
+          <Route path="/contribute/wealth" element={<ProtectedRoute><ContributeWealth /></ProtectedRoute>} />
+          <Route path="/contribute/time" element={<ProtectedRoute><ContributeTime /></ProtectedRoute>} />
+          <Route path="/contribute/network" element={<ProtectedRoute><ContributeNetwork /></ProtectedRoute>} />
+          <Route path="/contribute/education" element={<ProtectedRoute><ContributeEducation /></ProtectedRoute>} />
 
           {/* Company onboarding */}
-          <Route path="/company-onboarding" element={<CompanyOnboarding />} />
+          <Route path="/company-onboarding" element={<ProtectedRoute><CompanyOnboarding /></ProtectedRoute>} />
 
           {/* 404 catch-all */}
           <Route path="*" element={<NotFound />} />

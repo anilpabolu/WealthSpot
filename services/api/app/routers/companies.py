@@ -10,14 +10,16 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user, get_optional_user
+from app.middleware.auth import get_current_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
-from app.models.company import Company, VerificationStatus
+from app.models.company import Company
+from app.models.opportunity import VaultType
 from app.models.user import User, UserRole
 from app.schemas.company import (
     CompanyCreateRequest,
     CompanyListItem,
     CompanyRead,
+    CompanyUpdateRequest,
     PaginatedCompanies,
 )
 from app.services.points import award_points
@@ -28,6 +30,7 @@ router = APIRouter(prefix="/companies", tags=["companies"])
 @router.get("", response_model=PaginatedCompanies)
 async def list_companies(
     search: str | None = Query(None),
+    vault_type: VaultType | None = Query(None),
     verified_only: bool = Query(False),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -40,6 +43,9 @@ async def list_companies(
     if verified_only:
         query = query.where(Company.verified == True)  # noqa: E712
         count_q = count_q.where(Company.verified == True)  # noqa: E712
+    if vault_type:
+        query = query.where(Company.vault_type == vault_type)
+        count_q = count_q.where(Company.vault_type == vault_type)
     if search:
         like = f"%{search}%"
         query = query.where(
@@ -138,4 +144,29 @@ async def create_company(
     await db.flush()
     await db.refresh(company)
 
+    return CompanyRead.model_validate(company)
+
+
+# Roles that can update companies (admin edit before approving)
+_admin_dep = require_role(UserRole.ADMIN, UserRole.APPROVER, UserRole.SUPER_ADMIN)
+
+
+@router.patch("/{company_id}", response_model=CompanyRead)
+async def update_company(
+    company_id: str,
+    body: CompanyUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(_admin_dep),
+) -> CompanyRead:
+    """Admin: update company details (e.g. before approving)."""
+    company = await db.get(Company, uuid.UUID(company_id))
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    update_data = body.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(company, key, value)
+
+    await db.flush()
+    await db.refresh(company)
     return CompanyRead.model_validate(company)

@@ -31,8 +31,11 @@ def _verify_clerk_signature(body: bytes, headers: dict[str, str]) -> bool:
     """
     secret = settings.clerk_webhook_secret
     if not secret:
-        logger.warning("CLERK_WEBHOOK_SECRET not configured – skipping verification")
-        return True  # Allow in dev when secret is not set
+        if settings.app_env == "production":
+            logger.error("CLERK_WEBHOOK_SECRET not configured in production – rejecting webhook")
+            return False
+        logger.warning("CLERK_WEBHOOK_SECRET not configured – skipping verification (dev only)")
+        return True
 
     svix_id = headers.get("svix-id", "")
     svix_timestamp = headers.get("svix-timestamp", "")
@@ -154,8 +157,11 @@ def _verify_razorpay_signature(body: bytes, signature: str) -> bool:
     """Verify Razorpay webhook signature using HMAC-SHA256."""
     secret = settings.razorpay_key_secret
     if not secret:
-        logger.warning("RAZORPAY_KEY_SECRET not configured – skipping verification")
-        return True  # Allow in dev when secret is not set
+        if settings.app_env == "production":
+            logger.error("RAZORPAY_KEY_SECRET not configured in production – rejecting webhook")
+            return False
+        logger.warning("RAZORPAY_KEY_SECRET not configured – skipping verification (dev only)")
+        return True
 
     expected = hmac.new(
         secret.encode("utf-8"),

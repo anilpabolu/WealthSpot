@@ -25,6 +25,15 @@ export interface CompanySummary {
   brandName: string | null
   logoUrl: string | null
   verified: boolean
+  entityType: string | null
+  reraNumber: string | null
+  website: string | null
+  description: string | null
+  city: string | null
+  state: string | null
+  yearsInBusiness: number | null
+  projectsCompleted: number | null
+  totalAreaDeveloped: string | null
 }
 
 export interface OpportunityItem {
@@ -62,10 +71,13 @@ export interface OpportunityItem {
   companyId: string | null
   investorCount: number
   launchDate: string | null
+  closingDate: string | null
   createdAt: string
   creator?: { id: string; fullName: string; avatarUrl: string | null }
   media: OpportunityMedia[]
   company: CompanySummary | null
+  expectedIrr: number | null
+  actualIrr: number | null
 }
 
 interface PaginatedOpportunities {
@@ -159,5 +171,30 @@ export function useCreateOpportunity() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
     },
+  })
+}
+
+export interface VaultStats {
+  vaultType: string
+  totalInvested: number
+  investorCount: number
+  opportunityCount: number
+  expectedIrr: number | null
+  actualIrr: number | null
+}
+
+export function useOpportunityBySlug(slug: string) {
+  return useQuery({
+    queryKey: ['opportunities', 'slug', slug],
+    queryFn: () => apiGet<OpportunityItem>(`/opportunities/by-slug/${slug}`),
+    enabled: !!slug,
+  })
+}
+
+export function useVaultStats() {
+  return useQuery({
+    queryKey: ['vault-stats'],
+    queryFn: () => apiGet<VaultStats[]>('/opportunities/vault-stats'),
+    staleTime: 30_000,
   })
 }

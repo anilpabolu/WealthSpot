@@ -11,6 +11,7 @@ import {
   Settings,
   AlertTriangle,
   Activity,
+  Gift,
 } from 'lucide-react'
 
 const ADMIN_NAV = [
@@ -18,6 +19,7 @@ const ADMIN_NAV = [
   { label: 'Properties', href: '/portal/admin/properties', icon: Building2 },
   { label: 'Users', href: '/portal/admin/users', icon: Users },
   { label: 'KYC Queue', href: '/portal/admin/kyc', icon: FileCheck },
+  { label: 'Referrals', href: '/portal/admin/referrals', icon: Gift },
   { label: 'Compliance', href: '/portal/admin/compliance', icon: ShieldCheck },
   { label: 'Analytics', href: '/portal/admin/analytics', icon: BarChart3 },
   { label: 'Reports', href: '/portal/admin/reports', icon: Flag },

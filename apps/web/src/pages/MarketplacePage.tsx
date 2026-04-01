@@ -1,14 +1,38 @@
 import { MainLayout } from '@/components/layout'
+import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
+import FundingBar from '@/components/wealth/FundingBar'
 import { useProperties, usePropertyAutocomplete, type Property, type SearchSuggestion } from '@/hooks/useProperties'
+import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home, HandCoins } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
+
+/** Returns ribbon label + colour pair for an opportunity's lifecycle stage */
+function getOppRibbon(opp: OpportunityItem): { label: string; bg: string } | null {
+  const status = (opp.status ?? '').toLowerCase()
+  if (status === 'closed' || status === 'funded') return { label: 'FINISHED', bg: 'bg-red-600' }
+  if (status === 'closing_soon') return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
+  // If closing_date is within 7 days → closing soon
+  if (opp.closingDate) {
+    const daysLeft = Math.ceil((new Date(opp.closingDate).getTime() - Date.now()) / 86_400_000)
+    if (daysLeft <= 0) return { label: 'FINISHED', bg: 'bg-red-600' }
+    if (daysLeft <= 7) return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
+  }
+  // Funding > 90% → closing soon
+  if (opp.targetAmount && opp.raisedAmount && opp.raisedAmount / opp.targetAmount >= 0.9) {
+    return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
+  }
+  if (['approved', 'active', 'funding'].includes(status)) return { label: 'LIVE', bg: 'bg-green-600' }
+  if (['draft', 'pending_approval'].includes(status)) return { label: 'UPCOMING', bg: 'bg-blue-600' }
+  if (status === 'rejected') return { label: 'REJECTED', bg: 'bg-gray-500' }
+  return null
+}
 
 function FilterSidebar() {
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
@@ -148,6 +172,14 @@ const SUGGESTION_LABELS: Record<SearchSuggestion['type'], string> = {
   area: 'Area',
   builder: 'Builder',
   referrer: 'Referrer',
+}
+
+/** Format number as compact INR (e.g. ₹2.5 Cr, ₹1.2 L) */
+function formatINR(num: number): string {
+  if (num >= 1e7) return `₹${(num / 1e7).toFixed(1).replace(/\.0$/, '')} Cr`
+  if (num >= 1e5) return `₹${(num / 1e5).toFixed(1).replace(/\.0$/, '')} L`
+  if (num >= 1e3) return `₹${(num / 1e3).toFixed(1).replace(/\.0$/, '')} K`
+  return `₹${num.toLocaleString('en-IN')}`
 }
 
 function SearchBar() {
@@ -300,6 +332,12 @@ export default function MarketplacePage() {
   const vaultParam = searchParams.get('vault') ?? ''
   const vaultMeta = VAULT_META[vaultParam]
 
+  // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
+  const { data: oppsData } = useOpportunities(
+    vaultParam ? { vaultType: vaultParam } : undefined
+  )
+  const opportunities = oppsData?.items ?? []
+
   // Clear vault context banner
   const clearVault = () => {
     const next = new URLSearchParams(searchParams)
@@ -309,6 +347,7 @@ export default function MarketplacePage() {
 
   const properties = data?.properties ?? ([] as Property[])
   const totalPages = data?.totalPages ?? 1
+  const totalItems = (data?.total ?? 0) + opportunities.length
 
   return (
     <MainLayout>
@@ -347,7 +386,7 @@ export default function MarketplacePage() {
             {/* Toolbar */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">
-                {isLoading ? 'Loading...' : `${data?.total ?? 0} properties found`}
+                {isLoading ? 'Loading...' : `${totalItems} ${totalItems === 1 ? 'property' : 'properties'} found`}
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -371,7 +410,7 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            {/* Property Grid */}
+            {/* Property & Opportunity Grid */}
             <div
               className={
                 viewMode === 'grid'
@@ -383,38 +422,100 @@ export default function MarketplacePage() {
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" targetIrr={0} minInvestment={0} raised={0} target={0} />
                   ))
-                : properties.map((p) => (
-                    <PropertyCard
-                      key={p.id}
-                      title={p.title}
-                      city={p.city}
-                      micromarket={p.micromarket}
-                      assetType={p.assetType}
-                      coverImage={p.coverImage}
-                      gallery={p.gallery}
-                      videoUrl={p.videoUrl}
-                      targetIrr={p.targetIrr}
-                      minInvestment={p.minInvestment}
-                      raised={p.raised}
-                      target={p.target}
-                      investorCount={p.investorCount}
-                      reraNumber={p.reraNumber}
-                      status={p.status as any}
-                      onCardClick={() => navigate(`/marketplace/${p.slug}`)}
-                      onInvestClick={() => navigate(`/marketplace/${p.slug}`)}
-                      isAdmin={isAdmin}
-                      propertyId={p.id}
-                      onDelete={handleDeleteProperty}
-                    />
-                  ))}
+                : (
+                  <>
+                    {/* Opportunity tiles */}
+                    {opportunities.map((opp) => {
+                      const ribbon = getOppRibbon(opp)
+                      const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage
+                      return (
+                        <div
+                          key={`opp-${opp.id}`}
+                          onClick={() => navigate(`/opportunity/${opp.slug}`)}
+                          className="rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all cursor-pointer group"
+                        >
+                          <div className="aspect-video relative overflow-hidden bg-gray-100">
+                            {coverUrl ? (
+                              <img src={coverUrl} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <Building2 className="h-10 w-10" />
+                              </div>
+                            )}
+                            {ribbon && (
+                              <span className={`absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white ${ribbon.bg} rounded-md`}>
+                                {ribbon.label}
+                              </span>
+                            )}
+                            <span className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-md capitalize">
+                              {opp.vaultType} vault
+                            </span>
+                          </div>
+                          <div className="p-4 space-y-2">
+                            <h4 className="font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">{opp.title}</h4>
+                            {opp.city && (
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5" /> {opp.city}{opp.state ? `, ${opp.state}` : ''}
+                              </p>
+                            )}
+                            {opp.targetAmount != null && (
+                              <FundingBar raised={opp.raisedAmount ?? 0} target={opp.targetAmount} showLabels={false} />
+                            )}
+                            <div className="flex items-center justify-between text-xs pt-1">
+                              {opp.targetIrr != null && (
+                                <span className="font-mono font-semibold text-primary">{opp.targetIrr}% IRR</span>
+                              )}
+                              {opp.minInvestment != null && (
+                                <span className="font-mono text-gray-600">{formatINR(opp.minInvestment)} min</span>
+                              )}
+                            </div>
+                            {opp.company && (
+                              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                                <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {opp.company.companyName}</span>
+                                <span className="inline-flex items-center gap-1 text-primary font-medium">
+                                  <HandCoins className="h-3.5 w-3.5" /> Explore
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {/* Property tiles */}
+                    {properties.map((p) => (
+                      <PropertyCard
+                        key={p.id}
+                        title={p.title}
+                        city={p.city}
+                        micromarket={p.micromarket}
+                        assetType={p.assetType}
+                        coverImage={p.coverImage}
+                        gallery={p.gallery}
+                        videoUrl={p.videoUrl}
+                        targetIrr={p.targetIrr}
+                        minInvestment={p.minInvestment}
+                        raised={p.raised}
+                        target={p.target}
+                        investorCount={p.investorCount}
+                        reraNumber={p.reraNumber}
+                        status={p.status as StatusType}
+                        onCardClick={() => navigate(`/marketplace/${p.slug}`)}
+                        onInvestClick={() => navigate(`/marketplace/${p.slug}`)}
+                        isAdmin={isAdmin}
+                        propertyId={p.id}
+                        onDelete={handleDeleteProperty}
+                      />
+                    ))}
+                  </>
+                )}
             </div>
 
             {/* Empty state */}
-            {!isLoading && properties.length === 0 && (
+            {!isLoading && properties.length === 0 && opportunities.length === 0 && (
               <div className="text-center py-20">
                 <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="font-semibold text-gray-900 mb-1">Nothing here yet 🏗️</h3>
-                <p className="text-sm text-gray-500">Tweak those filters — your next goldmine could be one click away.</p>
+                <p className="text-sm text-gray-500">Tweak those filters — your next opportunity could be one click away.</p>
               </div>
             )}
 

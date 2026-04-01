@@ -4,9 +4,10 @@ Checks the local DB first, then falls back to the India Post API.
 """
 
 import logging
+import re
 
 import httpx
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +18,8 @@ from app.schemas.company import PincodeInfo
 router = APIRouter(prefix="/pincodes", tags=["pincodes"])
 logger = logging.getLogger(__name__)
 
+_PINCODE_PATTERN = re.compile(r"^\d{6}$")
+
 
 @router.get("/{pincode}", response_model=list[PincodeInfo])
 async def lookup_pincode(
@@ -26,6 +29,8 @@ async def lookup_pincode(
     """Lookup location details for an Indian pincode.
     Tries DB first, falls back to India Post public API.
     """
+    if not _PINCODE_PATTERN.match(pincode):
+        raise HTTPException(status_code=400, detail="Invalid pincode format — must be exactly 6 digits")
     # 1 – Local DB
     result = await db.execute(
         select(IndianPincode).where(IndianPincode.pincode == pincode)

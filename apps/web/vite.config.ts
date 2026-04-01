@@ -24,8 +24,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['recharts'],
-          clerk: ['@clerk/clerk-react'],
+          clerk: ['@clerk/react'],
         },
       },
     },

@@ -13,7 +13,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 # revision identifiers
 revision: str = "004_community"
-down_revision: Union[str, None] = "001_initial"
+down_revision: Union[str, None] = "003_rbac"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

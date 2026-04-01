@@ -59,6 +59,7 @@ export interface OpportunityItem {
   companyId: string | null
   investorCount: number
   launchDate: string | null
+  closingDate: string | null
   createdAt: string
   creator?: { id: string; fullName: string; avatarUrl: string | null }
   media: OpportunityMedia[]
@@ -135,6 +136,14 @@ export function useOpportunity(id: string) {
     queryKey: ['opportunities', id],
     queryFn: () => apiGet<OpportunityItem>(`/opportunities/${id}`),
     enabled: !!id,
+  })
+}
+
+export function useOpportunityBySlug(slug: string) {
+  return useQuery({
+    queryKey: ['opportunities', 'slug', slug],
+    queryFn: () => apiGet<OpportunityItem>(`/opportunities/by-slug/${slug}`),
+    enabled: !!slug,
   })
 }
 

@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.models.opportunity import VaultType
 
 
 def _enum_values(enum_cls: type[PyEnum]) -> Sequence[str]:
@@ -62,6 +63,10 @@ class Company(Base):
     website: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
+    vault_type: Mapped[VaultType | None] = mapped_column(
+        Enum(VaultType, native_enum=False, length=20, values_callable=_enum_values),
+        nullable=True, index=True,
+    )
     # Contact
     contact_name: Mapped[str | None] = mapped_column(String(255))
     contact_email: Mapped[str | None] = mapped_column(String(255))

@@ -23,3 +23,14 @@ from app.models.role_group import RoleGroup, GroupMessage  # noqa: F401
 from app.models.notification import (  # noqa: F401
     Notification, NotificationChannel, NotificationType,
 )
+from app.models.expression_of_interest import (  # noqa: F401
+    ExpressionOfInterest, EOIStatus,
+)
+from app.models.builder_question import (  # noqa: F401
+    BuilderQuestion, EOIQuestionAnswer, QuestionType,
+)
+from app.models.comm_mapping import OpportunityCommMapping  # noqa: F401
+from app.models.opportunity_like import OpportunityLike, UserActivity  # noqa: F401
+from app.models.property_referral import PropertyReferralCode  # noqa: F401
+from app.models.app_video import AppVideo  # noqa: F401
+from app.models.eoi_stage_history import EoiStageHistory  # noqa: F401

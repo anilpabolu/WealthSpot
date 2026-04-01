@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useUser } from '@clerk/react'
-import ProfileIndicator from '@/components/ProfileIndicator'
+import Navbar from '@/components/layout/Navbar'
 import {
   Building2,
   Rocket,
@@ -14,18 +13,27 @@ import {
   Network,
   GraduationCap,
   AlertTriangle,
-  MessageCircle,
-  PieChart,
   PlayCircle,
   X,
-  Plus,
-  ClipboardCheck,
-  Terminal,
   Lock,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
+import { usePublicVideos } from '@/hooks/useAppVideos'
+
+/* Map vault/pillar IDs → app_videos section_tag */
+const VAULT_VIDEO_TAGS: Record<string, string> = {
+  wealth: 'wealth_vault_intro',
+  opportunity: 'opportunity_vault_intro',
+  community: 'community_vault_intro',
+}
+const PILLAR_VIDEO_TAGS: Record<string, string> = {
+  'Wealth Investors': 'wealth_investors_pillar',
+  'Time Investors': 'time_investors_pillar',
+  'Network Investors': 'network_investors_pillar',
+  'Education Investors': 'education_investors_pillar',
+}
 
 /* ------------------------------------------------------------------ */
 /*  Vault data                                                         */
@@ -44,9 +52,9 @@ const VAULTS = [
       'Institutional-grade real estate investments — RERA-verified properties across India\'s top cities. Earn passive rental income and long-term capital appreciation through fractional ownership.',
     risk: 'Moderate',
     riskColor: 'text-amber-600 bg-amber-50',
-    href: '/marketplace',
+    href: '/marketplace?vault=wealth',
     cta: 'Explore Properties',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     comingSoon: false,
   },
   {
@@ -63,7 +71,7 @@ const VAULTS = [
     riskColor: 'text-red-600 bg-red-50',
     href: '/marketplace?vault=opportunity',
     cta: 'Discover Startups',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoSrc: 'https://www.w3schools.com/html/movie.mp4',
     comingSoon: true,
   },
   {
@@ -80,7 +88,7 @@ const VAULTS = [
     riskColor: 'text-emerald-600 bg-emerald-50',
     href: '/marketplace?vault=community',
     cta: 'Join Opportunities',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
     comingSoon: false,
   },
 ]
@@ -98,7 +106,7 @@ const PILLARS = [
     iconColor: 'text-primary',
     description:
       'Deploy capital across vaults and earn passive returns through rental income, equity appreciation, and profit-sharing — all from ₹10,000.',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+    videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     contributeHref: '/contribute/wealth',
   },
   {
@@ -109,7 +117,7 @@ const PILLARS = [
     iconColor: 'text-amber-600',
     description:
       'Contribute your time and effort to community projects. Mentor founders, manage on-ground execution, or volunteer expertise — earn equity for your hours.',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    videoSrc: 'https://www.w3schools.com/html/movie.mp4',
     contributeHref: '/contribute/time',
   },
   {
@@ -120,7 +128,7 @@ const PILLARS = [
     iconColor: 'text-violet-600',
     description:
       'Open doors with your relationships. Introduce startups to customers, connect projects to suppliers, or bring in co-investors — your network is your investment.',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+    videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
     contributeHref: '/contribute/network',
   },
   {
@@ -131,7 +139,7 @@ const PILLARS = [
     iconColor: 'text-emerald-600',
     description:
       'Share domain expertise, conduct workshops, or provide strategic advisory. Help ventures succeed through the power of what you know.',
-    videoSrc: 'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+    videoSrc: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
     contributeHref: '/contribute/education',
   },
 ]
@@ -141,6 +149,8 @@ const PILLARS = [
 /* ------------------------------------------------------------------ */
 
 function VaultVideoPopup({ title, videoSrc, onClose }: { title: string; videoSrc: string; onClose: () => void }) {
+  const [videoError, setVideoError] = useState(false)
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70" onClick={onClose}>
       <div
@@ -163,13 +173,23 @@ function VaultVideoPopup({ title, videoSrc, onClose }: { title: string; videoSrc
         </div>
 
         {/* Video */}
-        <video
-          src={videoSrc}
-          className="w-full h-full object-contain"
-          autoPlay
-          controls
-          playsInline
-        />
+        {videoError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+            <PlayCircle className="h-12 w-12 text-white/20" />
+            <p className="text-white/50 text-sm">Video could not be loaded</p>
+            <button onClick={() => setVideoError(false)} className="text-xs text-primary hover:underline">Retry</button>
+          </div>
+        ) : (
+          <video
+            src={videoSrc}
+            className="w-full h-full object-contain"
+            autoPlay
+            muted
+            controls
+            playsInline
+            onError={() => setVideoError(true)}
+          />
+        )}
       </div>
     </div>
   )
@@ -405,13 +425,7 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
       <h4 className="font-display text-base font-bold text-gray-900 mb-0.5">{pillar.title}</h4>
       <p className="text-xs font-medium text-gray-400 mb-2">{pillar.subtitle}</p>
       <p className="text-sm text-gray-600 leading-relaxed flex-1">{pillar.description}</p>
-      <Link
-        to={pillar.contributeHref}
-        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
-      >
-        Contribute
-        <ArrowRight className="h-4 w-4" />
-      </Link>
+      {/* Contribute link hidden until feature is ready */}
     </div>
   )
 }
@@ -420,24 +434,11 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ */
-/*  Quick-access nav links (replaces traditional navbar)                */
-/* ------------------------------------------------------------------ */
-
-const QUICK_LINKS = [
-  { label: 'Portfolio', href: '/portfolio', icon: PieChart },
-  { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin'] },
-  { label: 'Onboard Company', href: '/company-onboarding', icon: Building2 },
-  { label: 'Approvals', href: '/approvals', icon: ClipboardCheck, roles: ['admin', 'approver', 'super_admin'] },
-  { label: 'Control Centre', href: '/control-centre', icon: Terminal, roles: ['super_admin'] },
-] as const
-
 export default function VaultsPage() {
   const [activeVideo, setActiveVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [activePillarVideo, setActivePillarVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState(false)
-  const { isSignedIn } = useUser()
   const userRole = useUserStore((s) => s.user?.role)
 
   // Fetch real vault stats from API
@@ -446,99 +447,34 @@ export default function VaultsPage() {
     (vaultStatsData ?? []).map((s) => [s.vaultType, s])
   )
 
-  // Fetch approved opportunities per vault for display
-  const { data: wealthOpps } = useOpportunities({ vaultType: 'wealth', status: 'approved' })
-  const { data: opportunityOpps } = useOpportunities({ vaultType: 'opportunity', status: 'approved' })
-  const { data: communityOpps } = useOpportunities({ vaultType: 'community', status: 'approved' })
+  // Fetch all opportunities per vault for vault-card mini-lists
+  const { data: wealthOpps } = useOpportunities({ vaultType: 'wealth' })
+  const { data: opportunityOpps } = useOpportunities({ vaultType: 'opportunity' })
+  const { data: communityOpps } = useOpportunities({ vaultType: 'community' })
   const oppsMap: Record<string, OpportunityItem[]> = {
     wealth: wealthOpps?.items ?? [],
     opportunity: opportunityOpps?.items ?? [],
     community: communityOpps?.items ?? [],
   }
 
+  // Fetch managed video URLs — override hardcoded defaults
+  const { data: managedVideos } = usePublicVideos('vaults')
+  const videoUrlMap = new Map(
+    (managedVideos ?? []).map((v) => [v.sectionTag, v.videoUrl])
+  )
+  const resolveVideo = (tag: string | undefined, fallback: string): string =>
+    (tag ? videoUrlMap.get(tag) : undefined) ?? fallback
+
   const showComingSoon = () => {
     setComingSoonToast(true)
     setTimeout(() => setComingSoonToast(false), 3000)
   }
 
-  const visibleLinks = QUICK_LINKS.filter((link) => {
-    if (!('roles' in link)) return true
-    return userRole && (link.roles as readonly string[]).includes(userRole)
-  })
-
   return (
     <>
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Minimal top bar — logo + quick links + profile */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 flex h-16 items-center justify-between">
-          <Link to="/vaults" className="flex items-center gap-2 shrink-0">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="font-display text-xl font-bold tracking-tight text-gray-900">
-              Wealth<span className="text-primary">Spot</span>
-            </span>
-          </Link>
-
-          {/* Quick nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {visibleLinks.map((link) => {
-              const Icon = link.icon
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors"
-                >
-                  <Icon className="h-4 w-4" />
-                  {link.label}
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Create Opportunity + User */}
-          <div className="flex items-center gap-3">
-            {isSignedIn && (
-              <button
-                onClick={() => setShowCreateOpp(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm"
-              >
-                <Plus className="h-4 w-4" />
-                Create Opportunity
-              </button>
-            )}
-            <ProfileIndicator size="md" />
-          </div>
-        </div>
-
-        {/* Mobile quick links — horizontal scroll */}
-        <div className="md:hidden border-t border-gray-100 overflow-x-auto">
-          <div className="flex items-center gap-1 px-4 py-2">
-            {isSignedIn && (
-              <button
-                onClick={() => setShowCreateOpp(true)}
-                className="flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-white bg-primary px-3 py-1.5 rounded-full"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Create
-              </button>
-            )}
-            {visibleLinks.map((link) => {
-              const Icon = link.icon
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-gray-500 hover:text-primary px-3 py-1.5 rounded-full hover:bg-primary/5 transition-colors"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {link.label}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      </header>
+      {/* Shared Navbar */}
+      <Navbar />
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-gray-50 to-white py-16">
@@ -562,7 +498,7 @@ export default function VaultsPage() {
                 vault={vault}
                 stats={statsMap.get(vault.id)}
                 opportunities={oppsMap[vault.id] ?? []}
-                onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: vault.videoSrc })}
+                onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
                 onComingSoon={showComingSoon}
               />
             ))}
@@ -589,7 +525,7 @@ export default function VaultsPage() {
               <PillarCard
                 key={pillar.title}
                 pillar={pillar}
-                onPlayVideo={() => setActivePillarVideo({ title: pillar.title, videoSrc: pillar.videoSrc })}
+                onPlayVideo={() => setActivePillarVideo({ title: pillar.title, videoSrc: resolveVideo(PILLAR_VIDEO_TAGS[pillar.title], pillar.videoSrc) })}
               />
             ))}
           </div>
@@ -625,7 +561,7 @@ export default function VaultsPage() {
           <div className="flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-xl shadow-2xl">
             <Lock className="h-5 w-5 text-amber-400 shrink-0" />
             <div>
-              <p className="font-semibold text-sm">The Launchpad is Coming Soon 🚀</p>
+              <p className="font-semibold text-sm">Opportunity Vault is Coming Soon 🚀</p>
               <p className="text-xs text-gray-400 mt-0.5">We're curating something special. Stay tuned!</p>
             </div>
           </div>

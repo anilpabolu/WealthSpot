@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import { useBuilderProfile } from '@/hooks/useProperties'
+import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import {
   Building2, MapPin, Phone, Mail, Globe, Shield, CheckCircle2,
@@ -206,7 +207,7 @@ export default function BuilderProfilePage() {
                   target={p.target}
                   investorCount={p.investorCount}
                   reraNumber={p.reraNumber}
-                  status={p.status as any}
+                  status={p.status as StatusType}
                   onCardClick={() => navigate(`/marketplace/${p.slug}`)}
                   onInvestClick={() => navigate(`/marketplace/${p.slug}`)}
                 />

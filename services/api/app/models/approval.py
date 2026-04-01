@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from typing import Any, Sequence
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Integer, Boolean
+from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Boolean
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

@@ -6,12 +6,13 @@ interface Props {
   value: string | undefined
   onChange: (companyId: string | undefined) => void
   onRequestOnboard: () => void
+  vaultType?: string
 }
 
-export default function CompanySelector({ value, onChange, onRequestOnboard }: Props) {
+export default function CompanySelector({ value, onChange, onRequestOnboard, vaultType }: Props) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
-  const { data } = useCompanies(search || undefined)
+  const { data } = useCompanies(search || undefined, vaultType)
   const companies = data?.items ?? []
 
   const selected = companies.find((c) => c.id === value)

@@ -2,7 +2,6 @@
 Points router – user points leaderboard and individual totals.
 """
 
-import uuid
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select

@@ -3,7 +3,12 @@ Alembic env.py – async migration support for WealthSpot.
 """
 
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
+
+# Ensure project root is importable so migration scripts can `from sql_utils import …`
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from alembic import context
 from sqlalchemy import Connection, pool

@@ -11,10 +11,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user, require_role, require_super_admin
+from app.middleware.auth import get_current_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalPriority, ApprovalRequest, ApprovalStatus
+from app.models.company import Company, VerificationStatus
 from app.models.opportunity import Opportunity, OpportunityStatus
-from app.models.user import User, UserRole
+from app.models.user import KycStatus, User, UserRole
 from app.schemas.approval import (
     ApprovalCreate,
     ApprovalRead,
@@ -70,19 +71,35 @@ async def list_approvals(
     )
 
 
-@router.get("/my", response_model=list[ApprovalRead])
+@router.get("/my", response_model=PaginatedApprovals)
 async def my_approvals(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> list[ApprovalRead]:
-    """Get current user's own approval requests."""
+) -> PaginatedApprovals:
+    """Get current user's own approval requests with pagination."""
+    base = select(ApprovalRequest).where(ApprovalRequest.requester_id == user.id)
+
+    total = (await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )).scalar() or 0
+    total_pages = math.ceil(total / page_size) if total else 0
+
     result = await db.execute(
-        select(ApprovalRequest)
-        .where(ApprovalRequest.requester_id == user.id)
-        .order_by(ApprovalRequest.created_at.desc())
-        .limit(50)
+        base.order_by(ApprovalRequest.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
-    return [ApprovalRead.model_validate(r) for r in result.scalars().all()]
+    items = [ApprovalRead.model_validate(r) for r in result.scalars().all()]
+
+    return PaginatedApprovals(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @router.post("", response_model=ApprovalRead)
@@ -143,6 +160,26 @@ async def review_approval(
             if opp and opp.status == OpportunityStatus.PENDING_APPROVAL:
                 opp.status = OpportunityStatus.APPROVED
 
+        # Sync linked company to verified
+        if approval.resource_type == "company" and approval.resource_id:
+            comp_result = await db.execute(
+                select(Company).where(Company.id == _uuid.UUID(approval.resource_id))
+            )
+            comp = comp_result.scalar_one_or_none()
+            if comp:
+                comp.verified = True
+                comp.verification_status = VerificationStatus.VERIFIED
+
+        # Sync linked KYC status to APPROVED
+        if approval.resource_type == "kyc" and approval.resource_id:
+            from app.models.user import User as UserModel
+            kyc_user_result = await db.execute(
+                select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
+            )
+            kyc_user = kyc_user_result.scalar_one_or_none()
+            if kyc_user:
+                kyc_user.kyc_status = KycStatus.APPROVED
+
         await create_notification(
             db,
             user_id=approval.requester_id,
@@ -163,6 +200,25 @@ async def review_approval(
             opp = opp_result.scalar_one_or_none()
             if opp and opp.status == OpportunityStatus.PENDING_APPROVAL:
                 opp.status = OpportunityStatus.REJECTED
+
+        # Sync linked company to rejected
+        if approval.resource_type == "company" and approval.resource_id:
+            comp_result = await db.execute(
+                select(Company).where(Company.id == _uuid.UUID(approval.resource_id))
+            )
+            comp = comp_result.scalar_one_or_none()
+            if comp:
+                comp.verification_status = VerificationStatus.REJECTED
+
+        # Sync linked KYC status to REJECTED
+        if approval.resource_type == "kyc" and approval.resource_id:
+            from app.models.user import User as UserModel
+            kyc_user_result = await db.execute(
+                select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
+            )
+            kyc_user = kyc_user_result.scalar_one_or_none()
+            if kyc_user:
+                kyc_user.kyc_status = KycStatus.REJECTED
 
         await create_notification(
             db,

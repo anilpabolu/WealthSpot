@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap } from 'lucide-react'
+import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -10,10 +10,10 @@ import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
-import { APPROVAL_ROLES } from '@/lib/constants'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 
 const AUTH_NAV_LINKS = [
+  { label: 'Home', href: '/vaults', icon: Home },
   { label: 'Portfolio', href: '/portfolio', icon: PieChart },
   { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin'] },
 ] as const
@@ -33,12 +33,7 @@ export default function Navbar(_props?: NavbarProps) {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const { data: completion } = useProfileCompletionStatus()
 
-  const ANSWER_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
-
   const extraLinks = [
-    { label: 'Onboard Company', href: '/company-onboarding' },
-    ...(userRole && ANSWER_ROLES.has(userRole) ? [{ label: 'Answer Questions', href: '/community/answer' }] : []),
-    ...(userRole && APPROVAL_ROLES.includes(userRole) ? [{ label: 'Approvals', href: '/approvals' }] : []),
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {

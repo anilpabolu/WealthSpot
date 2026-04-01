@@ -5,6 +5,8 @@ Investment router – initiate, confirm payment, list.
 import hashlib
 import hmac
 import logging
+import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -16,6 +18,7 @@ from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_kyc_approved
 from app.middleware.audit import log_audit_event
 from app.models.investment import Investment, InvestmentStatus, Transaction, TransactionType
+from app.routers.referrals import process_referral_reward_on_investment
 from app.models.property import Property, PropertyStatus
 from app.models.user import User
 from app.schemas.investment import (
@@ -26,6 +29,7 @@ from app.schemas.investment import (
     PaginatedInvestments,
     TransactionRead,
 )
+from app.services.xirr import calculate_xirr
 
 router = APIRouter(prefix="/investments", tags=["investments"])
 settings = get_settings()
@@ -48,12 +52,19 @@ async def list_investments(
     result = await db.execute(query)
     investments = result.scalars().all()
 
+    # Batch-load property names to avoid N+1
+    property_ids = {inv.property_id for inv in investments}
+    prop_map: dict = {}
+    if property_ids:
+        prop_result = await db.execute(
+            select(Property.id, Property.title).where(Property.id.in_(property_ids))
+        )
+        prop_map = {row.id: row.title for row in prop_result.fetchall()}
+
     items: list[InvestmentRead] = []
     for inv in investments:
-        prop_result = await db.execute(select(Property.title).where(Property.id == inv.property_id))
-        prop_name = prop_result.scalar_one_or_none()
         item = InvestmentRead.model_validate(inv)
-        item.property_name = prop_name
+        item.property_name = prop_map.get(inv.property_id)
         items.append(item)
 
     return PaginatedInvestments(
@@ -78,17 +89,40 @@ async def investment_summary(
     investments = list(result.scalars().all())
 
     total_invested = sum((inv.amount for inv in investments), Decimal("0"))
-    # Simplified valuation – in production this would use market data
-    current_value = total_invested * Decimal("1.08")
+    # Compute current value from property-level valuations or NAV
+    # For now use each property's current unit_price vs purchase price
+    property_ids = {inv.property_id for inv in investments}
+    prop_map: dict = {}
+    if property_ids:
+        prop_result = await db.execute(
+            select(Property.id, Property.unit_price).where(Property.id.in_(property_ids))
+        )
+        prop_map = {row.id: row.unit_price for row in prop_result.fetchall()}
+
+    current_value = Decimal("0")
+    for inv in investments:
+        current_unit_price = prop_map.get(inv.property_id, inv.unit_price)
+        current_value += inv.units * current_unit_price
+
     monthly_income = total_invested * Decimal("0.006")
 
-    property_ids = {inv.property_id for inv in investments}
+    # Compute real XIRR from cashflows
+    cashflows: list[tuple[datetime, float]] = []
+    for inv in investments:
+        # Investment outflow (negative)
+        inv_date = inv.created_at or datetime.now(timezone.utc)
+        cashflows.append((inv_date, -float(inv.amount)))
+    # Current portfolio value as inflow (positive)
+    if cashflows:
+        cashflows.append((datetime.now(timezone.utc), float(current_value)))
+
+    xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
 
     return InvestmentSummary(
         total_invested=total_invested,
         current_value=current_value,
         total_returns=current_value - total_invested,
-        xirr=8.2,  # Would be calculated from actual cash flows
+        xirr=xirr_value or 0.0,
         properties_count=len(property_ids),
         monthly_income=monthly_income,
     )
@@ -164,8 +198,10 @@ async def confirm_payment(
     if investment.status != InvestmentStatus.PAYMENT_PENDING:
         raise HTTPException(status_code=400, detail="Invalid investment state")
 
-    # Verify Razorpay signature if secret is configured
-    if settings.razorpay_key_secret and body.razorpay_signature:
+    # Verify Razorpay signature – mandatory when secret is configured
+    if settings.razorpay_key_secret:
+        if not body.razorpay_signature:
+            raise HTTPException(status_code=400, detail="Payment signature is required")
         sign_payload = f"{body.razorpay_order_id}|{body.razorpay_payment_id}"
         expected = hmac.new(
             settings.razorpay_key_secret.encode("utf-8"),
@@ -174,35 +210,37 @@ async def confirm_payment(
         ).hexdigest()
         if not hmac.compare_digest(expected, body.razorpay_signature):
             raise HTTPException(status_code=400, detail="Invalid payment signature")
-    elif settings.razorpay_key_secret and not body.razorpay_signature:
-        logger.warning("Payment confirmation without signature for investment %s", investment.id)
 
-    investment.status = InvestmentStatus.CONFIRMED
-    investment.razorpay_payment_id = body.razorpay_payment_id
-    investment.razorpay_order_id = body.razorpay_order_id
+    # Atomic: update investment + property in a savepoint
+    async with db.begin_nested():
+        investment.status = InvestmentStatus.CONFIRMED
+        investment.razorpay_payment_id = body.razorpay_payment_id
+        investment.razorpay_order_id = body.razorpay_order_id
 
-    # Update property raised amount & sold units
-    prop_result = await db.execute(
-        select(Property).where(Property.id == investment.property_id)
-    )
-    prop = prop_result.scalar_one_or_none()
-    if prop:
-        prop.raised_amount += investment.amount
-        prop.sold_units += investment.units
-        prop.investor_count += 1
-        if prop.raised_amount >= prop.target_amount:
-            prop.status = PropertyStatus.FUNDED
+        # Update property raised amount & sold units (with row-level lock to prevent overselling)
+        prop_result = await db.execute(
+            select(Property).where(Property.id == investment.property_id).with_for_update()
+        )
+        prop = prop_result.scalar_one_or_none()
+        if prop:
+            if prop.sold_units + investment.units > prop.total_units:
+                raise HTTPException(status_code=400, detail="Units no longer available")
+            prop.raised_amount += investment.amount
+            prop.sold_units += investment.units
+            prop.investor_count += 1
+            if prop.raised_amount >= prop.target_amount:
+                prop.status = PropertyStatus.FUNDED
 
-    # Create transaction record
-    txn = Transaction(
-        investment_id=investment.id,
-        user_id=user.id,
-        type=TransactionType.INVESTMENT,
-        amount=investment.amount,
-        description=f"Investment in {prop.title if prop else 'property'}",
-        reference_id=body.razorpay_payment_id,
-    )
-    db.add(txn)
+        # Create transaction record
+        txn = Transaction(
+            investment_id=investment.id,
+            user_id=user.id,
+            type=TransactionType.INVESTMENT,
+            amount=investment.amount,
+            description=f"Investment in {prop.title if prop else 'property'}",
+            reference_id=body.razorpay_payment_id,
+        )
+        db.add(txn)
 
     await db.flush()
 
@@ -214,6 +252,9 @@ async def confirm_payment(
         details={"razorpay_payment_id": body.razorpay_payment_id},
         request=request,
     )
+
+    # Trigger referral reward on first investment
+    await process_referral_reward_on_investment(db, user.id, investment.id)
 
     return InvestmentRead.model_validate(investment)
 
@@ -233,3 +274,30 @@ async def list_transactions(
     )
     result = await db.execute(query)
     return [TransactionRead.model_validate(t) for t in result.scalars().all()]
+
+
+@router.get("/{investment_id}", response_model=InvestmentRead)
+async def get_investment(
+    investment_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> InvestmentRead:
+    """Get a single investment by ID."""
+    result = await db.execute(
+        select(Investment).where(
+            Investment.id == investment_id,
+            Investment.user_id == user.id,
+        )
+    )
+    investment = result.scalar_one_or_none()
+    if not investment:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    prop_result = await db.execute(
+        select(Property.title).where(Property.id == investment.property_id)
+    )
+    prop_row = prop_result.one_or_none()
+    item = InvestmentRead.model_validate(investment)
+    if prop_row:
+        item.property_name = prop_row.title
+    return item

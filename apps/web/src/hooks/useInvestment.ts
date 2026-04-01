@@ -45,7 +45,7 @@ interface PaymentInitiateResponse {
 export function useMyInvestments() {
   return useQuery({
     queryKey: ['investments', 'mine'],
-    queryFn: () => apiGet<Investment[]>('/investments/mine'),
+    queryFn: () => apiGet<Investment[]>('/investments'),
     staleTime: 30_000,
   })
 }
@@ -71,7 +71,7 @@ export function useInitiateInvestment() {
 
   return useMutation({
     mutationFn: (payload: InvestmentInitiatePayload) =>
-      apiPost<PaymentInitiateResponse>('/investments/initiate', payload),
+      apiPost<PaymentInitiateResponse>('/investments', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] })
     },

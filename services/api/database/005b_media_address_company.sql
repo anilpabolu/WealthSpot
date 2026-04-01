@@ -121,6 +121,9 @@ ON CONFLICT (pincode) DO NOTHING;
 
 -- ── 5. Seed platform configs for upload limits ──────────────────────────────
 
+-- Ensure unique constraint exists for ON CONFLICT to work
+CREATE UNIQUE INDEX IF NOT EXISTS uq_platform_configs_section_key ON platform_configs(section, key);
+
 INSERT INTO platform_configs (section, key, value) VALUES
     ('uploads', 'max_images_per_opportunity', '{"value": 20}'),
     ('uploads', 'max_video_size_mb', '{"value": 500}'),

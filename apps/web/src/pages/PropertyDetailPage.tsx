@@ -18,6 +18,7 @@ import { apiPost } from '@/lib/api'
 function PropertyGallery({ images, title, videoUrl }: { images: string[]; title: string; videoUrl?: string }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
+  const touchStartRef = useRef(0)
 
   const startAutoPlay = useCallback(() => {
     if (images.length <= 1) return
@@ -44,9 +45,9 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
     <div className="space-y-3">
       <div
         className="aspect-video rounded-xl overflow-hidden relative"
-        onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0]?.clientX ?? 0 }}
+        onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? 0 }}
         onTouchEnd={(e) => {
-          const startX = (e.currentTarget as any)._touchX ?? 0
+          const startX = touchStartRef.current
           const diff = startX - (e.changedTouches[0]?.clientX ?? 0)
           if (Math.abs(diff) > 50) {
             if (diff > 0) setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))

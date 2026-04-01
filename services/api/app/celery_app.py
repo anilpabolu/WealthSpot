@@ -3,6 +3,7 @@ Celery application instance for WealthSpot async task processing.
 """
 
 from celery import Celery
+from celery.schedules import crontab
 
 from app.core.config import get_settings
 
@@ -12,6 +13,7 @@ celery = Celery(
     "wealthspot",
     broker=settings.celery_broker_url,
     backend=settings.redis_url,
+    include=["app.tasks"],
 )
 
 celery.conf.update(
@@ -21,3 +23,15 @@ celery.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+# Periodic task schedule
+celery.conf.beat_schedule = {
+    "cleanup-expired-otps": {
+        "task": "app.tasks.cleanup_expired_otps",
+        "schedule": crontab(minute="*/15"),
+    },
+    "cleanup-old-audit-logs": {
+        "task": "app.tasks.cleanup_old_audit_logs",
+        "schedule": crontab(hour=3, minute=0),  # Daily at 3:00 AM UTC
+    },
+}

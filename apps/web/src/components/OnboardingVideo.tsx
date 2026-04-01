@@ -16,12 +16,13 @@ interface OnboardingVideoProps {
 }
 
 // Placeholder — replace URL with the real "How it Works" video asset
-const VIDEO_SRC = 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+const VIDEO_SRC = 'https://www.w3schools.com/html/mov_bbb.mp4'
 
 export default function OnboardingVideo({ mode, onComplete, onClose }: OnboardingVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [ended, setEnded] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [videoError, setVideoError] = useState(false)
 
   const isControlled = mode === 'browse'  // only browse gets native controls
 
@@ -74,19 +75,38 @@ export default function OnboardingVideo({ mode, onComplete, onClose }: Onboardin
 
       {/* Video */}
       <div className="flex-1 flex items-center justify-center overflow-hidden">
+        {videoError ? (
+          <div className="text-center space-y-4">
+            <p className="text-white/60 text-sm">Video could not be loaded</p>
+            <button
+              onClick={() => { setVideoError(false); videoRef.current?.load() }}
+              className="text-sm text-primary hover:underline"
+            >
+              Retry
+            </button>
+            {onClose && (
+              <button onClick={onClose} className="block mx-auto text-white/40 hover:text-white/70 text-sm">
+                Close
+              </button>
+            )}
+          </div>
+        ) : (
         <video
           ref={videoRef}
           src={VIDEO_SRC}
           className="w-full h-full object-contain"
           autoPlay
+          muted
           playsInline
           controls={isControlled}
           controlsList={!isControlled ? 'nodownload nofullscreen noremoteplayback' : undefined}
           disablePictureInPicture={!isControlled}
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleEnded}
+          onError={() => setVideoError(true)}
           onContextMenu={!isControlled ? (e) => e.preventDefault() : undefined}
         />
+        )}
       </div>
 
       {/* Progress bar — onboarding & signup modes (no native controls) */}

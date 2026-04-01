@@ -26,9 +26,12 @@ export function useUploadOpportunityMedia() {
       const resp = await api.post<UploadedMedia[]>(
         `/uploads/opportunity/${opportunityId}/media?is_cover=${isCover}`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } } as any,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return resp.data
+    },
+    onError: (error: Error) => {
+      console.error('[upload] Media upload failed:', error.message)
     },
   })
 }
@@ -41,9 +44,12 @@ export function useUploadCompanyLogo() {
       const resp = await api.post<{ url: string }>(
         `/uploads/company/${companyId}/logo`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } } as any,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return resp.data
+    },
+    onError: (error: Error) => {
+      console.error('[upload] Logo upload failed:', error.message)
     },
   })
 }

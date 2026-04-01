@@ -1,6 +1,9 @@
 -- 006: Property enhancements — highlights, USP, video, referrer
 -- Adds new columns to properties table for richer detail display
 
+-- Enable trigram extension if not present (for fuzzy search)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Property highlights (bullet-point selling features)
 ALTER TABLE properties ADD COLUMN IF NOT EXISTS highlights TEXT[] DEFAULT '{}';
 
@@ -28,6 +31,3 @@ ALTER TABLE builders ADD COLUMN IF NOT EXISTS about TEXT;
 -- Index for search autocomplete performance
 CREATE INDEX IF NOT EXISTS idx_properties_title_trgm ON properties USING gin (title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_properties_locality_trgm ON properties USING gin (locality gin_trgm_ops);
-
--- Enable trigram extension if not present (for fuzzy search)
-CREATE EXTENSION IF NOT EXISTS pg_trgm;

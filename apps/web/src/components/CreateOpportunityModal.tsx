@@ -9,9 +9,9 @@ import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
 
 const VAULT_OPTIONS = [
-  { value: 'wealth', label: 'The Goldmine', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
-  { value: 'opportunity', label: 'The Launchpad', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50', comingSoon: true },
-  { value: 'community', label: 'The Hive', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50', comingSoon: false },
+  { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
+  { value: 'opportunity', label: 'Opportunity Vault', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50', comingSoon: true },
+  { value: 'community', label: 'Community Vault', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50', comingSoon: false },
 ] as const
 
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
@@ -170,8 +170,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               {/* Company selector */}
               <CompanySelector
                 value={form.companyId}
-                onChange={(id) => handleChange('companyId', id ?? '' as any)}
+                onChange={(id) => handleChange('companyId', id ?? '')}
                 onRequestOnboard={() => setShowOnboarding(true)}
+                vaultType={vaultType}
               />
 
               {/* Common fields */}
@@ -454,7 +455,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         onSuccess={(companyId) => {
-          handleChange('companyId', companyId as any)
+          handleChange('companyId', companyId)
           setShowOnboarding(false)
         }}
       />

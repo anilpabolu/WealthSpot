@@ -188,7 +188,7 @@ export default function AddressDialog({ value, onChange }: Props) {
                     {INDIAN_CITIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
-                    {local.city && !INDIAN_CITIES.includes(local.city as any) && (
+                    {local.city && !(INDIAN_CITIES as readonly string[]).includes(local.city) && (
                       <option value={local.city}>{local.city}</option>
                     )}
                   </select>

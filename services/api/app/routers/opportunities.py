@@ -11,10 +11,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user, require_role
-from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
+from app.middleware.auth import get_current_user, get_optional_user
+from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
 from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
+from app.models.opportunity_like import OpportunityLike, UserActivity
+from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
@@ -23,7 +25,6 @@ from app.schemas.opportunity import (
     PaginatedOpportunities,
     VaultStatsResponse,
 )
-from app.services.notification import create_notification
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
 
@@ -102,67 +103,91 @@ async def vault_stats(
     db: AsyncSession = Depends(get_db),
 ) -> list[VaultStatsResponse]:
     """Return aggregated stats per vault (total invested, investor count, IRR)."""
+    active_statuses = [
+        OpportunityStatus.APPROVED,
+        OpportunityStatus.ACTIVE,
+        OpportunityStatus.FUNDING,
+        OpportunityStatus.FUNDED,
+    ]
+
+    # Single aggregation query for counts + investment stats per vault type
+    agg_q = (
+        select(
+            Opportunity.vault_type,
+            func.count(func.distinct(Opportunity.id)).label("opp_count"),
+            func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("total_invested"),
+            func.count(func.distinct(OpportunityInvestment.user_id)).label("investor_count"),
+        )
+        .outerjoin(
+            OpportunityInvestment,
+            (OpportunityInvestment.opportunity_id == Opportunity.id)
+            & (OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED),
+        )
+        .where(Opportunity.status.in_(active_statuses))
+        .group_by(Opportunity.vault_type)
+    )
+    agg_result = await db.execute(agg_q)
+    agg_rows = {row.vault_type: row for row in agg_result.fetchall()}
+
+    # Average expected IRR per vault type
+    irr_q = (
+        select(
+            Opportunity.vault_type,
+            func.avg(Opportunity.expected_irr).label("avg_irr"),
+        )
+        .where(Opportunity.expected_irr.isnot(None))
+        .group_by(Opportunity.vault_type)
+    )
+    irr_result = await db.execute(irr_q)
+    irr_map = {row.vault_type: row.avg_irr for row in irr_result.fetchall()}
+
+    # Compute actual IRR per vault type — single query for ALL vault types
+    actual_irr_map: dict[VaultType, float | None] = {}
+    inv_q = (
+        select(OpportunityInvestment, Opportunity.vault_type)
+        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
+        .where(
+            Opportunity.status.in_(active_statuses),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+    )
+    inv_result = await db.execute(inv_q)
+    inv_by_vault: dict[VaultType, list] = {vt: [] for vt in VaultType}
+    for inv, vault_type in inv_result.all():
+        inv_by_vault[vault_type].append(inv)
+    for vt in VaultType:
+        agg_row = agg_rows.get(vt)
+        total = float(agg_row.total_invested) if agg_row else 0.0
+        actual_irr_map[vt] = _compute_irr(inv_by_vault[vt], total) if total > 0 else None
+
     results = []
     for vt in VaultType:
-        opp_q = select(Opportunity.id).where(
-            Opportunity.vault_type == vt,
-            Opportunity.status.in_([
-                OpportunityStatus.APPROVED,
-                OpportunityStatus.ACTIVE,
-                OpportunityStatus.FUNDING,
-                OpportunityStatus.FUNDED,
-            ]),
-        )
-        opp_ids_result = await db.execute(opp_q)
-        opp_ids = [r[0] for r in opp_ids_result.fetchall()]
-
-        opp_count = len(opp_ids)
-        total_invested = 0.0
-        investor_count = 0
-        actual_irr = None
-
-        if opp_ids:
-            agg = await db.execute(
-                select(
-                    func.coalesce(func.sum(OpportunityInvestment.amount), 0),
-                    func.count(func.distinct(OpportunityInvestment.user_id)),
-                ).where(
-                    OpportunityInvestment.opportunity_id.in_(opp_ids),
-                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-                )
-            )
-            row = agg.first()
-            if row:
-                total_invested = float(row[0])
-                investor_count = int(row[1])
-
-            inv_result = await db.execute(
-                select(OpportunityInvestment).where(
-                    OpportunityInvestment.opportunity_id.in_(opp_ids),
-                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-                )
-            )
-            all_investments = list(inv_result.scalars().all())
-            actual_irr = _compute_irr(all_investments, total_invested)
-
-        exp_irr_result = await db.execute(
-            select(func.avg(Opportunity.expected_irr)).where(
-                Opportunity.vault_type == vt,
-                Opportunity.expected_irr.isnot(None),
-            )
-        )
-        avg_expected = exp_irr_result.scalar()
-
+        agg_row = agg_rows.get(vt)
         results.append(VaultStatsResponse(
             vault_type=vt.value,
-            total_invested=total_invested,
-            investor_count=investor_count,
-            opportunity_count=opp_count,
-            expected_irr=round(float(avg_expected), 2) if avg_expected else None,
-            actual_irr=actual_irr,
+            total_invested=float(agg_row.total_invested) if agg_row else 0.0,
+            investor_count=int(agg_row.investor_count) if agg_row else 0,
+            opportunity_count=int(agg_row.opp_count) if agg_row else 0,
+            expected_irr=round(float(irr_map[vt]), 2) if vt in irr_map and irr_map[vt] else None,
+            actual_irr=actual_irr_map.get(vt),
         ))
 
     return results
+
+
+@router.get("/by-slug/{slug}", response_model=OpportunityRead)
+async def get_opportunity_by_slug(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+) -> OpportunityRead:
+    """Fetch a single opportunity by its URL slug."""
+    result = await db.execute(
+        select(Opportunity).where(Opportunity.slug == slug)
+    )
+    opp = result.scalar_one_or_none()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return OpportunityRead.model_validate(opp)
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityRead)
@@ -343,3 +368,223 @@ async def update_opportunity(
     await db.flush()
     await db.refresh(opp)
     return OpportunityRead.model_validate(opp)
+
+
+# ── Like toggle ──────────────────────────────────────────────────────────────
+
+
+@router.post("/{opportunity_id}/like")
+async def toggle_like(
+    opportunity_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Toggle like on an opportunity. Returns new liked state and total count."""
+    opp_uuid = _uuid.UUID(opportunity_id)
+
+    # Verify opportunity exists
+    opp_result = await db.execute(
+        select(Opportunity).where(Opportunity.id == opp_uuid)
+    )
+    opp = opp_result.scalar_one_or_none()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    # Check existing like
+    existing = await db.execute(
+        select(OpportunityLike).where(
+            OpportunityLike.opportunity_id == opp_uuid,
+            OpportunityLike.user_id == user.id,
+        )
+    )
+    like = existing.scalar_one_or_none()
+
+    if like:
+        await db.delete(like)
+        liked = False
+        activity_type = "unliked"
+    else:
+        db.add(OpportunityLike(opportunity_id=opp_uuid, user_id=user.id))
+        liked = True
+        activity_type = "liked"
+
+    # Record activity
+    db.add(UserActivity(
+        user_id=user.id,
+        activity_type=activity_type,
+        resource_type="opportunity",
+        resource_id=opp_uuid,
+        resource_title=opp.title,
+        resource_slug=opp.slug,
+    ))
+    await db.flush()
+
+    # Total like count
+    count_result = await db.execute(
+        select(func.count(OpportunityLike.id)).where(
+            OpportunityLike.opportunity_id == opp_uuid
+        )
+    )
+    like_count = count_result.scalar() or 0
+
+    return {"liked": liked, "like_count": like_count}
+
+
+@router.get("/{opportunity_id}/like-status")
+async def like_status(
+    opportunity_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
+) -> dict:
+    """Check if current user liked this opportunity + total count."""
+    opp_uuid = _uuid.UUID(opportunity_id)
+
+    count_result = await db.execute(
+        select(func.count(OpportunityLike.id)).where(
+            OpportunityLike.opportunity_id == opp_uuid
+        )
+    )
+    like_count = count_result.scalar() or 0
+
+    liked = False
+    if user:
+        existing = await db.execute(
+            select(OpportunityLike.id).where(
+                OpportunityLike.opportunity_id == opp_uuid,
+                OpportunityLike.user_id == user.id,
+            )
+        )
+        liked = existing.scalar_one_or_none() is not None
+
+    return {"liked": liked, "like_count": like_count}
+
+
+# ── Share tracking ───────────────────────────────────────────────────────────
+
+
+@router.post("/{opportunity_id}/share")
+async def track_share(
+    opportunity_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Record a share event and return the property referral code for this user+opportunity."""
+    opp_uuid = _uuid.UUID(opportunity_id)
+
+    opp_result = await db.execute(
+        select(Opportunity).where(Opportunity.id == opp_uuid)
+    )
+    opp = opp_result.scalar_one_or_none()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    # Record share activity
+    db.add(UserActivity(
+        user_id=user.id,
+        activity_type="shared",
+        resource_type="opportunity",
+        resource_id=opp_uuid,
+        resource_title=opp.title,
+        resource_slug=opp.slug,
+    ))
+
+    # Get or create property referral code
+    existing = await db.execute(
+        select(PropertyReferralCode).where(
+            PropertyReferralCode.user_id == user.id,
+            PropertyReferralCode.opportunity_id == opp_uuid,
+        )
+    )
+    prc = existing.scalar_one_or_none()
+
+    if not prc:
+        code = f"P{_uuid.uuid4().hex[:7].upper()}"
+        prc = PropertyReferralCode(
+            user_id=user.id,
+            opportunity_id=opp_uuid,
+            code=code,
+        )
+        db.add(prc)
+        await db.flush()
+        await db.refresh(prc)
+
+    return {
+        "message": "Share recorded",
+        "property_referral_code": prc.code,
+        "referral_link": f"https://wealthspot.in/opportunity/{opp.slug}?pref={prc.code}",
+    }
+
+
+# ── Get or create property referral code ─────────────────────────────────────
+
+
+@router.get("/{opportunity_id}/referral-code")
+async def get_property_referral_code(
+    opportunity_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Get the static property referral code for this user+opportunity (creates if needed)."""
+    opp_uuid = _uuid.UUID(opportunity_id)
+
+    opp_result = await db.execute(
+        select(Opportunity).where(Opportunity.id == opp_uuid)
+    )
+    opp = opp_result.scalar_one_or_none()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    existing = await db.execute(
+        select(PropertyReferralCode).where(
+            PropertyReferralCode.user_id == user.id,
+            PropertyReferralCode.opportunity_id == opp_uuid,
+        )
+    )
+    prc = existing.scalar_one_or_none()
+
+    if not prc:
+        code = f"P{_uuid.uuid4().hex[:7].upper()}"
+        prc = PropertyReferralCode(
+            user_id=user.id,
+            opportunity_id=opp_uuid,
+            code=code,
+        )
+        db.add(prc)
+        await db.flush()
+        await db.refresh(prc)
+
+    return {
+        "code": prc.code,
+        "referral_link": f"https://wealthspot.in/opportunity/{opp.slug}?pref={prc.code}",
+    }
+
+
+# ── User activities feed ─────────────────────────────────────────────────────
+
+
+@router.get("/user/activities")
+async def user_activities(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+    limit: int = Query(20, ge=1, le=100),
+) -> list[dict]:
+    """Return user's activity feed (liked, shared, invested, etc.)."""
+    result = await db.execute(
+        select(UserActivity)
+        .where(UserActivity.user_id == user.id)
+        .order_by(UserActivity.created_at.desc())
+        .limit(limit)
+    )
+    activities = result.scalars().all()
+    return [
+        {
+            "id": str(a.id),
+            "activityType": a.activity_type,
+            "resourceType": a.resource_type,
+            "resourceId": str(a.resource_id),
+            "resourceTitle": a.resource_title,
+            "resourceSlug": a.resource_slug,
+            "createdAt": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in activities
+    ]

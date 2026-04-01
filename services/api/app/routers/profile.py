@@ -4,12 +4,11 @@ Profile completion router – step-by-step profiling, OTP verification, referral
 
 import hashlib
 import logging
-import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -224,7 +223,7 @@ async def send_otp(
     settings = get_settings()
     otp = _generate_otp()
     otp_hash = _hash_otp(otp)
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.otp_expiry_minutes)
 
     sent = False
 
@@ -235,7 +234,7 @@ async def send_otp(
         user.email_otp_expires_at = expires_at
         sent = await send_otp_email(user.email, otp)
         if not sent:
-            logger.info("OTP for %s email: %s (email service unavailable, dev fallback)", user.email, otp)
+            logger.warning("OTP delivery failed for %s email (email service unavailable)", user.email)
     else:
         if user.phone_verified:
             raise HTTPException(status_code=400, detail="Phone already verified")
@@ -248,7 +247,7 @@ async def send_otp(
         if not sent:
             sent = await send_otp_whatsapp(user.phone, otp)
         if not sent:
-            logger.info("OTP for %s phone: %s (SMS/WhatsApp service unavailable, dev fallback)", user.phone, otp)
+            logger.warning("OTP delivery failed for %s phone (SMS/WhatsApp service unavailable)", user.phone)
 
     await db.flush()
 

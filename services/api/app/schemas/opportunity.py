@@ -4,7 +4,6 @@ Opportunity schemas (Pydantic v2).
 
 import uuid
 from datetime import datetime
-from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +38,15 @@ class CompanySummary(BaseModel):
     brand_name: str | None = None
     logo_url: str | None = None
     verified: bool = False
+    entity_type: str | None = None
+    rera_number: str | None = None
+    website: str | None = None
+    description: str | None = None
+    city: str | None = None
+    state: str | None = None
+    years_in_business: int | None = None
+    projects_completed: int = 0
+    total_area_developed: str | None = None
     model_config = {"from_attributes": True}
 
 
@@ -93,6 +101,7 @@ class OpportunityRead(BaseModel):
     company_id: uuid.UUID | None = None
     investor_count: int = 0
     launch_date: datetime | None = None
+    closing_date: datetime | None = None
     created_at: datetime
     updated_at: datetime
     creator: OpportunityCreatorRead | None = None
@@ -108,50 +117,6 @@ class PaginatedOpportunities(BaseModel):
     page: int
     page_size: int
     total_pages: int
-
-
-# ── Creation payloads per vault type ─────────────────────────────────────────
-
-class OpportunityCreateBase(BaseModel):
-    vault_type: VaultType
-    title: str = Field(min_length=3, max_length=255)
-    tagline: str | None = Field(None, max_length=500)
-    description: str | None = None
-    company_id: str | None = None
-
-
-class WealthOpportunityCreate(OpportunityCreateBase):
-    """For wealth vault (real-estate)."""
-    vault_type: VaultType = VaultType.WEALTH
-    city: str
-    state: str
-    address: str | None = None
-    target_amount: float = Field(gt=0)
-    min_investment: float = Field(gt=0)
-    target_irr: float = Field(gt=0)
-
-
-class StartupOpportunityCreate(OpportunityCreateBase):
-    """For opportunity vault (startups/ventures)."""
-    vault_type: VaultType = VaultType.OPPORTUNITY
-    industry: str
-    stage: str
-    founder_name: str
-    target_amount: float = Field(gt=0)
-    min_investment: float = Field(gt=0)
-    target_irr: float | None = None
-    pitch_deck_url: str | None = None
-
-
-class CommunityOpportunityCreate(OpportunityCreateBase):
-    """For community vault (collaborative projects)."""
-    vault_type: VaultType = VaultType.COMMUNITY
-    community_type: str
-    collaboration_type: str
-    city: str | None = None
-    state: str | None = None
-    target_amount: float | None = None
-    min_investment: float | None = None
 
 
 class OpportunityCreateRequest(BaseModel):
@@ -215,6 +180,9 @@ class OpportunityUpdateRequest(BaseModel):
     # Community fields
     community_type: str | None = None
     collaboration_type: str | None = None
+    # Lifecycle
+    closing_date: datetime | None = None
+    status: str | None = None
 
 
 class VaultStatsResponse(BaseModel):

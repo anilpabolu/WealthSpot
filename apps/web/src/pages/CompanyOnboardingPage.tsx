@@ -80,7 +80,7 @@ export default function CompanyOnboardingPage() {
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="font-display text-2xl font-bold text-gray-900">Builder Launchpad 🏗️</h1>
+                <h1 className="font-display text-2xl font-bold text-gray-900">Company Onboarding 🏗️</h1>
                 <p className="text-sm text-gray-500">Get your company on the map — register once, create unlimited opportunities</p>
               </div>
             </div>
@@ -105,6 +105,15 @@ export default function CompanyOnboardingPage() {
                     {ENTITY_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Vault Category *</label>
+                  <select required value={form.vaultType || ''} onChange={(e) => handleChange('vaultType', e.target.value)} className={inputClass}>
+                    <option value="" disabled>Select vault…</option>
+                    <option value="wealth">Wealth Vault</option>
+                    <option value="opportunity">Opportunity Vault</option>
+                    <option value="community">Community Vault</option>
                   </select>
                 </div>
                 <div>

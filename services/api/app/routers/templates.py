@@ -4,20 +4,19 @@ for bulk property ingestion.
 """
 
 import io
-import json
-import uuid
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.services.s3 import upload_template as s3_upload_template, get_public_url
 
 router = APIRouter(prefix="/templates", tags=["templates"])
+_settings = get_settings()
 
 # ── Column definitions for the opportunity template ────────────────────────
 TEMPLATE_COLUMNS = [
@@ -80,7 +79,7 @@ async def upload_opportunity_template(
         raise HTTPException(status_code=400, detail="Only CSV files are accepted")
 
     content = await file.read()
-    if len(content) > 5 * 1024 * 1024:
+    if len(content) > _settings.max_upload_size_bytes:
         raise HTTPException(status_code=400, detail="File too large (max 5 MB)")
 
     # Store in S3 for audit
@@ -97,10 +96,19 @@ async def upload_opportunity_template(
     text = content.decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(text))
 
+    def _sanitize_csv_value(val: str) -> str:
+        """Prevent CSV formula injection by escaping leading trigger characters."""
+        stripped = val.lstrip()
+        if stripped and stripped[0] in ("=", "+", "-", "@", "\t", "\r"):
+            return "'" + val
+        return val
+
     rows: list[dict] = []
     errors: list[str] = []
     for idx, row in enumerate(reader, start=2):
         # Skip instruction row (detect by checking if title starts with "Required")
+        # Sanitize all cell values against CSV formula injection
+        row = {k: _sanitize_csv_value((v or "").strip()) for k, v in row.items()}
         title_val = (row.get("title") or "").strip()
         if title_val.lower().startswith("required") or not title_val:
             continue

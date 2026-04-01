@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS platform_configs (
 
 CREATE INDEX IF NOT EXISTS idx_platform_configs_section ON platform_configs(section);
 CREATE INDEX IF NOT EXISTS idx_platform_configs_key ON platform_configs(key);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_platform_configs_section_key ON platform_configs(section, key);
 
 COMMENT ON TABLE platform_configs IS 'Command Control Centre configuration store';
 
@@ -153,10 +154,10 @@ INSERT INTO platform_configs (section, key, value, description) VALUES
 ('approvals', 'auto_approve_community_projects', '{"enabled": false}'::jsonb, 'Auto-approve community project listings'),
 ('notifications', 'email_enabled', '{"enabled": true}'::jsonb, 'Enable email notifications'),
 ('notifications', 'whatsapp_enabled', '{"enabled": false}'::jsonb, 'Enable WhatsApp notifications'),
-('content', 'onboarding_video_url', '{"url": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"}'::jsonb, 'Onboarding video URL'),
-('content', 'wealth_vault_video_url', '{"url": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"}'::jsonb, 'Wealth Vault intro video'),
-('content', 'opportunity_vault_video_url', '{"url": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"}'::jsonb, 'Opportunity Vault intro video'),
-('content', 'community_vault_video_url', '{"url": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"}'::jsonb, 'Community Vault intro video'),
+('content', 'onboarding_video_url', '{"url": "https://www.w3schools.com/html/mov_bbb.mp4"}'::jsonb, 'Onboarding video URL'),
+('content', 'wealth_vault_video_url', '{"url": "https://www.w3schools.com/html/mov_bbb.mp4"}'::jsonb, 'Wealth Vault intro video'),
+('content', 'opportunity_vault_video_url', '{"url": "https://www.w3schools.com/html/movie.mp4"}'::jsonb, 'Opportunity Vault intro video'),
+('content', 'community_vault_video_url', '{"url": "https://samplelib.com/lib/preview/mp4/sample-5s.mp4"}'::jsonb, 'Community Vault intro video'),
 ('platform', 'maintenance_mode', '{"enabled": false}'::jsonb, 'Enable platform maintenance mode'),
 ('platform', 'max_upload_size_mb', '{"value": 25}'::jsonb, 'Maximum file upload size in MB'),
 ('templates', 'wealth_template_url', '{"url": "/templates/wealth_opportunity_template.xlsx"}'::jsonb, 'Wealth vault opportunity creation template'),

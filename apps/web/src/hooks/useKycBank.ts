@@ -135,7 +135,7 @@ export function useUploadKycDocument() {
       const resp = await api.post<KycDocument>(
         `/kyc/documents/upload?document_type=${encodeURIComponent(documentType)}`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } } as any,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return resp.data
     },

@@ -1,4 +1,5 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
+import * as Sentry from '@sentry/react'
 import { Home, RefreshCw } from 'lucide-react'
 
 interface Props {
@@ -25,7 +26,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Log to Sentry or console in development
+    Sentry.captureException(error, { extra: { componentStack: info.componentStack } })
     console.error('[ErrorBoundary]', error, info.componentStack)
   }
 

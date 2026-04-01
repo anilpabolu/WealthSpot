@@ -68,3 +68,34 @@ export function useRecentTransactions(limit = 10) {
     staleTime: 30_000,
   })
 }
+
+/* ── Vault-wise portfolio breakdown ─────────────────────────────── */
+
+export interface VaultPortfolioItem {
+  vaultType: string
+  totalInvested: number
+  currentValue: number
+  returns: number
+  returnPct: number
+  opportunityCount: number
+  investorCount: number
+  expectedIrr: number | null
+  actualIrr: number | null
+  avgDurationDays: number
+}
+
+export interface VaultPortfolioResponse {
+  vaults: VaultPortfolioItem[]
+  grandTotalInvested: number
+  grandCurrentValue: number
+  grandReturns: number
+  grandReturnPct: number
+}
+
+export function useVaultWisePortfolio() {
+  return useQuery({
+    queryKey: ['portfolio', 'vault-wise'],
+    queryFn: () => apiGet<VaultPortfolioResponse>('/portfolio/vault-wise'),
+    staleTime: 30_000,
+  })
+}

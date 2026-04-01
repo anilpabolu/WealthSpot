@@ -303,8 +303,10 @@ class TestApprovals:
         resp = await client.get("/api/v1/approvals/my", headers=auth_headers(test_user))
         assert resp.status_code == 200
         data = resp.json()
-        assert isinstance(data, list)
-        for item in data:
+        # Endpoint may return a paginated dict or a plain list
+        items = data["items"] if isinstance(data, dict) and "items" in data else data
+        assert isinstance(items, list)
+        for item in items:
             assert item["requester_id"] == str(test_user.id)
 
     async def test_approval_stats_returns_all_keys(

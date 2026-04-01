@@ -5,12 +5,13 @@ All actions are audited in the audit_logs table.
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.community import AuditLog
@@ -21,9 +22,10 @@ from app.services.s3 import generate_presigned_url, upload_document
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/kyc", tags=["kyc"])
+_settings = get_settings()
 
 ALLOWED_DOC_TYPES = {"PAN", "AADHAAR", "SELFIE"}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_FILE_SIZE = _settings.max_upload_size_bytes
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
 
 
@@ -127,7 +129,7 @@ async def upload_kyc_document(
 
     content_type = file.content_type or "application/octet-stream"
     if content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=400, detail=f"File type not allowed. Accepted: JPG, PNG, WebP, PDF")
+        raise HTTPException(status_code=400, detail="File type not allowed. Accepted: JPG, PNG, WebP, PDF")
 
     # Read file and check size
     file_data = await file.read()

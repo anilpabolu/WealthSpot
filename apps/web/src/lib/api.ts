@@ -75,23 +75,6 @@ api.interceptors.response.use(
   async (error: unknown) => {
     if (axios.isAxiosError(error)) {
       const reqId = error.config?.headers?.['X-Diag-Id'] as string | undefined
-      if (reqId && _activeTraces.has(reqId)) {
-        const status = error.response?.status ?? 0
-        const msg = error.message || 'Network error'
-        if (error.response) {
-          // Include response body in error trace for better diagnostics
-          let detail: string | undefined
-          if (error.response.data) {
-            detail = typeof error.response.data === 'object'
-              ? JSON.stringify(error.response.data, null, 2)
-              : String(error.response.data)
-          }
-          _activeTraces.get(reqId)!.done(status, false, detail)
-        } else {
-          _activeTraces.get(reqId)!.fail(msg)
-        }
-        _activeTraces.delete(reqId)
-      }
 
       // ─── Automatic token refresh on 401 ─────────────
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
@@ -103,6 +86,17 @@ api.interceptors.response.use(
         // Don't try refresh for auth endpoints
         const url = originalRequest.url ?? ''
         if (url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/check')) {
+          // Log diagnostic for auth endpoints that 401
+          if (reqId && _activeTraces.has(reqId)) {
+            let detail: string | undefined
+            if (error.response.data) {
+              detail = typeof error.response.data === 'object'
+                ? JSON.stringify(error.response.data, null, 2)
+                : String(error.response.data)
+            }
+            _activeTraces.get(reqId)!.done(401, false, detail)
+            _activeTraces.delete(reqId)
+          }
           return Promise.reject(error)
         }
 
@@ -110,13 +104,19 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('ws_refresh_token')
 
         if (!refreshToken) {
-          // No refresh token — clear stale session entirely
+          // No refresh token — log diagnostic, clear stale session
+          if (reqId && _activeTraces.has(reqId)) {
+            _activeTraces.get(reqId)!.done(401, false, '"No refresh token available"')
+            _activeTraces.delete(reqId)
+          }
           useUserStore.getState().logout()
           return Promise.reject(error)
         }
 
         if (_isRefreshing) {
           // Queue this request until the in-flight refresh resolves
+          // Remove trace – the retried request will create its own
+          if (reqId && _activeTraces.has(reqId)) _activeTraces.delete(reqId)
           return new Promise<string>((resolve, reject) => {
             _refreshQueue.push({ resolve, reject })
           }).then((newToken) => {
@@ -136,8 +136,15 @@ api.interceptors.response.use(
           localStorage.setItem('ws_refresh_token', data.refresh_token)
           processRefreshQueue(data.access_token)
           originalRequest.headers.Authorization = `Bearer ${data.access_token}`
+          // Silently drop the 401 trace – the retried request gets its own trace
+          if (reqId && _activeTraces.has(reqId)) _activeTraces.delete(reqId)
           return api(originalRequest)
         } catch (refreshError) {
+          // Refresh failed – NOW log the 401 diagnostic
+          if (reqId && _activeTraces.has(reqId)) {
+            _activeTraces.get(reqId)!.done(401, false, '"Token refresh failed"')
+            _activeTraces.delete(reqId)
+          }
           processRefreshQueue(null, refreshError)
           useUserStore.getState().logout()
           return Promise.reject(refreshError)
@@ -146,12 +153,34 @@ api.interceptors.response.use(
         }
       }
 
+      // ─── Diagnostic logging for non-401 errors ─────────────
+      if (reqId && _activeTraces.has(reqId)) {
+        const status = error.response?.status ?? 0
+        const msg = error.message || 'Network error'
+        if (error.response) {
+          let detail: string | undefined
+          if (error.response.data) {
+            detail = typeof error.response.data === 'object'
+              ? JSON.stringify(error.response.data, null, 2)
+              : String(error.response.data)
+          }
+          _activeTraces.get(reqId)!.done(status, false, detail)
+        } else {
+          _activeTraces.get(reqId)!.fail(msg)
+        }
+        _activeTraces.delete(reqId)
+      }
+
       if (error.response) {
         const { status, data } = error.response as { status: number; data: unknown }
         if (status === 403 && typeof data === 'object' && data !== null && 'error' in data) {
           const errorData = data as { error: { code: string; redirect?: string } }
           if (errorData.error.code === 'KYC_REQUIRED' && errorData.error.redirect) {
-            window.location.href = errorData.error.redirect
+            // Validate redirect URL - only allow same-origin paths
+            const redirect = errorData.error.redirect
+            if (redirect.startsWith('/')) {
+              window.location.href = redirect
+            }
           }
         }
       }

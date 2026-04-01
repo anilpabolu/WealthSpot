@@ -5,6 +5,7 @@ S3-compatible storage service (works with AWS S3 and MinIO).
 import uuid
 from typing import Any, BinaryIO, cast
 
+import anyio
 import boto3  # type: ignore[import-untyped]
 from botocore.config import Config as BotoConfig  # type: ignore[import-untyped]
 
@@ -40,13 +41,15 @@ async def upload_file(
     key: str,
     content_type: str = "application/octet-stream",
 ) -> str:
-    """Upload a file and return its S3 key."""
+    """Upload a file and return its S3 key. Runs blocking boto3 call in a thread."""
     s3: Any = _get_s3_client()
-    s3.upload_fileobj(
-        file,
-        settings.aws_s3_bucket,
-        key,
-        ExtraArgs={"ContentType": content_type},
+    await anyio.to_thread.run_sync(
+        lambda: s3.upload_fileobj(
+            file,
+            settings.aws_s3_bucket,
+            key,
+            ExtraArgs={"ContentType": content_type},
+        )
     )
     return key
 

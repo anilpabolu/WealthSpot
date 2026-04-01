@@ -242,7 +242,7 @@ async def get_property(
     query = (
         select(Property)
         .options(joinedload(Property.builder))
-        .where(Property.slug == slug)
+        .where(Property.slug == slug, Property.status != PropertyStatus.ARCHIVED)
     )
     result = await db.execute(query)
     prop = result.scalar_one_or_none()

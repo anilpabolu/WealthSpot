@@ -43,27 +43,54 @@ async def lender_dashboard(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_lender),
 ) -> LoanSummary:
-    """Lender dashboard statistics."""
-    base = select(Loan).where(Loan.lender_id == user.id)
+    """Lender dashboard statistics — uses SQL aggregation instead of loading all loans."""
+    base_filter = Loan.lender_id == user.id
 
-    result = await db.execute(base)
-    loans = result.scalars().all()
+    # Active loan count
+    active_count = (
+        await db.execute(
+            select(func.count()).where(base_filter, Loan.status == LoanStatus.ACTIVE)
+        )
+    ).scalar() or 0
 
-    active = [l for l in loans if l.status == LoanStatus.ACTIVE]
-    total_lent = sum(l.principal for l in loans)
-    _total_repaid = sum(l.amount_repaid for l in loans)
-    # Simplified interest earned = repaid - principal for repaid loans
-    total_interest = sum(
-        max(0, l.amount_repaid - l.principal)
-        for l in loans
-        if l.status == LoanStatus.REPAID
-    )
+    # Total lent (sum of principal across all loans)
+    total_lent = (
+        await db.execute(
+            select(func.coalesce(func.sum(Loan.principal), 0)).where(base_filter)
+        )
+    ).scalar() or 0
+
+    # Interest earned = sum(amount_repaid - principal) for repaid loans where repaid > principal
+    total_interest = (
+        await db.execute(
+            select(
+                func.coalesce(
+                    func.sum(Loan.amount_repaid - Loan.principal), 0
+                )
+            ).where(
+                base_filter,
+                Loan.status == LoanStatus.REPAID,
+                Loan.amount_repaid > Loan.principal,
+            )
+        )
+    ).scalar() or 0
+
+    # Upcoming payments: active loans with a next_payment_date
+    upcoming = (
+        await db.execute(
+            select(func.count()).where(
+                base_filter,
+                Loan.status == LoanStatus.ACTIVE,
+                Loan.next_payment_date.isnot(None),
+            )
+        )
+    ).scalar() or 0
 
     return LoanSummary(
-        active_loans=len(active),
-        total_lent=Decimal(total_lent) / 100,  # paise → rupees
+        active_loans=active_count,
+        total_lent=Decimal(total_lent) / 100,
         total_interest_earned=Decimal(total_interest) / 100,
-        upcoming_payments=len([l for l in active if l.next_payment_date]),
+        upcoming_payments=upcoming,
     )
 
 
@@ -90,16 +117,22 @@ async def list_loans(
     result = await db.execute(query)
     loans = result.scalars().all()
 
+    # Batch-load property info to avoid N+1
+    property_ids = {loan.property_id for loan in loans}
+    prop_map: dict = {}
+    if property_ids:
+        prop_result = await db.execute(
+            select(Property.id, Property.title, Property.city).where(Property.id.in_(property_ids))
+        )
+        prop_map = {row.id: (row.title, row.city) for row in prop_result.fetchall()}
+
     items: list[LoanRead] = []
     for loan in loans:
-        prop_result = await db.execute(
-            select(Property.title, Property.city).where(Property.id == loan.property_id)
-        )
-        prop = prop_result.one_or_none()
         item = LoanRead.model_validate(loan)
-        if prop:
-            item.property_title = prop.title
-            item.property_city = prop.city
+        prop_info = prop_map.get(loan.property_id)
+        if prop_info:
+            item.property_title = prop_info[0]
+            item.property_city = prop_info[1]
         items.append(item)
 
     total_pages = max(1, (total + page_size - 1) // page_size)
