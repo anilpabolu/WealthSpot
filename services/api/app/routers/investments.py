@@ -189,7 +189,7 @@ async def confirm_payment(
         select(Investment).where(
             Investment.id == body.investment_id,
             Investment.user_id == user.id,
-        )
+        ).with_for_update()
     )
     investment = result.scalar_one_or_none()
 
