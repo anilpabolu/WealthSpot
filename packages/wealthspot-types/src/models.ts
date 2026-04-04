@@ -516,3 +516,131 @@ export interface ControlCentreDashboard {
   total_opportunities: number;
   active_configs: number;
 }
+
+// ── Profiling & Matching ────────────────────────────────────────────────────
+
+export interface VaultProfileQuestion {
+  id: string;
+  vault_type: string;
+  category: string;
+  question_text: string;
+  question_type: "choice" | "multi_choice" | "scale" | "slider" | "text";
+  options: QuestionOption[] | SliderOptions | null;
+  weight: number;
+  dimension: string | null;
+  sort_order: number;
+  is_required: boolean;
+  fun_fact: string | null;
+  illustration: string | null;
+}
+
+export interface QuestionOption {
+  value: string;
+  label: string;
+  weight: number;
+  emoji?: string;
+}
+
+export interface SliderOptions {
+  min: number;
+  max: number;
+  minLabel: string;
+  maxLabel: string;
+  step: number;
+}
+
+export interface UserProfileAnswer {
+  id: string;
+  user_id: string;
+  question_id: string;
+  vault_type: string;
+  answer_value: unknown;
+  answer_score: number | null;
+  created_at: string;
+}
+
+export interface UserProfileAnswerCreate {
+  question_id: string;
+  vault_type: string;
+  answer_value: unknown;
+}
+
+export interface UserProfileAnswerBulk {
+  vault_type: string;
+  answers: UserProfileAnswerCreate[];
+}
+
+export interface OpportunityCustomQuestion {
+  id: string;
+  opportunity_id: string;
+  question_text: string;
+  question_type: string;
+  options: QuestionOption[] | null;
+  weight: number;
+  dimension: string | null;
+  sort_order: number;
+  is_required: boolean;
+  is_auto_generated: boolean;
+  source_hint: string | null;
+}
+
+export interface OpportunityCustomQuestionCreate {
+  question_text: string;
+  question_type?: string;
+  options?: QuestionOption[] | null;
+  weight?: number;
+  dimension?: string | null;
+  sort_order?: number;
+  is_required?: boolean;
+}
+
+export interface PersonalityDimension {
+  user_id: string;
+  vault_type: string;
+  risk_appetite: number;
+  domain_expertise: number;
+  investment_capacity: number;
+  time_commitment: number;
+  network_strength: number;
+  creativity_score: number;
+  leadership_score: number;
+  collaboration_score: number;
+  raw_dimensions: Record<string, unknown>;
+  computed_at: string;
+}
+
+export interface MatchScore {
+  user_id: string;
+  opportunity_id: string;
+  overall_score: number;
+  dimension_scores: Record<string, number>;
+  breakdown: MatchBreakdown | null;
+  computed_at: string;
+}
+
+export interface MatchBreakdown {
+  tier: string;
+  emoji: string;
+  note: string;
+  strengths: string[];
+  areas_to_grow: string[];
+}
+
+export interface MatchedUser {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  overall_score: number;
+  dimension_scores: Record<string, number>;
+  top_strengths: string[];
+  compatibility_note: string | null;
+}
+
+export interface ProfilingProgress {
+  vault_type: string;
+  total_questions: number;
+  answered_questions: number;
+  completion_pct: number;
+  is_complete: boolean;
+  personality: PersonalityDimension | null;
+}

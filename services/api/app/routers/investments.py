@@ -218,8 +218,10 @@ async def confirm_payment(
         investment.razorpay_order_id = body.razorpay_order_id
 
         # Update property raised amount & sold units (with row-level lock to prevent overselling)
+        # Use of=Property to lock only the properties table row; avoids PostgreSQL restriction
+        # on FOR UPDATE applied to the nullable side of an outer join.
         prop_result = await db.execute(
-            select(Property).where(Property.id == investment.property_id).with_for_update()
+            select(Property).where(Property.id == investment.property_id).with_for_update(of=Property)
         )
         prop = prop_result.scalar_one_or_none()
         if prop:

@@ -57,7 +57,7 @@ class BuilderQuestion(Base):
     )
 
     # Relationships
-    opportunity = relationship("Opportunity", lazy="joined")
+    opportunity = relationship("Opportunity", lazy="joined", overlaps="builder_questions")
     creator = relationship("User", lazy="joined")
 
 

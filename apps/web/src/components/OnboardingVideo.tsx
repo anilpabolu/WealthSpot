@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { SignUpButton } from '@clerk/react'
 import { ArrowRight, X, SkipForward } from 'lucide-react'
+import { usePublicVideo } from '@/hooks/useAppVideos'
 
 /**
  * Full-page video overlay.
@@ -15,10 +16,13 @@ interface OnboardingVideoProps {
   onClose?: () => void
 }
 
-// Placeholder — replace URL with the real "How it Works" video asset
-const VIDEO_SRC = 'https://www.w3schools.com/html/mov_bbb.mp4'
+// Fallback used when no managed video is configured
+const FALLBACK_VIDEO = '/videos/how-it-works.mp4'
 
 export default function OnboardingVideo({ mode, onComplete, onClose }: OnboardingVideoProps) {
+  const { data: managed } = usePublicVideo('onboarding', 'how_it_works')
+  const videoSrc = managed?.videoUrl ?? FALLBACK_VIDEO
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const [ended, setEnded] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -93,7 +97,7 @@ export default function OnboardingVideo({ mode, onComplete, onClose }: Onboardin
         ) : (
         <video
           ref={videoRef}
-          src={VIDEO_SRC}
+          src={videoSrc}
           className="w-full h-full object-contain"
           autoPlay
           muted

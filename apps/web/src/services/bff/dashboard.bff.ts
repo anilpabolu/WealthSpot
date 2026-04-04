@@ -78,29 +78,35 @@ export const dashboardBff = {
       raised_amount: number;
       target_amount: number;
       investor_count: number;
+      city?: string;
     }>;
     stats: { total_raised: number; active_count: number; investor_count: number };
   }> {
-    const [builder, listings] = await Promise.all([
-      apiGet<{ company_name: string; verified: boolean }>("/builders/me"),
-      apiGet<
-        Array<{
-          id: string;
-          title: string;
-          status: string;
-          raised_amount: number;
-          target_amount: number;
-          investor_count: number;
-        }>
-      >("/builders/me/properties"),
-    ]);
+    const profile = await apiGet<{
+      company_name: string;
+      verified: boolean;
+      properties: Array<{
+        id: string;
+        title: string;
+        status: string;
+        raised_amount: number;
+        target_amount: number;
+        investor_count: number;
+        city?: string;
+      }>;
+    }>("/properties/builders/me");
 
+    const listings = profile.properties ?? [];
     const stats = {
-      total_raised: listings.reduce((sum, p) => sum + p.raised_amount, 0),
+      total_raised: listings.reduce((sum, p) => sum + (p.raised_amount ?? 0), 0),
       active_count: listings.filter((p) => p.status === "funding" || p.status === "active").length,
-      investor_count: listings.reduce((sum, p) => sum + p.investor_count, 0),
+      investor_count: listings.reduce((sum, p) => sum + (p.investor_count ?? 0), 0),
     };
 
-    return { builder, listings, stats };
+    return {
+      builder: { company_name: profile.company_name, verified: profile.verified },
+      listings,
+      stats,
+    };
   },
 };

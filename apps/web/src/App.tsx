@@ -37,6 +37,8 @@ const BuilderProfile = lazy(() => import('@/pages/BuilderProfilePage'))
 const ProfileCompletion = lazy(() => import('@/pages/ProfileCompletionPage'))
 const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetailPage'))
 const AdminReferrals = lazy(() => import('@/pages/AdminReferralsPage'))
+const VaultProfiling = lazy(() => import('@/pages/VaultProfilingPage'))
+const VaultAnalytics = lazy(() => import('@/pages/VaultAnalyticsDashboard'))
 
 const LOADING_MESSAGES = [
   'Curating premium opportunities…',
@@ -183,6 +185,10 @@ export default function App() {
 
           {/* Company onboarding */}
           <Route path="/company-onboarding" element={<ProtectedRoute><CompanyOnboarding /></ProtectedRoute>} />
+
+          {/* Vault Profiling & Analytics */}
+          <Route path="/vault-profiling" element={<ProtectedRoute><VaultProfiling /></ProtectedRoute>} />
+          <Route path="/vault-analytics" element={<ProtectedRoute><VaultAnalytics /></ProtectedRoute>} />
 
           {/* 404 catch-all */}
           <Route path="*" element={<NotFound />} />

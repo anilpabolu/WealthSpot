@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
+import { useProfilingProgress } from '@/hooks/useProfiling'
 import {
   Building2,
   Rocket,
@@ -16,6 +17,7 @@ import {
   PlayCircle,
   X,
   Lock,
+  Sparkles,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
@@ -44,27 +46,34 @@ const VAULTS = [
     id: 'wealth',
     title: 'Wealth Vault',
     icon: Building2,
-    color: 'from-primary to-primary-dark',
-    accent: 'text-primary',
-    bg: 'bg-primary/5',
-    border: 'border-primary/20',
+    color: 'from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]',
+    accent: 'text-[#D4AF37]',
+    accentHex: '#D4AF37',
+    bg: 'bg-[#F5F0E1]',
+    border: 'border-[#D4AF37]/20',
+    hoverShadow: 'hover:shadow-vault-wealth',
+    borderLeft: 'border-l-[#D4AF37]',
     description:
       'Institutional-grade real estate investments — RERA-verified properties across India\'s top cities. Earn passive rental income and long-term capital appreciation through fractional ownership.',
     risk: 'Moderate',
-    riskColor: 'text-amber-600 bg-amber-50',
+    riskColor: 'text-amber-700 bg-amber-50',
     href: '/marketplace?vault=wealth',
     cta: 'Explore Properties',
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     comingSoon: false,
+    emoji: '🏛️',
   },
   {
     id: 'opportunity',
     title: 'Opportunity Vault',
     icon: Rocket,
-    color: 'from-violet-500 to-violet-700',
-    accent: 'text-violet-600',
-    bg: 'bg-violet-50',
-    border: 'border-violet-200',
+    color: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
+    accent: 'text-[#FF6B6B]',
+    accentHex: '#20E3B2',
+    bg: 'bg-[#FFF0F0]',
+    border: 'border-[#20E3B2]/20',
+    hoverShadow: 'hover:shadow-vault-opportunity',
+    borderLeft: 'border-l-[#20E3B2]',
     description:
       'Back high-potential startup ideas from vetted founders. From deep-tech to consumer brands — invest early in tomorrow\'s market leaders and earn equity-linked returns.',
     risk: 'High',
@@ -73,23 +82,28 @@ const VAULTS = [
     cta: 'Discover Startups',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
     comingSoon: true,
+    emoji: '🚀',
   },
   {
     id: 'community',
     title: 'Community Vault',
     icon: Users,
-    color: 'from-emerald-500 to-emerald-700',
-    accent: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
+    color: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
+    accent: 'text-[#065F46]',
+    accentHex: '#065F46',
+    bg: 'bg-[#FFFBEB]',
+    border: 'border-[#065F46]/20',
+    hoverShadow: 'hover:shadow-vault-community',
+    borderLeft: 'border-l-[#065F46]',
     description:
       'Community-driven opportunities where passionate individuals need collaborators — not just capital. Help establish sports complexes, co-working spaces, local businesses, and more by contributing your time, network, or expertise alongside funding.',
     risk: 'Low–Moderate',
-    riskColor: 'text-emerald-600 bg-emerald-50',
+    riskColor: 'text-emerald-700 bg-emerald-50',
     href: '/marketplace?vault=community',
     cta: 'Join Opportunities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
     comingSoon: false,
+    emoji: '🤝',
   },
 ]
 
@@ -220,12 +234,14 @@ function VaultCard({
   vault,
   stats,
   opportunities,
+  profilingPct,
   onPlayVideo,
   onComingSoon,
 }: {
   vault: (typeof VAULTS)[number]
   stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number }
   opportunities: OpportunityItem[]
+  profilingPct: number
   onPlayVideo: () => void
   onComingSoon: () => void
 }) {
@@ -245,16 +261,20 @@ function VaultCard({
     : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
 
   return (
-    <div className={`rounded-2xl border ${vault.border} bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow group flex flex-col`}>
+    <div className={`rounded-3xl border ${vault.border} border-l-4 ${vault.borderLeft} bg-white overflow-hidden shadow-sm ${vault.hoverShadow} transition-all duration-300 group flex flex-col`}>
       {/* Header band */}
-      <div className={`bg-gradient-to-r ${vault.color} px-6 py-5`}>
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+      <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
+        {/* Decorative background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -right-6 -top-6 text-8xl">{vault.emoji}</div>
+        </div>
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <Icon className="h-6 w-6 text-white" />
           </div>
-          <h3 className="font-display text-xl font-bold text-white flex-1">{vault.title}</h3>
+          <h3 className="font-hero text-xl font-bold text-white flex-1 tracking-tight">{vault.title}</h3>
           {vault.comingSoon && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Lock className="h-3 w-3" />
               Soon
             </span>
@@ -374,11 +394,40 @@ function VaultCard({
           </div>
         )}
 
+        {/* Profiling progress & CTA */}
+        {!vault.comingSoon && (
+          <div className={`rounded-2xl ${vault.bg} p-3.5 space-y-2 border ${vault.border}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className={`h-3.5 w-3.5 ${vault.accent}`} />
+                <span className="text-[11px] font-semibold text-gray-700">
+                  {profilingPct >= 100 ? 'Profile Complete ✨' : 'Investor Profile'}
+                </span>
+              </div>
+              <span className={`text-[10px] font-bold ${vault.accent}`}>{Math.round(profilingPct)}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-white overflow-hidden">
+              <div
+                className={`h-full rounded-full bg-gradient-to-r ${vault.color} transition-all duration-700 ease-out`}
+                style={{ width: `${Math.min(profilingPct, 100)}%` }}
+              />
+            </div>
+            {profilingPct < 100 && (
+              <Link
+                to={`/vault-profiling?vault=${vault.id}`}
+                className={`text-[11px] font-bold ${vault.accent} hover:underline`}
+              >
+                {profilingPct > 0 ? 'Continue Profiling →' : 'Start Profiling →'}
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* CTA */}
         {vault.comingSoon ? (
           <button
             onClick={onComingSoon}
-            className={`w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors bg-gray-200 text-gray-500 cursor-not-allowed mt-auto`}
+            className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-200 text-gray-500 cursor-not-allowed mt-auto"
           >
             <Lock className="h-4 w-4" />
             Launching Soon — Stay Tuned!
@@ -387,7 +436,7 @@ function VaultCard({
           <Link
             to={vault.href}
             onClick={handleCTAClick}
-            className={`w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors bg-gradient-to-r ${vault.color} text-white hover:opacity-90 mt-auto`}
+            className={`w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r ${vault.color} text-white hover:opacity-90 hover:scale-[1.02] mt-auto shadow-md`}
           >
             {vault.cta}
             <ArrowRight className="h-4 w-4" />
@@ -406,9 +455,9 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
   const Icon = pillar.icon
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow flex flex-col">
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <div className="flex items-start justify-between mb-4">
-        <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${pillar.color} flex items-center justify-center`}>
+        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${pillar.color} flex items-center justify-center`}>
           <Icon className={`h-6 w-6 ${pillar.iconColor}`} />
         </div>
         <button
@@ -440,6 +489,16 @@ export default function VaultsPage() {
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
+
+  // Fetch profiling progress per vault
+  const { data: wealthProgress } = useProfilingProgress('wealth')
+  const { data: opportunityProgress } = useProfilingProgress('opportunity')
+  const { data: communityProgress } = useProfilingProgress('community')
+  const profilingMap: Record<string, number> = {
+    wealth: wealthProgress?.completionPct ?? 0,
+    opportunity: opportunityProgress?.completionPct ?? 0,
+    community: communityProgress?.completionPct ?? 0,
+  }
 
   // Fetch real vault stats from API
   const { data: vaultStatsData } = useVaultStats()
@@ -477,14 +536,27 @@ export default function VaultsPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-gray-50 to-white py-16">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-            Pick Your Arena 🏟️
-          </h1>
-          <p className="text-gray-500 max-w-2xl text-lg leading-relaxed">
-            Three curated vaults — each designed for a different opportunity class. Pick the one that vibes with your goals and start stacking wealth today.
-          </p>
+      <section className="relative overflow-hidden py-20" style={{ background: 'linear-gradient(135deg, #1B2A4A 0%, #2D3F5E 25%, #5B4FCF 50%, #D97706 75%, #FF6B6B 100%)', backgroundSize: '200% 200%', animation: 'gradient-shift 12s ease infinite' }}>
+        {/* Decorative floating elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-8 left-[10%] text-5xl opacity-20 animate-float">🏛️</div>
+          <div className="absolute top-16 right-[15%] text-4xl opacity-15 animate-float" style={{ animationDelay: '1s' }}>🚀</div>
+          <div className="absolute bottom-12 left-[25%] text-4xl opacity-15 animate-float" style={{ animationDelay: '2s' }}>🤝</div>
+          <div className="absolute top-24 left-[60%] text-3xl opacity-10 animate-bounce-gentle" style={{ animationDelay: '0.5s' }}>💎</div>
+          <div className="absolute bottom-8 right-[30%] text-3xl opacity-10 animate-bounce-gentle" style={{ animationDelay: '1.5s' }}>⚡</div>
+        </div>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+          <div className="animate-fade-up">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-white/90 text-xs font-bold uppercase tracking-widest mb-5">
+              Three Vaults. Infinite Possibilities.
+            </span>
+            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
+              Pick Your Arena
+            </h1>
+            <p className="text-white/70 max-w-2xl text-lg leading-relaxed font-body">
+              Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -498,6 +570,7 @@ export default function VaultsPage() {
                 vault={vault}
                 stats={statsMap.get(vault.id)}
                 opportunities={oppsMap[vault.id] ?? []}
+                profilingPct={profilingMap[vault.id] ?? 0}
                 onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
                 onComingSoon={showComingSoon}
               />

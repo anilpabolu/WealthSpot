@@ -28,6 +28,7 @@ os.environ.setdefault("APP_ENV", "testing")
 os.environ.setdefault("CORS_ORIGINS", "*")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("CELERY_BROKER_URL", "redis://localhost:6379/1")
+os.environ.setdefault("ENCRYPTION_KEY", "XdhWucM5GcQhgX7PZlpPriT9s8gkp7UvsD-xDbDVZD0=")
 
 from app.core.database import Base, get_db
 from app.core.security import create_access_token, create_refresh_token

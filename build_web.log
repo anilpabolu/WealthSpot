@@ -14,7 +14,7 @@
 #4 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/node:20-alpine
-#3 DONE 1.9s
+#3 DONE 4.9s
 
 #5 [internal] load .dockerignore
 #5 transferring context: 2B done
@@ -25,9 +25,11 @@
 #6 DONE 0.0s
 
 #7 [internal] load build context
-#7 transferring context: 74.96kB 5.1s
-#7 transferring context: 74.96kB 5.1s done
-#7 DONE 5.2s
+#7 transferring context: 24B 18.3s
+#7 transferring context: 393.74kB 74.8s
+#7 transferring context: 439.01kB 82.4s
+#7 transferring context: 439.01kB 82.4s done
+#7 DONE 82.6s
 
 #8 [dev 2/7] WORKDIR /app
 #8 CACHED
@@ -36,50 +38,51 @@
 #9 CACHED
 
 #10 [dev 4/7] COPY packages/wealthspot-types ./packages/wealthspot-types
-#10 CACHED
+#10 DONE 1.6s
 
 #11 [dev 5/7] COPY apps/web ./apps/web
-#11 DONE 0.2s
+#11 DONE 3.2s
 
 #12 [dev 6/7] RUN npm install --legacy-peer-deps
-#12 12.37 npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
-#12 21.46 
-#12 21.46 added 382 packages, and audited 393 packages in 21s
-#12 21.46 
-#12 21.46 72 packages are looking for funding
-#12 21.46   run `npm fund` for details
-#12 21.48 
-#12 21.48 6 vulnerabilities (5 moderate, 1 high)
-#12 21.48 
-#12 21.48 To address issues that do not require attention, run:
-#12 21.48   npm audit fix
-#12 21.48 
-#12 21.48 To address all issues (including breaking changes), run:
-#12 21.48   npm audit fix --force
-#12 21.48 
-#12 21.48 Run `npm audit` for details.
-#12 21.48 npm notice
-#12 21.48 npm notice New major version of npm available! 10.8.2 -> 11.12.1
-#12 21.48 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
-#12 21.48 npm notice To update run: npm install -g npm@11.12.1
-#12 21.48 npm notice
-#12 DONE 21.8s
+#12 35.83 npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+#12 45.66 
+#12 45.66 added 420 packages, and audited 431 packages in 34s
+#12 45.66 
+#12 45.66 74 packages are looking for funding
+#12 45.66   run `npm fund` for details
+#12 45.69 
+#12 45.69 6 vulnerabilities (5 moderate, 1 high)
+#12 45.69 
+#12 45.69 To address issues that do not require attention, run:
+#12 45.69   npm audit fix
+#12 45.69 
+#12 45.69 To address all issues (including breaking changes), run:
+#12 45.69   npm audit fix --force
+#12 45.69 
+#12 45.69 Run `npm audit` for details.
+#12 45.70 npm notice
+#12 45.70 npm notice New major version of npm available! 10.8.2 -> 11.12.1
+#12 45.70 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+#12 45.70 npm notice To update run: npm install -g npm@11.12.1
+#12 45.70 npm notice
+#12 DONE 47.6s
 
 #13 [dev 7/7] WORKDIR /app/apps/web
-#13 DONE 0.1s
+#13 DONE 0.3s
 
 #14 exporting to image
 #14 exporting layers
-#14 exporting layers 9.9s done
-#14 exporting manifest sha256:6b3dc71f0c568d0cd5548914011a882eeb360c0a79b44426910f0e2b0a3e5340 0.0s done
-#14 exporting config sha256:abd4c4af2c55bbbdec0679e01f5dca9f2b489826bf7803a64ca4323b8ca24c4a done
-#14 exporting attestation manifest sha256:464f5a219aa70633dc95b3e91346fe935a178783968f07e923a9851fb84221cf 0.0s done
-#14 exporting manifest list sha256:90e40a457e33f96cf6a481ec5509517a71106805faf346ea1fc72140192c7b6a done
+#14 exporting layers 24.0s done
+#14 exporting manifest sha256:78cabf34d338d064a8beac5e5535557fa56917e2e417b2741eefde3517698b77 0.0s done
+#14 exporting config sha256:d54a583559cd30771f28ede30607767f2e89eb7fe13e174e8a0c775d3e573f25 0.0s done
+#14 exporting attestation manifest sha256:8fb27e5b4399cb83fbf3f72e0626dfc3b11d446c91d721b05341ef356fe02ac9 0.1s done
+#14 exporting manifest list sha256:1d89a2e8d240ede7adb0ba3577e068d0713bf8a0dde3c5082562bd3602545dff
+#14 exporting manifest list sha256:1d89a2e8d240ede7adb0ba3577e068d0713bf8a0dde3c5082562bd3602545dff 0.0s done
 #14 naming to docker.io/library/wealthspot-web:latest done
 #14 unpacking to docker.io/library/wealthspot-web:latest
-#14 unpacking to docker.io/library/wealthspot-web:latest 4.1s done
-#14 DONE 14.1s
+#14 unpacking to docker.io/library/wealthspot-web:latest 8.8s done
+#14 DONE 33.1s
 
 #15 resolving provenance for metadata file
-#15 DONE 0.0s
+#15 DONE 0.8s
  Image wealthspot-web Built 

@@ -161,14 +161,13 @@ function OverviewTab({ data }: { data: FullAnalyticsResponse }) {
 
   // Consolidated monthly trend data for stacked area
   const trendData = useMemo(() => {
-    const byMonth: Record<string, Record<string, number>> = {}
+    const byMonth = new Map<string, Record<string, number>>()
     for (const t of it.trends) {
-      if (!byMonth[t.month]) byMonth[t.month] = { month: 0 } as never
-      const entry = byMonth[t.month] as Record<string, number>
-      entry['month'] = 0 // placeholder
-      entry[t.vaultType] = (entry[t.vaultType] || 0) + t.totalAmount
+      if (!byMonth.has(t.month)) byMonth.set(t.month, {})
+      const entry = byMonth.get(t.month)!
+      entry[t.vaultType] = (entry[t.vaultType] ?? 0) + t.totalAmount
     }
-    return Object.entries(byMonth)
+    return Array.from(byMonth.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, vals]) => ({ month, ...vals }))
   }, [it.trends])

@@ -7,7 +7,7 @@ import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home, HandCoins } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home, HandCoins, AlertCircle } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
@@ -319,13 +319,20 @@ export default function MarketplacePage() {
   const queryClient = useQueryClient()
   const userRole = useUserStore((s) => s.user?.role)
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   const handleDeleteProperty = async (propertyId: string) => {
     try {
       await apiDelete(`/properties/${propertyId}`)
       queryClient.invalidateQueries({ queryKey: ['properties'] })
     } catch {
-      alert('Failed to archive property. Please try again.')
+      setToast('Failed to archive property. Please try again.')
     }
   }
 
@@ -557,6 +564,17 @@ export default function MarketplacePage() {
           </div>
         </div>
       </div>
+
+      {/* Error toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 shadow-lg text-sm text-red-700 animate-fade-in">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {toast}
+          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-red-100 rounded">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </MainLayout>
   )
 }

@@ -62,6 +62,19 @@ export type {
   PlatformConfigCreate,
   PlatformConfigUpdate,
   ControlCentreDashboard,
+  VaultProfileQuestion,
+  QuestionOption,
+  SliderOptions,
+  UserProfileAnswer,
+  UserProfileAnswerCreate,
+  UserProfileAnswerBulk,
+  OpportunityCustomQuestion,
+  OpportunityCustomQuestionCreate,
+  PersonalityDimension,
+  MatchScore,
+  MatchBreakdown,
+  MatchedUser,
+  ProfilingProgress,
 } from "./models";
 
 // API response types

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
-from app.middleware.auth import require_role
+from app.middleware.auth import get_current_user, require_role
 from app.models.property import AssetType, Builder, Property, PropertyStatus
 from app.models.user import User, UserRole
 from app.schemas.property import (
@@ -275,6 +275,49 @@ class BuilderProfileResponse(BaseModel):
     properties: list[PropertyListItem] = []
 
     model_config = {"from_attributes": True}
+
+
+@router.get("/builders/me", response_model=BuilderProfileResponse)
+async def get_my_builder_profile(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> BuilderProfileResponse:
+    """Current user's builder profile with their listed properties."""
+    result = await db.execute(
+        select(Builder).where(Builder.user_id == user.id)
+    )
+    builder = result.scalar_one_or_none()
+    if not builder:
+        raise HTTPException(status_code=404, detail="Builder profile not found")
+
+    props_q = (
+        select(Property)
+        .where(Property.builder_id == builder.id, Property.status != PropertyStatus.ARCHIVED)
+        .order_by(Property.created_at.desc())
+    )
+    props = (await db.execute(props_q)).scalars().all()
+
+    return BuilderProfileResponse(
+        id=builder.id,
+        company_name=builder.company_name,
+        rera_number=builder.rera_number,
+        cin=builder.cin,
+        gstin=builder.gstin,
+        website=builder.website,
+        logo_url=builder.logo_url,
+        description=builder.description,
+        verified=builder.verified,
+        phone=builder.phone,
+        email=builder.email,
+        address=builder.address,
+        city=builder.city,
+        experience_years=builder.experience_years,
+        projects_completed=builder.projects_completed,
+        total_sqft_delivered=builder.total_sqft_delivered,
+        about=builder.about,
+        created_at=builder.created_at.isoformat(),
+        properties=[PropertyListItem.model_validate(p) for p in props],
+    )
 
 
 @router.get("/builders/{builder_id}", response_model=BuilderProfileResponse)

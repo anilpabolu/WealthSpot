@@ -28,6 +28,14 @@ export default function RootLayout() {
         <Stack.Screen name="property/[slug]" options={{ title: 'Property Details' }} />
         <Stack.Screen name="invest/[id]" options={{ title: 'Invest', presentation: 'modal' }} />
         <Stack.Screen name="kyc" options={{ title: 'KYC Verification' }} />
+        <Stack.Screen
+          name="profiling"
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack>
     </QueryClientProvider>
   )

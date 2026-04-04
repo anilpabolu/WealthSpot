@@ -11,6 +11,7 @@ import {
   MapPin, Calendar, Users, Building2, FileText, Shield,
   ArrowRight, ChevronLeft, Heart, Share2, CheckCircle2,
   Clock, ChevronRight, Play, Star, Sparkles, Phone, ExternalLink, User2,
+  AlertCircle, X,
 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiPost } from '@/lib/api'
@@ -255,6 +256,13 @@ function InvestmentPanel({
 export default function PropertyDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: property, isLoading } = useProperty(slug ?? '')
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 5000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   if (isLoading) {
     return (
@@ -360,9 +368,9 @@ export default function PropertyDetailPage() {
                           property_id: property.id,
                           message: `Enquiry for "${property.title}" from the property detail page`,
                         })
-                        alert('Your enquiry has been sent! The referrer/builder will contact you shortly.')
+                        setToast({ type: 'success', message: 'Your enquiry has been sent! The referrer/builder will contact you shortly.' })
                       } catch {
-                        alert('Could not send enquiry. Please try again.')
+                        setToast({ type: 'error', message: 'Could not send enquiry. Please try again.' })
                       }
                     }}
                     className="btn-primary text-sm flex items-center gap-2 shrink-0"
@@ -566,6 +574,19 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-xl border shadow-lg text-sm animate-fade-in ${
+          toast.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-black/5 rounded">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </MainLayout>
   )
 }

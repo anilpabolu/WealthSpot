@@ -128,7 +128,7 @@ function mapProperty(p: ApiProperty): Property {
     micromarket: p.locality ?? '',
     address: p.address ?? '',
     assetType: p.assetType,
-    coverImage: p.coverImage ?? '/placeholder-property.jpg',
+    coverImage: p.coverImage ?? '/placeholder-property.svg',
     gallery: p.gallery ?? [],
     targetIrr: Number(p.targetIrr),
     minInvestment: Number(p.minInvestment),

@@ -15,6 +15,10 @@ import {
 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
+import { useMyMatchScore, useProfilingProgress } from '@/hooks/useProfiling'
+import { MatchScoreFull, ProfilePrompt } from '@/components/profiling/MatchScoreBadge'
+import { OpportunityMatchesPanel } from '@/components/profiling'
+import { useUserStore } from '@/stores/user.store'
 
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
@@ -346,6 +350,43 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
   )
 }
 
+/* ── Match Score Section — shows score or profile prompt ─────────────── */
+
+function MatchScoreSection({ opportunityId, vaultType, creatorId }: { opportunityId: string; vaultType: string; creatorId: string }) {
+  const { data: matchScore, isLoading: matchLoading } = useMyMatchScore(opportunityId)
+  const { data: progress } = useProfilingProgress(vaultType)
+  const userId = useUserStore((s) => s.user?.id)
+  const isCreator = userId === creatorId
+
+  if (matchLoading) {
+    return <div className="card p-6 animate-pulse"><div className="h-20 bg-gray-100 rounded-xl" /></div>
+  }
+
+  // If this is the creator, show matched investors panel
+  if (isCreator) {
+    return <OpportunityMatchesPanel opportunityId={opportunityId} />
+  }
+
+  // If user has a match score computed, show it
+  if (matchScore) {
+    return <MatchScoreFull score={matchScore} />
+  }
+
+  // If profile not completed, show prompt
+  if (!progress || progress.completionPct < 100) {
+    return <ProfilePrompt vaultType={vaultType} />
+  }
+
+  // Profile done but no score yet — could be pending computation
+  return (
+    <div className="card p-5 text-center">
+      <p className="text-sm text-gray-500">
+        Your match score is being computed...
+      </p>
+    </div>
+  )
+}
+
 export default function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: opp, isLoading } = useOpportunityBySlug(slug ?? '')
@@ -601,8 +642,8 @@ export default function OpportunityDetailPage() {
             )}
           </div>
 
-          {/* Right — Interest Panel */}
-          <div className="lg:col-span-1">
+          {/* Right — Interest Panel + Match Score */}
+          <div className="lg:col-span-1 space-y-6">
             <InterestPanel opportunity={{
               id: opp.id,
               title: opp.title,
@@ -614,6 +655,9 @@ export default function OpportunityDetailPage() {
               targetIrr: opp.targetIrr,
               closingDate: opp.closingDate,
             }} />
+
+            {/* Match Score or Profile Prompt */}
+            <MatchScoreSection opportunityId={opp.id} vaultType={opp.vaultType} creatorId={opp.creatorId} />
           </div>
         </div>
       </div>

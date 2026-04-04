@@ -6,7 +6,9 @@
 import { View, Text, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
+import { router } from 'expo-router'
 import { useCommunityPosts, useLikePost } from '@/hooks/useCommunity'
+import { useProfilingProgress } from '@/hooks/useProfiling'
 import { formatRelativeTime } from '@/lib/formatters'
 
 const CATEGORIES = ['All', 'Discussion', 'Questions', 'Polls', 'Announcements']
@@ -16,6 +18,8 @@ export default function CommunityScreen() {
   const category = activeCategory === 'All' ? undefined : activeCategory.toLowerCase()
   const { data, isLoading } = useCommunityPosts({ category })
   const likePost = useLikePost()
+  const { data: communityProgress } = useProfilingProgress('community')
+  const profilingPct = communityProgress?.completionPct ?? 0
 
   const posts = data?.items ?? []
 
@@ -53,11 +57,39 @@ export default function CommunityScreen() {
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
-          isLoading ? (
-            <View className="items-center py-10">
-              <ActivityIndicator size="large" color="#5B4FCF" />
-            </View>
-          ) : null
+          <>
+            {/* Profiling CTA */}
+            {profilingPct < 100 && (
+              <Pressable
+                onPress={() => router.push('/profiling?vault=community')}
+                className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-4"
+              >
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-2xl">🤝</Text>
+                  <View className="flex-1">
+                    <Text className="text-sm font-bold text-gray-900">
+                      {profilingPct > 0 ? 'Continue Community Profile' : 'Complete Your Profile'}
+                    </Text>
+                    <Text className="text-[11px] text-gray-500 mt-0.5">
+                      Find your perfect collaboration match
+                    </Text>
+                    <View className="h-1.5 rounded-full bg-emerald-100 mt-2 overflow-hidden">
+                      <View
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${Math.min(profilingPct, 100)}%` }}
+                      />
+                    </View>
+                  </View>
+                  <Ionicons name="arrow-forward" size={18} color="#10B981" />
+                </View>
+              </Pressable>
+            )}
+            {isLoading ? (
+              <View className="items-center py-10">
+                <ActivityIndicator size="large" color="#5B4FCF" />
+              </View>
+            ) : null}
+          </>
         }
         ListEmptyComponent={
           !isLoading ? (

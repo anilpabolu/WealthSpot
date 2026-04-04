@@ -35,5 +35,5 @@ class OpportunityCommMapping(Base):
     )
 
     # Relationships
-    opportunity = relationship("Opportunity", lazy="joined")
+    opportunity = relationship("Opportunity", lazy="joined", overlaps="comm_mappings")
     user = relationship("User", lazy="joined")

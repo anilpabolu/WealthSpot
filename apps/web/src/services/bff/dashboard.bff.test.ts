@@ -44,24 +44,40 @@ describe('dashboardBff', () => {
 
   describe('getBuilderDashboard', () => {
     it('aggregates builder info and calculates stats', async () => {
-      const mockBuilder = { company_name: 'BuilderX', verified: true }
+      // /properties/builders/me returns builder profile + embedded properties list
       const mockListings = [
         { id: 'l1', title: 'P1', status: 'funding', raised_amount: 5000000, target_amount: 10000000, investor_count: 20 },
         { id: 'l2', title: 'P2', status: 'active', raised_amount: 3000000, target_amount: 5000000, investor_count: 10 },
         { id: 'l3', title: 'P3', status: 'closed', raised_amount: 2000000, target_amount: 2000000, investor_count: 5 },
       ]
+      const mockBuilderProfile = {
+        company_name: 'BuilderX',
+        verified: true,
+        properties: mockListings,
+      }
 
-      vi.mocked(apiGet)
-        .mockResolvedValueOnce(mockBuilder)
-        .mockResolvedValueOnce(mockListings)
+      vi.mocked(apiGet).mockResolvedValueOnce(mockBuilderProfile)
 
       const result = await dashboardBff.getBuilderDashboard()
 
-      expect(result.builder).toEqual(mockBuilder)
+      expect(apiGet).toHaveBeenCalledWith('/properties/builders/me')
+      expect(result.builder).toEqual({ company_name: 'BuilderX', verified: true })
       expect(result.listings).toEqual(mockListings)
       expect(result.stats.total_raised).toBe(10000000)
       expect(result.stats.active_count).toBe(2) // funding + active
       expect(result.stats.investor_count).toBe(35)
+    })
+
+    it('handles empty listings gracefully', async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        company_name: 'EmptyBuilder',
+        verified: false,
+      })
+      const result = await dashboardBff.getBuilderDashboard()
+      expect(result.listings).toEqual([])
+      expect(result.stats.total_raised).toBe(0)
+      expect(result.stats.active_count).toBe(0)
+      expect(result.stats.investor_count).toBe(0)
     })
   })
 })
