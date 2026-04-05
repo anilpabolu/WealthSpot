@@ -45,7 +45,8 @@ export default function BuilderProfilePage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-section">
+        <div className="page-section-container max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
@@ -215,6 +216,7 @@ export default function BuilderProfilePage() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </MainLayout>
   )

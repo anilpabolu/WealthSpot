@@ -4,7 +4,7 @@
  */
 
 import { View, Text, ScrollView, Pressable, Image, TextInput, FlatList, ActivityIndicator } from 'react-native'
-import { Link } from 'expo-router'
+import { Link, useLocalSearchParams } from 'expo-router'
 import { useState, useMemo } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
@@ -12,11 +12,19 @@ import { useProperties } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 
 const FILTER_CHIPS = ['All', 'Residential', 'Commercial', 'Warehousing', 'Plotted']
+const COMMUNITY_SUBTYPE_CHIPS = [
+  { value: '', label: 'All' },
+  { value: 'co_investor', label: 'Co-Investor' },
+  { value: 'co_partner', label: 'Co-Partner' },
+] as const
 
 export default function MarketplaceScreen() {
+  const { vault, subtype } = useLocalSearchParams<{ vault?: string; subtype?: string }>()
+  const isCommunityVault = vault === 'community'
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
   const [search, setSearch] = useState(filters.search ?? '')
   const [activeFilter, setActiveFilter] = useState(filters.assetType ?? 'All')
+  const [communitySubtype, setCommunitySubtype] = useState(subtype ?? '')
 
   const queryFilters = useMemo(
     () => ({
@@ -80,6 +88,36 @@ export default function MarketplaceScreen() {
           </Pressable>
         ))}
       </ScrollView>
+
+      {/* Community Subtype Chips */}
+      {isCommunityVault && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="bg-white px-4 pb-3"
+        >
+          <View className="flex-row items-center">
+            <Text className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-2">Type:</Text>
+            {COMMUNITY_SUBTYPE_CHIPS.map((chip) => (
+              <Pressable
+                key={chip.value}
+                onPress={() => setCommunitySubtype(chip.value)}
+                className={`mr-2 px-4 py-1.5 rounded-full ${
+                  communitySubtype === chip.value ? 'bg-emerald-600' : 'bg-gray-100'
+                }`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    communitySubtype === chip.value ? 'text-white' : 'text-gray-600'
+                  }`}
+                >
+                  {chip.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      )}
 
       {/* Property Grid */}
       <FlatList

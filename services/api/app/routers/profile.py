@@ -51,32 +51,26 @@ def _calculate_completion(user: User) -> tuple[int, dict[str, bool]]:
     """Calculate profile completion percentage and per-section status."""
     sections: dict[str, bool] = {}
 
-    # Section 1: Personal & Risk Profile (need at least name + 3 risk fields)
+    # Section 1: Personal info (need at least 3 of name/DOB/gender/occupation)
     s1_fields = [
         user.full_name, user.date_of_birth, user.gender,
-        user.occupation, user.annual_income, user.risk_tolerance,
-        user.investment_horizon,
+        user.occupation,
     ]
-    s1_done = sum(1 for f in s1_fields if f) >= 5
-    sections["personal_risk"] = s1_done
+    s1_done = sum(1 for f in s1_fields if f) >= 3
+    sections["personal"] = s1_done
 
     # Section 2: Interests (need at least 1 interest + 1 city)
     s2_done = bool(user.interests and len(user.interests) > 0 and
                    user.preferred_cities and len(user.preferred_cities) > 0)
     sections["interests"] = s2_done
 
-    # Section 3: Skills (need at least 1 skill + hours)
-    s3_done = bool(user.skills and len(user.skills) > 0 and
-                   user.weekly_hours_available)
-    sections["skills"] = s3_done
+    # Section 3: Address (need line1 + city + pincode)
+    s3_done = bool(user.address_line1 and user.city and user.pincode)
+    sections["address"] = s3_done
 
-    # Section 4: Address (need line1 + city + pincode)
-    s4_done = bool(user.address_line1 and user.city and user.pincode)
-    sections["address"] = s4_done
-
-    # Section 5: Verification
-    s5_done = user.email_verified and user.phone_verified
-    sections["verification"] = s5_done
+    # Section 4: Verification
+    s4_done = user.email_verified and user.phone_verified
+    sections["verification"] = s4_done
 
     completed = sum(1 for v in sections.values() if v)
     pct = round((completed / len(sections)) * 100)

@@ -34,11 +34,17 @@ const MOCK_RECENT = [
 export default function AdminDashboardPage() {
   return (
     <PortalLayout variant="admin">
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Admin Overview</h1>
-          <p className="text-gray-500 mt-1">Platform management dashboard</p>
+      {/* Hero */}
+      <div className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Admin Console</span>
+          <h1 className="page-hero-title">Admin Overview</h1>
+          <p className="page-hero-subtitle">Platform management dashboard — users, KYC, properties & compliance.</p>
         </div>
+      </div>
+
+      <div className="page-section">
+        <div className="page-section-container space-y-6">
 
         {/* Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,14 +136,14 @@ export default function AdminDashboardPage() {
           {/* Recent Activity */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-bold text-gray-900">Recent Activity</h2>
+              <h2 className="section-title text-lg">Recent Activity</h2>
               <Link to="/portal/admin/audit" className="text-sm text-primary hover:underline flex items-center gap-1">
                 Audit Log <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="space-y-3">
               {MOCK_RECENT.map((activity, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-2xl">
                   <div className="h-2 w-2 bg-primary rounded-full mt-1.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-700">{activity.text}</p>
@@ -154,25 +160,26 @@ export default function AdminDashboardPage() {
 
         {/* Revenue summary card */}
         <div className="card p-6">
-          <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Revenue Overview</h2>
+          <h2 className="section-title text-lg mb-4">Revenue Overview</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Platform Fees</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(4500000)}</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">WealthPass</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(890000)}</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Builder Fees</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(650000)}</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Other</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(260000)}</p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </PortalLayout>

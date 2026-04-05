@@ -71,8 +71,8 @@ function RecentTransactionsTable() {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-bold text-gray-900">Recent Transactions</h3>
-        <Link to="/portal/investor/transactions" className="text-sm text-primary hover:underline">
+        <h3 className="section-title text-lg">Recent Transactions</h3>
+        <Link to="/portal/investor/transactions" className="text-sm font-semibold text-primary hover:underline">
           View All
         </Link>
       </div>
@@ -85,8 +85,8 @@ function RecentTransactionsTable() {
             const Icon = typeIcon[tx.type] ?? Wallet
             const color = typeColor[tx.type] ?? 'text-gray-400'
             return (
-              <div key={tx.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className={`h-9 w-9 rounded-lg bg-white flex items-center justify-center ${color}`}>
+              <div key={tx.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className={`h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm ${color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -113,8 +113,8 @@ function RecommendedProperties() {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-bold text-gray-900">Recommended for You</h3>
-        <Link to="/marketplace" className="text-sm text-primary hover:underline flex items-center gap-1">
+        <h3 className="section-title text-lg">Recommended for You</h3>
+        <Link to="/marketplace" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
           Explore <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -146,41 +146,57 @@ function RecommendedProperties() {
 export default function InvestorDashboardPage() {
   return (
     <PortalLayout variant="investor">
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Welcome back 👋</h1>
-          <p className="text-gray-500 mt-1">Here's your portfolio overview</p>
+      {/* Hero section */}
+      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Investor Dashboard</span>
+          <h1 className="page-hero-title">Welcome back 👋</h1>
+          <p className="page-hero-subtitle">Here's your portfolio overview — track your wealth journey in real time.</p>
         </div>
+      </div>
 
-        <PortfolioMetrics />
-        <div className="grid lg:grid-cols-2 gap-6">
-          <RecentTransactionsTable />
-          <div className="space-y-6">
-            {/* Quick actions */}
-            <div className="card p-6">
-              <h3 className="font-display text-lg font-bold text-gray-900 mb-3">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <Link to="/marketplace" className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-gray-900">Browse Properties</span>
-                </Link>
-                <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <PieChart className="h-5 w-5 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-900">My Portfolio</span>
-                </Link>
-                <Link to="/community" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Users className="h-5 w-5 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-900">Community</span>
-                </Link>
-                <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Gift className="h-5 w-5 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-900">Refer & Earn</span>
-                </Link>
+      <div className="page-section">
+        <div className="page-section-container space-y-8">
+          <PortfolioMetrics />
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            <RecentTransactionsTable />
+            <div className="space-y-6">
+              {/* Quick actions */}
+              <div className="card p-6">
+                <h3 className="section-title text-lg mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/marketplace" className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl hover:bg-primary/10 transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-primary/10 group-hover:scale-110 transition-transform">
+                      <Building2 className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">Browse Properties</span>
+                  </Link>
+                  <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
+                      <PieChart className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">My Portfolio</span>
+                  </Link>
+                  <Link to="/community" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
+                      <Users className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">Community</span>
+                  </Link>
+                  <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
+                      <Gift className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">Refer & Earn</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
+
+          <RecommendedProperties />
         </div>
-        <RecommendedProperties />
       </div>
     </PortalLayout>
   )

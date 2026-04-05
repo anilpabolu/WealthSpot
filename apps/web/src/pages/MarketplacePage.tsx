@@ -337,18 +337,36 @@ export default function MarketplacePage() {
   }
 
   const vaultParam = searchParams.get('vault') ?? ''
+  const subtypeParam = searchParams.get('subtype') ?? ''
   const vaultMeta = VAULT_META[vaultParam]
 
   // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
   const { data: oppsData } = useOpportunities(
-    vaultParam ? { vaultType: vaultParam } : undefined
+    vaultParam
+      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }) }
+      : undefined
   )
   const opportunities = oppsData?.items ?? []
+
+  // Active community subtype filter (from URL or user toggle)
+  const [communityFilter, setCommunityFilter] = useState(subtypeParam)
+
+  const handleCommunityFilter = (subtype: string) => {
+    setCommunityFilter(subtype)
+    const next = new URLSearchParams(searchParams)
+    if (subtype) {
+      next.set('subtype', subtype)
+    } else {
+      next.delete('subtype')
+    }
+    setSearchParams(next)
+  }
 
   // Clear vault context banner
   const clearVault = () => {
     const next = new URLSearchParams(searchParams)
     next.delete('vault')
+    next.delete('subtype')
     setSearchParams(next)
   }
 
@@ -358,10 +376,20 @@ export default function MarketplacePage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      {/* Hero */}
+      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Marketplace</span>
+          <h1 className="page-hero-title">Property Marketplace</h1>
+          <p className="page-hero-subtitle">Discover RERA-verified investment opportunities across India's top cities.</p>
+        </div>
+      </div>
+
+      <div className="page-section">
+        <div className="page-section-container">
         {/* Vault context banner */}
         {vaultMeta && (
-          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 mb-5 ${vaultMeta.color}`}>
+          <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 mb-5 ${vaultMeta.color}`}>
             <vaultMeta.Icon className="h-5 w-5 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{vaultMeta.label}</p>
@@ -377,11 +405,25 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {/* Page header */}
-        <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold text-gray-900">Property Marketplace</h1>
-          <p className="text-gray-500 mt-1">Discover RERA-verified investment opportunities</p>
-        </div>
+        {/* Community subtype filter chips */}
+        {vaultParam === 'community' && (
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-1">Type:</span>
+            {([['', 'All'], ['co_investor', 'Co-Investor'], ['co_partner', 'Co-Partner']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => handleCommunityFilter(val)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  communityFilter === val
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Search bar with autocomplete */}
         <SearchBar />
@@ -562,6 +604,7 @@ export default function MarketplacePage() {
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
 

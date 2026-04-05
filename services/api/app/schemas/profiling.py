@@ -171,3 +171,20 @@ class ProfilingProgressRead(BaseModel):
     completion_pct: float
     is_complete: bool
     personality: PersonalityDimensionRead | None = None
+
+
+# ── Overall Progress ─────────────────────────────────────────────────────────
+
+class VaultProgressDetail(BaseModel):
+    total: int
+    answered: int
+    pct: float
+    is_complete: bool
+    archetype: str | None = None
+
+
+class OverallProgressRead(BaseModel):
+    profile_pct: int
+    vaults: dict[str, VaultProgressDetail]
+    overall_pct: int
+    is_fully_profiled: bool

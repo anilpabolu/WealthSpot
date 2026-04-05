@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -40,6 +40,8 @@ import {
   Briefcase,
   Calendar,
   BarChart3,
+  Image,
+  FileText,
 } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
@@ -86,27 +88,40 @@ import {
 } from '@/hooks/useAppVideos'
 import { formatINR } from '@/lib/formatters'
 import VaultAnalyticsDashboard from '@/pages/VaultAnalyticsDashboard'
+import {
+  useListOpportunityMedia,
+  useAdminUploadMedia,
+  useDeleteMedia,
+  useUpdateMedia,
+} from '@/hooks/useMediaAdmin'
+import {
+  useAllSiteContent,
+  useUpdateSiteContent,
+  useCreateSiteContent,
+  useDeleteSiteContent,
+} from '../hooks/useSiteContent'
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'vault-analytics' | 'users' | 'approvals' | 'notifications' | 'content' | 'templates' | 'platform' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content'
 
-const SECTIONS: Array<{ id: Section; label: string; icon: typeof LayoutDashboard }> = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'vault-analytics', label: 'Vault Analytics', icon: BarChart3 },
-  { id: 'users', label: 'Users & Roles', icon: Users },
-  { id: 'approvals', label: 'Approval Config', icon: ClipboardCheck },
-  { id: 'referral-tracking', label: 'Referral Tracking', icon: Gift },
-  { id: 'eoi-pipeline', label: 'EOI Pipeline', icon: Kanban },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle },
-  { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2 },
-  { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle },
-  { id: 'content', label: 'Content & Videos', icon: FileVideo },
-  { id: 'templates', label: 'Templates', icon: FileSpreadsheet },
-  { id: 'platform', label: 'Platform Settings', icon: Settings },
+type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
+
+const SECTIONS: SideNavItem[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'Overview' },
+  { id: 'vault-analytics', label: 'Vault Analytics', icon: BarChart3, group: 'Overview' },
+  { id: 'users', label: 'Users & Roles', icon: Users, group: 'Users' },
+  { id: 'referral-tracking', label: 'Referral Tracking', icon: Gift, group: 'Users' },
+  { id: 'eoi-pipeline', label: 'EOI Pipeline', icon: Kanban, group: 'Operations' },
+  { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle, group: 'Operations' },
+  { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
+  { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle, group: 'Operations' },
+  { id: 'media-management', label: 'Media Manager', icon: Image, group: 'Content' },
+  { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
+  { id: 'site-content', label: 'Site Content (CMS)', icon: FileText, group: 'Content' },
+  { id: 'admin-settings', label: 'Admin Settings', icon: Settings, group: 'Settings' },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -362,6 +377,55 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin Settings Tab (consolidated config sections)                  */
+/* ------------------------------------------------------------------ */
+
+const ADMIN_SECTIONS = [
+  { key: 'approvals', title: 'Approval Configuration', description: 'Control approval workflows, thresholds, and auto-approval rules.', icon: ClipboardCheck },
+  { key: 'notifications', title: 'Notification Settings', description: 'Manage email, SMS, and in-app notification triggers and templates.', icon: Bell },
+  { key: 'templates', title: 'Template Configuration', description: 'Configure document, email, and report templates used across the platform.', icon: FileSpreadsheet },
+  { key: 'platform', title: 'Platform Settings', description: 'Core platform parameters — fees, limits, feature flags, and global defaults.', icon: Settings },
+]
+
+function AdminSettingsTab() {
+  const [expanded, setExpanded] = useState<string | null>('approvals')
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold text-gray-900">Admin Settings</h2>
+      <p className="text-sm text-gray-500">Manage all platform configuration in one place — approvals, notifications, templates, and global settings.</p>
+
+      <div className="space-y-3">
+        {ADMIN_SECTIONS.map((sec) => {
+          const Icon = sec.icon
+          const isOpen = expanded === sec.key
+          return (
+            <div key={sec.key} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <button
+                onClick={() => setExpanded(isOpen ? null : sec.key)}
+                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+              >
+                <Icon className="h-5 w-5 text-gray-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">{sec.title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{sec.description}</p>
+                </div>
+                {isOpen ? <ChevronUp className="h-4 w-4 text-gray-400 shrink-0" /> : <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />}
+              </button>
+              {isOpen && (
+                <div className="border-t border-gray-100 px-5 py-5">
+                  <ConfigTab section={sec.key} title={sec.title} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -989,9 +1053,9 @@ function UserDetailsModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] overflow-hidden"
+        className="modal-panel max-w-md mx-4 max-h-[85vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -1645,6 +1709,282 @@ function VideoManagementTab() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Media Management Tab                                               */
+/* ------------------------------------------------------------------ */
+
+function MediaManagementTab() {
+  const { data: opps } = useOpportunities()
+  const [selectedOpp, setSelectedOpp] = useState<string>('')
+  const { data: mediaList, isLoading } = useListOpportunityMedia(selectedOpp || undefined)
+  const uploadMut = useAdminUploadMedia()
+  const deleteMut = useDeleteMedia()
+  const updateMut = useUpdateMedia()
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const opportunities = opps?.items || []
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-xl font-bold text-gray-900">Media Manager</h2>
+        <p className="text-sm text-gray-500 mt-1">Upload, manage and delete images/videos for any opportunity.</p>
+      </div>
+
+      {/* Opportunity Selector */}
+      <div className="flex items-center gap-4">
+        <select
+          value={selectedOpp}
+          onChange={(e) => setSelectedOpp(e.target.value)}
+          className="input max-w-md"
+        >
+          <option value="">Select an opportunity…</option>
+          {(Array.isArray(opportunities) ? opportunities : []).map((o: any) => (
+            <option key={o.id} value={o.id}>{o.title}</option>
+          ))}
+        </select>
+        {selectedOpp && (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files || [])
+                if (files.length) uploadMut.mutate({ opportunityId: selectedOpp, files })
+                e.target.value = ''
+              }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploadMut.isPending}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <Upload className="h-4 w-4" />
+              {uploadMut.isPending ? 'Uploading…' : 'Upload Files'}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Media Grid */}
+      {selectedOpp && (
+        <div>
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-gray-400 py-8">
+              <Loader2 className="h-5 w-5 animate-spin" /> Loading media…
+            </div>
+          ) : !mediaList?.length ? (
+            <div className="text-center py-12 text-gray-400">
+              <Image className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No media uploaded yet for this opportunity.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {mediaList.map((m) => (
+                <div key={m.id} className="relative group rounded-lg overflow-hidden border bg-white shadow-sm">
+                  {m.media_type === 'video' ? (
+                    <div className="aspect-video bg-gray-900 flex items-center justify-center">
+                      <Play className="h-8 w-8 text-white/70" />
+                    </div>
+                  ) : (
+                    <img src={m.url} alt={m.filename} className="aspect-video w-full object-cover" />
+                  )}
+                  <div className="p-2 text-xs text-gray-500 truncate">{m.filename}</div>
+                  {m.is_cover && (
+                    <span className="absolute top-2 left-2 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-semibold">Cover</span>
+                  )}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!m.is_cover && (
+                      <button
+                        onClick={() => updateMut.mutate({ mediaId: m.id, isCover: true })}
+                        className="p-1.5 bg-white/90 rounded shadow text-xs hover:bg-white"
+                        title="Set as cover"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { if (confirm('Delete this media?')) deleteMut.mutate(m.id) }}
+                      className="p-1.5 bg-white/90 rounded shadow text-xs hover:bg-red-50"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Site Content (CMS) Tab                                             */
+/* ------------------------------------------------------------------ */
+
+function SiteContentTab() {
+  const { data: allContent, isLoading } = useAllSiteContent()
+  const updateMut = useUpdateSiteContent()
+  const createMut = useCreateSiteContent()
+  const deleteMut = useDeleteSiteContent()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [showNew, setShowNew] = useState(false)
+  const [newPage, setNewPage] = useState('')
+  const [newSection, setNewSection] = useState('')
+  const [newValue, setNewValue] = useState('')
+  const [newDesc, setNewDesc] = useState('')
+
+  const items = (allContent || []).filter((c: any) =>
+    !searchTerm ||
+    c.page?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.section_tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.value?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const grouped = items.reduce((acc: Record<string, any[]>, item: any) => {
+    const page = item.page || 'unknown'
+    if (!acc[page]) acc[page] = []
+    acc[page].push(item)
+    return acc
+  }, {} as Record<string, any[]>)
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold text-gray-900">Site Content (CMS)</h2>
+          <p className="text-sm text-gray-500 mt-1">Edit text content across all pages. Changes are reflected in real-time.</p>
+        </div>
+        <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2 text-sm">
+          <Plus className="h-4 w-4" /> Add Content
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search by page, section or text…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="input pl-10"
+        />
+      </div>
+
+      {/* New Content Form */}
+      {showNew && (
+        <div className="card p-4 space-y-3 border-primary/30">
+          <h3 className="text-sm font-semibold text-gray-700">New Content Entry</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <input placeholder="Page (e.g. landing)" value={newPage} onChange={(e) => setNewPage(e.target.value)} className="input text-sm" />
+            <input placeholder="Section tag (e.g. hero_title)" value={newSection} onChange={(e) => setNewSection(e.target.value)} className="input text-sm" />
+          </div>
+          <textarea placeholder="Content value" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="input text-sm min-h-[60px]" />
+          <input placeholder="Description (optional)" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="input text-sm" />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (newPage && newSection && newValue) {
+                  createMut.mutate({ page: newPage, section_tag: newSection, value: newValue, description: newDesc || undefined })
+                  setShowNew(false); setNewPage(''); setNewSection(''); setNewValue(''); setNewDesc('')
+                }
+              }}
+              disabled={!newPage || !newSection || !newValue || createMut.isPending}
+              className="btn-primary text-sm"
+            >
+              {createMut.isPending ? 'Saving…' : 'Save'}
+            </button>
+            <button onClick={() => setShowNew(false)} className="btn-ghost text-sm">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Content List */}
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-gray-400 py-8">
+          <Loader2 className="h-5 w-5 animate-spin" /> Loading content…
+        </div>
+      ) : !items.length ? (
+        <div className="text-center py-12 text-gray-400">
+          <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p>No site content found. Click "Add Content" to create entries.</p>
+        </div>
+      ) : (
+        Object.entries(grouped).sort().map(([page, pageItems]) => (
+          <div key={page} className="space-y-2">
+            <h3 className="font-semibold text-sm text-primary uppercase tracking-wide flex items-center gap-2">
+              <FileText className="h-4 w-4" /> {page}
+              <span className="text-gray-400 font-normal">({(pageItems as any[]).length} entries)</span>
+            </h3>
+            <div className="divide-y bg-white rounded-lg border shadow-sm">
+              {(pageItems as any[]).map((item: any) => (
+                <div key={item.id} className="px-4 py-3 flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{item.section_tag}</code>
+                      {item.description && <span className="text-xs text-gray-400">— {item.description}</span>}
+                    </div>
+                    {editingId === item.id ? (
+                      <textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="input text-sm mt-2 min-h-[50px] w-full"
+                        autoFocus
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-700 mt-1 line-clamp-2">{item.value}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 mt-1">
+                    {editingId === item.id ? (
+                      <>
+                        <button
+                          onClick={() => { updateMut.mutate({ id: item.id, value: editValue }); setEditingId(null) }}
+                          className="p-1.5 rounded hover:bg-green-50"
+                          disabled={updateMut.isPending}
+                        >
+                          <Check className="h-4 w-4 text-green-600" />
+                        </button>
+                        <button onClick={() => setEditingId(null)} className="p-1.5 rounded hover:bg-gray-100">
+                          <X className="h-4 w-4 text-gray-400" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setEditingId(item.id); setEditValue(item.value || '') }}
+                          className="p-1.5 rounded hover:bg-gray-100"
+                        >
+                          <Edit3 className="h-4 w-4 text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => { if (confirm('Delete this content entry?')) deleteMut.mutate(item.id) }}
+                          className="p-1.5 rounded hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -1656,25 +1996,43 @@ export default function CommandControlPage() {
       {/* Shared Navbar */}
       <Navbar />
 
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Super Admin</span>
+          <h1 className="page-hero-title">Command & Control</h1>
+          <p className="page-hero-subtitle">Manage users, configurations, content, and platform-wide settings from one place.</p>
+        </div>
+      </section>
+
       {/* Body */}
       <div className="flex flex-1 w-full">
         {/* Side Nav */}
         <aside className="w-56 shrink-0 border-r border-gray-200 bg-white py-6 px-3 hidden md:block">
           <nav className="space-y-1">
-            {SECTIONS.map((s) => {
+            {SECTIONS.map((s, i) => {
               const Icon = s.icon
               const active = activeSection === s.id
+              const prev = SECTIONS[i - 1] as SideNavItem | undefined
+              const prevGroup = prev?.group ?? null
+              const showGroup = s.group && s.group !== prevGroup
               return (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(s.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    active ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {s.label}
-                </button>
+                <div key={s.id}>
+                  {showGroup && (
+                    <p className={`text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 ${i > 0 ? 'pt-4' : ''} pb-1`}>
+                      {s.group}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => setActiveSection(s.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      active ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {s.label}
+                  </button>
+                </div>
               )
             })}
           </nav>
@@ -1707,15 +2065,14 @@ export default function CommandControlPage() {
           {activeSection === 'dashboard' && <DashboardTab />}
           {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
           {activeSection === 'users' && <UsersTab />}
-          {activeSection === 'approvals' && <ConfigTab section="approvals" title="Approval Configuration" />}
-          {activeSection === 'notifications' && <ConfigTab section="notifications" title="Notification Settings" />}
+          {activeSection === 'admin-settings' && <AdminSettingsTab />}
           {activeSection === 'content' && <VideoManagementTab />}
-          {activeSection === 'templates' && <ConfigTab section="templates" title="Template Configuration" />}
-          {activeSection === 'platform' && <ConfigTab section="platform" title="Platform Settings" />}
           {activeSection === 'builder-questions' && <BuilderQuestionsTab />}
           {activeSection === 'comm-mapping' && <CommMappingTab />}
           {activeSection === 'referral-tracking' && <ReferralTrackingTab />}
           {activeSection === 'eoi-pipeline' && <EOIPipelineTab />}
+          {activeSection === 'media-management' && <MediaManagementTab />}
+          {activeSection === 'site-content' && <SiteContentTab />}
           {activeSection === 'answer-questions' && (
             <div className="space-y-4">
               <h2 className="font-display text-xl font-bold text-gray-900">Answer Questions</h2>

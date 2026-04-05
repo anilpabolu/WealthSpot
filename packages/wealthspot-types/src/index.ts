@@ -19,6 +19,7 @@ export {
   ApprovalPriority,
   VaultType,
   OpportunityStatus,
+  CommunitySubtype,
 } from "./enums";
 
 // Entity models

@@ -21,7 +21,7 @@ export default function MetricCard({
 }: MetricCardProps) {
   if (isLoading) {
     return (
-      <div className={cn('bg-white border border-gray-200 rounded-xl p-6', className)}>
+      <div className={cn('stat-card', className)}>
         <div className="skeleton h-4 w-20 mb-3" />
         <div className="skeleton h-8 w-32 mb-2" />
         <div className="skeleton h-3 w-24" />
@@ -31,31 +31,32 @@ export default function MetricCard({
 
   return (
     <div
-      className={cn(
-        'bg-white border border-gray-200 rounded-xl p-6 transition-shadow hover:shadow-md',
-        className
-      )}
+      className={cn('stat-card', className)}
       role="group"
       aria-label={`${label}: ${value}`}
     >
-      {icon && (
-        <div className="flex justify-end mb-2">
-          <div className="text-gray-300 w-8 h-8">{icon}</div>
-        </div>
-      )}
-      <p className="metric-label">{label}</p>
-      <p className="metric-value mt-1">{value}</p>
-      {delta && (
-        <p
-          className={cn(
-            'text-xs font-medium mt-1 flex items-center gap-1',
-            deltaPositive ? 'text-green-600' : 'text-red-500'
+      <div className="flex items-start justify-between">
+        <div className="space-y-1.5">
+          <p className="metric-label">{label}</p>
+          <p className="metric-value">{value}</p>
+          {delta && (
+            <p
+              className={cn(
+                'text-xs font-semibold flex items-center gap-1',
+                deltaPositive ? 'text-emerald-600' : 'text-red-500'
+              )}
+            >
+              <span>{deltaPositive ? '↗' : '↘'}</span>
+              {delta}
+            </p>
           )}
-        >
-          <span>{deltaPositive ? '↗' : '↘'}</span>
-          {delta}
-        </p>
-      )}
+        </div>
+        {icon && (
+          <div className="stat-card-icon bg-primary/10">
+            {icon}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -145,3 +145,9 @@ export enum OpportunityStatus {
   REJECTED = "rejected",
   CLOSED = "closed",
 }
+
+/** Community vault sub-types */
+export enum CommunitySubtype {
+  CO_INVESTOR = "co_investor",
+  CO_PARTNER = "co_partner",
+}

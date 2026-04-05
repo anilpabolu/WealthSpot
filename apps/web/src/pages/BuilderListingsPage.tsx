@@ -44,7 +44,7 @@ export default function BuilderListingsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gray-900">My Listings</h1>
+            <h1 className="section-title text-2xl">My Listings</h1>
             <p className="text-gray-500 mt-1">Manage and track your property listings</p>
           </div>
           <Link to="/portal/builder/listings/new" className="btn-primary inline-flex items-center gap-2">

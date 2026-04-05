@@ -42,6 +42,23 @@ describe('useOpportunities – API layer', () => {
       expect(result).toHaveProperty('items')
       expect(result.items).toHaveLength(0)
     })
+
+    it('fetches with community_subtype filter param', async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        items: [{ id: 'co1', title: 'Co-Investor Opp', community_subtype: 'co_investor' }],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+      })
+      const result = await apiGet('/opportunities', {
+        params: { vault_type: 'community', community_subtype: 'co_investor', page: 1 },
+      })
+      expect(apiGet).toHaveBeenCalledWith('/opportunities', {
+        params: { vault_type: 'community', community_subtype: 'co_investor', page: 1 },
+      })
+      expect(result).toHaveProperty('total', 1)
+    })
   })
 
   describe('Detail', () => {
@@ -86,6 +103,45 @@ describe('useOpportunities – API layer', () => {
         title: 'New Property',
       }))
       expect(result).toHaveProperty('status', 'draft')
+    })
+
+    it('creates community co-investor opportunity with snake_case payload', async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        id: 'co-inv-opp',
+        status: 'draft',
+        community_subtype: 'co_investor',
+        community_details: { maxInvestors: 20 },
+      })
+      const result = await apiPost('/opportunities', {
+        vault_type: 'community',
+        title: 'Sports Complex Co-Investment',
+        community_type: 'Sports Complex',
+        collaboration_type: 'Capital Only',
+        community_subtype: 'co_investor',
+        community_details: { maxInvestors: 20 },
+      })
+      expect(apiPost).toHaveBeenCalledWith('/opportunities', expect.objectContaining({
+        community_subtype: 'co_investor',
+        community_details: { maxInvestors: 20 },
+      }))
+      expect(result).toHaveProperty('community_subtype', 'co_investor')
+    })
+
+    it('creates community co-partner opportunity with snake_case payload', async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        id: 'co-par-opp',
+        status: 'draft',
+        community_subtype: 'co_partner',
+        community_details: { equityShare: 25, requiredSkills: ['Operations'] },
+      })
+      const result = await apiPost('/opportunities', {
+        vault_type: 'community',
+        title: 'Coworking Space Partnership',
+        community_subtype: 'co_partner',
+        community_details: { equityShare: 25, requiredSkills: ['Operations'] },
+      })
+      expect(result).toHaveProperty('community_subtype', 'co_partner')
+      expect(result).toHaveProperty('community_details')
     })
   })
 

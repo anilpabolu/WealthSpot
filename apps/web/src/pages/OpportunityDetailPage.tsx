@@ -57,9 +57,9 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
     : null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto">
+    <div className="modal-overlay p-4">
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" onClick={onClose} />
+      <div className="modal-panel max-w-lg relative">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <h2 className="font-display text-lg font-bold text-gray-900">Developer / Company</h2>
@@ -210,7 +210,7 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
             }
           }}
         >
-          <img src={images[activeIdx]} alt={`${title} - ${activeIdx + 1}`} className="w-full h-full object-cover" />
+          <img src={images[activeIdx]} alt={`${title} - ${activeIdx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-gray-100'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-gray-100'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }} />
           {images.length > 1 && (
             <>
               <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow" aria-label="Previous image">
@@ -227,7 +227,7 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
             </>
           )}
           <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md">{activeIdx + 1} / {images.length}</span>
-          {videoUrl && (
+          {videoUrl?.trim() && (
             <button
               onClick={() => setShowVideoPlayer(true)}
               className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
@@ -240,7 +240,7 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
           <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((img, i) => (
               <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 ring-2 transition-all ${i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-gray-200'); }} />
               </button>
           ))}
         </div>
@@ -248,9 +248,9 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
       </div>
 
       {/* Video Player Modal */}
-      {showVideoPlayer && videoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowVideoPlayer(false)} />
+      {showVideoPlayer && videoUrl?.trim() && (
+        <div className="modal-overlay p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVideoPlayer(false)} />
           <div className="relative bg-black rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden">
             <button
               onClick={() => setShowVideoPlayer(false)}
@@ -267,6 +267,14 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
               playsInline
               className="w-full aspect-video"
               controlsList="nodownload"
+              onError={(e) => {
+                const video = e.target as HTMLVideoElement;
+                video.style.display = 'none';
+                const msg = document.createElement('div');
+                msg.className = 'w-full aspect-video flex flex-col items-center justify-center text-white/70 gap-3';
+                msg.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.6 11.6L22 7v10l-6.4-4.6M4 5h9a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7c0-1.1.9-2 2-2z"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/></svg><span class="text-sm">Video is not available at this moment</span>';
+                video.parentElement?.appendChild(msg);
+              }}
             >
               Your browser does not support video playback.
             </video>
@@ -456,7 +464,8 @@ export default function OpportunityDetailPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-section">
+        <div className="page-section-container">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
@@ -643,7 +652,7 @@ export default function OpportunityDetailPage() {
           </div>
 
           {/* Right — Interest Panel + Match Score */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
             <InterestPanel opportunity={{
               id: opp.id,
               title: opp.title,
@@ -660,6 +669,7 @@ export default function OpportunityDetailPage() {
             <MatchScoreSection opportunityId={opp.id} vaultType={opp.vaultType} creatorId={opp.creatorId} />
           </div>
         </div>
+        </div>
       </div>
 
       {/* Share Modal */}
@@ -671,13 +681,23 @@ export default function OpportunityDetailPage() {
             id: opp.id,
             title: opp.title,
             tagline: opp.tagline,
+            description: opp.description,
             city: opp.city,
             coverImage: opp.coverImage,
             slug: opp.slug,
             targetIrr: opp.targetIrr,
             minInvestment: opp.minInvestment,
+            targetAmount: opp.targetAmount,
+            raisedAmount: opp.raisedAmount,
+            closingDate: opp.closingDate,
+            investorCount: opp.investorCount,
             vaultType: opp.vaultType,
             media: opp.media,
+            company: opp.company ? {
+              companyName: opp.company.companyName,
+              reraNumber: (opp.company as CompanyData).reraNumber,
+              logoUrl: opp.company.logoUrl,
+            } : null,
           }}
           referralCode={refCodeData?.code ?? ''}
         />

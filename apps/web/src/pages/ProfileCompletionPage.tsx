@@ -11,9 +11,9 @@ import {
 } from '@/hooks/useProfileAPI'
 import { cn } from '@/lib/utils'
 import {
-  User, Heart, Wrench, MapPin, ShieldCheck,
+  User, Heart, MapPin, ShieldCheck,
   ChevronRight, ChevronLeft, Sparkles, Trophy, Rocket,
-  Check, Copy, CheckCheck, ArrowLeft, Star, Zap, Gift,
+  Check, Copy, CheckCheck, ArrowLeft, Star, Gift,
   Mail, Phone,
 } from 'lucide-react'
 
@@ -22,9 +22,8 @@ import {
 const STEPS = [
   { id: 1, title: 'About You', subtitle: 'Tell us who you are', icon: User, color: 'from-blue-500 to-indigo-600', emoji: '👤' },
   { id: 2, title: 'Interests', subtitle: 'What excites you?', icon: Heart, color: 'from-pink-500 to-rose-600', emoji: '💡' },
-  { id: 3, title: 'Skills & Time', subtitle: 'How can you contribute?', icon: Wrench, color: 'from-amber-500 to-orange-600', emoji: '⚡' },
-  { id: 4, title: 'Address', subtitle: 'Where are you based?', icon: MapPin, color: 'from-emerald-500 to-teal-600', emoji: '📍' },
-  { id: 5, title: 'Verify', subtitle: 'Secure your account', icon: ShieldCheck, color: 'from-purple-500 to-violet-600', emoji: '🔒' },
+  { id: 3, title: 'Address', subtitle: 'Where are you based?', icon: MapPin, color: 'from-emerald-500 to-teal-600', emoji: '📍' },
+  { id: 4, title: 'Verify', subtitle: 'Secure your account', icon: ShieldCheck, color: 'from-purple-500 to-violet-600', emoji: '🔒' },
 ] as const
 
 // ── Chip selector ───────────────────────────────────────────────────────────
@@ -64,41 +63,7 @@ function ChipSelect({ options, selected, onChange, multiple = true }: {
 
 // ── Option data ─────────────────────────────────────────────────────────────
 
-const INCOME_OPTIONS = [
-  { value: 'below-5L', label: 'Below ₹5L', icon: '💰' },
-  { value: '5-10L', label: '₹5-10L', icon: '💰' },
-  { value: '10-25L', label: '₹10-25L', icon: '💎' },
-  { value: '25-50L', label: '₹25-50L', icon: '💎' },
-  { value: '50L-1Cr', label: '₹50L-1Cr', icon: '🏆' },
-  { value: '1Cr+', label: '₹1Cr+', icon: '👑' },
-]
 
-const RISK_OPTIONS = [
-  { value: 'conservative', label: 'Conservative', icon: '🛡️' },
-  { value: 'moderate', label: 'Moderate', icon: '⚖️' },
-  { value: 'aggressive', label: 'Aggressive', icon: '🚀' },
-]
-
-const HORIZON_OPTIONS = [
-  { value: '1-3 years', label: '1-3 Years', icon: '🌱' },
-  { value: '3-5 years', label: '3-5 Years', icon: '🌿' },
-  { value: '5-10 years', label: '5-10 Years', icon: '🌳' },
-  { value: '10+ years', label: '10+ Years', icon: '🏔️' },
-]
-
-const EXPERIENCE_OPTIONS = [
-  { value: 'beginner', label: 'Beginner', icon: '🌱' },
-  { value: 'intermediate', label: 'Intermediate', icon: '📈' },
-  { value: 'advanced', label: 'Advanced', icon: '🎯' },
-]
-
-const MONTHLY_OPTIONS = [
-  { value: '5K-10K', label: '₹5K-10K', icon: '💵' },
-  { value: '10K-25K', label: '₹10K-25K', icon: '💵' },
-  { value: '25K-50K', label: '₹25K-50K', icon: '💰' },
-  { value: '50K-1L', label: '₹50K-1L', icon: '💰' },
-  { value: '1L+', label: '₹1L+', icon: '💎' },
-]
 
 const INTEREST_OPTIONS = [
   { value: 'residential', label: 'Residential', icon: '🏠' },
@@ -122,40 +87,7 @@ const CITY_OPTIONS = [
   { value: 'Kolkata', label: 'Kolkata', icon: '🌉' },
 ]
 
-const SUBSCRIPTION_OPTIONS = [
-  { value: 'new_properties', label: 'New Properties', icon: '🏗️' },
-  { value: 'community', label: 'Community Updates', icon: '👥' },
-  { value: 'market_insights', label: 'Market Insights', icon: '📊' },
-  { value: 'webinars', label: 'Webinars & Events', icon: '🎯' },
-  { value: 'newsletters', label: 'Weekly Newsletter', icon: '📧' },
-]
 
-const SKILL_OPTIONS = [
-  { value: 'marketing', label: 'Marketing', icon: '📣' },
-  { value: 'finance', label: 'Finance', icon: '💹' },
-  { value: 'legal', label: 'Legal', icon: '⚖️' },
-  { value: 'tech', label: 'Technology', icon: '💻' },
-  { value: 'networking', label: 'Networking', icon: '🤝' },
-  { value: 'real-estate', label: 'Real Estate', icon: '🏗️' },
-  { value: 'design', label: 'Design', icon: '🎨' },
-  { value: 'sales', label: 'Sales', icon: '📈' },
-  { value: 'content', label: 'Content Writing', icon: '✍️' },
-]
-
-const HOURS_OPTIONS = [
-  { value: '1-2', label: '1-2 hrs/week', icon: '⏰' },
-  { value: '3-5', label: '3-5 hrs/week', icon: '⏰' },
-  { value: '5-10', label: '5-10 hrs/week', icon: '⚡' },
-  { value: '10+', label: '10+ hrs/week', icon: '🔥' },
-]
-
-const CONTRIBUTION_OPTIONS = [
-  { value: 'mentoring', label: 'Mentoring Others', icon: '🎓' },
-  { value: 'reviewing', label: 'Reviewing Deals', icon: '🔍' },
-  { value: 'referrals', label: 'Referring Investors', icon: '🤝' },
-  { value: 'content', label: 'Creating Content', icon: '✍️' },
-  { value: 'events', label: 'Organizing Events', icon: '🎉' },
-]
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male', icon: '♂️' },
@@ -210,31 +142,6 @@ function Step1({ data, onChange }: StepProps) {
           onChange={e => onChange({ ...data, occupation: e.target.value })}
           className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
       </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Annual Income</label>
-        <ChipSelect options={INCOME_OPTIONS} selected={data.annual_income ? [data.annual_income as string] : []} onChange={v => onChange({ ...data, annual_income: v[0] ?? null })} multiple={false} />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">📈 Investment Experience</label>
-        <ChipSelect options={EXPERIENCE_OPTIONS} selected={data.investment_experience ? [data.investment_experience as string] : []} onChange={v => onChange({ ...data, investment_experience: v[0] ?? null })} multiple={false} />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">🎯 Risk Appetite</label>
-        <ChipSelect options={RISK_OPTIONS} selected={data.risk_tolerance ? [data.risk_tolerance as string] : []} onChange={v => onChange({ ...data, risk_tolerance: v[0] ?? null })} multiple={false} />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">⏳ Investment Horizon</label>
-        <ChipSelect options={HORIZON_OPTIONS} selected={data.investment_horizon ? [data.investment_horizon as string] : []} onChange={v => onChange({ ...data, investment_horizon: v[0] ?? null })} multiple={false} />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">💵 Monthly Investment Capacity</label>
-        <ChipSelect options={MONTHLY_OPTIONS} selected={data.monthly_investment_capacity ? [data.monthly_investment_capacity as string] : []} onChange={v => onChange({ ...data, monthly_investment_capacity: v[0] ?? null })} multiple={false} />
-      </div>
     </div>
   )
 }
@@ -253,43 +160,11 @@ function Step2({ data, onChange }: StepProps) {
         <label className="block text-sm font-semibold text-gray-700 mb-2">📍 Preferred Cities</label>
         <ChipSelect options={CITY_OPTIONS} selected={(data.preferred_cities as string[]) || []} onChange={v => onChange({ ...data, preferred_cities: v })} />
       </div>
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">📬 I Want Updates On</label>
-        <ChipSelect options={SUBSCRIPTION_OPTIONS} selected={(data.subscription_topics as string[]) || []} onChange={v => onChange({ ...data, subscription_topics: v })} />
-      </div>
     </div>
   )
 }
 
 function Step3({ data, onChange }: StepProps) {
-  return (
-    <div className="space-y-6">
-      <div className="text-center mb-2">
-        <p className="text-gray-500 text-sm">WealthSpot is a community — your skills can unlock exclusive perks 🙌</p>
-      </div>
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">🛠️ Your Skills</label>
-        <ChipSelect options={SKILL_OPTIONS} selected={(data.skills as string[]) || []} onChange={v => onChange({ ...data, skills: v })} />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">⏰ Time You Can Contribute</label>
-        <ChipSelect options={HOURS_OPTIONS} selected={data.weekly_hours_available ? [data.weekly_hours_available as string] : []} onChange={v => onChange({ ...data, weekly_hours_available: v[0] ?? null })} multiple={false} />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">🤝 How You'd Like to Contribute</label>
-        <ChipSelect options={CONTRIBUTION_OPTIONS} selected={(data.contribution_interests as string[]) || []} onChange={v => onChange({ ...data, contribution_interests: v })} />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">✍️ Short Bio (optional)</label>
-        <textarea value={(data.bio as string) || ''} rows={3} placeholder="Tell us about yourself in a few words..."
-          onChange={e => onChange({ ...data, bio: e.target.value })}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
-      </div>
-    </div>
-  )
-}
-
-function Step4({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
@@ -341,7 +216,7 @@ function Step4({ data, onChange }: StepProps) {
   )
 }
 
-function Step5({ emailVerified, phoneVerified, email, phone }: {
+function Step4({ emailVerified, phoneVerified, email, phone }: {
   emailVerified: boolean; phoneVerified: boolean; email: string; phone: string | null
 }) {
   const sendOtp = useSendOtp()
@@ -588,8 +463,7 @@ export default function ProfileCompletionPage() {
   const { data: completion, isLoading: completionLoading } = useProfileCompletionStatus()
   const updateS1 = useUpdateProfileSection(1)
   const updateS2 = useUpdateProfileSection(2)
-  const updateS3 = useUpdateProfileSection(3)
-  const updateS4 = useUpdateProfileSection(4)
+  const updateS3 = useUpdateProfileSection(4)
 
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Record<string, unknown>>({})
@@ -604,18 +478,8 @@ export default function ProfileCompletionPage() {
       date_of_birth: profile.dateOfBirth,
       gender: profile.gender,
       occupation: profile.occupation,
-      annual_income: profile.annualIncome,
-      investment_experience: profile.investmentExperience,
-      risk_tolerance: profile.riskTolerance,
-      investment_horizon: profile.investmentHorizon,
-      monthly_investment_capacity: profile.monthlyInvestmentCapacity,
       interests: profile.interests,
       preferred_cities: profile.preferredCities,
-      subscription_topics: profile.subscriptionTopics,
-      skills: profile.skills,
-      weekly_hours_available: profile.weeklyHoursAvailable,
-      contribution_interests: profile.contributionInterests,
-      bio: profile.bio,
       address_line1: profile.addressLine1,
       address_line2: profile.addressLine2,
       city: profile.city,
@@ -631,19 +495,19 @@ export default function ProfileCompletionPage() {
   }, [completion?.isComplete])
 
   const isLoading = profileLoading || completionLoading
-  const isSaving = updateS1.isPending || updateS2.isPending || updateS3.isPending || updateS4.isPending
+  const isSaving = updateS1.isPending || updateS2.isPending || updateS3.isPending
   const currentStep = STEPS[step - 1]
 
   const saveCurrentStep = useCallback(async () => {
-    const handlers = [updateS1, updateS2, updateS3, updateS4]
-    if (step <= 4) {
+    const handlers = [updateS1, updateS2, updateS3]
+    if (step <= 3) {
       await handlers[step - 1]!.mutateAsync(formData)
     }
-  }, [step, formData, updateS1, updateS2, updateS3, updateS4])
+  }, [step, formData, updateS1, updateS2, updateS3])
 
   const handleNext = useCallback(async () => {
-    if (step <= 4) await saveCurrentStep()
-    if (step < 5) {
+    if (step <= 3) await saveCurrentStep()
+    if (step < 4) {
       setStep(s => s + 1)
       contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -687,21 +551,21 @@ export default function ProfileCompletionPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6">
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">{pct}% Complete</span>
+          <h1 className="page-hero-title">Complete Your Profile</h1>
+          <p className="page-hero-subtitle">Unlock premium features, personalized recommendations & your unique referral code</p>
+        </div>
+      </section>
+
+      <div className="page-section">
+        <div className="page-section-container max-w-3xl mx-auto">
         {/* Back link */}
         <Link to="/vaults" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-4">
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 bg-primary/5 rounded-full px-4 py-1.5 mb-3">
-            <Zap className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">{pct}% Complete</span>
-          </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900">Complete Your Profile</h1>
-          <p className="text-gray-500 mt-1 text-sm">Unlock premium features, personalized recommendations & your unique referral code</p>
-        </div>
 
         {/* Progress bar */}
         <div className="relative mb-8">
@@ -753,9 +617,8 @@ export default function ProfileCompletionPage() {
             {step === 1 && <Step1 data={formData} onChange={setFormData} />}
             {step === 2 && <Step2 data={formData} onChange={setFormData} />}
             {step === 3 && <Step3 data={formData} onChange={setFormData} />}
-            {step === 4 && <Step4 data={formData} onChange={setFormData} />}
-            {step === 5 && profile && (
-              <Step5
+            {step === 4 && profile && (
+              <Step4
                 emailVerified={completion?.emailVerified ?? false}
                 phoneVerified={completion?.phoneVerified ?? false}
                 email={profile.email}
@@ -770,7 +633,7 @@ export default function ProfileCompletionPage() {
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-30 transition">
               <ChevronLeft className="h-4 w-4" /> Previous
             </button>
-            {step < 5 ? (
+            {step < 4 ? (
               <button onClick={handleNext} disabled={isSaving}
                 className="flex items-center gap-1.5 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition shadow-sm shadow-primary/20 disabled:opacity-50">
                 {isSaving ? 'Saving...' : 'Save & Continue'} <ChevronRight className="h-4 w-4" />
@@ -783,6 +646,7 @@ export default function ProfileCompletionPage() {
               </button>
             )}
           </div>
+        </div>
         </div>
       </div>
     </MainLayout>

@@ -69,10 +69,10 @@ export default function AdminUsersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gray-900">User Management</h1>
+            <h1 className="section-title text-2xl">User Management</h1>
             <p className="text-gray-500 mt-1">{MOCK_USERS.length} registered users</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition">
+          <button className="btn-primary inline-flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
             Invite User
           </button>
@@ -86,7 +86,7 @@ export default function AdminUsersPage() {
             { label: 'KYC Pending', value: MOCK_USERS.filter(u => u.kyc_status === 'UNDER_REVIEW').length, icon: Shield, color: 'text-yellow-600' },
             { label: 'Inactive', value: MOCK_USERS.filter(u => !u.is_active).length, icon: Ban, color: 'text-red-600' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl border-2 border-gray-200 p-4">
+            <div key={stat.label} className="stat-card">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">{stat.label}</span>
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />

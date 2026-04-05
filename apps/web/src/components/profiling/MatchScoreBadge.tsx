@@ -165,7 +165,7 @@ export function MatchScoreCompact({ score, vaultType }: { score: MatchScore; vau
     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${tier.bg} ${tier.glow}`}>
       <div className="relative">
         <ScoreRing score={score.overallScore} size={28} strokeWidth={3} vaultType={vaultType} />
-        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-gray-700 rotate-90">
+        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-gray-700">
           {Math.round(score.overallScore)}
         </span>
       </div>
@@ -195,7 +195,7 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
           <ScoreRing score={score.overallScore} size={80} strokeWidth={6} vaultType={vaultType} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-xl font-bold text-gray-900">{Math.round(score.overallScore)}</span>
             <span className="text-[9px] text-gray-400 font-medium -mt-0.5">%</span>
           </div>
@@ -237,7 +237,7 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${value}%`,
+                        width: `${Math.min(value, 100)}%`,
                         backgroundColor: vaultColors?.ringHex || undefined,
                         animation: 'progress-fill 1s ease-out forwards',
                       }}

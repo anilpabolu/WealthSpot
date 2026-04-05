@@ -191,7 +191,7 @@ export default function AdminReferralsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Referral Management</h1>
+          <h1 className="section-title text-2xl">Referral Management</h1>
           <p className="text-gray-500 mt-1">
             Track all platform &amp; property referrals, referee mappings, and reward payouts.
           </p>
@@ -200,7 +200,7 @@ export default function AdminReferralsPage() {
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="stat-card-icon bg-primary/10">
               <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -209,7 +209,7 @@ export default function AdminReferralsPage() {
             </div>
           </div>
           <div className="card p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <div className="stat-card-icon bg-blue-50">
               <Users className="h-5 w-5 text-blue-500" />
             </div>
             <div>
@@ -218,7 +218,7 @@ export default function AdminReferralsPage() {
             </div>
           </div>
           <div className="card p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <div className="stat-card-icon bg-emerald-50">
               <Gift className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
@@ -227,7 +227,7 @@ export default function AdminReferralsPage() {
             </div>
           </div>
           <div className="card p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <div className="stat-card-icon bg-amber-50">
               <Gift className="h-5 w-5 text-amber-500" />
             </div>
             <div>

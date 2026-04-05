@@ -130,6 +130,21 @@ export interface ProfilingProgress {
   personality: PersonalityDimension | null
 }
 
+export interface VaultProgressDetail {
+  total: number
+  answered: number
+  pct: number
+  isComplete: boolean
+  archetype: string | null
+}
+
+export interface OverallProgress {
+  profilePct: number
+  vaults: Record<string, VaultProgressDetail>
+  overallPct: number
+  isFullyProfiled: boolean
+}
+
 // ── Vault Profile Questions ─────────────────────────────────────────────────
 
 export function useVaultQuestions(vaultType: string) {
@@ -157,11 +172,19 @@ export function useSubmitVaultAnswers() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: UserProfileAnswerBulk) =>
-      apiPost<UserProfileAnswer[]>('/profiling/answers', payload),
+      apiPost<UserProfileAnswer[]>('/profiling/answers', {
+        vault_type: payload.vaultType,
+        answers: payload.answers.map((a) => ({
+          question_id: a.questionId,
+          vault_type: payload.vaultType,
+          answer_value: a.answerValue,
+        })),
+      }),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['profiling', 'answers', variables.vaultType] })
       qc.invalidateQueries({ queryKey: ['profiling', 'progress', variables.vaultType] })
       qc.invalidateQueries({ queryKey: ['profiling', 'personality', variables.vaultType] })
+      qc.invalidateQueries({ queryKey: ['profiling', 'overall-progress'] })
     },
   })
 }
@@ -173,6 +196,16 @@ export function useProfilingProgress(vaultType: string) {
     queryKey: ['profiling', 'progress', vaultType],
     queryFn: () => apiGet<ProfilingProgress>(`/profiling/progress/${vaultType}`),
     enabled: !!vaultType,
+  })
+}
+
+// ── Overall Progress (all vaults) ───────────────────────────────────────────
+
+export function useOverallProgress() {
+  return useQuery({
+    queryKey: ['profiling', 'overall-progress'],
+    queryFn: () => apiGet<OverallProgress>('/profiling/overall-progress'),
+    staleTime: 30_000,
   })
 }
 

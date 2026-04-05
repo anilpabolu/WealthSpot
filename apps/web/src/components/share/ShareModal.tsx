@@ -8,22 +8,35 @@ interface ShareModalProps {
     id: string
     title: string
     tagline?: string | null
+    description?: string | null
     city?: string | null
     coverImage?: string | null
     slug: string
     targetIrr?: number | null
     minInvestment?: number | null
+    targetAmount?: number | null
+    raisedAmount?: number | null
+    closingDate?: string | null
+    investorCount?: number | null
     vaultType: string
     media?: Array<{ url: string }>
+    company?: {
+      companyName: string
+      reraNumber?: string | null
+      logoUrl?: string | null
+    } | null
   }
   referralCode: string
 }
+
+type PostcardFormat = 'portrait' | 'landscape'
 
 const PLATFORM_URL = 'https://wealthspot.in'
 
 export default function ShareModal({ open, onClose, opportunity, referralCode }: ShareModalProps) {
   const [copied, setCopied] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [format, setFormat] = useState<PostcardFormat>('portrait')
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const shareUrl = `${PLATFORM_URL}/opportunity/${opportunity.slug}?pref=${referralCode}`
@@ -61,307 +74,684 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
 
   const shareInstagram = () => {
     // Instagram doesn't support direct URL sharing, generate postcard for download
-    generatePostcard()
+    generatePostcard('portrait')
   }
 
-  const generatePostcard = useCallback(async () => {
-    setGenerating(true)
-    const canvas = canvasRef.current
-    if (!canvas) { setGenerating(false); return }
+  // ── Shared helpers ─────────────────────────────────────────────
+  const GOLD = '#D4AF37'
+  const GOLD_DARK = '#8B6914'
+  const OBSIDIAN = '#0A0B0F'
 
+  const vaultGlow: Record<string, string> = {
+    wealth: '#1B2A4A',
+    opportunity: '#FF6B6B',
+    community: '#D97706',
+  }
+
+  function formatINR(n: number): string {
+    if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`
+    if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`
+    if (n >= 1000) return `₹${(n / 1000).toFixed(0)}K`
+    return `₹${n}`
+  }
+
+  async function loadCoverImage(): Promise<HTMLImageElement | null> {
+    const imgUrl = opportunity.media?.[0]?.url || opportunity.coverImage
+    if (!imgUrl) return null
+    try {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject()
+        img.src = imgUrl
+      })
+      return img
+    } catch {
+      return null
+    }
+  }
+
+  function drawImageCover(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLImageElement,
+    x: number, y: number, w: number, h: number, r: number
+  ) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(x, y, w, h, r)
+    ctx.clip()
+    const scale = Math.max(w / img.width, h / img.height)
+    const dw = img.width * scale
+    const dh = img.height * scale
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh)
+    ctx.restore()
+  }
+
+  function drawPlaceholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.fillStyle = '#1a1a2e'
+    ctx.beginPath()
+    ctx.roundRect(x, y, w, h, r)
+    ctx.fill()
+    ctx.fillStyle = '#334155'
+    ctx.font = 'bold 60px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🏠', x + w / 2, y + h / 2)
+    ctx.textBaseline = 'alphabetic'
+  }
+
+  function drawWealthSpotLogo(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+    ctx.font = `bold ${size}px system-ui, -apple-system, sans-serif`
+    ctx.textAlign = 'left'
+    ctx.fillStyle = GOLD
+    ctx.fillText('W', x, y)
+    const wW = ctx.measureText('W').width
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText('ealthSpot', x + wW, y)
+    return wW + ctx.measureText('ealthSpot').width
+  }
+
+  // ── Portrait Postcard (1080×1350) ─────────────────────────────
+  const generatePortraitPostcard = useCallback(async () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
-    if (!ctx) { setGenerating(false); return }
+    if (!ctx) return
 
     const W = 1080
     const H = 1350
     canvas.width = W
     canvas.height = H
 
-    // ── Colour palette ───────────────────────────────────────────
-    const vaultPalettes: Record<string, { accent: string; accentDark: string; gradStart: string; gradEnd: string }> = {
-      wealth:      { accent: '#22c55e', accentDark: '#16a34a', gradStart: '#0b1120', gradEnd: '#132218' },
-      opportunity: { accent: '#8b5cf6', accentDark: '#7c3aed', gradStart: '#0b1120', gradEnd: '#1a1028' },
-      community:   { accent: '#06b6d4', accentDark: '#0891b2', gradStart: '#0b1120', gradEnd: '#081820' },
-    }
-    const pal = vaultPalettes[opportunity.vaultType] ?? { accent: '#22c55e', accentDark: '#16a34a', gradStart: '#0b1120', gradEnd: '#132218' }
+    const glowColor = vaultGlow[opportunity.vaultType] ?? '#1B2A4A'
 
     // ── Background ───────────────────────────────────────────────
-    const bgGrad = ctx.createLinearGradient(0, 0, W, H)
-    bgGrad.addColorStop(0, pal.gradStart)
-    bgGrad.addColorStop(1, pal.gradEnd)
+    const bgGrad = ctx.createLinearGradient(0, 0, W * 0.3, H)
+    bgGrad.addColorStop(0, OBSIDIAN)
+    bgGrad.addColorStop(1, '#0d1117')
     ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, W, H)
 
-    // Subtle dot grid pattern
-    ctx.fillStyle = 'rgba(255,255,255,0.015)'
-    for (let x = 0; x < W; x += 40) {
-      for (let y = 0; y < H; y += 40) {
-        ctx.beginPath()
-        ctx.arc(x, y, 1.2, 0, Math.PI * 2)
-        ctx.fill()
-      }
+    // Radial vault-color glow at top center
+    const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, 600)
+    glow.addColorStop(0, glowColor + '25')
+    glow.addColorStop(0.5, glowColor + '08')
+    glow.addColorStop(1, 'transparent')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, W, 600)
+
+    // Subtle diagonal line pattern
+    ctx.strokeStyle = 'rgba(212,175,55,0.03)'
+    ctx.lineWidth = 1
+    for (let i = -H; i < W + H; i += 60) {
+      ctx.beginPath()
+      ctx.moveTo(i, 0)
+      ctx.lineTo(i + H, H)
+      ctx.stroke()
     }
 
-    // ── Outer decorative frame ───────────────────────────────────
-    const pad = 32
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+    // ── Outer frame ──────────────────────────────────────────────
+    const pad = 36
+    ctx.strokeStyle = GOLD + '18'
     ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.roundRect(pad, pad, W - pad * 2, H - pad * 2, 20)
+    ctx.roundRect(pad, pad, W - pad * 2, H - pad * 2, 24)
     ctx.stroke()
 
-    // Inner accent border (top)
-    const accentGrad = ctx.createLinearGradient(60, 0, W - 60, 0)
-    accentGrad.addColorStop(0, 'transparent')
-    accentGrad.addColorStop(0.2, pal.accent)
-    accentGrad.addColorStop(0.8, pal.accent)
-    accentGrad.addColorStop(1, 'transparent')
-    ctx.strokeStyle = accentGrad
+    // Gold accent line at top
+    const topGrad = ctx.createLinearGradient(pad, 0, W - pad, 0)
+    topGrad.addColorStop(0, 'transparent')
+    topGrad.addColorStop(0.15, GOLD)
+    topGrad.addColorStop(0.85, GOLD)
+    topGrad.addColorStop(1, 'transparent')
+    ctx.strokeStyle = topGrad
     ctx.lineWidth = 3
     ctx.beginPath()
-    ctx.moveTo(60, pad + 1)
-    ctx.lineTo(W - 60, pad + 1)
+    ctx.moveTo(pad + 20, pad)
+    ctx.lineTo(W - pad - 20, pad)
     ctx.stroke()
 
     // ── Top branding bar ─────────────────────────────────────────
-    ctx.fillStyle = pal.accent
-    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'left'
-    ctx.fillText('W', 68, 82)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillText('ealthSpot', 68 + ctx.measureText('W').width, 82)
+    drawWealthSpotLogo(ctx, 72, 86, 22)
 
-    ctx.fillStyle = 'rgba(255,255,255,0.35)'
-    ctx.font = '13px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = GOLD + 'aa'
+    ctx.font = '600 13px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'right'
-    ctx.fillText('INVESTMENT OPPORTUNITY', W - 68, 82)
+    ctx.fillText('EXCLUSIVE OPPORTUNITY', W - 72, 86)
 
     // ── Cover image ──────────────────────────────────────────────
     const imgX = 60
-    const imgY = 110
+    const imgY = 116
     const imgW = W - 120
-    const imgH = 480
+    const imgH = 460
     const imgR = 16
 
-    const imgUrl = opportunity.media?.[0]?.url || opportunity.coverImage
-    if (imgUrl) {
-      try {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve()
-          img.onerror = () => reject()
-          img.src = imgUrl
-        })
-        ctx.save()
-        ctx.beginPath()
-        ctx.roundRect(imgX, imgY, imgW, imgH, imgR)
-        ctx.clip()
-        const scale = Math.max(imgW / img.width, imgH / img.height)
-        const dw = img.width * scale
-        const dh = img.height * scale
-        ctx.drawImage(img, imgX + (imgW - dw) / 2, imgY + (imgH - dh) / 2, dw, dh)
+    const coverImg = await loadCoverImage()
 
-        // Dark gradient overlay at bottom of image for text readability
-        const imgOverlay = ctx.createLinearGradient(0, imgY + imgH * 0.5, 0, imgY + imgH)
-        imgOverlay.addColorStop(0, 'rgba(0,0,0,0)')
-        imgOverlay.addColorStop(1, 'rgba(0,0,0,0.65)')
-        ctx.fillStyle = imgOverlay
-        ctx.fillRect(imgX, imgY, imgW, imgH)
-        ctx.restore()
-      } catch {
-        ctx.fillStyle = '#1e293b'
-        ctx.beginPath()
-        ctx.roundRect(imgX, imgY, imgW, imgH, imgR)
-        ctx.fill()
-        ctx.fillStyle = '#334155'
-        ctx.font = 'bold 60px system-ui, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText('🏠', W / 2, imgY + imgH / 2 + 20)
-      }
-    } else {
-      ctx.fillStyle = '#1e293b'
+    // Gold border around image
+    ctx.strokeStyle = GOLD + '50'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.roundRect(imgX - 1.5, imgY - 1.5, imgW + 3, imgH + 3, imgR + 1)
+    ctx.stroke()
+
+    if (coverImg) {
+      drawImageCover(ctx, coverImg, imgX, imgY, imgW, imgH, imgR)
+      // Bottom gradient overlay
+      ctx.save()
       ctx.beginPath()
       ctx.roundRect(imgX, imgY, imgW, imgH, imgR)
-      ctx.fill()
+      ctx.clip()
+      const imgOverlay = ctx.createLinearGradient(0, imgY + imgH * 0.45, 0, imgY + imgH)
+      imgOverlay.addColorStop(0, 'rgba(0,0,0,0)')
+      imgOverlay.addColorStop(1, 'rgba(0,0,0,0.7)')
+      ctx.fillStyle = imgOverlay
+      ctx.fillRect(imgX, imgY, imgW, imgH)
+      ctx.restore()
+    } else {
+      drawPlaceholder(ctx, imgX, imgY, imgW, imgH, imgR)
     }
 
-    // Vault badge (overlaid on bottom-left of image)
+    // Vault badge on image
     const badgeText = `${opportunity.vaultType.toUpperCase()} VAULT`
     ctx.font = 'bold 14px system-ui, -apple-system, sans-serif'
-    const badgeW = ctx.measureText(badgeText).width + 30
+    const badgeW = ctx.measureText(badgeText).width + 32
     const badgeH = 32
     const badgeX = imgX + 20
     const badgeY = imgY + imgH - badgeH - 16
-    ctx.fillStyle = pal.accent
+    ctx.fillStyle = GOLD
     ctx.beginPath()
     ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 16)
     ctx.fill()
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = '#000000'
     ctx.textAlign = 'center'
-    ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + 21)
+    ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + 22)
 
-    // ── Property title section ───────────────────────────────────
-    let y = imgY + imgH + 42
+    // ── Title ────────────────────────────────────────────────────
+    let y = imgY + imgH + 44
     ctx.fillStyle = '#f1f5f9'
-    ctx.font = 'bold 38px system-ui, -apple-system, sans-serif'
+    ctx.font = 'bold 40px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
     const titleLines = wrapText(ctx, opportunity.title, imgW - 20)
     for (const line of titleLines.slice(0, 2)) {
       ctx.fillText(line, 72, y)
-      y += 48
+      y += 50
     }
 
-    // Tagline
-    if (opportunity.tagline) {
-      y += 4
-      ctx.fillStyle = '#94a3b8'
-      ctx.font = '22px system-ui, -apple-system, sans-serif'
-      const tagLines = wrapText(ctx, opportunity.tagline.slice(0, 100), imgW - 20)
-      for (const line of tagLines.slice(0, 2)) {
-        ctx.fillText(line, 72, y)
-        y += 30
+    // ── Location + Company row ───────────────────────────────────
+    y += 4
+    const infoParts: string[] = []
+    if (opportunity.city) infoParts.push(`📍 ${opportunity.city}`)
+
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '20px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'left'
+    if (infoParts.length > 0) {
+      ctx.fillText(infoParts.join(''), 72, y)
+    }
+
+    // Company + RERA on right
+    if (opportunity.company?.companyName) {
+      ctx.textAlign = 'right'
+      ctx.fillStyle = GOLD + 'cc'
+      ctx.font = '18px system-ui, -apple-system, sans-serif'
+      let companyText = `🏗 ${opportunity.company.companyName}`
+      if (opportunity.company.reraNumber) {
+        companyText += ` · RERA: ${opportunity.company.reraNumber}`
       }
+      // Truncate if too long
+      const maxCompanyW = imgW - 300
+      if (ctx.measureText(companyText).width > maxCompanyW) {
+        companyText = `🏗 ${opportunity.company.companyName}`
+      }
+      ctx.fillText(companyText, W - 72, y)
     }
+    y += 32
 
-    // City with pin icon
-    if (opportunity.city) {
-      y += 8
+    // ── Description snippet ──────────────────────────────────────
+    if (opportunity.description) {
       ctx.fillStyle = '#64748b'
-      ctx.font = '20px system-ui, -apple-system, sans-serif'
-      ctx.fillText(`📍 ${opportunity.city}`, 72, y)
-      y += 36
+      ctx.font = '18px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'left'
+      const descLines = wrapText(ctx, opportunity.description.slice(0, 200), imgW - 20)
+      for (const line of descLines.slice(0, 2)) {
+        ctx.fillText(line, 72, y)
+        y += 26
+      }
+      y += 8
     }
 
-    // ── Accent divider ───────────────────────────────────────────
-    y += 8
+    // ── Gold divider ─────────────────────────────────────────────
+    y += 4
     const divGrad = ctx.createLinearGradient(72, 0, W - 72, 0)
-    divGrad.addColorStop(0, pal.accent)
+    divGrad.addColorStop(0, GOLD)
+    divGrad.addColorStop(0.5, GOLD + '80')
     divGrad.addColorStop(1, 'transparent')
     ctx.fillStyle = divGrad
     ctx.fillRect(72, y, imgW - 20, 2)
     y += 28
 
-    // ── Key metrics row ──────────────────────────────────────────
-    const metrics: { label: string; value: string }[] = []
-    if (opportunity.targetIrr) metrics.push({ label: 'Target IRR', value: `${opportunity.targetIrr}%` })
-    if (opportunity.minInvestment) {
-      const val = opportunity.minInvestment >= 100000
-        ? `₹${(opportunity.minInvestment / 100000).toFixed(1)}L`
-        : `₹${(opportunity.minInvestment / 1000).toFixed(0)}K`
-      metrics.push({ label: 'Min. Investment', value: val })
-    }
-    metrics.push({ label: 'Vault', value: opportunity.vaultType.charAt(0).toUpperCase() + opportunity.vaultType.slice(1) })
+    // ── Key metrics grid (2×2) ───────────────────────────────────
+    const metricBoxW = (imgW - 40) / 2
+    const metricBoxH = 78
+    const metricGap = 16
+    const metricStartX = 72
+    const metricStartY = y
 
-    if (metrics.length > 0) {
-      const metricW = (imgW - 20) / metrics.length
-      for (let i = 0; i < metrics.length; i++) {
-        const m = metrics[i]!
-        const mx = 72 + i * metricW + metricW / 2
-        // Label
-        ctx.fillStyle = '#64748b'
-        ctx.font = '14px system-ui, -apple-system, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText(m.label.toUpperCase(), mx, y)
-        // Value
-        ctx.fillStyle = '#f1f5f9'
-        ctx.font = 'bold 30px system-ui, -apple-system, sans-serif'
-        ctx.fillText(m.value, mx, y + 38)
-        // Vertical separator
-        if (i < metrics.length - 1) {
-          ctx.fillStyle = 'rgba(255,255,255,0.08)'
-          ctx.fillRect(72 + (i + 1) * metricW, y - 8, 1, 54)
-        }
-      }
-      y += 70
+    interface MetricItem { label: string; value: string; highlight?: boolean }
+    const metricItems: MetricItem[] = []
+
+    if (opportunity.targetIrr) {
+      metricItems.push({ label: 'TARGET IRR', value: `${opportunity.targetIrr}%`, highlight: true })
+    }
+    if (opportunity.minInvestment) {
+      metricItems.push({ label: 'MIN. INVESTMENT', value: formatINR(opportunity.minInvestment) })
+    }
+    if (opportunity.targetAmount) {
+      metricItems.push({ label: 'TARGET AMOUNT', value: formatINR(opportunity.targetAmount) })
+    }
+    if (opportunity.raisedAmount != null && opportunity.targetAmount) {
+      const pct = Math.min(100, Math.round((opportunity.raisedAmount / opportunity.targetAmount) * 100))
+      metricItems.push({ label: 'RAISED', value: `${pct}% Funded`, highlight: true })
+    } else if (opportunity.raisedAmount != null) {
+      metricItems.push({ label: 'RAISED', value: formatINR(opportunity.raisedAmount) })
+    }
+
+    // Draw up to 4 metrics in 2×2 grid
+    const drawMetrics = metricItems.slice(0, 4)
+    for (let i = 0; i < drawMetrics.length; i++) {
+      const m = drawMetrics[i]!
+      const col = i % 2
+      const row = Math.floor(i / 2)
+      const mx = metricStartX + col * (metricBoxW + metricGap)
+      const my = metricStartY + row * (metricBoxH + metricGap)
+
+      // Glass card background
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'
+      ctx.beginPath()
+      ctx.roundRect(mx, my, metricBoxW, metricBoxH, 12)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(212,175,55,0.12)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.roundRect(mx, my, metricBoxW, metricBoxH, 12)
+      ctx.stroke()
+
+      // Label
+      ctx.fillStyle = '#64748b'
+      ctx.font = '13px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText(m.label, mx + 18, my + 26)
+
+      // Value
+      ctx.fillStyle = m.highlight ? GOLD : '#f1f5f9'
+      ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
+      ctx.fillText(m.value, mx + 18, my + 60)
+    }
+
+    const metricRows = Math.ceil(drawMetrics.length / 2)
+    y = metricStartY + metricRows * (metricBoxH + metricGap)
+
+    // ── Raised progress bar (if both amounts available) ──────────
+    if (opportunity.raisedAmount != null && opportunity.targetAmount) {
+      const pct = Math.min(100, (opportunity.raisedAmount / opportunity.targetAmount) * 100)
+      const barX = 72
+      const barW = imgW - 20
+      const barH = 8
+      y += 4
+
+      // Track
+      ctx.fillStyle = 'rgba(255,255,255,0.06)'
+      ctx.beginPath()
+      ctx.roundRect(barX, y, barW, barH, 4)
+      ctx.fill()
+
+      // Fill
+      const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0)
+      barGrad.addColorStop(0, GOLD)
+      barGrad.addColorStop(1, GOLD_DARK)
+      ctx.fillStyle = barGrad
+      ctx.beginPath()
+      ctx.roundRect(barX, y, barW * (pct / 100), barH, 4)
+      ctx.fill()
+
+      y += barH + 16
+    }
+
+    // ── Closing date ─────────────────────────────────────────────
+    if (opportunity.closingDate) {
+      const dateStr = new Date(opportunity.closingDate).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      })
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '18px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText(`📅 Closes ${dateStr}`, W / 2, y + 4)
+      y += 32
     }
 
     // ── CTA banner ───────────────────────────────────────────────
-    y += 14
-    const ctaH = 72
-    const ctaR = 14
-
-    // CTA gradient background
+    y += 8
+    const ctaH = 68
     const ctaGrad = ctx.createLinearGradient(60, y, W - 60, y)
-    ctaGrad.addColorStop(0, pal.accent)
-    ctaGrad.addColorStop(1, pal.accentDark)
+    ctaGrad.addColorStop(0, GOLD)
+    ctaGrad.addColorStop(1, GOLD_DARK)
     ctx.fillStyle = ctaGrad
     ctx.beginPath()
-    ctx.roundRect(60, y, imgW, ctaH, ctaR)
+    ctx.roundRect(60, y, imgW, ctaH, 14)
     ctx.fill()
 
-    // CTA text
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = '#000000'
+    ctx.font = 'bold 26px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('Invest Smart. Grow Wealth. Start Today!', W / 2, y + ctaH / 2 + 8)
-
-    y += ctaH + 24
+    ctx.fillText('Begin Your Investment Journey', W / 2, y + ctaH / 2 + 9)
+    y += ctaH + 22
 
     // ── Referral code badge ──────────────────────────────────────
     if (referralCode) {
-      const refBoxW = 320
-      const refBoxH = 44
-      const refBoxX = (W - refBoxW) / 2
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.roundRect(refBoxX, y, refBoxW, refBoxH, 22)
-      ctx.stroke()
-
-      ctx.fillStyle = '#64748b'
+      ctx.fillStyle = GOLD + 'aa'
       ctx.font = '13px system-ui, -apple-system, sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('YOUR REFERRAL CODE', W / 2, y - 8)
+      ctx.fillText('YOUR REFERRAL CODE', W / 2, y)
+      y += 18
 
-      ctx.fillStyle = pal.accent
-      ctx.font = 'bold 20px system-ui, -apple-system, sans-serif'
-      ctx.fillText(referralCode, W / 2, y + 29)
-      y += refBoxH + 28
+      const refBoxW = 320
+      const refBoxH = 46
+      const refBoxX = (W - refBoxW) / 2
+      ctx.strokeStyle = GOLD + '40'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.roundRect(refBoxX, y, refBoxW, refBoxH, 23)
+      ctx.stroke()
+
+      ctx.fillStyle = GOLD
+      ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
+      ctx.fillText(referralCode, W / 2, y + 31)
+      y += refBoxH + 20
     }
 
-    // ── Bottom branding bar ──────────────────────────────────────────
-    // Horizontal rule
-    ctx.fillStyle = 'rgba(255,255,255,0.06)'
-    ctx.fillRect(60, H - 100, imgW, 1)
+    // ── Bottom branding bar ──────────────────────────────────────
+    const bottomY = H - 90
+
+    // Gold rule
+    const ruleGrad = ctx.createLinearGradient(60, 0, W - 60, 0)
+    ruleGrad.addColorStop(0, 'transparent')
+    ruleGrad.addColorStop(0.2, GOLD + '40')
+    ruleGrad.addColorStop(0.8, GOLD + '40')
+    ruleGrad.addColorStop(1, 'transparent')
+    ctx.fillStyle = ruleGrad
+    ctx.fillRect(60, bottomY, imgW, 1)
 
     // Logo
-    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'left'
-    ctx.fillStyle = pal.accent
-    ctx.fillText('W', 72, H - 60)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillText('ealthSpot', 72 + ctx.measureText('W').width, H - 60)
+    drawWealthSpotLogo(ctx, 72, bottomY + 36, 22)
 
     // Tagline
     ctx.fillStyle = '#475569'
     ctx.font = '13px system-ui, -apple-system, sans-serif'
-    ctx.fillText('Institutional-grade real estate for everyone', 72, H - 40)
+    ctx.textAlign = 'left'
+    ctx.fillText('Institutional-grade real estate for everyone', 72, bottomY + 56)
 
-    // URL right side
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'
-    ctx.font = '15px system-ui, -apple-system, sans-serif'
+    // URL + fine print right
+    ctx.fillStyle = GOLD + '88'
+    ctx.font = '16px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'right'
-    ctx.fillText('wealthspot.in', W - 72, H - 60)
+    ctx.fillText('wealthspot.in', W - 72, bottomY + 36)
     ctx.fillStyle = '#475569'
     ctx.font = '12px system-ui, -apple-system, sans-serif'
-    ctx.fillText('RERA Verified  ·  Secure Investments', W - 72, H - 40)
+    ctx.fillText('RERA Verified  ·  Secure Investments', W - 72, bottomY + 56)
 
-    setGenerating(false)
-
-    // Download
-    const link = document.createElement('a')
-    link.download = `wealthspot-${opportunity.slug}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
+    return canvas
   }, [opportunity, referralCode])
+
+  // ── Landscape Postcard (1200×630) ─────────────────────────────
+  const generateLandscapePostcard = useCallback(async () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const W = 1200
+    const H = 630
+    canvas.width = W
+    canvas.height = H
+
+    const glowColor = vaultGlow[opportunity.vaultType] ?? '#1B2A4A'
+    const imgPanelW = 480
+    const rightX = imgPanelW + 24
+
+    // ── Background ───────────────────────────────────────────────
+    ctx.fillStyle = OBSIDIAN
+    ctx.fillRect(0, 0, W, H)
+
+    // Subtle vault glow top-right
+    const glow = ctx.createRadialGradient(W, 0, 0, W, 0, 500)
+    glow.addColorStop(0, glowColor + '18')
+    glow.addColorStop(1, 'transparent')
+    ctx.fillStyle = glow
+    ctx.fillRect(imgPanelW, 0, W - imgPanelW, H)
+
+    // Subtle line pattern on right panel
+    ctx.strokeStyle = 'rgba(212,175,55,0.02)'
+    ctx.lineWidth = 1
+    for (let i = -H; i < W; i += 50) {
+      ctx.beginPath()
+      ctx.moveTo(imgPanelW + i, 0)
+      ctx.lineTo(imgPanelW + i + H, H)
+      ctx.stroke()
+    }
+
+    // ── Left panel — property image ──────────────────────────────
+    const coverImg = await loadCoverImage()
+    if (coverImg) {
+      drawImageCover(ctx, coverImg, 0, 0, imgPanelW, H, 0)
+      // Right edge gradient blend
+      const blendGrad = ctx.createLinearGradient(imgPanelW - 80, 0, imgPanelW, 0)
+      blendGrad.addColorStop(0, 'rgba(10,11,15,0)')
+      blendGrad.addColorStop(1, OBSIDIAN)
+      ctx.fillStyle = blendGrad
+      ctx.fillRect(imgPanelW - 80, 0, 80, H)
+      // Bottom gradient
+      const btmGrad = ctx.createLinearGradient(0, H - 120, 0, H)
+      btmGrad.addColorStop(0, 'rgba(10,11,15,0)')
+      btmGrad.addColorStop(1, OBSIDIAN + 'cc')
+      ctx.fillStyle = btmGrad
+      ctx.fillRect(0, H - 120, imgPanelW, 120)
+    } else {
+      drawPlaceholder(ctx, 0, 0, imgPanelW, H, 0)
+    }
+
+    // Vault badge on image
+    const badgeText = `${opportunity.vaultType.toUpperCase()} VAULT`
+    ctx.font = 'bold 12px system-ui, -apple-system, sans-serif'
+    const badgeW = ctx.measureText(badgeText).width + 28
+    const badgeH = 28
+    ctx.fillStyle = GOLD
+    ctx.beginPath()
+    ctx.roundRect(20, H - 48, badgeW, badgeH, 14)
+    ctx.fill()
+    ctx.fillStyle = '#000000'
+    ctx.textAlign = 'center'
+    ctx.fillText(badgeText, 20 + badgeW / 2, H - 48 + 19)
+
+    // ── Right panel content ──────────────────────────────────────
+    const rPad = 36
+    const rX = rightX + rPad
+    const rW = W - rX - rPad - 12
+    let ry = 44
+
+    // Logo
+    drawWealthSpotLogo(ctx, rX, ry, 18)
+
+    ctx.fillStyle = GOLD + 'aa'
+    ctx.font = '600 11px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'right'
+    ctx.fillText('EXCLUSIVE OPPORTUNITY', W - rPad - 12, ry)
+    ry += 30
+
+    // Title
+    ctx.fillStyle = '#f1f5f9'
+    ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'left'
+    const lTitleLines = wrapText(ctx, opportunity.title, rW)
+    for (const line of lTitleLines.slice(0, 2)) {
+      ctx.fillText(line, rX, ry)
+      ry += 36
+    }
+
+    // City + Company + RERA
+    ry += 2
+    const infoLine: string[] = []
+    if (opportunity.city) infoLine.push(`📍 ${opportunity.city}`)
+    if (opportunity.company?.companyName) infoLine.push(`🏗 ${opportunity.company.companyName}`)
+    if (opportunity.company?.reraNumber) infoLine.push(`RERA: ${opportunity.company.reraNumber}`)
+
+    if (infoLine.length > 0) {
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '15px system-ui, -apple-system, sans-serif'
+      const text = infoLine.join('  ·  ')
+      // Truncate if needed
+      const truncated = ctx.measureText(text).width > rW
+        ? infoLine.slice(0, 2).join('  ·  ')
+        : text
+      ctx.fillText(truncated, rX, ry)
+      ry += 24
+    }
+
+    // Description snippet (1 line)
+    if (opportunity.description) {
+      ctx.fillStyle = '#64748b'
+      ctx.font = '14px system-ui, -apple-system, sans-serif'
+      const descLines = wrapText(ctx, opportunity.description.slice(0, 150), rW)
+      if (descLines[0]) {
+        const line = descLines.length > 1 ? descLines[0] + '...' : descLines[0]
+        ctx.fillText(line, rX, ry)
+      }
+      ry += 24
+    }
+
+    // Gold divider
+    ry += 4
+    const rdGrad = ctx.createLinearGradient(rX, 0, rX + rW, 0)
+    rdGrad.addColorStop(0, GOLD)
+    rdGrad.addColorStop(0.6, GOLD + '60')
+    rdGrad.addColorStop(1, 'transparent')
+    ctx.fillStyle = rdGrad
+    ctx.fillRect(rX, ry, rW, 1.5)
+    ry += 20
+
+    // Metrics row (up to 3 in a horizontal strip)
+    interface LMItem { label: string; value: string; highlight?: boolean }
+    const lMetrics: LMItem[] = []
+    if (opportunity.targetIrr) lMetrics.push({ label: 'TARGET IRR', value: `${opportunity.targetIrr}%`, highlight: true })
+    if (opportunity.minInvestment) lMetrics.push({ label: 'MIN. INVEST', value: formatINR(opportunity.minInvestment) })
+    if (opportunity.targetAmount) lMetrics.push({ label: 'TARGET', value: formatINR(opportunity.targetAmount) })
+
+    const mCount = Math.min(lMetrics.length, 3)
+    if (mCount > 0) {
+      const mW = rW / mCount
+      for (let i = 0; i < mCount; i++) {
+        const m = lMetrics[i]!
+        const mx = rX + i * mW
+
+        // Glass card
+        ctx.fillStyle = 'rgba(255,255,255,0.04)'
+        ctx.beginPath()
+        ctx.roundRect(mx, ry, mW - 10, 64, 10)
+        ctx.fill()
+
+        ctx.fillStyle = '#64748b'
+        ctx.font = '11px system-ui, -apple-system, sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText(m.label, mx + 12, ry + 22)
+
+        ctx.fillStyle = m.highlight ? GOLD : '#f1f5f9'
+        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
+        ctx.fillText(m.value, mx + 12, ry + 50)
+      }
+      ry += 76
+    }
+
+    // Raised progress bar
+    if (opportunity.raisedAmount != null && opportunity.targetAmount) {
+      const pct = Math.min(100, (opportunity.raisedAmount / opportunity.targetAmount) * 100)
+      ctx.fillStyle = 'rgba(255,255,255,0.06)'
+      ctx.beginPath()
+      ctx.roundRect(rX, ry, rW, 6, 3)
+      ctx.fill()
+      const barGrad = ctx.createLinearGradient(rX, 0, rX + rW, 0)
+      barGrad.addColorStop(0, GOLD)
+      barGrad.addColorStop(1, GOLD_DARK)
+      ctx.fillStyle = barGrad
+      ctx.beginPath()
+      ctx.roundRect(rX, ry, rW * (pct / 100), 6, 3)
+      ctx.fill()
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '12px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'right'
+      ctx.fillText(`${Math.round(pct)}% Funded`, rX + rW, ry + 22)
+      ry += 32
+    }
+
+    // Referral code
+    if (referralCode) {
+      ctx.fillStyle = GOLD + 'aa'
+      ctx.font = '11px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('YOUR REFERRAL CODE', rX, ry + 6)
+
+      const refCodeW = ctx.measureText(referralCode).width + 28
+      ctx.strokeStyle = GOLD + '40'
+      ctx.lineWidth = 1
+      ctx.font = 'bold 16px system-ui, -apple-system, sans-serif'
+      const rcX = rX + 140
+      ctx.beginPath()
+      ctx.roundRect(rcX, ry - 8, refCodeW, 30, 15)
+      ctx.stroke()
+      ctx.fillStyle = GOLD
+      ctx.textAlign = 'center'
+      ctx.fillText(referralCode, rcX + refCodeW / 2, ry + 14)
+      ry += 36
+    }
+
+    // Bottom branding
+    const bY = H - 32
+    ctx.fillStyle = GOLD + '30'
+    ctx.fillRect(rX, bY - 16, rW, 1)
+
+    ctx.fillStyle = '#475569'
+    ctx.font = '11px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('wealthspot.in  ·  RERA Verified  ·  Secure Investments', rX, bY)
+
+    return canvas
+  }, [opportunity, referralCode])
+
+  // ── Download dispatcher ────────────────────────────────────────
+  const generatePostcard = useCallback(async (fmt?: PostcardFormat) => {
+    setGenerating(true)
+    try {
+      const chosen = fmt ?? format
+      const canvas = chosen === 'landscape'
+        ? await generateLandscapePostcard()
+        : await generatePortraitPostcard()
+      if (canvas) {
+        const link = document.createElement('a')
+        link.download = `wealthspot-${opportunity.slug}-${chosen}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      }
+    } finally {
+      setGenerating(false)
+    }
+  }, [format, generatePortraitPostcard, generateLandscapePostcard, opportunity.slug])
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="modal-overlay p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="modal-panel max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -452,14 +842,41 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
           </div>
 
           {/* Download postcard */}
-          <button
-            onClick={generatePostcard}
-            disabled={generating}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            <Download className="h-4 w-4" />
-            {generating ? 'Generating...' : 'Download Postcard for Sharing'}
-          </button>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Download Postcard</p>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setFormat('portrait')}
+                className={`flex-1 text-center py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
+                  format === 'portrait'
+                    ? 'bg-gray-900 text-white border-gray-900'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                Portrait
+                <span className="block text-[10px] font-normal opacity-70 mt-0.5">Instagram / Stories</span>
+              </button>
+              <button
+                onClick={() => setFormat('landscape')}
+                className={`flex-1 text-center py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
+                  format === 'landscape'
+                    ? 'bg-gray-900 text-white border-gray-900'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                Landscape
+                <span className="block text-[10px] font-normal opacity-70 mt-0.5">LinkedIn / Facebook</span>
+              </button>
+            </div>
+            <button
+              onClick={() => generatePostcard()}
+              disabled={generating}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {generating ? 'Generating...' : 'Download Postcard'}
+            </button>
+          </div>
 
           <p className="text-center text-[11px] text-gray-400">
             When someone signs up using your referral code and makes their first investment, you earn a referral bonus!

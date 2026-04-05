@@ -200,18 +200,29 @@ async def razorpay_webhook(
             )
             investment = result.scalar_one_or_none()
             if investment and investment.status == InvestmentStatus.PAYMENT_PENDING:
-                investment.status = InvestmentStatus.CONFIRMED
+                # Use savepoint + row-level lock to prevent overselling
+                async with db.begin_nested():
+                    investment.status = InvestmentStatus.CONFIRMED
 
-                prop_result = await db.execute(
-                    select(Property).where(Property.id == investment.property_id)
-                )
-                prop = prop_result.scalar_one_or_none()
-                if prop:
-                    prop.raised_amount += investment.amount
-                    prop.sold_units += investment.units
-                    prop.investor_count += 1
-                    if prop.raised_amount >= prop.target_amount:
-                        prop.status = PropertyStatus.FUNDED
+                    prop_result = await db.execute(
+                        select(Property)
+                        .where(Property.id == investment.property_id)
+                        .with_for_update(of=Property)
+                    )
+                    prop = prop_result.scalar_one_or_none()
+                    if prop:
+                        if prop.sold_units + investment.units > prop.total_units:
+                            logger.error(
+                                "Razorpay webhook: oversell prevented for property %s",
+                                prop.id,
+                            )
+                            investment.status = InvestmentStatus.CANCELLED
+                        else:
+                            prop.raised_amount += investment.amount
+                            prop.sold_units += investment.units
+                            prop.investor_count += 1
+                            if prop.raised_amount >= prop.target_amount:
+                                prop.status = PropertyStatus.FUNDED
 
                 await db.flush()
                 logger.info("Razorpay webhook: confirmed investment %s", investment.id)

@@ -124,8 +124,8 @@ function ReviewModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay z-[9999]" onClick={onClose}>
+      <div className="modal-panel max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-lg font-bold text-gray-900">
             {action === 'approve' ? 'Approve Request' : 'Reject Request'}
@@ -739,9 +739,9 @@ function DetailPopup({ approval, onClose, onReview }: {
   const canAct = approval.status === 'pending' || approval.status === 'in_review'
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="modal-overlay z-[9999]" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col"
+        className="modal-panel max-w-lg mx-4 overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Colored header band */}
@@ -1078,8 +1078,17 @@ export default function ApprovalsPage() {
         {/* Shared Navbar */}
         <Navbar />
 
+        {/* Hero */}
+        <section className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="page-hero-content">
+            <span className="page-hero-badge">Workflow</span>
+            <h1 className="page-hero-title">Approvals</h1>
+            <p className="page-hero-subtitle">Review, approve, and track all pending requests across the platform.</p>
+          </div>
+        </section>
+
         {/* Sub-header with view toggle */}
-        <div className="sticky top-16 z-40 bg-white border-b border-gray-200">
+        <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
           <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 flex h-12 items-center justify-between">
             <span className="text-sm font-semibold text-gray-600">Approvals</span>
             <div className="flex items-center rounded-lg border border-gray-200 bg-white p-0.5">

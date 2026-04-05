@@ -393,8 +393,8 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="modal-overlay p-4">
+      <div className="modal-panel max-w-lg">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
           <h2 className="font-display text-lg font-bold text-gray-900">New Post</h2>
@@ -575,12 +575,13 @@ export default function CommunityPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      {/* Hero */}
+      <div className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
+        <div className="page-hero-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gray-900">The Water Cooler 💬</h1>
-            <p className="text-gray-500 text-sm mt-1">
+            <span className="page-hero-badge">Community</span>
+            <h1 className="page-hero-title">The Water Cooler 💬</h1>
+            <p className="page-hero-subtitle">
               Where investors swap alpha, share war stories, and ask the questions Google can't answer.
             </p>
           </div>
@@ -588,14 +589,14 @@ export default function CommunityPage() {
             <div className="flex flex-wrap gap-2 self-start">
               <button
                 onClick={() => openModalWith('discussion')}
-                className="btn-primary text-sm flex items-center gap-1.5 px-3 py-2"
+                className="btn-gradient bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-sm text-sm flex items-center gap-1.5 px-4 py-2.5"
               >
                 <TrendingUp className="h-4 w-4" />
                 New Discussion
               </button>
               <button
                 onClick={() => openModalWith('question')}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition"
+                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition"
               >
                 <HelpCircle className="h-4 w-4" />
                 Ask Question
@@ -603,7 +604,7 @@ export default function CommunityPage() {
               {isPrivileged && (
                 <button
                   onClick={() => openModalWith('insight')}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition"
                 >
                   <Lightbulb className="h-4 w-4" />
                   Share Insight
@@ -612,6 +613,10 @@ export default function CommunityPage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="page-section">
+        <div className="page-section-container">
 
         {/* Search & Sort */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -697,6 +702,7 @@ export default function CommunityPage() {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* New post modal */}

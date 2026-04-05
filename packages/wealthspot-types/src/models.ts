@@ -438,6 +438,8 @@ export interface Opportunity {
   pitch_deck_url: string | null;
   community_type: string | null;
   collaboration_type: string | null;
+  community_subtype: string | null;
+  community_details: Record<string, unknown> | null;
   cover_image: string | null;
   gallery: string[] | null;
   documents: Record<string, unknown> | null;
@@ -480,6 +482,8 @@ export interface OpportunityCreate {
   // Community fields
   community_type?: string;
   collaboration_type?: string;
+  community_subtype?: string;
+  community_details?: Record<string, unknown>;
 }
 
 // ── Platform Config ─────────────────────────────────────────────────────────

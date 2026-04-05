@@ -42,31 +42,19 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
     return () => clearTimeout(t)
   }, [toast])
 
-  if (!open) return null
-
-  const handlePincodeChange = (val: string) => {
-    setForm((prev) => ({ ...prev, pincode: val }))
-    if (fieldErrors.pincode) setFieldErrors((prev) => { const { pincode: _, ...rest } = prev; return rest })
-  }
-
-  if (pincodeData && pincodeData.length > 0 && form.pincode?.length === 6) {
-    const p = pincodeData[0]!
-    if (p.district && !form.city) {
-      setForm((prev) => ({
-        ...prev,
-        city: p.district || prev.city,
-        state: p.state || prev.state,
-      }))
+  // Auto-fill city/state from pincode
+  useEffect(() => {
+    if (pincodeData && pincodeData.length > 0 && form.pincode?.length === 6) {
+      const p = pincodeData[0]!
+      if (p.district && !form.city) {
+        setForm((prev) => ({
+          ...prev,
+          city: p.district || prev.city,
+          state: p.state || prev.state,
+        }))
+      }
     }
-  }
-
-  const handleChange = (field: keyof CompanyCreatePayload, value: string | number) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
-    // Clear field error when user edits
-    if (fieldErrors[field]) {
-      setFieldErrors((prev) => { const next = { ...prev }; delete next[field]; return next })
-    }
-  }
+  }, [pincodeData, form.pincode, form.city])
 
   /** Map snake_case API field names to our camelCase form keys */
   const snakeToCamelField: Record<string, string> = {
@@ -103,6 +91,16 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
     return {}
   }, [])
 
+  const handlePincodeChange = useCallback((val: string) => {
+    setForm((prev) => ({ ...prev, pincode: val }))
+    setFieldErrors((prev) => { const { pincode: _, ...rest } = prev; return rest })
+  }, [])
+
+  const handleChange = useCallback((field: keyof CompanyCreatePayload, value: string | number) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+    setFieldErrors((prev) => { const next = { ...prev }; delete next[field]; return next })
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFieldErrors({})
@@ -134,6 +132,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
     onClose()
   }
 
+  if (!open) return null
+
   const inputClass = (field?: string) => {
     const hasError = field && fieldErrors[field]
     return `w-full rounded-lg border ${hasError ? 'border-red-400 ring-1 ring-red-300 bg-red-50/30' : 'border-gray-300'} px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none`
@@ -144,9 +144,9 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
   ) : null
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60" onClick={handleClose}>
+    <div className="modal-overlay z-[10000]" onClick={handleClose}>
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="modal-panel max-w-2xl mx-4 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

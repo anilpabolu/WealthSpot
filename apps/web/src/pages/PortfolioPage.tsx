@@ -85,10 +85,10 @@ function StatCard({
   trend?: 'up' | 'down' | 'neutral'
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="stat-card">
       <div className="flex items-start justify-between mb-3">
-        <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-          <Icon className="h-5 w-5 text-gray-500" />
+        <div className="stat-card-icon bg-primary/10">
+          <Icon className="h-5 w-5 text-primary" />
         </div>
         {trend && trend !== 'neutral' && (
           <span
@@ -376,13 +376,18 @@ export default function PortfolioPage() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Portfolio</span>
+          <h1 className="page-hero-title">The War Chest</h1>
+          <p className="page-hero-subtitle">Your empire-in-progress — every asset, every return, all in one place.</p>
+        </div>
+      </section>
+
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-          {/* Page header */}
-          <div>
-            <h1 className="font-display text-3xl font-bold text-gray-900">The War Chest</h1>
-            <p className="text-gray-500 mt-1">Your empire-in-progress — every asset, every return, all in one place.</p>
-          </div>
+        <div className="page-section">
+          <div className="page-section-container space-y-10">
 
           {isLoading && <LoadingState />}
 
@@ -420,7 +425,7 @@ export default function PortfolioPage() {
               {/* ── Vault-Wise Breakdown ──────────────────────────── */}
               {vaultData && vaultData.vaults.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold text-gray-900 mb-4">Vault-Wise Breakdown</h2>
+                  <h2 className="section-title text-xl">Vault-Wise Breakdown</h2>
                   <div className="grid md:grid-cols-3 gap-6">
                     {vaultData.vaults.map((v) => (
                       <VaultBreakdownCard key={v.vaultType} vault={v} />
@@ -432,19 +437,19 @@ export default function PortfolioPage() {
               {/* ── Charts Row ────────────────────────────────────── */}
               <section className="grid lg:grid-cols-2 gap-6">
                 {/* Asset Allocation */}
-                <div className="rounded-xl border border-gray-200 bg-white p-6">
+                <div className="card p-6">
                   <div className="flex items-center gap-2 mb-5">
                     <PieChart className="h-5 w-5 text-gray-400" />
-                    <h3 className="font-display text-lg font-bold text-gray-900">Asset Allocation</h3>
+                    <h3 className="section-title text-lg">Asset Allocation</h3>
                   </div>
                   <AllocationChart data={summary?.assetAllocation ?? []} />
                 </div>
 
                 {/* Monthly Returns */}
-                <div className="rounded-xl border border-gray-200 bg-white p-6">
+                <div className="card p-6">
                   <div className="flex items-center gap-2 mb-5">
                     <BarChart3 className="h-5 w-5 text-gray-400" />
-                    <h3 className="font-display text-lg font-bold text-gray-900">Monthly Returns</h3>
+                    <h3 className="section-title text-lg">Monthly Returns</h3>
                   </div>
                   <MonthlyReturnsChart data={summary?.monthlyReturns ?? []} />
                 </div>
@@ -452,7 +457,7 @@ export default function PortfolioPage() {
 
               {/* ── Holdings ──────────────────────────────────────── */}
               <section>
-                <h2 className="font-display text-xl font-bold text-gray-900 mb-4">Holdings</h2>
+                <h2 className="section-title text-xl">Holdings</h2>
                 {propsLoading ? (
                   <LoadingState />
                 ) : !properties || properties.length === 0 ? (
@@ -472,7 +477,7 @@ export default function PortfolioPage() {
               {/* ── Recent Activity ───────────────────────────────── */}
               {activities && activities.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+                  <h2 className="section-title text-xl">Recent Activity</h2>
                   <div className="rounded-xl border border-gray-200 bg-white p-4">
                     {activities.map((a) => (
                       <ActivityRow
@@ -487,7 +492,7 @@ export default function PortfolioPage() {
 
               {/* ── Recent Transactions ────────────────────────────── */}
               <section>
-                <h2 className="font-display text-xl font-bold text-gray-900 mb-4">Recent Transactions</h2>
+                <h2 className="section-title text-xl">Recent Transactions</h2>
                 {txnLoading ? (
                   <LoadingState />
                 ) : !transactions || transactions.length === 0 ? (
@@ -505,6 +510,7 @@ export default function PortfolioPage() {
               </section>
             </>
           )}
+          </div>
         </div>
       </main>
     </div>

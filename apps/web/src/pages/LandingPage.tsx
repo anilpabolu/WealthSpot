@@ -20,27 +20,32 @@ import {
 /* ---------- Hero ---------- */
 function HeroSection({ onHowItWorks }: { onHowItWorks: () => void }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-white to-gray-50 flex-1 flex items-center">
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-16">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A] flex-1 flex items-center">
+      {/* Decorative pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute -right-20 -top-20 text-[12rem]">🏛️</div>
+        <div className="absolute -left-10 -bottom-10 text-[8rem]">💎</div>
+      </div>
+      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
         <div className="space-y-6 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-            <Zap className="h-4 w-4" />
+          <span className="page-hero-badge">
+            <Zap className="h-3.5 w-3.5 inline mr-1.5" />
             SEBI-Compliant Fractional Ownership
-          </div>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
+          </span>
+          <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
             Own Premium
             <br />
             Real Estate from{' '}
-            <span className="text-primary">₹10,000</span>
+            <span className="text-[#D4AF37]">₹10,000</span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
+          <p className="text-lg text-white/70 max-w-lg leading-relaxed font-body">
             WealthSpot makes fractional real estate investing accessible to everyone.
             Earn up to 18% IRR on RERA-verified properties across India's top cities.
           </p>
 
           {/* CTA row */}
           <div className="flex flex-wrap items-center gap-4">
-            <button onClick={onHowItWorks} className="btn-primary text-base px-6 py-3 inline-flex items-center gap-2">
+            <button onClick={onHowItWorks} className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-base px-8 py-3.5 inline-flex items-center gap-2">
               How it Works
               <ArrowRight className="h-5 w-5" />
             </button>
@@ -48,16 +53,16 @@ function HeroSection({ onHowItWorks }: { onHowItWorks: () => void }) {
 
           {/* Trust badges */}
           <div className="flex items-center gap-6 pt-2">
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Lock className="h-4 w-4 text-success" />
+            <div className="flex items-center gap-1.5 text-sm text-white/60">
+              <Lock className="h-4 w-4 text-emerald-400" />
               256-bit Encryption
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Shield className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1.5 text-sm text-white/60">
+              <Shield className="h-4 w-4 text-[#D4AF37]" />
               SEBI Registered
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <CheckCircle2 className="h-4 w-4 text-success" />
+            <div className="flex items-center gap-1.5 text-sm text-white/60">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               RERA Verified
             </div>
           </div>
@@ -70,10 +75,10 @@ function HeroSection({ onHowItWorks }: { onHowItWorks: () => void }) {
 /* ---------- Platform Stats ---------- */
 function StatsBar() {
   const stats = [
-    { label: 'Total Invested', value: '₹42.5 Cr', icon: Wallet },
-    { label: 'Active Investors', value: '8,200+', icon: Users },
-    { label: 'Properties Listed', value: '45', icon: Building2 },
-    { label: 'Avg. Returns', value: '14.2%', icon: TrendingUp },
+    { label: 'Verified Properties', value: 'RERA Approved', icon: Building2 },
+    { label: 'Growing Community', value: 'Thousands+', icon: Users },
+    { label: 'Target Returns', value: 'Up to 18% IRR', icon: TrendingUp },
+    { label: 'Your Capital', value: 'Fully Secured', icon: Shield },
   ]
 
   return (
@@ -82,11 +87,11 @@ function StatsBar() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((s) => (
             <div key={s.label} className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
+              <div className="stat-card-icon bg-primary/10 shrink-0">
                 <s.icon className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{s.label}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{s.label}</p>
                 <p className="font-mono text-lg font-bold text-gray-900">{s.value}</p>
               </div>
             </div>
@@ -100,18 +105,18 @@ function StatsBar() {
 /* ---------- How It Works ---------- */
 function HowItWorks() {
   const steps = [
-    { num: 1, title: 'Browse & Select', desc: 'Explore RERA-verified properties across top Indian cities.', icon: Search },
-    { num: 2, title: 'Invest Fractionally', desc: 'Start from ₹10,000. Pay securely via Razorpay.', icon: Wallet },
-    { num: 3, title: 'Earn Returns', desc: 'Receive rental income & capital appreciation directly.', icon: TrendingUp },
-    { num: 4, title: 'Track & Grow', desc: 'Monitor IRR, portfolio allocation & payouts in real-time.', icon: BarChart3 },
+    { num: 1, title: 'Browse & Select', desc: 'Discover RERA-verified properties across India’s fastest-growing cities, curated by investment experts.', icon: Search },
+    { num: 2, title: 'Invest Fractionally', desc: 'Choose your investment amount and pay securely. No barriers, no middlemen.', icon: Wallet },
+    { num: 3, title: 'Earn Returns', desc: 'Receive rental income and capital appreciation directly into your account, every quarter.', icon: TrendingUp },
+    { num: 4, title: 'Track & Grow', desc: 'Monitor your portfolio’s IRR, asset allocation, and payouts with a real-time dashboard.', icon: BarChart3 },
   ]
 
   return (
-    <section id="how-it-works" className="py-20 bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" className="page-section bg-gray-50">
+      <div className="page-section-container">
         <div className="text-center mb-12">
-          <h2 className="section-header">How It Works</h2>
-          <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
+          <h2 className="section-title">How It Works</h2>
+          <p className="section-subtitle mx-auto">
             Four simple steps to start building your real estate wealth portfolio.
           </p>
         </div>
@@ -160,11 +165,11 @@ function Testimonials() {
   ]
 
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="page-section bg-gray-50">
+      <div className="page-section-container">
         <div className="text-center mb-12">
-          <h2 className="section-header">What Investors Say</h2>
-          <p className="text-gray-500 mt-2">Trusted by thousands of investors across India</p>
+          <h2 className="section-title">What Investors Say</h2>
+          <p className="section-subtitle mx-auto">Trusted by thousands of investors across India</p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -196,18 +201,21 @@ function Testimonials() {
 /* ---------- CTA Section ---------- */
 function CtaSection({ onGetStarted }: { onGetStarted: () => void }) {
   return (
-    <section className="py-20 bg-primary">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
+    <section className="py-20 bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A] relative overflow-hidden">
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute right-10 bottom-5 text-[10rem]">🚀</div>
+      </div>
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 className="font-hero text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
           Your Wealth Story Starts Now 🚀
         </h2>
-        <p className="text-primary-100 text-lg mb-8 max-w-2xl mx-auto opacity-90">
-          8,000+ investors are already in the game. ₹10,000 is all it takes to join — your future self will thank you.
+        <p className="text-white/60 text-lg mb-8 max-w-2xl mx-auto">
+          Join a growing community of investors building generational wealth through premium real estate — with full transparency and SEBI-compliant security.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <button
             onClick={onGetStarted}
-            className="bg-white text-primary font-semibold px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
+            className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-3.5 text-base inline-flex items-center gap-2"
           >
             Claim Your Spot
             <ArrowRight className="h-5 w-5" />

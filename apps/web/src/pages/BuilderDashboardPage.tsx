@@ -23,17 +23,23 @@ export default function BuilderDashboardPage() {
 
   return (
     <PortalLayout variant="builder">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      {/* Hero */}
+      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gray-900">Builder Dashboard</h1>
-            <p className="text-gray-500 mt-1">Manage your property listings</p>
+            <span className="page-hero-badge">Builder Portal</span>
+            <h1 className="page-hero-title">Builder Dashboard</h1>
+            <p className="page-hero-subtitle">Manage your property listings and track investor activity.</p>
           </div>
-          <Link to="/portal/builder/listings/new" className="btn-primary inline-flex items-center gap-2">
+          <Link to="/portal/builder/listings/new" className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] hidden sm:inline-flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
             Add New Property
           </Link>
         </div>
+      </div>
+
+      <div className="page-section">
+        <div className="page-section-container space-y-6">
 
         {isLoading && (
           <div className="flex items-center justify-center py-16">
@@ -76,7 +82,7 @@ export default function BuilderDashboardPage() {
             {/* Property Cards */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-lg font-bold text-gray-900">My Properties</h2>
+                <h2 className="section-title text-lg">My Properties</h2>
                 <Link to="/portal/builder/listings" className="text-sm text-primary hover:underline flex items-center gap-1">
                   View All <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -117,7 +123,7 @@ export default function BuilderDashboardPage() {
 
             {/* Verification notice */}
             {data?.builder && !data.builder.verified && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Verification pending</p>
@@ -127,6 +133,7 @@ export default function BuilderDashboardPage() {
             )}
           </>
         )}
+        </div>
       </div>
     </PortalLayout>
   )

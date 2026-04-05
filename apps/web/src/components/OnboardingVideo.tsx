@@ -20,7 +20,7 @@ interface OnboardingVideoProps {
 const FALLBACK_VIDEO = '/videos/how-it-works.mp4'
 
 export default function OnboardingVideo({ mode, onComplete, onClose }: OnboardingVideoProps) {
-  const { data: managed } = usePublicVideo('onboarding', 'how_it_works')
+  const { data: managed } = usePublicVideo('home', 'how_it_works')
   const videoSrc = managed?.videoUrl ?? FALLBACK_VIDEO
 
   const videoRef = useRef<HTMLVideoElement>(null)

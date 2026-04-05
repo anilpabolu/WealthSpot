@@ -21,6 +21,7 @@ from app.models.profiling import (
     PersonalityDimension,
 )
 from app.models.opportunity import Opportunity
+from app.models.user import User
 
 
 # ── Dimensions that map to personality_dimensions columns ────────────────────
@@ -292,6 +293,11 @@ async def compute_match_score(
 
     vault_type = opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type)
 
+    # 1b. Get user profile for context-aware scoring
+    user = (await db.execute(
+        select(User).where(User.id == user_id)
+    )).scalar_one_or_none()
+
     # 2. Get user's personality
     pd = (await db.execute(
         select(PersonalityDimension).where(
@@ -321,12 +327,12 @@ async def compute_match_score(
         overall = round(weighted_sum / total_weight, 1) if total_weight > 0 else 0
 
         # 4. Apply opportunity-specific bonuses
-        overall = _apply_opportunity_bonuses(overall, opp, pd)
+        overall = _apply_opportunity_bonuses(overall, opp, pd, user)
 
     overall = min(max(overall, 0), 100)  # clamp
 
     # Generate human-readable breakdown
-    breakdown = _generate_breakdown(dim_scores, overall, vault_type)
+    breakdown = _generate_breakdown(dim_scores, overall, vault_type, opp, user)
 
     # Upsert
     existing = (await db.execute(
@@ -397,36 +403,75 @@ def _vault_dimension_weights(vault_type: str) -> dict[str, float]:
 
 
 def _apply_opportunity_bonuses(
-    score: float, opp: Opportunity, pd: PersonalityDimension
+    score: float, opp: Opportunity, pd: PersonalityDimension, user: User | None
 ) -> float:
-    """Apply small bonuses/penalties based on opportunity-profile alignment."""
+    """Apply bonuses/penalties based on opportunity-profile alignment."""
     bonus = 0.0
     vault = opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type)
 
-    # Investment capacity vs target amount alignment
-    if opp.min_investment and float(pd.investment_capacity or 0) > 70:
-        bonus += 5  # High capacity + opportunity needing funds
+    # ── Investment capacity vs opportunity size ──────────────────────────────
+    inv_cap = float(pd.investment_capacity or 0)
+    if opp.min_investment:
+        min_inv = float(opp.min_investment)
+        if inv_cap > 75 and min_inv > 0:
+            bonus += 8  # High capacity investor for funded opportunity
+        elif inv_cap > 50:
+            bonus += 4
+        elif inv_cap < 30 and min_inv > 50000:
+            bonus -= 5  # Low capacity for high-ticket opportunity
 
-    # Community: collaboration + time alignment
+    # ── Location alignment ───────────────────────────────────────────────────
+    if user and opp.city:
+        opp_city = (opp.city or "").strip().lower()
+        user_city = (user.city or "").strip().lower()
+        preferred = [c.strip().lower() for c in (user.preferred_cities or [])]
+        if opp_city and (opp_city == user_city or opp_city in preferred):
+            bonus += 6  # Location match
+
+    # ── Industry / domain alignment ──────────────────────────────────────────
+    if user and opp.industry:
+        opp_industry = (opp.industry or "").strip().lower()
+        user_interests = [i.strip().lower() for i in (user.interests or [])]
+        if opp_industry and opp_industry in user_interests:
+            bonus += 8  # Domain match
+
+    # ── Risk tier from opportunity stage ─────────────────────────────────────
+    risk_appetite = float(pd.risk_appetite or 0)
+    stage = (opp.stage or "").lower()
+    if stage in ("pre-seed", "seed", "idea"):
+        # High-risk early stage — reward high risk appetite
+        if risk_appetite > 70:
+            bonus += 6
+        elif risk_appetite < 35:
+            bonus -= 4
+    elif stage in ("series-a", "series-b", "growth"):
+        if risk_appetite > 40:
+            bonus += 3
+
+    # ── Community-specific bonuses ───────────────────────────────────────────
     if vault == "community":
         if float(pd.time_commitment or 0) > 60 and float(pd.collaboration_score or 0) > 60:
             bonus += 8
         if float(pd.network_strength or 0) > 70:
             bonus += 4
-
-    # Risk appetite alignment for high-risk opportunities
-    if vault == "opportunity" and float(pd.risk_appetite or 0) > 75:
-        bonus += 5
+        collab = (opp.collaboration_type or "").lower()
+        if collab == "expertise" and float(pd.domain_expertise or 0) > 65:
+            bonus += 5
+        elif collab == "network" and float(pd.network_strength or 0) > 65:
+            bonus += 5
+        elif collab == "time" and float(pd.time_commitment or 0) > 65:
+            bonus += 5
 
     return min(score + bonus, 100)
 
 
 def _generate_breakdown(
-    dim_scores: dict[str, float], overall: float, vault_type: str
+    dim_scores: dict[str, float], overall: float, vault_type: str,
+    opp: Opportunity | None = None, user: User | None = None,
 ) -> dict[str, Any]:
-    """Generate human-readable match breakdown."""
-    strengths = []
-    areas_to_grow = []
+    """Generate human-readable match breakdown with property-context awareness."""
+    strengths: list[str] = []
+    areas_to_grow: list[str] = []
 
     labels = {
         "risk_appetite": "Risk Appetite",
@@ -439,11 +484,67 @@ def _generate_breakdown(
         "collaboration_score": "Team Collaboration",
     }
 
+    # ── Property-context-aware strengths & growth areas ──────────────────────
+    # Investment capacity + opportunity financials
+    inv_cap = dim_scores.get("investment_capacity", 0)
+    if opp and opp.min_investment:
+        if inv_cap >= 70:
+            strengths.append(f"Strong Investment Capacity for ₹{int(opp.min_investment):,}+ ticket")
+        elif inv_cap < 40:
+            areas_to_grow.append(f"Investment Capacity (min ₹{int(opp.min_investment):,})")
+    elif inv_cap >= 70:
+        strengths.append("Strong Investment Capacity")
+    elif inv_cap < 40:
+        areas_to_grow.append("Investment Capacity")
+
+    # Risk appetite + opportunity stage
+    risk = dim_scores.get("risk_appetite", 0)
+    stage = (opp.stage or "") if opp else ""
+    if stage.lower() in ("pre-seed", "seed", "idea"):
+        if risk >= 70:
+            strengths.append(f"High Risk Appetite — great for {stage} stage")
+        elif risk < 40:
+            areas_to_grow.append(f"Risk Appetite (this is {stage} stage)")
+    elif risk >= 70:
+        strengths.append("Strong Risk Appetite")
+    elif risk < 40:
+        areas_to_grow.append("Risk Appetite")
+
+    # Location alignment
+    if opp and opp.city and user:
+        opp_city = (opp.city or "").strip().lower()
+        user_city = (user.city or "").strip().lower()
+        preferred = [c.strip().lower() for c in (user.preferred_cities or [])]
+        if opp_city and (opp_city == user_city or opp_city in preferred):
+            strengths.append(f"Location Match — {opp.city}")
+
+    # Industry alignment
+    if opp and opp.industry and user:
+        opp_industry = (opp.industry or "").strip().lower()
+        user_interests = [i.strip().lower() for i in (user.interests or [])]
+        if opp_industry and opp_industry in user_interests:
+            strengths.append(f"Domain Match — {opp.industry}")
+        elif opp.industry and dim_scores.get("domain_expertise", 0) < 40:
+            areas_to_grow.append(f"Domain Expertise in {opp.industry}")
+
+    # Community collaboration type
+    if opp and vault_type == "community" and opp.collaboration_type:
+        collab = opp.collaboration_type.lower()
+        dim_map = {"expertise": "domain_expertise", "network": "network_strength",
+                    "time": "time_commitment", "capital": "investment_capacity"}
+        dim_key = dim_map.get(collab)
+        if dim_key and dim_scores.get(dim_key, 0) >= 65:
+            strengths.append(f"Good {collab.title()} contributor for community")
+
+    # Remaining dimension-based insights (avoid duplicating what we already added)
+    covered_dims = {"investment_capacity", "risk_appetite"}
     for dim, score in dim_scores.items():
+        if dim in covered_dims:
+            continue
         label = labels.get(dim, dim)
-        if score >= 70:
+        if score >= 70 and len(strengths) < 5:
             strengths.append(f"Strong {label}")
-        elif score < 40:
+        elif score < 40 and len(areas_to_grow) < 5:
             areas_to_grow.append(label)
 
     # Match tier
@@ -472,8 +573,8 @@ def _generate_breakdown(
         "tier": tier,
         "emoji": emoji,
         "note": note,
-        "strengths": strengths[:3],
-        "areas_to_grow": areas_to_grow[:3],
+        "strengths": strengths[:4],
+        "areas_to_grow": areas_to_grow[:4],
         "compatibility_label": determine_compatibility_label(overall),
     }
 
@@ -484,8 +585,6 @@ async def get_top_matches_for_opportunity(
     """
     Get top matching users for an opportunity (for the creator to see).
     """
-    from app.models.user import User
-
     stmt = (
         select(ProfileMatchScore, User)
         .join(User, ProfileMatchScore.user_id == User.id)

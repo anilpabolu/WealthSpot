@@ -72,32 +72,40 @@ export default function SettingsPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="font-display text-2xl font-bold text-gray-900 mb-6">Mission Control ⚙️</h1>
+      {/* Hero section */}
+      <div className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Settings</span>
+          <h1 className="page-hero-title">Mission Control ⚙️</h1>
+          <p className="page-hero-subtitle">Manage your profile, security, and preferences — everything in one place.</p>
+        </div>
+      </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <nav className="lg:w-56 shrink-0">
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              {TABS.map((tab) => {
-                const Icon = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 text-sm transition',
-                      activeTab === tab.id
-                        ? 'bg-primary/5 text-primary font-semibold border-l-2 border-primary'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                )
-              })}
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100">
+      <div className="page-section">
+        <div className="page-section-container">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar */}
+            <nav className="lg:w-56 shrink-0">
+              <div className="card overflow-hidden">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200',
+                        activeTab === tab.id
+                          ? 'bg-primary/5 text-primary font-semibold border-l-4 border-primary'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {tab.label}
+                    </button>
+                  )
+                })}
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100">
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </button>
@@ -114,6 +122,7 @@ export default function SettingsPage() {
             {activeTab === 'kyc' && <KycTab />}
             {activeTab === 'referrals' && <ReferralsTab />}
           </div>
+        </div>
         </div>
       </div>
     </MainLayout>
@@ -132,8 +141,8 @@ function ProfileTab() {
   const displayInitial = (displayName[0] ?? 'U').toUpperCase()
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-6">Personal Information</h2>
+    <div className="card p-6">
+      <h2 className="section-title text-lg mb-6">Personal Information</h2>
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-6">
@@ -200,8 +209,8 @@ function NotificationsTab() {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+    <div className="card p-6">
+      <h2 className="section-title text-lg mb-6">Notification Preferences</h2>
       {isLoading ? (
         <p className="text-sm text-gray-400">Loading…</p>
       ) : (
@@ -232,8 +241,8 @@ function NotificationsTab() {
 function SecurityTab() {
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Change Password</h2>
+      <div className="card p-6">
+        <h2 className="section-title text-lg mb-4">Change Password</h2>
         <div className="space-y-3 max-w-sm">
           {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
             <div key={label}>
@@ -249,8 +258,8 @@ function SecurityTab() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-2">Two-Factor Authentication</h2>
+      <div className="card p-6">
+        <h2 className="section-title text-lg mb-2">Two-Factor Authentication</h2>
         <p className="text-sm text-gray-500 mb-4">
           Add an extra layer of security to your account.
         </p>
@@ -287,9 +296,9 @@ function BankTab() {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="card p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-semibold text-gray-900">Bank Accounts</h2>
+        <h2 className="section-title text-lg">Bank Accounts</h2>
         <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm px-4 py-2 inline-flex items-center gap-1.5">
           <Plus className="h-3.5 w-3.5" />
           Add Account
@@ -297,7 +306,7 @@ function BankTab() {
       </div>
 
       {/* Security reassurance */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2 mb-6">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 mb-6">
         <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
         <p className="text-xs text-gray-600">
           <strong>100% Secure.</strong> All bank details are encrypted end-to-end using AES-256 military-grade
@@ -404,8 +413,8 @@ function KycTab() {
   return (
     <div className="space-y-6">
       {/* Status banner */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">KYC Verification</h2>
+      <div className="card p-6">
+        <h2 className="section-title text-lg mb-4">KYC Verification</h2>
         {isLoading ? (
           <p className="text-sm text-gray-400">Loading…</p>
         ) : meta ? (
@@ -435,8 +444,8 @@ function KycTab() {
 
       {/* Read-only submitted details */}
       {showDetails && kycDetails?.fullName && !showForm && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Submitted Details</h3>
+        <div className="card p-6">
+          <h3 className="section-title text-lg mb-4">Submitted Details</h3>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
             <div>
               <dt className="text-gray-500">Full Name</dt>
@@ -628,11 +637,11 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
 
   if (step === 4) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+      <div className="card p-8 text-center">
         <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
           <CheckCircle2 className="h-8 w-8 text-emerald-500" />
         </div>
-        <h2 className="font-display text-xl font-bold text-gray-900 mb-2">KYC Submitted Successfully!</h2>
+        <h2 className="section-title text-xl mb-2">KYC Submitted Successfully!</h2>
         <p className="text-sm text-gray-500 mb-6">
           Your documents are being reviewed. This usually takes 24-48 hours.
           We'll notify you via email and SMS once approved.
@@ -646,7 +655,7 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="card p-6">
       <KycStepIndicator currentStep={step} />
 
       {/* Step 1: Personal Details */}
@@ -760,8 +769,8 @@ function DocumentsTab() {
   const deleteDoc = useDeleteKycDocument()
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-6">Uploaded Documents</h2>
+    <div className="card p-6">
+      <h2 className="section-title text-lg mb-6">Uploaded Documents</h2>
       {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
       {!isLoading && (!docs || docs.length === 0) && (
         <div className="text-center py-8">
@@ -843,8 +852,8 @@ function ReferralsTab() {
   return (
     <div className="space-y-5">
       {/* Code card */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Gift className="h-5 w-5 text-primary" /> Your Referral Code</h2>
+      <div className="card p-6">
+        <h2 className="section-title text-lg mb-4 flex items-center gap-2"><Gift className="h-5 w-5 text-primary" /> Your Referral Code</h2>
         {statsLoading ? (
           <p className="text-sm text-gray-400">Loading…</p>
         ) : (
@@ -908,8 +917,8 @@ function ReferralsTab() {
       </div>
 
       {/* History */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Referral History</h2>
+      <div className="card p-6">
+        <h2 className="section-title text-lg mb-4">Referral History</h2>
         {histLoading && <p className="text-sm text-gray-400">Loading…</p>}
         {!histLoading && (!history || history.length === 0) && (
           <p className="text-sm text-gray-400">No referrals yet. Share your code to get started!</p>

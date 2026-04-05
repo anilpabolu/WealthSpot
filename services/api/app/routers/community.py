@@ -532,20 +532,31 @@ async def list_unanswered_questions(
 async def list_pending_answers(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> list[ReplyRead]:
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+) -> dict:
     """
-    Return all unapproved replies to questions (for approval by admins).
+    Return paginated unapproved replies to questions (for approval by admins).
     """
     allowed = {"admin", "super_admin", "approver"}
     if user.role not in allowed:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    query = (
+    base = (
         select(CommunityReply)
         .join(CommunityPost, CommunityReply.post_id == CommunityPost.id)
         .where(CommunityPost.post_type == PostType.QUESTION)
         .where(CommunityReply.is_approved.is_(False))
-        .order_by(CommunityReply.created_at.asc())
     )
+
+    total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
+
+    query = base.order_by(CommunityReply.created_at.asc()).offset((page - 1) * page_size).limit(page_size)
     replies = (await db.execute(query)).scalars().all()
-    return [_reply_read(r) for r in replies]
+
+    return {
+        "items": [_reply_read(r) for r in replies],
+        "total": total,
+        "page": page,
+        "total_pages": max(1, ceil(total / page_size)),
+    }

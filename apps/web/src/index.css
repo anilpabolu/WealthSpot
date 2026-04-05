@@ -23,9 +23,15 @@
 }
 
 @layer components {
-  /* Card base */
+  /* Card base — aligned with VaultsPage design system */
   .card {
-    @apply bg-white border border-gray-200 rounded-xl shadow-sm;
+    @apply bg-white border border-gray-200 rounded-2xl shadow-sm
+           transition-all duration-300 hover:shadow-md;
+  }
+
+  /* Premium card with accent border (vault-style) */
+  .card-accent {
+    @apply card border-l-4;
   }
 
   /* Glass card (dark mode only) */
@@ -33,30 +39,38 @@
     @apply backdrop-blur-[24px] bg-white/[0.06] border border-white/10;
   }
 
-  /* Primary button */
+  /* Primary button — rounded to match design system */
   .btn-primary {
-    @apply bg-primary text-white rounded-lg px-5 py-2.5 font-semibold
-           hover:bg-primary-dark transition-colors duration-200
+    @apply bg-primary text-white rounded-xl px-5 py-2.5 font-semibold
+           hover:bg-primary-dark transition-all duration-200
+           hover:shadow-md hover:scale-[1.01] active:scale-100
            focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
   }
 
   /* Secondary button */
   .btn-secondary {
-    @apply border border-gray-300 bg-white text-gray-800 rounded-lg px-5 py-2.5 font-semibold
-           hover:bg-gray-50 transition-colors duration-200
+    @apply border border-gray-300 bg-white text-gray-800 rounded-xl px-5 py-2.5 font-semibold
+           hover:bg-gray-50 transition-all duration-200
            focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
   }
 
   /* Ghost button */
   .btn-ghost {
-    @apply text-primary font-semibold hover:bg-primary-light rounded-lg px-3 py-2
+    @apply text-primary font-semibold hover:bg-primary-light rounded-xl px-3 py-2
            transition-colors duration-200;
   }
 
   /* Danger button */
   .btn-danger {
-    @apply bg-red-500 text-white rounded-lg px-5 py-2.5 font-semibold
-           hover:bg-red-600 transition-colors duration-200;
+    @apply bg-red-500 text-white rounded-xl px-5 py-2.5 font-semibold
+           hover:bg-red-600 transition-all duration-200;
+  }
+
+  /* Gradient CTA button (vault-style) */
+  .btn-gradient {
+    @apply inline-flex items-center justify-center gap-2 font-bold text-sm
+           px-5 py-3 rounded-2xl text-white shadow-md
+           transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-100;
   }
 
   /* Status pills */
@@ -106,6 +120,65 @@
   /* Section header (Neo-Brutalist) */
   .section-header {
     @apply font-display text-xl font-bold uppercase tracking-wider;
+  }
+
+  /* Page hero section */
+  .page-hero {
+    @apply relative overflow-hidden py-16 sm:py-20;
+  }
+
+  .page-hero-content {
+    @apply mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10;
+  }
+
+  .page-hero-title {
+    @apply font-hero text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 tracking-tight leading-tight;
+  }
+
+  .page-hero-subtitle {
+    @apply text-white/70 max-w-2xl text-lg leading-relaxed font-body;
+  }
+
+  .page-hero-badge {
+    @apply inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm
+           text-white/90 text-xs font-bold uppercase tracking-widest mb-5;
+  }
+
+  /* Section wrapper */
+  .page-section {
+    @apply py-10 sm:py-12;
+  }
+
+  .page-section-container {
+    @apply mx-auto max-w-7xl px-6 sm:px-8 lg:px-16;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply font-display text-2xl sm:text-3xl font-bold text-gray-900;
+  }
+
+  .section-subtitle {
+    @apply text-gray-500 mt-2 max-w-2xl;
+  }
+
+  /* Stat/metric card (vault-aligned) */
+  .stat-card {
+    @apply card p-5 space-y-2;
+  }
+
+  .stat-card-icon {
+    @apply h-10 w-10 rounded-2xl flex items-center justify-center shrink-0;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm;
+  }
+
+  .modal-panel {
+    @apply bg-white rounded-3xl shadow-2xl border border-gray-200 
+           w-full max-h-[90vh] overflow-y-auto animate-scale-in;
   }
 }
 

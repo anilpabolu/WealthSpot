@@ -85,6 +85,56 @@ describe('mobile useOpportunities – API layer', () => {
       })
       expect(result).toHaveProperty('id', 'new-opp')
     })
+
+    it('creates community co-investor opportunity', async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        id: 'co-inv',
+        status: 'draft',
+        community_subtype: 'co_investor',
+        community_details: { maxInvestors: 10 },
+      })
+      const result = await apiPost('/opportunities', {
+        vault_type: 'community',
+        title: 'Co-Investor Sports Complex',
+        community_subtype: 'co_investor',
+        community_details: { maxInvestors: 10 },
+      })
+      expect(result).toHaveProperty('community_subtype', 'co_investor')
+    })
+
+    it('creates community co-partner opportunity', async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        id: 'co-par',
+        status: 'draft',
+        community_subtype: 'co_partner',
+        community_details: { equityShare: 30 },
+      })
+      const result = await apiPost('/opportunities', {
+        vault_type: 'community',
+        title: 'Co-Partner Coworking',
+        community_subtype: 'co_partner',
+        community_details: { equityShare: 30 },
+      })
+      expect(result).toHaveProperty('community_subtype', 'co_partner')
+    })
+  })
+
+  describe('Listing with community_subtype filter', () => {
+    it('filters by community_subtype param', async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        items: [{ id: 'co1', community_subtype: 'co_investor' }],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+      })
+      await apiGet('/opportunities', {
+        params: { vault_type: 'community', community_subtype: 'co_investor', page: 1 },
+      })
+      expect(apiGet).toHaveBeenCalledWith('/opportunities', {
+        params: { vault_type: 'community', community_subtype: 'co_investor', page: 1 },
+      })
+    })
   })
 
   describe('Vault Stats', () => {

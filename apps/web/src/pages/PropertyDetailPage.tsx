@@ -61,6 +61,7 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
           src={images[activeIdx]}
           alt={`${title} - Image ${activeIdx + 1}`}
           className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-gray-100'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-gray-100'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }}
         />
         {images.length > 1 && (
           <>
@@ -98,7 +99,7 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
           {activeIdx + 1} / {images.length}
         </span>
         {/* Video link */}
-        {videoUrl && (
+        {videoUrl?.trim() && (
           <a
             href={videoUrl}
             target="_blank"
@@ -120,7 +121,7 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
                 i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'
               }`}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-gray-200'); }} />
             </button>
           ))}
         </div>
@@ -299,7 +300,8 @@ export default function PropertyDetailPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-section">
+        <div className="page-section-container">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
@@ -572,6 +574,7 @@ export default function PropertyDetailPage() {
               irr={property.targetIrr}
             />
           </div>
+        </div>
         </div>
       </div>
 

@@ -96,6 +96,8 @@ class Opportunity(Base):
     # Community-specific
     community_type: Mapped[str | None] = mapped_column(String(100))  # sports complex, co-working, etc.
     collaboration_type: Mapped[str | None] = mapped_column(String(100))  # time, network, expertise, capital
+    community_subtype: Mapped[str | None] = mapped_column(String(20))  # co_investor, co_partner
+    community_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # subtype-specific fields
     # Media
     cover_image: Mapped[str | None] = mapped_column(Text)
     video_url: Mapped[str | None] = mapped_column(Text)

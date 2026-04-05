@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Building2, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import { useCreateCompany, type CompanyCreatePayload } from '@/hooks/useCompanies'
@@ -29,21 +29,23 @@ export default function CompanyOnboardingPage() {
   const createMutation = useCreateCompany()
   const { data: pincodeData } = usePincodeLookup(form.pincode ?? '')
 
+  // Auto-fill city/state from pincode
+  useEffect(() => {
+    if (pincodeData && pincodeData.length > 0 && form.pincode?.length === 6) {
+      const p = pincodeData[0]!
+      if (p.district && !form.city) {
+        setForm((prev) => ({
+          ...prev,
+          city: p.district || prev.city,
+          state: p.state || prev.state,
+        }))
+      }
+    }
+  }, [pincodeData, form.pincode, form.city])
+
   // Auto-fill from pincode
   const handlePincodeChange = (val: string) => {
     setForm((prev) => ({ ...prev, pincode: val }))
-  }
-
-  // When pincode data arrives, auto-fill
-  if (pincodeData && pincodeData.length > 0 && form.pincode?.length === 6) {
-    const p = pincodeData[0]!
-    if (p.district && !form.city) {
-      setForm((prev) => ({
-        ...prev,
-        city: p.district || prev.city,
-        state: p.state || prev.state,
-      }))
-    }
   }
 
   const handleChange = (field: keyof CompanyCreatePayload, value: string | number) => {
@@ -65,7 +67,17 @@ export default function CompanyOnboardingPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Onboarding</span>
+          <h1 className="page-hero-title">Company Onboarding 🏗️</h1>
+          <p className="page-hero-subtitle">Get your company on the map — register once, create unlimited opportunities</p>
+        </div>
+      </section>
+
+      <div className="page-section">
+        <div className="page-section-container max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6"
@@ -75,20 +87,10 @@ export default function CompanyOnboardingPage() {
 
         {step === 'form' && (
           <>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-bold text-gray-900">Company Onboarding 🏗️</h1>
-                <p className="text-sm text-gray-500">Get your company on the map — register once, create unlimited opportunities</p>
-              </div>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Section: Basic Info */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Basic Information</h3>
+              <div className="card p-6 space-y-4">
+                <h3 className="section-title text-sm uppercase tracking-wider">Basic Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Company Name *</label>
@@ -127,8 +129,8 @@ export default function CompanyOnboardingPage() {
               </div>
 
               {/* Section: Legal */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Legal & Compliance</h3>
+              <div className="card p-6 space-y-4">
+                <h3 className="section-title text-sm uppercase tracking-wider">Legal & Compliance</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>CIN</label>
@@ -152,8 +154,8 @@ export default function CompanyOnboardingPage() {
               </div>
 
               {/* Section: Contact */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Primary Contact</h3>
+              <div className="card p-6 space-y-4">
+                <h3 className="section-title text-sm uppercase tracking-wider">Primary Contact</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className={labelClass}>Name</label>
@@ -171,8 +173,8 @@ export default function CompanyOnboardingPage() {
               </div>
 
               {/* Section: Address */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Registered Address</h3>
+              <div className="card p-6 space-y-4">
+                <h3 className="section-title text-sm uppercase tracking-wider">Registered Address</h3>
                 <div>
                   <label className={labelClass}>Address Line 1</label>
                   <input value={form.addressLine1 ?? ''} onChange={(e) => handleChange('addressLine1', e.target.value)} className={inputClass} placeholder="123 Business Park, MG Road" />
@@ -208,8 +210,8 @@ export default function CompanyOnboardingPage() {
               </div>
 
               {/* Section: Track Record */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Track Record</h3>
+              <div className="card p-6 space-y-4">
+                <h3 className="section-title text-sm uppercase tracking-wider">Track Record</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className={labelClass}>Years in Business</label>
@@ -269,6 +271,7 @@ export default function CompanyOnboardingPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </MainLayout>
   )

@@ -28,9 +28,8 @@ export function useProfileCompletion(): ProfileCompletionResult {
     }
 
     const sectionLabels: Record<string, string> = {
-      personal_risk: 'Personal & Risk',
+      personal: 'Personal Info',
       interests: 'Interests',
-      skills: 'Skills & Availability',
       address: 'Address',
       verification: 'Verification',
     }

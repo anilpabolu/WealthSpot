@@ -94,6 +94,8 @@ class OpportunityRead(BaseModel):
     pitch_deck_url: str | None = None
     community_type: str | None = None
     collaboration_type: str | None = None
+    community_subtype: str | None = None
+    community_details: dict | None = None
     cover_image: str | None = None
     video_url: str | None = None
     gallery: list[str] | None = None
@@ -149,6 +151,8 @@ class OpportunityCreateRequest(BaseModel):
     # Community fields
     community_type: str | None = None
     collaboration_type: str | None = None
+    community_subtype: str | None = None
+    community_details: dict | None = None
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -180,6 +184,8 @@ class OpportunityUpdateRequest(BaseModel):
     # Community fields
     community_type: str | None = None
     collaboration_type: str | None = None
+    community_subtype: str | None = None
+    community_details: dict | None = None
     # Lifecycle
     closing_date: datetime | None = None
     status: str | None = None

@@ -48,11 +48,17 @@ const MOCK_OPPORTUNITIES = [
 export default function LenderDashboardPage() {
   return (
     <PortalLayout variant="lender">
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Lender Dashboard</h1>
-          <p className="text-gray-500 mt-1">Manage your lending portfolio</p>
+      {/* Hero */}
+      <div className="page-hero bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Lender Portal</span>
+          <h1 className="page-hero-title">Lender Dashboard</h1>
+          <p className="page-hero-subtitle">Manage your lending portfolio — track loans, returns & repayments.</p>
         </div>
+      </div>
+
+      <div className="page-section">
+        <div className="page-section-container space-y-6">
 
         {/* Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -79,7 +85,7 @@ export default function LenderDashboardPage() {
         </div>
 
         {/* Upcoming repayment alert */}
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
           <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-gray-900">Next repayment on {formatDate(MOCK_SUMMARY.nextRepaymentDate)}</p>
@@ -90,7 +96,7 @@ export default function LenderDashboardPage() {
         {/* Active Loans */}
         <div className="card overflow-hidden">
           <div className="p-6 pb-3 flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold text-gray-900">Active Loans</h2>
+            <h2 className="section-title text-lg">Active Loans</h2>
             <Link to="/portal/investor/lender/loans" className="text-sm text-primary hover:underline flex items-center gap-1">
               View All <ArrowRight className="h-4 w-4" />
             </Link>
@@ -139,7 +145,7 @@ export default function LenderDashboardPage() {
         {/* Lending Opportunities */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg font-bold text-gray-900">Lending Opportunities</h2>
+            <h2 className="section-title text-lg">Lending Opportunities</h2>
             <Link to="/portal/investor/lender/opportunities" className="text-sm text-primary hover:underline flex items-center gap-1">
               View All <ArrowRight className="h-4 w-4" />
             </Link>
@@ -172,6 +178,7 @@ export default function LenderDashboardPage() {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </div>
     </PortalLayout>

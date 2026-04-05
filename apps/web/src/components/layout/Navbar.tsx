@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home } from 'lucide-react'
+import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home, Sparkles } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -11,6 +11,7 @@ import OnboardingVideo from '@/components/OnboardingVideo'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
+import { useOverallProgress } from '@/hooks/useProfiling'
 
 const AUTH_NAV_LINKS = [
   { label: 'Home', href: '/vaults', icon: Home },
@@ -32,8 +33,11 @@ export default function Navbar(_props?: NavbarProps) {
   const userRole = useUserStore((s) => s.user?.role)
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const { data: completion } = useProfileCompletionStatus()
+  const { data: overall } = useOverallProgress()
 
+  const approvalRoles = ['admin', 'approver', 'super_admin']
   const extraLinks = [
+    ...(userRole && approvalRoles.includes(userRole) ? [{ label: 'Approvals', href: '/approvals' }] : []),
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {
@@ -91,7 +95,7 @@ export default function Navbar(_props?: NavbarProps) {
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button className="btn-ghost text-sm">Sign In</button>
                 </SignInButton>
-                <button className="btn-primary text-sm" onClick={() => setShowVideo(true)}>Get Started</button>
+                <button className="btn-primary text-sm" onClick={() => setShowVideo(true)}>Join Free — See How It Works</button>
               </div>
             </Show>
 
@@ -146,7 +150,7 @@ export default function Navbar(_props?: NavbarProps) {
                   className="btn-primary text-sm flex-1 text-center"
                   onClick={() => { setMobileOpen(false); setShowVideo(true) }}
                 >
-                  Get Started
+                  Join Free
                 </button>
               </div>
             </Show>
@@ -170,6 +174,26 @@ export default function Navbar(_props?: NavbarProps) {
               className="shrink-0 px-4 py-1.5 bg-white text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-50 transition shadow-sm"
             >
               Complete Now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Vault profiling banner — softer prompt after profile is done */}
+      {isAuthenticated && completion?.isComplete && overall && !overall.isFullyProfiled && location.pathname !== '/vaults' && (
+        <div className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="h-4 w-4 shrink-0" />
+              <p className="text-sm font-semibold truncate">
+                Discover your investor DNA — profile your vaults to get personalised matches!
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/vaults')}
+              className="shrink-0 px-4 py-1.5 bg-white text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-50 transition shadow-sm"
+            >
+              Profile Vaults
             </button>
           </div>
         </div>

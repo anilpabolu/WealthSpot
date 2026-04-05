@@ -54,6 +54,8 @@ export interface OpportunityItem {
   pitchDeckUrl: string | null
   communityType: string | null
   collaborationType: string | null
+  communitySubtype: string | null
+  communityDetails: Record<string, unknown> | null
   coverImage: string | null
   videoUrl: string | null
   companyId: string | null
@@ -112,11 +114,13 @@ export interface OpportunityCreatePayload {
   // Community
   communityType?: string
   collaborationType?: string
+  communitySubtype?: string
+  communityDetails?: Record<string, unknown>
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload>
 
-export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number }) {
+export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number; communitySubtype?: string }) {
   return useQuery({
     queryKey: ['opportunities', params],
     queryFn: () =>
@@ -124,6 +128,7 @@ export function useOpportunities(params?: { vaultType?: string; status?: string;
         params: {
           ...(params?.vaultType && { vault_type: params.vaultType }),
           ...(params?.status && { status: params.status }),
+          ...(params?.communitySubtype && { community_subtype: params.communitySubtype }),
           page: params?.page ?? 1,
         },
       }),
@@ -176,6 +181,8 @@ export function useCreateOpportunity() {
         pitch_deck_url: data.pitchDeckUrl,
         community_type: data.communityType,
         collaboration_type: data.collaborationType,
+        community_subtype: data.communitySubtype,
+        community_details: data.communityDetails,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
@@ -211,6 +218,8 @@ export function useUpdateOpportunity() {
         ...(data.pitchDeckUrl !== undefined && { pitch_deck_url: data.pitchDeckUrl }),
         ...(data.communityType !== undefined && { community_type: data.communityType }),
         ...(data.collaborationType !== undefined && { collaboration_type: data.collaborationType }),
+        ...(data.communitySubtype !== undefined && { community_subtype: data.communitySubtype }),
+        ...(data.communityDetails !== undefined && { community_details: data.communityDetails }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })

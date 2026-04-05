@@ -3,28 +3,19 @@ import { Shield, Twitter, Linkedin, Instagram, Youtube, Mail, Phone, MapPin } fr
 
 const FOOTER_LINKS = {
   Platform: [
-    { label: 'Marketplace', href: '/marketplace' },
     { label: 'How it Works', href: '/#how-it-works' },
     { label: 'For Builders', href: '/builders' },
     { label: 'For Lenders', href: '/lenders' },
   ],
   Company: [
     { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Contact', href: '/contact' },
   ],
   Legal: [
     { label: 'Terms of Service', href: '/legal/terms' },
     { label: 'Privacy Policy', href: '/legal/privacy' },
-    { label: 'DPDP Compliance', href: '/legal/dpdp' },
-    { label: 'Risk Disclosure', href: '/legal/risk-disclosure' },
-    { label: 'Grievance Officer', href: '/legal/grievance' },
   ],
   Resources: [
     { label: 'Community', href: '/community' },
-    { label: 'Webinars', href: '/webinars' },
-    { label: 'Tax Guide', href: '/resources/tax-guide' },
   ],
 }
 
@@ -50,8 +41,8 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-gray-400 mb-4">
-              India's trusted fractional real estate investment platform. 
-              Start building wealth from ₹10,000.
+              India’s trusted fractional real estate investment platform.
+              Build generational wealth, one fraction at a time.
             </p>
             <div className="space-y-2 text-sm">
               <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 hover:text-primary transition-colors">
@@ -98,9 +89,6 @@ export default function Footer() {
         <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-xs text-gray-500 text-center sm:text-left">
             <p>© {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.</p>
-            <p className="mt-1">
-              SEBI Registered | CIN: U72900KA2024PTC123456 | GSTIN: 29AXXXX1234X1ZX
-            </p>
           </div>
 
           {/* Social links */}

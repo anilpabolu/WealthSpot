@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
-import { useProfilingProgress } from '@/hooks/useProfiling'
+import { useProfilingProgress, useOverallProgress } from '@/hooks/useProfiling'
 import {
   Building2,
   Rocket,
@@ -20,6 +20,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
+import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { usePublicVideos } from '@/hooks/useAppVideos'
@@ -100,7 +101,7 @@ const VAULTS = [
     risk: 'Low–Moderate',
     riskColor: 'text-emerald-700 bg-emerald-50',
     href: '/marketplace?vault=community',
-    cta: 'Join Opportunities',
+    cta: 'Explore Communities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
     comingSoon: false,
     emoji: '🤝',
@@ -235,15 +236,19 @@ function VaultCard({
   stats,
   opportunities,
   profilingPct,
+  archetype,
   onPlayVideo,
   onComingSoon,
+  onCommunityExplore,
 }: {
   vault: (typeof VAULTS)[number]
   stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number }
   opportunities: OpportunityItem[]
   profilingPct: number
+  archetype?: string | null
   onPlayVideo: () => void
   onComingSoon: () => void
+  onCommunityExplore?: () => void
 }) {
   const Icon = vault.icon
   const isCommunity = vault.id === 'community'
@@ -252,6 +257,9 @@ function VaultCard({
     if (vault.comingSoon) {
       e.preventDefault()
       onComingSoon()
+    } else if (vault.id === 'community' && onCommunityExplore) {
+      e.preventDefault()
+      onCommunityExplore()
     }
   }
 
@@ -261,7 +269,7 @@ function VaultCard({
     : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
 
   return (
-    <div className={`rounded-3xl border ${vault.border} border-l-4 ${vault.borderLeft} bg-white overflow-hidden shadow-sm ${vault.hoverShadow} transition-all duration-300 group flex flex-col`}>
+    <div className={`rounded-3xl border ${vault.border} border-l-4 ${vault.borderLeft} bg-white overflow-hidden shadow-sm ${vault.hoverShadow} transition-all duration-300 group flex flex-col h-full`}>
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
         {/* Decorative background pattern */}
@@ -285,8 +293,8 @@ function VaultCard({
             aria-label={`Watch ${vault.title} intro video`}
           >
             <PlayCircle className="h-7 w-7 text-white/70 hover:text-white transition-colors cursor-pointer" />
-            <span className="pointer-events-none absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg">
-              Want to know more? Click here
+            <span className="pointer-events-none absolute -bottom-9 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg z-50">
+              Watch Intro
             </span>
           </button>
         </div>
@@ -294,7 +302,7 @@ function VaultCard({
 
       {/* Body */}
       <div className="p-6 space-y-5 flex-1 flex flex-col">
-        <p className="text-sm text-gray-600 leading-relaxed">{vault.description}</p>
+        <p className="text-sm text-gray-600 leading-relaxed min-h-[4.5rem]">{vault.description}</p>
 
         {/* Metrics grid — real data from API */}
         <div className="grid grid-cols-2 gap-4">
@@ -336,6 +344,8 @@ function VaultCard({
                 </div>
                 <p className="font-mono text-sm font-bold text-gray-900">—</p>
               </div>
+              {/* Spacer row to match Wealth/Opportunity cards' Actual IRR row */}
+              <div className="col-span-2" aria-hidden="true" />
             </>
           ) : (
             <>
@@ -372,76 +382,88 @@ function VaultCard({
         </div>
 
         {/* Approved opportunities in this vault */}
-        {opportunities.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-              Active Opportunities ({opportunities.length})
-            </p>
-            <div className="space-y-1.5 max-h-32 overflow-y-auto">
-              {opportunities.slice(0, 5).map((opp) => (
-                <div
-                  key={opp.id}
-                  className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs"
-                >
-                  <span className="font-medium text-gray-800 truncate flex-1 mr-2">{opp.title}</span>
-                  <span className="text-gray-400 shrink-0">{opp.city ?? '—'}</span>
+        <div className="space-y-2 min-h-[2.5rem]">
+          {opportunities.length > 0 && (
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                Active Opportunities ({opportunities.length})
+              </p>
+              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                {opportunities.slice(0, 5).map((opp) => (
+                  <div
+                    key={opp.id}
+                    className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                  >
+                    <span className="font-medium text-gray-800 truncate flex-1 mr-2">{opp.title}</span>
+                    <span className="text-gray-400 shrink-0">{opp.city ?? '—'}</span>
+                  </div>
+                ))}
+                {opportunities.length > 5 && (
+                  <p className="text-[10px] text-gray-400 text-center">+{opportunities.length - 5} more</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Bottom section: profiling + CTA anchored to card bottom */}
+        <div className="mt-auto space-y-4">
+          {/* Profiling progress */}
+          {!vault.comingSoon && (
+            <div className={`rounded-2xl ${vault.bg} p-3.5 space-y-2 border ${vault.border}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className={`h-3.5 w-3.5 ${vault.accent}`} />
+                  <span className="text-[11px] font-semibold text-gray-700">
+                    {profilingPct >= 100 ? 'Profile Complete ✨' : 'Investor Profile'}
+                  </span>
                 </div>
-              ))}
-              {opportunities.length > 5 && (
-                <p className="text-[10px] text-gray-400 text-center">+{opportunities.length - 5} more</p>
+                <span className={`text-[10px] font-bold ${vault.accent}`}>{Math.round(profilingPct)}%</span>
+              </div>
+              {profilingPct >= 100 && archetype && (
+                <div className="flex items-center gap-1.5">
+                  <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 ${vault.accent}`}>
+                    {archetype}
+                  </span>
+                </div>
+              )}
+              <div className="h-2 rounded-full bg-white overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${vault.color} transition-all duration-700 ease-out`}
+                  style={{ width: `${Math.min(profilingPct, 100)}%` }}
+                />
+              </div>
+              {profilingPct < 100 && (
+                <Link
+                  to={`/vault-profiling?vault=${vault.id}`}
+                  className={`text-[11px] font-bold ${vault.accent} hover:underline`}
+                >
+                  {profilingPct > 0 ? 'Continue Profiling →' : 'Start Profiling →'}
+                </Link>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Profiling progress & CTA */}
-        {!vault.comingSoon && (
-          <div className={`rounded-2xl ${vault.bg} p-3.5 space-y-2 border ${vault.border}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className={`h-3.5 w-3.5 ${vault.accent}`} />
-                <span className="text-[11px] font-semibold text-gray-700">
-                  {profilingPct >= 100 ? 'Profile Complete ✨' : 'Investor Profile'}
-                </span>
-              </div>
-              <span className={`text-[10px] font-bold ${vault.accent}`}>{Math.round(profilingPct)}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-white overflow-hidden">
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${vault.color} transition-all duration-700 ease-out`}
-                style={{ width: `${Math.min(profilingPct, 100)}%` }}
-              />
-            </div>
-            {profilingPct < 100 && (
-              <Link
-                to={`/vault-profiling?vault=${vault.id}`}
-                className={`text-[11px] font-bold ${vault.accent} hover:underline`}
-              >
-                {profilingPct > 0 ? 'Continue Profiling →' : 'Start Profiling →'}
-              </Link>
-            )}
-          </div>
-        )}
-
-        {/* CTA */}
-        {vault.comingSoon ? (
-          <button
-            onClick={onComingSoon}
-            className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-200 text-gray-500 cursor-not-allowed mt-auto"
-          >
-            <Lock className="h-4 w-4" />
-            Launching Soon — Stay Tuned!
-          </button>
-        ) : (
-          <Link
-            to={vault.href}
-            onClick={handleCTAClick}
-            className={`w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r ${vault.color} text-white hover:opacity-90 hover:scale-[1.02] mt-auto shadow-md`}
-          >
-            {vault.cta}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        )}
+          {/* CTA */}
+          {vault.comingSoon ? (
+            <button
+              onClick={onComingSoon}
+              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-200 text-gray-500 cursor-not-allowed"
+            >
+              <Lock className="h-4 w-4" />
+              Launching Soon — Stay Tuned!
+            </button>
+          ) : (
+            <Link
+              to={vault.href}
+              onClick={handleCTAClick}
+              className={`w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r ${vault.color} text-white hover:opacity-90 hover:scale-[1.02] shadow-md`}
+            >
+              {vault.cta}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -487,17 +509,25 @@ export default function VaultsPage() {
   const [activeVideo, setActiveVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [activePillarVideo, setActivePillarVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
+  const [showCommunityExplore, setShowCommunityExplore] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
+  const navigate = useNavigate()
 
   // Fetch profiling progress per vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
   const { data: opportunityProgress } = useProfilingProgress('opportunity')
   const { data: communityProgress } = useProfilingProgress('community')
+  const { data: overall } = useOverallProgress()
   const profilingMap: Record<string, number> = {
     wealth: wealthProgress?.completionPct ?? 0,
     opportunity: opportunityProgress?.completionPct ?? 0,
     community: communityProgress?.completionPct ?? 0,
+  }
+  const archetypeMap: Record<string, string | null> = {
+    wealth: overall?.vaults.wealth?.archetype ?? null,
+    opportunity: overall?.vaults.opportunity?.archetype ?? null,
+    community: overall?.vaults.community?.archetype ?? null,
   }
 
   // Fetch real vault stats from API
@@ -563,7 +593,7 @@ export default function VaultsPage() {
       {/* Vaults Grid */}
       <section className="py-12 bg-white">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {VAULTS.map((vault) => (
               <VaultCard
                 key={vault.id}
@@ -571,8 +601,10 @@ export default function VaultsPage() {
                 stats={statsMap.get(vault.id)}
                 opportunities={oppsMap[vault.id] ?? []}
                 profilingPct={profilingMap[vault.id] ?? 0}
+                archetype={archetypeMap[vault.id]}
                 onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
                 onComingSoon={showComingSoon}
+                onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
               />
             ))}
           </div>
@@ -627,6 +659,17 @@ export default function VaultsPage() {
 
       {/* Create Opportunity modal */}
       <CreateOpportunityModal open={showCreateOpp} onClose={() => setShowCreateOpp(false)} />
+
+      {/* Community subtype explore modal */}
+      <CommunitySubtypeModal
+        open={showCommunityExplore}
+        onClose={() => setShowCommunityExplore(false)}
+        mode="explore"
+        onSelect={(subtype: CommunitySubtypeValue) => {
+          setShowCommunityExplore(false)
+          navigate(`/marketplace?vault=community&subtype=${subtype}`)
+        }}
+      />
 
       {/* Coming soon toast */}
       {comingSoonToast && (

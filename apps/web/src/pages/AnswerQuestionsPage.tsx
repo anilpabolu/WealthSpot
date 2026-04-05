@@ -11,10 +11,8 @@ import {
   CheckCircle2,
   Loader2,
   MessageSquare,
-  ArrowLeft,
   ThumbsUp,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 const ALLOWED_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
 
@@ -160,17 +158,17 @@ export default function AnswerQuestionsPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <Link to="/community" className="text-gray-400 hover:text-primary transition">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Answer Questions</h1>
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Community</span>
+          <h1 className="page-hero-title">Answer Questions</h1>
+          <p className="page-hero-subtitle">Help the community by answering unanswered questions. Approved answers earn you contributor points.</p>
         </div>
-        <p className="text-gray-500 text-sm mb-8 ml-8">
-          Help the community by answering unanswered questions. Approved answers earn you contributor points.
-        </p>
+      </section>
+
+      <div className="page-section">
+        <div className="page-section-container max-w-4xl mx-auto">
 
         {!authorized && (
           <div className="text-center py-16 text-gray-400">
@@ -215,6 +213,7 @@ export default function AnswerQuestionsPage() {
             )}
           </>
         )}
+        </div>
       </div>
     </MainLayout>
   )

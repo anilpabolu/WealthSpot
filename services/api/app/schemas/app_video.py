@@ -77,6 +77,8 @@ APP_VIDEO_SECTIONS = {
         {"value": "time_investors_pillar", "label": "Time Investors Pillar"},
         {"value": "network_investors_pillar", "label": "Network Investors Pillar"},
         {"value": "education_investors_pillar", "label": "Education Investors Pillar"},
+        {"value": "community_co_investor_explainer", "label": "Community Co-Investor Explainer"},
+        {"value": "community_co_partner_explainer", "label": "Community Co-Partner Explainer"},
     ],
     "opportunity_detail": [
         {"value": "property_tour", "label": "Property Tour Video"},

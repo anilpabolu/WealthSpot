@@ -7,6 +7,7 @@ import MediaUploadZone from './MediaUploadZone'
 import AddressDialog, { type AddressFields } from './AddressDialog'
 import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
+import CommunitySubtypeModal, { type CommunitySubtypeValue } from './CommunitySubtypeModal'
 
 const VAULT_OPTIONS = [
   { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
@@ -17,6 +18,25 @@ const VAULT_OPTIONS = [
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
 const COLLABORATION_TYPES = ['Capital + Time', 'Capital Only', 'Time + Network', 'Full Collaboration']
+
+/* ── Co-Investor form options ─────────────────────────────────────── */
+const INVESTMENT_TENURES = ['6 Months', '1 Year', '2 Years', '3 Years', '5 Years', '7 Years']
+const REVENUE_MODELS = ['Rental Income', 'Profit Sharing', 'Membership Fees', 'Revenue Share', 'Equity Appreciation', 'Other']
+const LEGAL_STRUCTURES = ['LLP', 'Private Limited', 'Trust', 'Partnership Firm', 'HUF', 'Sole Proprietorship', 'Other']
+const RISK_LEVELS = ['Low', 'Low–Moderate', 'Moderate', 'Moderate–High', 'High']
+const TIMELINE_OPTIONS = ['3 Months', '6 Months', '1 Year', '18 Months', '2 Years', '3 Years', '5 Years']
+
+/* ── Co-Partner form options ──────────────────────────────────────── */
+const TIME_COMMITMENTS = ['Part-time (< 10 hrs/week)', 'Half-time (10–20 hrs/week)', 'Full-time (20–40 hrs/week)', 'On-call / Flexible']
+const PARTNERSHIP_DURATIONS = ['3 Months', '6 Months', '1 Year', '2 Years', '3 Years', '5 Years', 'Open-ended']
+const DECISION_AUTHORITIES = ['Equal say', 'Majority vote', 'Lead partner decides', 'Advisory only']
+const PARTNER_SKILLS = [
+  'Project Management', 'Marketing & Sales', 'Finance & Accounting', 'Legal & Compliance',
+  'Technology & IT', 'Operations', 'Design & Creative', 'Business Development',
+  'HR & Talent', 'Domain Expertise', 'Other',
+]
+
+type CommunityDetailsState = Record<string, string | number | string[]>
 
 interface MediaItem {
   file: File
@@ -35,8 +55,10 @@ const EMPTY_ADDRESS: AddressFields = {
 }
 
 export default function CreateOpportunityModal({ open, onClose }: Props) {
-  const [step, setStep] = useState<'vault' | 'form' | 'uploading' | 'success'>('vault')
+  const [step, setStep] = useState<'vault' | 'community-subtype' | 'form' | 'uploading' | 'success'>('vault')
   const [vaultType, setVaultType] = useState('')
+  const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
+  const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
   const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: '', title: '' })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [address, setAddress] = useState<AddressFields>(EMPTY_ADDRESS)
@@ -50,7 +72,32 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const handleVaultSelect = (vault: string) => {
     setVaultType(vault)
     setForm({ ...form, vaultType: vault })
+    if (vault === 'community') {
+      setStep('community-subtype')
+    } else {
+      setStep('form')
+    }
+  }
+
+  const handleCommunitySubtypeSelect = (subtype: CommunitySubtypeValue) => {
+    setCommunitySubtype(subtype)
+    setForm((prev) => ({ ...prev, communitySubtype: subtype }))
+    setCommunityDetails({})
     setStep('form')
+  }
+
+  const handleCommunityDetailChange = (field: string, value: string | number | string[]) => {
+    setCommunityDetails((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const toggleSkill = (skill: string) => {
+    setCommunityDetails((prev) => {
+      const current = (prev.requiredSkills as string[] | undefined) ?? []
+      return {
+        ...prev,
+        requiredSkills: current.includes(skill) ? current.filter((s) => s !== skill) : [...current, skill],
+      }
+    })
   }
 
   const handleChange = (field: keyof OpportunityCreatePayload, value: string | number) => {
@@ -64,6 +111,10 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
     const payload: OpportunityCreatePayload = {
       ...form,
       ...address,
+      ...(communitySubtype && {
+        communitySubtype,
+        communityDetails: communityDetails as Record<string, unknown>,
+      }),
     }
 
     try {
@@ -102,6 +153,8 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const handleClose = () => {
     setStep('vault')
     setVaultType('')
+    setCommunitySubtype('')
+    setCommunityDetails({})
     setForm({ vaultType: '', title: '' })
     setMediaItems([])
     setAddress(EMPTY_ADDRESS)
@@ -111,15 +164,16 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60" onClick={handleClose}>
+    <div className="modal-overlay z-[9999]" onClick={handleClose}>
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="modal-panel max-w-2xl mx-4 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="font-display text-lg font-bold text-gray-900">
             {step === 'vault' && '✨ Launch Your Opportunity'}
+            {step === 'community-subtype' && '🤝 Community Vault — Choose Type'}
             {step === 'form' && `${VAULT_OPTIONS.find((v) => v.value === vaultType)?.label} Details`}
             {step === 'uploading' && '🚀 Launching...'}
             {step === 'success' && '🎉 You Did It!'}
@@ -162,6 +216,16 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               })}
 
             </div>
+          )}
+
+          {/* Step 1.5: Community subtype selection */}
+          {step === 'community-subtype' && (
+            <CommunitySubtypeModal
+              open
+              onClose={() => setStep('vault')}
+              mode="create"
+              onSelect={handleCommunitySubtypeSelect}
+            />
           )}
 
           {/* Step 2: Dynamic Form */}
@@ -328,6 +392,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               {/* === Community Vault Fields === */}
               {vaultType === 'community' && (
                 <>
+                  {/* Common community fields */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Community Type *</label>
@@ -358,31 +423,296 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                       </select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <select
-                        value={form.city ?? ''}
-                        onChange={(e) => handleChange('city', e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="">Select city</option>
-                        {INDIAN_CITIES.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount (₹)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.targetAmount ?? ''}
-                        onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
+
+                  {/* Subtype badge */}
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${communitySubtype === 'co_investor' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
+                    {communitySubtype === 'co_investor' ? '💰 Co-Investor Opportunity' : '🤝 Co-Partner Opportunity'}
+                    <button type="button" onClick={() => setStep('community-subtype')} className="ml-auto text-xs underline opacity-70 hover:opacity-100">Change</button>
                   </div>
+
+                  {/* Address */}
+                  <AddressDialog value={address} onChange={setAddress} />
+
+                  {/* === Co-Investor specific fields === */}
+                  {communitySubtype === 'co_investor' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            min={0}
+                            value={form.targetAmount ?? ''}
+                            onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                            placeholder="Total capital needed"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Min Investment per Co-Investor (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            min={0}
+                            value={form.minInvestment ?? ''}
+                            onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Max Co-Investors</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={(communityDetails.maxInvestors as number) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('maxInvestors', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Expected Returns (%)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min={0}
+                            value={(communityDetails.expectedReturns as number) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('expectedReturns', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Investment Tenure *</label>
+                          <select
+                            required
+                            value={(communityDetails.investmentTenure as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('investmentTenure', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {INVESTMENT_TENURES.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Revenue Model *</label>
+                          <select
+                            required
+                            value={(communityDetails.revenueModel as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('revenueModel', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {REVENUE_MODELS.map((m) => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Legal Structure *</label>
+                          <select
+                            required
+                            value={(communityDetails.legalStructure as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('legalStructure', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {LEGAL_STRUCTURES.map((l) => (
+                              <option key={l} value={l}>{l}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level *</label>
+                          <select
+                            required
+                            value={(communityDetails.riskLevel as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('riskLevel', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {RISK_LEVELS.map((r) => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Projected Timeline *</label>
+                          <select
+                            required
+                            value={(communityDetails.projectedTimeline as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('projectedTimeline', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {TIMELINE_OPTIONS.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Exit Strategy</label>
+                        <textarea
+                          rows={2}
+                          value={(communityDetails.exitStrategy as string) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('exitStrategy', e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+                          placeholder="How and when can investors exit? (e.g., buyback, secondary sale)"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === Co-Partner specific fields === */}
+                  {communitySubtype === 'co_partner' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Total Project Cost (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            min={0}
+                            value={form.targetAmount ?? ''}
+                            onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Capital from Partner (₹)</label>
+                          <input
+                            type="number"
+                            min={0}
+                            value={(communityDetails.capitalFromPartner as number) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('capitalFromPartner', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                            placeholder="Can be ₹0 if skill-only"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Equity / Profit Share (%) *</label>
+                          <input
+                            type="number"
+                            required
+                            step="0.1"
+                            min={0}
+                            max={100}
+                            value={(communityDetails.equityShare as number) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('equityShare', Number(e.target.value))}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Time Commitment *</label>
+                          <select
+                            required
+                            value={(communityDetails.timeCommitment as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('timeCommitment', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {TIME_COMMITMENTS.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Partnership Duration *</label>
+                          <select
+                            required
+                            value={(communityDetails.partnershipDuration as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('partnershipDuration', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {PARTNERSHIP_DURATIONS.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Required skills multi-select */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Required Skills *</label>
+                        <div className="flex flex-wrap gap-2">
+                          {PARTNER_SKILLS.map((skill) => {
+                            const selected = ((communityDetails.requiredSkills as string[]) ?? []).includes(skill)
+                            return (
+                              <button
+                                type="button"
+                                key={skill}
+                                onClick={() => toggleSkill(skill)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                  selected ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                {skill}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Partner Role / Title *</label>
+                          <input
+                            required
+                            value={(communityDetails.partnerRole as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                            placeholder="e.g. Co-Founder, Operations Head"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Decision Making Authority *</label>
+                          <select
+                            required
+                            value={(communityDetails.decisionAuthority as string) ?? ''}
+                            onChange={(e) => handleCommunityDetailChange('decisionAuthority', e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Select</option>
+                            {DECISION_AUTHORITIES.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Key Responsibilities *</label>
+                        <textarea
+                          required
+                          rows={2}
+                          value={(communityDetails.keyResponsibilities as string) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+                          placeholder="What will the partner be responsible for day-to-day?"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">What the Partner Gets</label>
+                        <textarea
+                          rows={2}
+                          value={(communityDetails.partnerBenefits as string) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('partnerBenefits', e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+                          placeholder="e.g. 20% equity, monthly stipend, co-branding rights"
+                        />
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -393,7 +723,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setStep('vault')}
+                  onClick={() => vaultType === 'community' ? setStep('community-subtype') : setStep('vault')}
                   className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   ← Back

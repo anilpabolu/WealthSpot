@@ -2,12 +2,14 @@ import { useUser, useClerk } from '@clerk/react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
+import { useOverallProgress } from '@/hooks/useProfiling'
 import { useUserStore } from '@/stores/user.store'
 import { cn } from '@/lib/utils'
 import {
   Check, Zap, Settings,
-  LogOut, ChevronRight,
+  LogOut, ChevronRight, Sparkles,
 } from 'lucide-react'
+import VaultPickerModal from '@/components/VaultPickerModal'
 
 interface ProfileIndicatorProps {
   size?: 'sm' | 'md'
@@ -24,13 +26,18 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const storeUser = useUserStore((s) => s.user)
   const { data: completion, isLoading } = useProfileCompletionStatus()
+  const { data: overall } = useOverallProgress()
 
   const [open, setOpen] = useState(false)
+  const [showDnaPicker, setShowDnaPicker] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const avatarSize = size === 'md' ? 'h-9 w-9' : 'h-8 w-8'
   const pct = completion?.profileCompletionPct ?? 0
   const isComplete = completion?.isComplete ?? false
+  const vaultsDone = overall ? Object.values(overall.vaults).filter((v) => v.isComplete).length : 0
+  const vaultsTotal = overall ? Object.keys(overall.vaults).length : 0
+  const isFullyProfiled = overall?.isFullyProfiled ?? false
 
   // Close on outside click
   useEffect(() => {
@@ -161,19 +168,41 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
 
   if (isComplete) {
     return (
-      <div className="relative" ref={menuRef}>
-        <div className="relative">
-          {AvatarButton}
-          <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm pointer-events-none">
-            <Check className="h-2 w-2 text-white stroke-[3]" />
-          </span>
+      <div className="flex items-center gap-2">
+        {/* Vault CTA when profile done but vaults incomplete */}
+        {!isFullyProfiled && (
+          <button
+            onClick={() => setShowDnaPicker(true)}
+            className={cn(
+              'hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+              'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md shadow-violet-200',
+              'hover:shadow-lg hover:shadow-violet-300 hover:scale-[1.03] active:scale-100',
+            )}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {vaultsDone > 0 ? `${vaultsDone}/${vaultsTotal} Vaults` : 'Discover Your DNA'}
+          </button>
+        )}
+        <div className="relative" ref={menuRef}>
+          <div className="relative">
+            {AvatarButton}
+            {isFullyProfiled ? (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm pointer-events-none">
+                <Check className="h-2.5 w-2.5 text-white stroke-[3]" />
+              </span>
+            ) : (
+              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 border-2 border-white shadow-sm pointer-events-none">
+                <Sparkles className="h-2 w-2 text-white" />
+              </span>
+            )}
+          </div>
+          {Dropdown}
         </div>
-        {Dropdown}
+        <VaultPickerModal open={showDnaPicker} onClose={() => setShowDnaPicker(false)} />
       </div>
     )
   }
 
-  // Incomplete profile
   return (
     <div className="flex items-center gap-2">
       <button

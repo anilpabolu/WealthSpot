@@ -35,6 +35,8 @@ from app.schemas.profiling import (
     MatchedUserRead,
     OpportunityMatchesResponse,
     ProfilingProgressRead,
+    OverallProgressRead,
+    VaultProgressDetail,
 )
 from app.services.matching import (
     compute_personality,
@@ -122,6 +124,26 @@ async def submit_vault_answers(
 
     await db.flush()
 
+    # Backfill user fields from vault answers when applicable
+    _QUESTION_TO_USER_FIELD: dict[str, str] = {
+        "What's your annual income range?": "annual_income",
+        "How much can you invest each month?": "monthly_investment_capacity",
+        "How would you describe your investment experience?": "investment_experience",
+        "What skills do you bring to the table?": "skills",
+        "What kind of community work interests you?": "contribution_interests",
+    }
+    for ans in payload.answers:
+        question = questions_map.get(ans.question_id)
+        if not question:
+            continue
+        user_field = _QUESTION_TO_USER_FIELD.get(question.question_text)
+        if user_field:
+            val = ans.answer_value
+            # For multi_choice store as list, for choice store the scalar value
+            if isinstance(val, dict) and "value" in val:
+                val = val["value"]
+            setattr(user, user_field, val)
+
     # Recompute personality dimensions
     await compute_personality(db, user.id, payload.vault_type)
     await db.commit()
@@ -188,6 +210,67 @@ async def get_profiling_progress(
         completion_pct=pct,
         is_complete=answered >= total and total > 0,
         personality=personality,
+    )
+
+
+# ── Overall Progress (all vaults combined) ───────────────────────────────────
+
+@router.get("/overall-progress", response_model=OverallProgressRead)
+async def get_overall_progress(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get combined profiling progress across all vaults + profile completion."""
+    from app.routers.profile import _calculate_completion
+
+    profile_pct, _ = _calculate_completion(user)
+
+    vault_types = ["wealth", "opportunity", "community"]
+    vaults: dict[str, VaultProgressDetail] = {}
+
+    for vt in vault_types:
+        total = (await db.execute(
+            select(func.count(VaultProfileQuestion.id)).where(
+                VaultProfileQuestion.vault_type == vt,
+                VaultProfileQuestion.is_active.is_(True),
+            )
+        )).scalar() or 0
+
+        answered = (await db.execute(
+            select(func.count(UserProfileAnswer.id)).where(
+                UserProfileAnswer.user_id == user.id,
+                UserProfileAnswer.vault_type == vt,
+            )
+        )).scalar() or 0
+
+        pct = round((answered / total) * 100, 1) if total > 0 else 0
+        is_complete = answered >= total and total > 0
+
+        archetype = None
+        if is_complete:
+            pd = (await db.execute(
+                select(PersonalityDimension).where(
+                    PersonalityDimension.user_id == user.id,
+                    PersonalityDimension.vault_type == vt,
+                )
+            )).scalar_one_or_none()
+            if pd and hasattr(pd, "raw_dimensions"):
+                archetype = (pd.raw_dimensions or {}).get("archetype_label")
+
+        vaults[vt] = VaultProgressDetail(
+            total=total, answered=answered, pct=pct,
+            is_complete=is_complete, archetype=archetype,
+        )
+
+    vault_pcts = [v.pct for v in vaults.values()]
+    overall_pct = round((profile_pct + sum(vault_pcts)) / (1 + len(vault_pcts)))
+    is_fully = profile_pct == 100 and all(v.is_complete for v in vaults.values())
+
+    return OverallProgressRead(
+        profile_pct=profile_pct,
+        vaults=vaults,
+        overall_pct=overall_pct,
+        is_fully_profiled=is_fully,
     )
 
 

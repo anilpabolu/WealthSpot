@@ -158,7 +158,14 @@ export function useSubmitVaultAnswers() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: UserProfileAnswerBulk) =>
-      apiPost<UserProfileAnswer[]>('/profiling/answers', payload),
+      apiPost<UserProfileAnswer[]>('/profiling/answers', {
+        vault_type: payload.vaultType,
+        answers: payload.answers.map((a) => ({
+          question_id: a.questionId,
+          vault_type: payload.vaultType,
+          answer_value: a.answerValue,
+        })),
+      }),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['profiling', 'answers', variables.vaultType] })
       qc.invalidateQueries({ queryKey: ['profiling', 'progress', variables.vaultType] })

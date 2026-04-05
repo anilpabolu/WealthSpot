@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import MainLayout from '@/components/layout/MainLayout'
-import { Gift, Copy, Share2, Users, IndianRupee, Check, ChevronRight } from 'lucide-react'
+import { Copy, Share2, Users, IndianRupee, Check, ChevronRight } from 'lucide-react'
 import { formatINR } from '@/lib/formatters'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 
@@ -34,19 +34,17 @@ export default function ReferralPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero */}
-        <div className="text-center mb-10">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <Gift className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="font-display text-3xl font-bold text-gray-900 mb-2">
-            The Referral Hustle 🤝
-          </h1>
-          <p className="text-gray-500 max-w-lg mx-auto">
-            Spread the word, stack the rewards. When your friend invests, you both pocket ₹250. Easy money.
-          </p>
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">Referrals</span>
+          <h1 className="page-hero-title">The Referral Hustle 🤝</h1>
+          <p className="page-hero-subtitle">Spread the word, stack the rewards. When your friend invests, you both pocket ₹250. Easy money.</p>
         </div>
+      </section>
+
+      <div className="page-section">
+        <div className="page-section-container max-w-4xl mx-auto">
 
         {/* Referral Code Card */}
         <div className="bg-gradient-to-br from-primary to-primary-dark rounded-2xl p-6 text-white mb-8">
@@ -132,7 +130,7 @@ export default function ReferralPage() {
 
         {/* How it Works */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-          <h2 className="font-display text-lg font-bold text-gray-900 mb-4">How It Works</h2>
+          <h2 className="section-title text-lg">How It Works</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {STEPS.map((s) => (
               <div key={s.step} className="flex items-start gap-3">
@@ -151,7 +149,7 @@ export default function ReferralPage() {
         {/* Referral History */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-display text-lg font-bold text-gray-900">Referral History</h2>
+            <h2 className="section-title text-lg">Referral History</h2>
           </div>
           {histLoading && <p className="px-6 py-4 text-sm text-gray-400">Loading…</p>}
           {!histLoading && (!history || history.length === 0) && (
@@ -185,6 +183,7 @@ export default function ReferralPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </MainLayout>

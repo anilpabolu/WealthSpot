@@ -45,6 +45,7 @@ async def list_opportunities(
     vault_type: VaultType | None = Query(None),
     status: OpportunityStatus | None = Query(None),
     city: str | None = Query(None),
+    community_subtype: str | None = Query(None, description="Filter community opportunities: co_investor or co_partner"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> PaginatedOpportunities:
@@ -61,6 +62,9 @@ async def list_opportunities(
     if city:
         query = query.where(Opportunity.city == city)
         count_query = count_query.where(Opportunity.city == city)
+    if community_subtype:
+        query = query.where(Opportunity.community_subtype == community_subtype)
+        count_query = count_query.where(Opportunity.community_subtype == community_subtype)
 
     total = (await db.execute(count_query)).scalar() or 0
     total_pages = max(1, math.ceil(total / page_size))
@@ -214,6 +218,14 @@ async def create_opportunity(
     Create a new opportunity. Automatically generates an approval ticket.
     The opportunity stays in PENDING_APPROVAL until an approver acts.
     """
+    # Validate community_subtype for community vault
+    if body.vault_type == VaultType.COMMUNITY:
+        if not body.community_subtype or body.community_subtype not in ("co_investor", "co_partner"):
+            raise HTTPException(
+                status_code=422,
+                detail="community_subtype is required for Community Vault (co_investor or co_partner)",
+            )
+
     # Determine approval category based on vault type
     category_map = {
         VaultType.WEALTH: ApprovalCategory.PROPERTY_LISTING,
@@ -254,6 +266,8 @@ async def create_opportunity(
         pitch_deck_url=body.pitch_deck_url,
         community_type=body.community_type,
         collaboration_type=body.collaboration_type,
+        community_subtype=body.community_subtype,
+        community_details=body.community_details,
     )
     db.add(opportunity)
     await db.flush()

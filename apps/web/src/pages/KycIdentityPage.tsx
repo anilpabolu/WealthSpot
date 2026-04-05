@@ -10,7 +10,7 @@ import {
   useSubmitKycForReview,
 } from '@/hooks/useKycBank'
 import {
-  Shield, Upload, CheckCircle2, ArrowRight, ArrowLeft,
+  Upload, CheckCircle2, ArrowRight, ArrowLeft,
   User, FileText, Camera, Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -139,22 +139,24 @@ export default function KycIdentityPage() {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-2xl px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <Shield className="h-7 w-7 text-primary" />
-          </div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Identity Verification</h1>
-          <p className="text-gray-500 mt-1">Complete KYC to start investing — takes only 5 minutes</p>
+      {/* Hero */}
+      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+        <div className="page-hero-content">
+          <span className="page-hero-badge">KYC</span>
+          <h1 className="page-hero-title">Identity Verification</h1>
+          <p className="page-hero-subtitle">Complete KYC to start investing — takes only 5 minutes</p>
         </div>
+      </section>
+
+      <div className="page-section">
+        <div className="page-section-container max-w-2xl mx-auto">
 
         {step <= 3 && <StepIndicator currentStep={step} />}
 
         {/* Step 1: Personal Details */}
         {step === 1 && (
           <div className="card p-6 space-y-5">
-            <h2 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="section-title text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
               Personal Details
             </h2>
@@ -352,6 +354,7 @@ export default function KycIdentityPage() {
             </a>
           </div>
         )}
+        </div>
       </div>
     </MainLayout>
   )
