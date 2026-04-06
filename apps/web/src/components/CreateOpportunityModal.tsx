@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Rocket, Building2, Users, CheckCircle2, Loader2, Lock } from 'lucide-react'
+import { X, Rocket, Building2, Users, CheckCircle2, Loader2, Lock, Wallet, Handshake, ArrowLeft } from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { INDIAN_CITIES } from '@/lib/constants'
@@ -7,7 +7,34 @@ import MediaUploadZone from './MediaUploadZone'
 import AddressDialog, { type AddressFields } from './AddressDialog'
 import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
-import CommunitySubtypeModal, { type CommunitySubtypeValue } from './CommunitySubtypeModal'
+import { type CommunitySubtypeValue } from './CommunitySubtypeModal'
+
+const COMMUNITY_SUBTYPES = [
+  {
+    value: 'co_investor' as const,
+    label: 'Co-Investor',
+    badge: 'Capital Only',
+    badgeColor: 'bg-amber-100 text-amber-800',
+    icon: Wallet,
+    iconBg: 'bg-amber-50 text-amber-600',
+    border: 'border-amber-200 hover:border-amber-400 hover:shadow-amber-100',
+    description:
+      'Contribute capital to fund a community project and earn returns through profit-sharing, rental income, or equity appreciation \u2014 without active involvement.',
+    highlights: ['Passive investment', 'Profit-sharing returns', 'No time commitment required'],
+  },
+  {
+    value: 'co_partner' as const,
+    label: 'Co-Partner',
+    badge: 'Capital + Active Role',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    icon: Handshake,
+    iconBg: 'bg-emerald-50 text-emerald-600',
+    border: 'border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100',
+    description:
+      'Partner up by contributing capital plus your time, skills, and network. Earn equity and profit share in exchange for hands-on involvement.',
+    highlights: ['Equity & profit share', 'Active involvement', 'Leverage your skills & network'],
+  },
+]
 
 const VAULT_OPTIONS = [
   { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
@@ -220,12 +247,54 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
 
           {/* Step 1.5: Community subtype selection */}
           {step === 'community-subtype' && (
-            <CommunitySubtypeModal
-              open
-              onClose={() => setStep('vault')}
-              mode="create"
-              onSelect={handleCommunitySubtypeSelect}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setStep('vault')}
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Back"
+                >
+                  <ArrowLeft className="h-4 w-4 text-gray-500" />
+                </button>
+                <p className="text-sm text-gray-500">
+                  Select the type of community opportunity you want to create.
+                </p>
+              </div>
+              {COMMUNITY_SUBTYPES.map((st) => {
+                const Icon = st.icon
+                return (
+                  <button
+                    key={st.value}
+                    type="button"
+                    onClick={() => handleCommunitySubtypeSelect(st.value)}
+                    className={`w-full text-left p-5 rounded-xl border-2 ${st.border} transition-all hover:shadow-md group`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`h-12 w-12 rounded-xl ${st.iconBg} flex items-center justify-center shrink-0`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900">{st.label}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.badgeColor}`}>
+                            {st.badge}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">{st.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {st.highlights.map((h) => (
+                            <span key={h} className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {h}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           )}
 
           {/* Step 2: Dynamic Form */}
