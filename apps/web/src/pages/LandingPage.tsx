@@ -20,11 +20,11 @@ import {
 /* ---------- Hero ---------- */
 function HeroSection({ onHowItWorks }: { onHowItWorks: () => void }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A] flex-1 flex items-center">
-      {/* Decorative pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute -right-20 -top-20 text-[12rem]">🏛️</div>
-        <div className="absolute -left-10 -bottom-10 text-[8rem]">💎</div>
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center">
+      {/* Subtle ambient glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
       </div>
       <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
         <div className="space-y-6 max-w-2xl">
@@ -112,7 +112,7 @@ function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="page-section bg-gray-50">
+    <section id="how-it-works" className="page-section bg-stone-50">
       <div className="page-section-container">
         <div className="text-center mb-12">
           <h2 className="section-title">How It Works</h2>
@@ -165,7 +165,7 @@ function Testimonials() {
   ]
 
   return (
-    <section className="page-section bg-gray-50">
+    <section className="page-section bg-stone-50">
       <div className="page-section-container">
         <div className="text-center mb-12">
           <h2 className="section-title">What Investors Say</h2>
@@ -201,13 +201,13 @@ function Testimonials() {
 /* ---------- CTA Section ---------- */
 function CtaSection({ onGetStarted }: { onGetStarted: () => void }) {
   return (
-    <section className="py-20 bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute right-10 bottom-5 text-[10rem]">🚀</div>
+    <section className="py-20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-20 right-1/4 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
       </div>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h2 className="font-hero text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
-          Your Wealth Story Starts Now 🚀
+          Your Wealth Story Starts Now
         </h2>
         <p className="text-white/60 text-lg mb-8 max-w-2xl mx-auto">
           Join a growing community of investors building generational wealth through premium real estate — with full transparency and SEBI-compliant security.

@@ -36,7 +36,7 @@ import type { VaultProfileQuestion, QuestionOption, SliderOptions } from '@/hook
 const VAULT_THEMES = {
   wealth: {
     name: 'Wealth Vault',
-    gradient: 'from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]',
+    gradient: 'from-slate-900 via-indigo-950 to-slate-900',
     bgGradient: 'from-[#F5F0E1] via-[#FAF6ED] to-[#F5F0E1]',
     cardBg: 'bg-white/90 backdrop-blur-xl',
     accent: 'text-[#1B2A4A]',
@@ -537,7 +537,7 @@ export default function VaultProfilingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-stone-50">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4 animate-pulse">
@@ -556,7 +556,7 @@ export default function VaultProfilingPage() {
     const archDesc = progress?.personality?.archetypeDescription
 
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-stone-50">
         <Navbar />
         <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
           <div className="mx-auto max-w-2xl px-6 py-12 space-y-8">
@@ -638,7 +638,7 @@ export default function VaultProfilingPage() {
                   setCurrentIdx(0)
                   setAnswers({})
                 }}
-                className="px-6 py-3.5 rounded-2xl border-2 border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
+                className="px-6 py-3.5 rounded-2xl border-2 border-gray-300 text-gray-600 font-semibold hover:bg-stone-50 transition-colors"
               >
                 Retake Quiz
               </button>
@@ -653,7 +653,7 @@ export default function VaultProfilingPage() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-stone-50">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -684,7 +684,7 @@ export default function VaultProfilingPage() {
   const illustration = q.illustration ? ILLUSTRATION_MAP[q.illustration] || '✨' : '✨'
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       <Navbar />
       <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
         <div className="mx-auto max-w-2xl px-6 py-8 space-y-8">

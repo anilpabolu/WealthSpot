@@ -28,16 +28,18 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300" role="contentinfo">
+    <footer className="bg-slate-950 text-gray-300" role="contentinfo">
+      {/* Gradient accent stripe */}
+      <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main footer */}
         <div className="py-12 grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <Shield className="h-7 w-7 text-primary" />
+              <Shield className="h-7 w-7 text-indigo-400" />
               <span className="font-display text-lg font-bold text-white">
-                Wealth<span className="text-primary">Spot</span>
+                Wealth<span className="text-indigo-400">Spot</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-gray-400 mb-4">
@@ -83,7 +85,7 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-800" />
+        <div className="border-t border-white/5" />
 
         {/* Bottom bar */}
         <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -97,7 +99,7 @@ export default function Footer() {
               <a
                 key={social.label}
                 href={social.href}
-                className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
                 aria-label={social.label}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -109,7 +111,7 @@ export default function Footer() {
         </div>
 
         {/* Risk Disclaimer */}
-        <div className="py-4 border-t border-gray-800">
+        <div className="py-4 border-t border-white/5">
           <p className="text-[11px] leading-relaxed text-gray-600 text-center">
             <strong className="text-gray-500">Risk Disclaimer:</strong> Investments in fractional real estate 
             are subject to market risks. Past performance does not guarantee future returns. 

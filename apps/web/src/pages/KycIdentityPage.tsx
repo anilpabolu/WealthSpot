@@ -140,7 +140,7 @@ export default function KycIdentityPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">KYC</span>
           <h1 className="page-hero-title">Identity Verification</h1>

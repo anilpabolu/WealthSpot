@@ -182,11 +182,11 @@ function InvestmentPanel({
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3">
+        <div className="bg-stone-50 rounded-lg p-3">
           <p className="text-xs text-gray-500 uppercase font-semibold">Target IRR</p>
           <IrrBadge value={irr} className="mt-1" />
         </div>
-        <div className="bg-gray-50 rounded-lg p-3">
+        <div className="bg-stone-50 rounded-lg p-3">
           <p className="text-xs text-gray-500 uppercase font-semibold">Min. Invest</p>
           <p className="font-mono font-bold text-lg text-gray-900 mt-1">{formatINRCompact(minInvestment)}</p>
         </div>
@@ -326,10 +326,10 @@ export default function PropertyDetailPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50" aria-label="Save property">
+                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50" aria-label="Save property">
                     <Heart className="h-5 w-5 text-gray-400" />
                   </button>
-                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50" aria-label="Share property">
+                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50" aria-label="Share property">
                     <Share2 className="h-5 w-5 text-gray-400" />
                   </button>
                 </div>
@@ -392,23 +392,23 @@ export default function PropertyDetailPage() {
               </h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {property.address && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="p-3 bg-stone-50 rounded-lg">
                     <p className="text-xs text-gray-500 mb-0.5">Address</p>
                     <p className="text-sm font-medium text-gray-900">{property.address}</p>
                   </div>
                 )}
                 {property.micromarket && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="p-3 bg-stone-50 rounded-lg">
                     <p className="text-xs text-gray-500 mb-0.5">Area / Locality</p>
                     <p className="text-sm font-medium text-gray-900">{property.micromarket}</p>
                   </div>
                 )}
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="p-3 bg-stone-50 rounded-lg">
                   <p className="text-xs text-gray-500 mb-0.5">City</p>
                   <p className="text-sm font-medium text-gray-900">{property.city}</p>
                 </div>
                 {property.reraNumber && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="p-3 bg-stone-50 rounded-lg">
                     <p className="text-xs text-gray-500 mb-0.5">RERA ID</p>
                     <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                       <Shield className="h-3.5 w-3.5 text-green-500" />
@@ -458,28 +458,28 @@ export default function PropertyDetailPage() {
             <div className="card p-6">
               <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Key Details</h2>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                   <Building2 className="h-5 w-5 text-gray-400" />
                   <div>
                     <p className="text-xs text-gray-500">Asset Type</p>
                     <p className="text-sm font-semibold text-gray-900 capitalize">{property.assetType}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                   <span className="text-lg">₹</span>
                   <div>
                     <p className="text-xs text-gray-500">Unit Price</p>
                     <p className="text-sm font-mono font-semibold text-gray-900">{formatINR(property.unitPrice)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                   <Users className="h-5 w-5 text-gray-400" />
                   <div>
                     <p className="text-xs text-gray-500">Total Units</p>
                     <p className="text-sm font-semibold text-gray-900">{property.totalUnits} ({property.soldUnits} sold)</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                   <Calendar className="h-5 w-5 text-gray-400" />
                   <div>
                     <p className="text-xs text-gray-500">Expected Completion</p>
@@ -530,7 +530,7 @@ export default function PropertyDetailPage() {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       <FileText className="h-5 w-5 text-primary" />
                       <div className="flex-1">
@@ -550,7 +550,7 @@ export default function PropertyDetailPage() {
                 <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Amenities</h2>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((a) => (
-                    <span key={a} className="px-3 py-1.5 bg-gray-50 text-gray-700 text-sm rounded-lg">
+                    <span key={a} className="px-3 py-1.5 bg-stone-50 text-gray-700 text-sm rounded-lg">
                       {a}
                     </span>
                   ))}

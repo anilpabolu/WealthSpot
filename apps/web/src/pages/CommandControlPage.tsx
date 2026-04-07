@@ -210,10 +210,10 @@ function UsersTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-stone-50 border-b border-gray-200">
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC</th>
@@ -228,7 +228,7 @@ function UsersTab() {
               <tr><td colSpan={5} className="py-12 text-center text-gray-400">No users found</td></tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50/50">
+                <tr key={u.id} className="hover:bg-stone-50/50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{u.fullName}</p>
                     <p className="text-xs text-gray-400">{u.email}</p>
@@ -255,7 +255,7 @@ function UsersTab() {
                         </button>
                         <button
                           onClick={() => { setEditingUser(null); setSelectedRole('') }}
-                          className="p-1 rounded bg-gray-50 text-gray-400 hover:bg-gray-100"
+                          className="p-1 rounded bg-stone-50 text-gray-400 hover:bg-gray-100"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -282,7 +282,7 @@ function UsersTab() {
                     {editingUser !== u.id && (
                       <button
                         onClick={() => { setEditingUser(u.id); setSelectedRole(u.role) }}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-400 hover:text-gray-600"
+                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 text-gray-400 hover:text-gray-600"
                         title="Change role"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
@@ -327,7 +327,7 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
       ) : (
         <div className="space-y-3">
           {configs.map((cfg) => (
-            <div key={cfg.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+            <div key={cfg.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -366,7 +366,7 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
                 {editingId !== cfg.id && (
                   <button
                     onClick={() => { setEditingId(cfg.id); setEditValue(typeof cfg.value === 'object' ? JSON.stringify(cfg.value) : String(cfg.value)) }}
-                    className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-400 hover:text-gray-600 shrink-0"
+                    className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 text-gray-400 hover:text-gray-600 shrink-0"
                     title="Edit value"
                   >
                     <Edit3 className="h-3.5 w-3.5" />
@@ -405,10 +405,10 @@ function AdminSettingsTab() {
           const Icon = sec.icon
           const isOpen = expanded === sec.key
           return (
-            <div key={sec.key} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div key={sec.key} className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
               <button
                 onClick={() => setExpanded(isOpen ? null : sec.key)}
-                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-stone-50/50 transition-colors"
               >
                 <Icon className="h-5 w-5 text-gray-400 shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -498,7 +498,7 @@ function BuilderQuestionsTab() {
       {selectedOppId && (
         <>
           {/* Add new question */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase">Add Question</p>
             <input
               value={newText}
@@ -533,7 +533,7 @@ function BuilderQuestionsTab() {
           </div>
 
           {/* Questions list */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
             {isLoading ? (
               <CenteredLoader />
             ) : questions.length === 0 ? (
@@ -541,7 +541,7 @@ function BuilderQuestionsTab() {
             ) : (
               <ul className="divide-y divide-gray-100">
                 {questions.map((q: BuilderQuestion) => (
-                  <li key={q.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50">
+                  <li key={q.id} className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50">
                     <GripVertical className="h-4 w-4 text-gray-300 shrink-0" />
                     <div className="flex-1 min-w-0">
                       {editId === q.id ? (
@@ -630,7 +630,7 @@ function CommMappingTab() {
       {selectedOppId && (
         <>
           {/* Add mapping */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
               <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">User</label>
               <select value={userId} onChange={(e) => setUserId(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none">
@@ -654,7 +654,7 @@ function CommMappingTab() {
           </div>
 
           {/* Mappings table */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
             {isLoading ? (
               <CenteredLoader />
             ) : mappings.length === 0 ? (
@@ -662,7 +662,7 @@ function CommMappingTab() {
             ) : (
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
+                  <tr className="bg-stone-50 border-b border-gray-200">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -670,7 +670,7 @@ function CommMappingTab() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {mappings.map((m: CommMapping) => (
-                    <tr key={m.id} className="hover:bg-gray-50/50">
+                    <tr key={m.id} className="hover:bg-stone-50/50">
                       <td className="px-4 py-3 text-gray-900">{m.userId}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">{m.role.replace('_', ' ')}</span>
@@ -731,7 +731,7 @@ function RefSummaryRow({ s, expanded, onToggle }: { s: RefSummary; expanded: boo
   return (
     <button
       onClick={onToggle}
-      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-stone-50 transition-colors"
     >
       <div className="flex items-center gap-3 flex-1 min-w-[180px]">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary uppercase">
@@ -774,7 +774,7 @@ function RefDetailPanel({ referrerId }: { referrerId: string }) {
     iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
   return (
-    <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 overflow-x-auto">
+    <div className="bg-stone-50 border-b border-gray-200 px-4 py-3 overflow-x-auto">
       <table className="w-full text-sm min-w-[700px]">
         <thead>
           <tr className="text-[10px] text-gray-400 uppercase">
@@ -856,7 +856,7 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
     : null
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 shadow-sm p-4 space-y-3">
       {/* User info */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -869,7 +869,7 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
       </div>
 
       {/* Property */}
-      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-2 p-2 bg-stone-50 rounded-lg">
         <Building2 className="h-4 w-4 text-gray-400 shrink-0" />
         <a
           href={`/opportunity/${eoi.opportunity?.slug ?? ''}`}
@@ -1027,7 +1027,7 @@ function UserDetailsModal({
 
   const Field = ({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) => (
     <div className="flex items-start gap-3 py-2">
-      <div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+      <div className="h-8 w-8 rounded-lg bg-stone-50 flex items-center justify-center shrink-0 mt-0.5">
         <Icon className="h-4 w-4 text-gray-400" />
       </div>
       <div className="min-w-0">
@@ -1499,7 +1499,7 @@ function VideoManagementTab() {
             >
               {createVideo.isPending ? 'Creating...' : 'Create Video Slot'}
             </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">
+            <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-stone-50">
               Cancel
             </button>
           </div>
@@ -1616,7 +1616,7 @@ function VideoManagementTab() {
 
                   {/* Inline edit form */}
                   {editId === v.id && (
-                    <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-3">
+                    <div className="border-t border-gray-100 bg-stone-50 p-4 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
@@ -1656,7 +1656,7 @@ function VideoManagementTab() {
                         >
                           {updateVideo.isPending ? 'Saving...' : 'Save'}
                         </button>
-                        <button onClick={() => setEditId(null)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-gray-50">
+                        <button onClick={() => setEditId(null)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-stone-50">
                           Cancel
                         </button>
                       </div>
@@ -1992,12 +1992,12 @@ export default function CommandControlPage() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard')
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Shared Navbar */}
       <Navbar />
 
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Super Admin</span>
           <h1 className="page-hero-title">Command & Control</h1>
@@ -2026,7 +2026,7 @@ export default function CommandControlPage() {
                   <button
                     onClick={() => setActiveSection(s.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      active ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      active ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-stone-50 hover:text-gray-900'
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -2049,7 +2049,7 @@ export default function CommandControlPage() {
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
                   className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                    active ? 'bg-primary/10 text-primary' : 'text-gray-500 hover:bg-gray-50'
+                    active ? 'bg-primary/10 text-primary' : 'text-gray-500 hover:bg-stone-50'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -2061,7 +2061,7 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-6 sm:p-8 bg-gray-50 min-w-0">
+        <main className="flex-1 p-6 sm:p-8 bg-stone-50 min-w-0">
           {activeSection === 'dashboard' && <DashboardTab />}
           {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
           {activeSection === 'users' && <UsersTab />}

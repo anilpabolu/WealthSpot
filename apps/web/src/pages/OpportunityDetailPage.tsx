@@ -124,7 +124,7 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
               </div>
             )}
             {(company.city || company.state) && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                 <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500">Headquartered In</p>
@@ -133,7 +133,7 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
               </div>
             )}
             {company.website && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                 <Globe className="h-5 w-5 text-gray-400 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500">Website</p>
@@ -312,13 +312,13 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           {opportunity.targetIrr != null && (
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-stone-50 rounded-lg p-3">
               <p className="text-xs text-gray-500 uppercase font-semibold">Target IRR</p>
               <IrrBadge value={opportunity.targetIrr} className="mt-1" />
             </div>
           )}
           {opportunity.minInvestment != null && (
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-stone-50 rounded-lg p-3">
               <p className="text-xs text-gray-500 uppercase font-semibold">Min. Invest</p>
               <p className="font-mono font-bold text-lg text-gray-900 mt-1">{formatINRCompact(opportunity.minInvestment)}</p>
             </div>
@@ -501,14 +501,14 @@ export default function OpportunityDetailPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={handleLike}
-                    className={`p-2 rounded-lg border transition-colors ${likeData?.liked ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                    className={`p-2 rounded-lg border transition-colors ${likeData?.liked ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:bg-stone-50'}`}
                     aria-label={likeData?.liked ? 'Unlike' : 'Save'}
                   >
                     <Heart className={`h-5 w-5 ${likeData?.liked ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
                   </button>
                   <button
                     onClick={handleShare}
-                    className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                    className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50"
                     aria-label="Share"
                   >
                     <Share2 className="h-5 w-5 text-gray-400" />
@@ -537,7 +537,7 @@ export default function OpportunityDetailPage() {
               <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Key Details</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {opp.targetAmount != null && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                     <span className="text-lg">₹</span>
                     <div>
                       <p className="text-xs text-gray-500">Target Amount</p>
@@ -546,7 +546,7 @@ export default function OpportunityDetailPage() {
                   </div>
                 )}
                 {opp.minInvestment != null && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                     <span className="text-lg">₹</span>
                     <div>
                       <p className="text-xs text-gray-500">Min. Investment</p>
@@ -555,7 +555,7 @@ export default function OpportunityDetailPage() {
                   </div>
                 )}
                 {opp.investorCount > 0 && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                     <Users className="h-5 w-5 text-gray-400" />
                     <div>
                       <p className="text-xs text-gray-500">Investors</p>
@@ -564,7 +564,7 @@ export default function OpportunityDetailPage() {
                   </div>
                 )}
                 {opp.closingDate && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                     <Calendar className="h-5 w-5 text-gray-400" />
                     <div>
                       <p className="text-xs text-gray-500">Closing Date</p>
@@ -583,25 +583,25 @@ export default function OpportunityDetailPage() {
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {opp.addressLine1 && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="p-3 bg-stone-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-0.5">Address</p>
                       <p className="text-sm font-medium text-gray-900">{opp.addressLine1}{opp.addressLine2 ? `, ${opp.addressLine2}` : ''}</p>
                     </div>
                   )}
                   {opp.locality && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="p-3 bg-stone-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-0.5">Area</p>
                       <p className="text-sm font-medium text-gray-900">{opp.locality}</p>
                     </div>
                   )}
                   {opp.city && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="p-3 bg-stone-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-0.5">City</p>
                       <p className="text-sm font-medium text-gray-900">{opp.city}</p>
                     </div>
                   )}
                   {opp.pincode && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="p-3 bg-stone-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-0.5">Pincode</p>
                       <p className="text-sm font-medium text-gray-900">{opp.pincode}</p>
                     </div>

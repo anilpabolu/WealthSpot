@@ -85,7 +85,7 @@ function RecentTransactionsTable() {
             const Icon = typeIcon[tx.type] ?? Wallet
             const color = typeColor[tx.type] ?? 'text-gray-400'
             return (
-              <div key={tx.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+              <div key={tx.id} className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-colors">
                 <div className={`h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm ${color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
@@ -147,7 +147,7 @@ export default function InvestorDashboardPage() {
   return (
     <PortalLayout variant="investor">
       {/* Hero section */}
-      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Investor Dashboard</span>
           <h1 className="page-hero-title">Welcome back 👋</h1>
@@ -172,19 +172,19 @@ export default function InvestorDashboardPage() {
                     </div>
                     <span className="text-sm font-semibold text-gray-900">Browse Properties</span>
                   </Link>
-                  <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                  <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
                     <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
                       <PieChart className="h-5 w-5 text-gray-500" />
                     </div>
                     <span className="text-sm font-semibold text-gray-900">My Portfolio</span>
                   </Link>
-                  <Link to="/community" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                  <Link to="/community" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
                     <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
                       <Users className="h-5 w-5 text-gray-500" />
                     </div>
                     <span className="text-sm font-semibold text-gray-900">Community</span>
                   </Link>
-                  <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
+                  <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
                     <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
                       <Gift className="h-5 w-5 text-gray-500" />
                     </div>

@@ -117,7 +117,7 @@ export default function LenderDashboardPage() {
                 {MOCK_LOANS.map((loan) => {
                   const repaidPct = Math.round((loan.repaid / loan.amount) * 100)
                   return (
-                    <tr key={loan.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={loan.id} className="hover:bg-stone-50 transition-colors">
                       <td className="px-6 py-4">
                         <p className="font-medium text-gray-900">{loan.property}</p>
                         <p className="text-xs text-gray-500">{loan.builder}</p>

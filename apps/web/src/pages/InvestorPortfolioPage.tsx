@@ -102,7 +102,7 @@ function CityDistribution() {
       ) : (
         <div className="space-y-3">
           {cities.map((c) => (
-            <div key={c.city} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+            <div key={c.city} className="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50">
               <span className="text-sm text-gray-700">{c.city}</span>
               <div className="text-right">
                 <span className="text-sm font-mono font-semibold text-gray-900">{formatINRCompact(c.value)}</span>
@@ -161,7 +161,7 @@ function PropertiesTable() {
                 const returnPct = p.returnPercentage
                 const isPositive = returnPct >= 0
                 return (
-                  <tr key={p.propertyId} className="hover:bg-gray-50 transition-colors">
+                  <tr key={p.propertyId} className="hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" />

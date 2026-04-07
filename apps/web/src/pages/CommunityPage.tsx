@@ -116,7 +116,7 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
               key={r.id}
               className={cn(
                 'flex gap-3 text-sm p-3 rounded-lg',
-                isQuestion ? 'bg-emerald-50 border border-emerald-100' : 'bg-gray-50'
+                isQuestion ? 'bg-emerald-50 border border-emerald-100' : 'bg-stone-50'
               )}
             >
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
@@ -222,8 +222,8 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
   return (
     <article
       className={cn(
-        'bg-white border rounded-xl p-5 transition-shadow',
-        post.isPinned ? 'border-primary/30 bg-primary/[0.02] shadow-sm' : 'border-gray-200 hover:shadow-md'
+        'bg-white/80 backdrop-blur-sm border rounded-xl p-5 transition-all duration-300',
+        post.isPinned ? 'border-primary/30 bg-primary/[0.02] shadow-sm' : 'border-gray-200/60 hover:shadow-md'
       )}
     >
       {post.isPinned && (
@@ -580,7 +580,7 @@ export default function CommunityPage() {
         <div className="page-hero-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <span className="page-hero-badge">Community</span>
-            <h1 className="page-hero-title">The Water Cooler 💬</h1>
+            <h1 className="page-hero-title">The Water Cooler</h1>
             <p className="page-hero-subtitle">
               Where investors swap alpha, share war stories, and ask the questions Google can't answer.
             </p>

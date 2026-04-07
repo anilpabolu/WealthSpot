@@ -56,7 +56,7 @@ export default function PropertyCard({
 }: PropertyCardProps) {
   if (isLoading) {
     return (
-      <div className={cn('bg-white border border-gray-200 rounded-xl overflow-hidden', className)}>
+      <div className={cn('bg-white/80 border border-gray-200/60 rounded-xl overflow-hidden', className)}>
         <div className="skeleton aspect-video w-full" />
         <div className="p-4 space-y-3">
           <div className="skeleton h-5 w-3/4" />
@@ -112,7 +112,7 @@ export default function PropertyCard({
   return (
     <div
       className={cn(
-        'bg-white border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-gray-300 cursor-pointer group relative',
+        'bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-gray-300/60 cursor-pointer group relative',
         className
       )}
       onClick={onCardClick}

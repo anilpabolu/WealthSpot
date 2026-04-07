@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Mono:wght@300;400;500&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,7 +10,7 @@
   }
 
   body {
-    @apply bg-white min-h-screen;
+    @apply bg-[#FAFAF9] min-h-screen;
   }
 
   /* Indian number formatting helper */
@@ -23,10 +21,11 @@
 }
 
 @layer components {
-  /* Card base — aligned with VaultsPage design system */
+  /* Card base — glassmorphism elevated style */
   .card {
-    @apply bg-white border border-gray-200 rounded-2xl shadow-sm
-           transition-all duration-300 hover:shadow-md;
+    @apply bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-2xl
+           shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_32px_rgba(0,0,0,0.04)]
+           transition-all duration-300 hover:shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_rgba(0,0,0,0.08)];
   }
 
   /* Premium card with accent border (vault-style) */
@@ -34,24 +33,25 @@
     @apply card border-l-4;
   }
 
-  /* Glass card (dark mode only) */
+  /* Glass card (dark surfaces) */
   .glass-card {
-    @apply backdrop-blur-[24px] bg-white/[0.06] border border-white/10;
+    @apply backdrop-blur-[24px] bg-white/[0.06] border border-white/10 rounded-2xl;
   }
 
-  /* Primary button — rounded to match design system */
+  /* Primary button — premium gradient style */
   .btn-primary {
-    @apply bg-primary text-white rounded-xl px-5 py-2.5 font-semibold
-           hover:bg-primary-dark transition-all duration-200
-           hover:shadow-md hover:scale-[1.01] active:scale-100
-           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+    @apply bg-gradient-to-r from-primary to-indigo-500 text-white rounded-xl px-5 py-2.5 font-semibold
+           shadow-[0_2px_8px_rgba(99,102,241,0.25)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)]
+           transition-all duration-200
+           hover:brightness-110 hover:scale-[1.01] active:scale-100
+           focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2;
   }
 
   /* Secondary button */
   .btn-secondary {
-    @apply border border-gray-300 bg-white text-gray-800 rounded-xl px-5 py-2.5 font-semibold
-           hover:bg-gray-50 transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
+    @apply border border-gray-200 bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl px-5 py-2.5 font-semibold
+           hover:bg-white hover:border-gray-300 hover:shadow-sm transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2;
   }
 
   /* Ghost button */
@@ -124,7 +124,7 @@
 
   /* Page hero section */
   .page-hero {
-    @apply relative overflow-hidden py-16 sm:py-20;
+    @apply relative overflow-hidden py-16 sm:py-20 lg:py-24;
   }
 
   .page-hero-content {
@@ -132,16 +132,16 @@
   }
 
   .page-hero-title {
-    @apply font-hero text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 tracking-tight leading-tight;
+    @apply font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1];
   }
 
   .page-hero-subtitle {
-    @apply text-white/70 max-w-2xl text-lg leading-relaxed font-body;
+    @apply text-white/60 max-w-2xl text-base sm:text-lg leading-relaxed font-body;
   }
 
   .page-hero-badge {
-    @apply inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm
-           text-white/90 text-xs font-bold uppercase tracking-widest mb-5;
+    @apply inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md
+           border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-5;
   }
 
   /* Section wrapper */
@@ -155,16 +155,18 @@
 
   /* Section heading */
   .section-title {
-    @apply font-display text-2xl sm:text-3xl font-bold text-gray-900;
+    @apply font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight;
   }
 
   .section-subtitle {
-    @apply text-gray-500 mt-2 max-w-2xl;
+    @apply text-gray-500 mt-2 max-w-2xl leading-relaxed;
   }
 
-  /* Stat/metric card (vault-aligned) */
+  /* Stat/metric card (elevated glass) */
   .stat-card {
-    @apply card p-5 space-y-2;
+    @apply bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-2xl p-5 space-y-2
+           shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_32px_rgba(0,0,0,0.04)]
+           transition-all duration-300 hover:shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_rgba(0,0,0,0.08)];
   }
 
   .stat-card-icon {
@@ -173,11 +175,12 @@
 
   /* Modal overlay */
   .modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm;
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md;
   }
 
   .modal-panel {
-    @apply bg-white rounded-3xl shadow-2xl border border-gray-200 
+    @apply bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.04)]
+           border border-gray-200/50
            w-full max-h-[90vh] overflow-y-auto animate-scale-in;
   }
 }
@@ -185,5 +188,14 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Glass utility for reusable glassmorphism */
+  .glass {
+    @apply bg-white/60 backdrop-blur-xl border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-white/10;
   }
 }

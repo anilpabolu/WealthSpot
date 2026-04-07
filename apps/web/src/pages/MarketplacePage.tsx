@@ -30,7 +30,7 @@ function getOppRibbon(opp: OpportunityItem): { label: string; bg: string } | nul
   }
   if (['approved', 'active', 'funding'].includes(status)) return { label: 'LIVE', bg: 'bg-green-600' }
   if (['draft', 'pending_approval'].includes(status)) return { label: 'UPCOMING', bg: 'bg-blue-600' }
-  if (status === 'rejected') return { label: 'REJECTED', bg: 'bg-gray-500' }
+  if (status === 'rejected') return { label: 'REJECTED', bg: 'bg-stone-500' }
   return null
 }
 
@@ -274,7 +274,7 @@ function SearchBar() {
               <button
                 key={`${s.type}-${s.text}-${i}`}
                 onClick={() => handleSuggestionClick(s)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-stone-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
               >
                 <Icon className="h-4 w-4 text-gray-400 shrink-0" />
                 <span className="text-sm text-gray-900 flex-1 truncate">{s.text}</span>
@@ -377,7 +377,7 @@ export default function MarketplacePage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Marketplace</span>
           <h1 className="page-hero-title">Property Marketplace</h1>
@@ -481,7 +481,7 @@ export default function MarketplacePage() {
                         <div
                           key={`opp-${opp.id}`}
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
-                          className="rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all cursor-pointer group"
+                          className="rounded-xl border border-gray-200/60 bg-white/80 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-gray-300/60 transition-all cursor-pointer group"
                         >
                           <div className="aspect-video relative overflow-hidden bg-gray-100">
                             {coverUrl ? (
@@ -574,7 +574,7 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => setPage(filters.page - 1)}
                   disabled={filters.page <= 1}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -587,7 +587,7 @@ export default function MarketplacePage() {
                       className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                         filters.page === page
                           ? 'bg-primary text-white'
-                          : 'border border-gray-200 hover:bg-gray-50'
+                          : 'border border-gray-200 hover:bg-stone-50'
                       }`}
                     >
                       {page}
@@ -597,7 +597,7 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => setPage(filters.page + 1)}
                   disabled={filters.page >= totalPages}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

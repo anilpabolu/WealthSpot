@@ -98,7 +98,7 @@ function KPICard({ label, value, sub, icon: Icon, trend, color = 'text-primary' 
   color?: string
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-1 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 flex flex-col gap-1 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
@@ -115,7 +115,7 @@ function KPICard({ label, value, sub, icon: Icon, trend, color = 'text-primary' 
 
 function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-5 shadow-sm ${className}`}>
+    <div className={`bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 shadow-sm ${className}`}>
       <h4 className="text-sm font-semibold text-gray-700 mb-4">{title}</h4>
       {children}
     </div>
@@ -359,7 +359,7 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
       {/* Vault KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredVaults.map(v => (
-          <div key={v.vaultType} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+          <div key={v.vaultType} className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 shadow-sm"
                style={{ borderLeftWidth: 4, borderLeftColor: VAULT_COLORS[v.vaultType] }}>
             <div className="text-sm font-semibold mb-3" style={{ color: VAULT_COLORS[v.vaultType] }}>
               {VAULT_LABELS[v.vaultType] || v.vaultType}
@@ -464,7 +464,7 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
                 {top.opportunities
                   .filter(o => !selectedVault || o.vaultType === selectedVault)
                   .map(o => (
-                  <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <tr key={o.id} className="border-b border-gray-50 hover:bg-stone-50/50">
                     <td className="py-2.5">
                       <div className="font-medium text-gray-900 truncate max-w-[200px]">{o.title}</div>
                       {o.companyName && <div className="text-xs text-gray-400">{o.companyName}</div>}
@@ -708,7 +708,7 @@ function GeographyTab({ data }: { data: FullAnalyticsResponse }) {
               </thead>
               <tbody>
                 {cityData.map(c => (
-                  <tr key={c.city} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <tr key={c.city} className="border-b border-gray-50 hover:bg-stone-50/50">
                     <td className="py-2.5 font-medium text-gray-900">{c.city}</td>
                     <td className="py-2.5 text-gray-600">{c.state}</td>
                     <td className="py-2.5 text-right text-gray-900">{c.opportunities}</td>
@@ -980,7 +980,7 @@ function RevenueTab({ data }: { data: FullAnalyticsResponse }) {
               </thead>
               <tbody>
                 {rev.monthly.map((t, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <tr key={i} className="border-b border-gray-50 hover:bg-stone-50/50">
                     <td className="py-2 text-gray-900">{t.month}</td>
                     <td className="py-2">
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
@@ -1066,7 +1066,7 @@ export default function VaultAnalyticsDashboard() {
               className={`flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-b-2 ${
                 active
                   ? 'border-primary text-primary bg-primary/5'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-stone-50'
               }`}
             >
               <Icon className="h-4 w-4" />

@@ -48,7 +48,7 @@ function SummaryRow({
   return (
     <button
       onClick={onToggle}
-      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-stone-50 transition-colors"
     >
       <div className="flex items-center gap-3 flex-1 min-w-[200px]">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary uppercase">
@@ -104,7 +104,7 @@ function DetailPanel({ referrerId }: { referrerId: string }) {
     return <p className="text-sm text-gray-400 text-center py-4">No referral details found.</p>
 
   return (
-    <div className="bg-gray-50 border-b border-gray-100 px-4 py-3">
+    <div className="bg-stone-50 border-b border-gray-100 px-4 py-3">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-[10px] text-gray-400 uppercase">

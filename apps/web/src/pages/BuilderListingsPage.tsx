@@ -83,7 +83,7 @@ export default function BuilderListingsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
+                <tr className="border-b border-gray-200 bg-stone-50">
                   <th className="text-left px-6 py-3 text-xs font-semibold uppercase text-gray-500">Property</th>
                   <th className="text-center px-6 py-3 text-xs font-semibold uppercase text-gray-500">Status</th>
                   <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Target IRR</th>
@@ -95,7 +95,7 @@ export default function BuilderListingsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtered.map((l) => (
-                  <tr key={l.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={l.id} className="hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">

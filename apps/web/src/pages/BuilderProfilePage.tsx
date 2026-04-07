@@ -142,7 +142,7 @@ export default function BuilderProfilePage() {
           <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Contact Information</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {builder.phone && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                 <Phone className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-xs text-gray-500">Phone</p>
@@ -151,7 +151,7 @@ export default function BuilderProfilePage() {
               </div>
             )}
             {builder.email && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                 <Mail className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-xs text-gray-500">Email</p>
@@ -160,7 +160,7 @@ export default function BuilderProfilePage() {
               </div>
             )}
             {builder.address && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
                 <MapPin className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-xs text-gray-500">Address</p>
@@ -173,7 +173,7 @@ export default function BuilderProfilePage() {
                 href={builder.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <Globe className="h-5 w-5 text-gray-400" />
                 <div>

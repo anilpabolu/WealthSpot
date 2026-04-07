@@ -48,14 +48,14 @@ export default function Navbar(_props?: NavbarProps) {
 
   return (
     <>
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-white/10">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/vaults" className="flex items-center gap-2 shrink-0" aria-label="WealthSpot Home">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="font-display text-xl font-bold tracking-tight text-gray-900">
-              Wealth<span className="text-primary">Spot</span>
+            <Shield className="h-8 w-8 text-indigo-400" />
+            <span className="font-display text-xl font-bold tracking-tight text-white">
+              Wealth<span className="text-indigo-400">Spot</span>
             </span>
           </Link>
 
@@ -67,8 +67,10 @@ export default function Navbar(_props?: NavbarProps) {
                   key={link.href}
                   to={link.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary',
-                    location.pathname === link.href ? 'text-primary' : 'text-gray-600'
+                    'text-sm font-medium transition-colors relative',
+                    location.pathname === link.href
+                      ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-indigo-400 after:rounded-full'
+                      : 'text-white/60 hover:text-white'
                   )}
                 >
                   {link.label}
@@ -83,7 +85,7 @@ export default function Navbar(_props?: NavbarProps) {
             <Show when="signed-in">
               <button
                 onClick={() => setShowCreateOpp(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-xs font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.45)] hover:brightness-110 transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Create Opportunity
@@ -102,13 +104,13 @@ export default function Navbar(_props?: NavbarProps) {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
-                <X className="h-6 w-6 text-gray-700" />
+                <X className="h-6 w-6 text-white/70" />
               ) : (
-                <Menu className="h-6 w-6 text-gray-700" />
+                <Menu className="h-6 w-6 text-white/70" />
               )}
             </button>
           </div>
@@ -117,7 +119,7 @@ export default function Navbar(_props?: NavbarProps) {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 animate-fade-up">
+        <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-white/10 animate-fade-up">
           <div className="px-4 py-4 space-y-1">
             <Show when="signed-in">
               {allNavLinks.map((link) => (
@@ -127,8 +129,8 @@ export default function Navbar(_props?: NavbarProps) {
                   className={cn(
                     'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                     location.pathname === link.href
-                      ? 'bg-primary/5 text-primary'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/60 hover:bg-white/5 hover:text-white'
                   )}
                   onClick={() => setMobileOpen(false)}
                 >
@@ -137,10 +139,10 @@ export default function Navbar(_props?: NavbarProps) {
               ))}
             </Show>
             <Show when="signed-out">
-              <div className="pt-3 border-t border-gray-100 flex gap-2">
+              <div className="pt-3 border-t border-white/10 flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button
-                    className="btn-ghost text-sm flex-1 text-center"
+                    className="text-white/70 hover:text-white text-sm font-semibold flex-1 text-center px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign In

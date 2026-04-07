@@ -42,11 +42,11 @@ export default function InvestorSidebar() {
   })
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 h-[calc(100vh-64px)] sticky top-16">
+    <aside className="hidden lg:flex flex-col w-64 bg-white/60 backdrop-blur-xl border-r border-gray-200/50 h-[calc(100vh-64px)] sticky top-16">
       {/* Investor badge */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-100/60">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <PieChart className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -57,7 +57,7 @@ export default function InvestorSidebar() {
       </div>
 
       {/* Main nav */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto" aria-label="Investor navigation">
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Investor navigation">
         {visibleNav.map((item) => {
           const isActive =
             item.href === '/portal/investor'
@@ -69,13 +69,13 @@ export default function InvestorSidebar() {
               key={item.href}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-primary/5 text-primary'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900',
               )}
             >
-              <item.icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-gray-400')} />
+              <item.icon className={cn('h-5 w-5 transition-colors', isActive ? 'text-primary' : 'text-gray-400')} />
               {item.label}
             </NavLink>
           )
@@ -83,12 +83,12 @@ export default function InvestorSidebar() {
       </nav>
 
       {/* Bottom nav */}
-      <div className="p-3 border-t border-gray-100 space-y-1">
+      <div className="p-3 border-t border-gray-100/60 space-y-1">
         {INVESTOR_BOTTOM.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-100/60 hover:text-gray-700 transition-all duration-200"
           >
             <item.icon className="h-4 w-4" />
             {item.label}

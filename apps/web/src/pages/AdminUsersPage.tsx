@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b-2 border-gray-200">
+                <tr className="bg-stone-50 border-b-2 border-gray-200">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC Status</th>
@@ -152,7 +152,7 @@ export default function AdminUsersPage() {
                   const kyc = kycBadge[user.kyc_status]
                   const KycIcon = kyc.icon
                   return (
-                    <tr key={user.id} className="hover:bg-gray-50 transition">
+                    <tr key={user.id} className="hover:bg-stone-50 transition">
                       <td className="px-4 py-3">
                         <div>
                           <p className="text-sm font-medium text-gray-900">{user.full_name}</p>

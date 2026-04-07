@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
   return (
     <PortalLayout variant="admin">
       {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Admin Console</span>
           <h1 className="page-hero-title">Admin Overview</h1>
@@ -116,14 +116,14 @@ export default function AdminDashboardPage() {
                   <p className="text-xs text-gray-500">{MOCK_ADMIN.pendingApprovals} to approve</p>
                 </div>
               </Link>
-              <Link to="/portal/admin/users" className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              <Link to="/portal/admin/users" className="flex items-center gap-3 p-4 bg-stone-50 rounded-xl hover:bg-gray-100 transition-colors">
                 <Users className="h-6 w-6 text-gray-500" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">User Mgmt</p>
                   <p className="text-xs text-gray-500">{MOCK_ADMIN.totalUsers} users</p>
                 </div>
               </Link>
-              <Link to="/portal/admin/analytics" className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              <Link to="/portal/admin/analytics" className="flex items-center gap-3 p-4 bg-stone-50 rounded-xl hover:bg-gray-100 transition-colors">
                 <TrendingUp className="h-6 w-6 text-gray-500" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Analytics</p>
@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
             </div>
             <div className="space-y-3">
               {MOCK_RECENT.map((activity, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-2xl">
+                <div key={i} className="flex items-start gap-3 p-3 bg-stone-50 rounded-2xl">
                   <div className="h-2 w-2 bg-primary rounded-full mt-1.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-700">{activity.text}</p>
@@ -162,19 +162,19 @@ export default function AdminDashboardPage() {
         <div className="card p-6">
           <h2 className="section-title text-lg mb-4">Revenue Overview</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-gray-50 rounded-2xl">
+            <div className="p-4 bg-stone-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Platform Fees</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(4500000)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-2xl">
+            <div className="p-4 bg-stone-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">WealthPass</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(890000)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-2xl">
+            <div className="p-4 bg-stone-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Builder Fees</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(650000)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-2xl">
+            <div className="p-4 bg-stone-50 rounded-2xl">
               <p className="text-xs text-gray-500 uppercase font-semibold">Other</p>
               <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(260000)}</p>
             </div>

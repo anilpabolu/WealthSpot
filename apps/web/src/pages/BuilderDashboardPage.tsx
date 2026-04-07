@@ -24,7 +24,7 @@ export default function BuilderDashboardPage() {
   return (
     <PortalLayout variant="builder">
       {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content flex items-center justify-between">
           <div>
             <span className="page-hero-badge">Builder Portal</span>

@@ -6,9 +6,9 @@ import { Home, Search, ArrowLeft } from 'lucide-react'
  */
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A] flex-1 flex items-center justify-center">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           {/* 404 illustration */}
           <div className="relative mb-8">

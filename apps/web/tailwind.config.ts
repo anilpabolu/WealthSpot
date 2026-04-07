@@ -6,8 +6,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#5B4FCF', dark: '#4338CA', light: '#EDE9FE' },
-        surface: '#F9FAFB',
+        primary: { DEFAULT: '#6366F1', dark: '#4F46E5', light: '#EEF2FF' },
+        surface: '#FAFAF9',
         status: {
           live: '#10B981',
           upcoming: '#3B82F6',
@@ -74,22 +74,24 @@ export default {
         forest: { DEFAULT: '#065F46', light: '#ECFDF5', dark: '#064E3B' },
       },
       fontFamily: {
-        display: ['"Syne"', '"Bricolage Grotesque"', 'sans-serif'],
-        hero: ['"Space Grotesk"', '"Syne"', 'sans-serif'],
-        body: ['"DM Sans"', '"Satoshi"', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"DM Mono"', 'monospace'],
-        fun: ['"Quicksand"', '"Syne"', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
+        hero: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
+        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+        fun: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
       },
       backdropBlur: { glass: '24px' },
       boxShadow: {
-        'glow-primary': '0 0 20px rgba(91, 79, 207, 0.3)',
+        'glow-primary': '0 0 20px rgba(99, 102, 241, 0.3)',
         'glow-coral': '0 0 20px rgba(255, 107, 107, 0.3)',
         'glow-teal': '0 0 20px rgba(32, 227, 178, 0.3)',
         'glow-amber': '0 0 20px rgba(254, 202, 87, 0.3)',
         'glow-gold': '0 0 24px rgba(212, 175, 55, 0.35)',
         'glow-forest': '0 0 20px rgba(6, 95, 70, 0.25)',
-        'card-hover': '0 12px 40px rgba(0, 0, 0, 0.12)',
-        'vault-card': '0 8px 32px rgba(91, 79, 207, 0.08)',
+        'card-hover': '0 12px 40px rgba(0, 0, 0, 0.08)',
+        'card-elevated': '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)',
+        'card-glass': '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.04)',
+        'vault-card': '0 8px 32px rgba(99, 102, 241, 0.08)',
         'vault-wealth': '0 8px 32px rgba(27, 42, 74, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.15)',
         'vault-opportunity': '0 8px 32px rgba(255, 107, 107, 0.12), 0 0 0 1px rgba(32, 227, 178, 0.15)',
         'vault-community': '0 8px 32px rgba(217, 119, 6, 0.12), 0 0 0 1px rgba(6, 95, 70, 0.15)',
@@ -158,8 +160,8 @@ export default {
           to: { width: 'var(--progress-width, 0%)' },
         },
         'match-ring': {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(91, 79, 207, 0.4)' },
-          '50%': { boxShadow: '0 0 0 12px rgba(91, 79, 207, 0)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(99, 102, 241, 0.4)' },
+          '50%': { boxShadow: '0 0 0 12px rgba(99, 102, 241, 0)' },
         },
         'personality-reveal': {
           from: { opacity: '0', transform: 'scale(0.5) rotate(-10deg)' },

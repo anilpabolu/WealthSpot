@@ -47,7 +47,7 @@ const VAULTS = [
     id: 'wealth',
     title: 'Wealth Vault',
     icon: Building2,
-    color: 'from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]',
+    color: 'from-slate-900 via-indigo-950 to-slate-900',
     accent: 'text-[#D4AF37]',
     accentHex: '#D4AF37',
     bg: 'bg-[#F5F0E1]',
@@ -269,12 +269,12 @@ function VaultCard({
     : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
 
   return (
-    <div className={`rounded-3xl border ${vault.border} border-l-4 ${vault.borderLeft} bg-white overflow-hidden shadow-sm ${vault.hoverShadow} transition-all duration-300 group flex flex-col h-full`}>
+    <div className={`rounded-3xl border border-gray-200/60 bg-white/80 backdrop-blur-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1`}>
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
-        {/* Decorative background pattern */}
+        {/* Decorative background glow */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-6 -top-6 text-8xl">{vault.emoji}</div>
+          <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
         </div>
         <div className="flex items-center gap-3 relative z-10">
           <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -392,7 +392,7 @@ function VaultCard({
                 {opportunities.slice(0, 5).map((opp) => (
                   <div
                     key={opp.id}
-                    className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                    className="flex items-center justify-between rounded-xl bg-stone-50/80 px-3 py-2 text-xs"
                   >
                     <span className="font-medium text-gray-800 truncate flex-1 mr-2">{opp.title}</span>
                     <span className="text-gray-400 shrink-0">{opp.city ?? '—'}</span>
@@ -477,7 +477,7 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
   const Icon = pillar.icon
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <div className="rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <div className="flex items-start justify-between mb-4">
         <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${pillar.color} flex items-center justify-center`}>
           <Icon className={`h-6 w-6 ${pillar.iconColor}`} />
@@ -561,29 +561,27 @@ export default function VaultsPage() {
 
   return (
     <>
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       {/* Shared Navbar */}
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden py-20" style={{ background: 'linear-gradient(135deg, #1B2A4A 0%, #2D3F5E 25%, #5B4FCF 50%, #D97706 75%, #FF6B6B 100%)', backgroundSize: '200% 200%', animation: 'gradient-shift 12s ease infinite' }}>
-        {/* Decorative floating elements */}
+      <section className="relative overflow-hidden py-24 lg:py-28" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}>
+        {/* Subtle geometric decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-8 left-[10%] text-5xl opacity-20 animate-float">🏛️</div>
-          <div className="absolute top-16 right-[15%] text-4xl opacity-15 animate-float" style={{ animationDelay: '1s' }}>🚀</div>
-          <div className="absolute bottom-12 left-[25%] text-4xl opacity-15 animate-float" style={{ animationDelay: '2s' }}>🤝</div>
-          <div className="absolute top-24 left-[60%] text-3xl opacity-10 animate-bounce-gentle" style={{ animationDelay: '0.5s' }}>💎</div>
-          <div className="absolute bottom-8 right-[30%] text-3xl opacity-10 animate-bounce-gentle" style={{ animationDelay: '1.5s' }}>⚡</div>
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/8 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/5 blur-3xl" />
         </div>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
           <div className="animate-fade-up">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-white/90 text-xs font-bold uppercase tracking-widest mb-5">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-6">
               Three Vaults. Infinite Possibilities.
             </span>
-            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
+            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-5 tracking-tight leading-[1.1]">
               Pick Your Arena
             </h1>
-            <p className="text-white/70 max-w-2xl text-lg leading-relaxed font-body">
+            <p className="text-white/60 max-w-2xl text-lg leading-relaxed font-body">
               Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.
             </p>
           </div>
@@ -591,7 +589,7 @@ export default function VaultsPage() {
       </section>
 
       {/* Vaults Grid */}
-      <section className="py-12 bg-white">
+      <section className="py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {VAULTS.map((vault) => (
@@ -613,7 +611,7 @@ export default function VaultsPage() {
 
       {/* 4 Investor Pillars — super_admin only */}
       {userRole === 'super_admin' && (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 lg:py-20 bg-stone-50/50">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
           <div className="text-center mb-10">
             <span className="text-xs font-bold uppercase tracking-widest text-primary">The Four Pillars</span>

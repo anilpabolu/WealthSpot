@@ -67,14 +67,14 @@ const STATUS_BADGE: Record<string, { icon: typeof Clock; className: string }> = 
   approved: { icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   rejected: { icon: XCircle, className: 'bg-red-50 text-red-700 border-red-200' },
   auto_approved: { icon: CheckCircle2, className: 'bg-teal-50 text-teal-700 border-teal-200' },
-  cancelled: { icon: AlertCircle, className: 'bg-gray-50 text-gray-500 border-gray-200' },
+  cancelled: { icon: AlertCircle, className: 'bg-stone-50 text-gray-500 border-gray-200' },
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
   urgent: 'bg-red-100 text-red-700',
   high: 'bg-orange-100 text-orange-700',
   normal: 'bg-gray-100 text-gray-600',
-  low: 'bg-gray-50 text-gray-400',
+  low: 'bg-stone-50 text-gray-400',
 }
 
 /* ------------------------------------------------------------------ */
@@ -154,7 +154,7 @@ function ReviewModal({
         </div>
 
         <div className="flex gap-3 mt-4">
-          <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50">
             Cancel
           </button>
           <button
@@ -198,7 +198,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; bor
   cancelled: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400', border: 'border-gray-200' },
 }
 
-const DEFAULT_COL_COLOR = { bg: 'bg-gray-50', text: 'text-gray-600', dot: 'bg-gray-400', border: 'border-gray-200' }
+const DEFAULT_COL_COLOR = { bg: 'bg-stone-50', text: 'text-gray-600', dot: 'bg-gray-400', border: 'border-gray-200' }
 
 const BOARD_COLUMNS = STATUSES
   .filter((s) => s.value !== '')
@@ -410,7 +410,7 @@ function EditOpportunityPanel({
       <div className="flex gap-3 pt-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50"
         >
           Cancel
         </button>
@@ -632,7 +632,7 @@ function EditCompanyPanel({
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+        <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50">
           Cancel
         </button>
         <button
@@ -798,7 +798,7 @@ function DetailPopup({ approval, onClose, onReview }: {
 
           {/* Reviewer info */}
           {approval.reviewer && (
-            <div className="flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg bg-stone-50 px-4 py-3">
               {approval.reviewer.avatarUrl ? (
                 <img src={approval.reviewer.avatarUrl} className="h-8 w-8 rounded-full" alt="" />
               ) : (
@@ -983,7 +983,7 @@ function KanbanBoard({
         return (
           <div
             key={col.status}
-            className={`shrink-0 w-72 rounded-xl border ${colColor.border} bg-white flex flex-col max-h-[calc(100vh-260px)]`}
+            className={`shrink-0 w-72 rounded-xl border ${colColor.border} bg-white/70 backdrop-blur-xl flex flex-col max-h-[calc(100vh-260px)]`}
           >
             {/* Column header */}
             <div className={`px-4 py-3 rounded-t-xl ${colColor.bg} border-b ${colColor.border}`}>
@@ -1007,7 +1007,7 @@ function KanbanBoard({
                   <button
                     key={a.id}
                     onClick={() => onSelectApproval(a)}
-                    className="w-full text-left bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group"
+                    className="w-full text-left bg-white/80 rounded-xl border border-gray-200/60 p-3 hover:shadow-md hover:border-gray-300/60 transition-all cursor-pointer group"
                   >
                     {/* Title */}
                     <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
@@ -1074,12 +1074,12 @@ export default function ApprovalsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-stone-50">
         {/* Shared Navbar */}
         <Navbar />
 
         {/* Hero */}
-        <section className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <section className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="page-hero-content">
             <span className="page-hero-badge">Workflow</span>
             <h1 className="page-hero-title">Approvals</h1>
@@ -1140,11 +1140,11 @@ export default function ApprovalsPage() {
               </div>
 
               {/* Table */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
+                      <tr className="bg-stone-50 border-b border-gray-200">
                         {[
                           { key: 'title', label: 'Title' },
                           { key: 'category', label: 'Category' },
@@ -1186,7 +1186,7 @@ export default function ApprovalsPage() {
                         approvals.map((a) => (
                           <tr
                             key={a.id}
-                            className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                            className="hover:bg-stone-50/50 transition-colors cursor-pointer"
                             onClick={() => setDetailApproval(a)}
                           >
                             <td className="px-4 py-3">
@@ -1258,14 +1258,14 @@ export default function ApprovalsPage() {
                       <button
                         disabled={filters.page <= 1}
                         onClick={() => setFilter('page', filters.page - 1)}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30"
+                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-30"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </button>
                       <button
                         disabled={filters.page >= totalPages}
                         onClick={() => setFilter('page', filters.page + 1)}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30"
+                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-30"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </button>

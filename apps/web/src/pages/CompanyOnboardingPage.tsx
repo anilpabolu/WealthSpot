@@ -68,10 +68,10 @@ export default function CompanyOnboardingPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Onboarding</span>
-          <h1 className="page-hero-title">Company Onboarding 🏗️</h1>
+          <h1 className="page-hero-title">Company Onboarding</h1>
           <p className="page-hero-subtitle">Get your company on the map — register once, create unlimited opportunities</p>
         </div>
       </section>
@@ -264,7 +264,7 @@ export default function CompanyOnboardingPage() {
               </button>
               <button
                 onClick={() => { setStep('form'); setForm(INITIAL) }}
-                className="px-6 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="px-6 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-stone-50"
               >
                 Register Another
               </button>

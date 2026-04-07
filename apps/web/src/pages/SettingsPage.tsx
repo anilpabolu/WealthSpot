@@ -73,10 +73,10 @@ export default function SettingsPage() {
   return (
     <MainLayout>
       {/* Hero section */}
-      <div className="page-hero bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Settings</span>
-          <h1 className="page-hero-title">Mission Control ⚙️</h1>
+          <h1 className="page-hero-title">Mission Control</h1>
           <p className="page-hero-subtitle">Manage your profile, security, and preferences — everything in one place.</p>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function SettingsPage() {
                         'w-full flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200',
                         activeTab === tab.id
                           ? 'bg-primary/5 text-primary font-semibold border-l-4 border-primary'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          : 'text-gray-600 hover:bg-stone-50'
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -171,7 +171,7 @@ function ProfileTab() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" defaultValue={displayEmail} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none" />
+          <input type="email" defaultValue={displayEmail} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-stone-50 text-gray-500 cursor-not-allowed outline-none" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
@@ -179,7 +179,7 @@ function ProfileTab() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-          <input type="text" defaultValue={profile?.role ?? '—'} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none capitalize" />
+          <input type="text" defaultValue={profile?.role ?? '—'} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-stone-50 text-gray-500 cursor-not-allowed outline-none capitalize" />
         </div>
       </div>
 
@@ -394,7 +394,7 @@ function BankTab() {
 }
 
 const KYC_STATUS_MAP: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
-  not_started: { label: 'Not Started', color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200', desc: 'Please complete KYC to start investing.' },
+  not_started: { label: 'Not Started', color: 'text-gray-600', bg: 'bg-stone-50', border: 'border-gray-200', desc: 'Please complete KYC to start investing.' },
   in_progress: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', desc: 'Your KYC submission is being processed.' },
   under_review: { label: 'Under Review', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', desc: 'Our team is reviewing your documents.' },
   approved: { label: 'Approved', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Your identity has been verified successfully.' },
@@ -786,7 +786,7 @@ function DocumentsTab() {
             const isPending = vs === 'pending'
             return (
               <div key={doc.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
-                <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-stone-50 rounded-lg flex items-center justify-center">
                   <FileText className="h-5 w-5 text-gray-400" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -862,7 +862,7 @@ function ReferralsTab() {
               <div className="flex-1 font-mono text-2xl font-bold text-primary tracking-widest bg-primary/5 px-5 py-3 rounded-xl text-center">
                 {code}
               </div>
-              <button onClick={handleCopy} className="p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+              <button onClick={handleCopy} className="p-3 rounded-xl border border-gray-200 hover:bg-stone-50 transition-colors">
                 {copied ? <CheckCheck className="h-5 w-5 text-emerald-600" /> : <Copy className="h-5 w-5 text-gray-500" />}
               </button>
             </div>
@@ -874,7 +874,7 @@ function ReferralsTab() {
                 { label: 'Successful', value: stats?.successfulReferrals ?? 0 },
                 { label: 'Rewards', value: `₹${((stats?.totalRewards ?? 0) / 100).toLocaleString()}` },
               ].map((m) => (
-                <div key={m.label} className="text-center bg-gray-50 rounded-xl py-3 px-2">
+                <div key={m.label} className="text-center bg-stone-50 rounded-xl py-3 px-2">
                   <p className="font-bold text-gray-900 text-lg">{m.value}</p>
                   <p className="text-xs text-gray-400">{m.label}</p>
                 </div>

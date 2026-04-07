@@ -49,7 +49,7 @@ function ChipSelect({ options, selected, onChange, multiple = true }: {
             'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200',
             selected.includes(o.value)
               ? 'border-primary bg-primary/10 text-primary shadow-sm shadow-primary/20 scale-105'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-stone-50'
           )}
         >
           {o.icon && <span>{o.icon}</span>}
@@ -209,7 +209,7 @@ function Step3({ data, onChange }: StepProps) {
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Country</label>
           <input type="text" value={(data.country as string) || 'India'} readOnly
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500" />
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-stone-50 text-gray-500" />
         </div>
       </div>
     </div>
@@ -448,7 +448,7 @@ function CelebrationScreen({ referralCode }: { referralCode: string | null }) {
           <Rocket className="h-4 w-4" /> Explore Opportunities
         </button>
         <button onClick={() => navigate('/settings')}
-          className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
+          className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-stone-50 transition">
           View Settings
         </button>
       </div>
@@ -552,7 +552,7 @@ export default function ProfileCompletionPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{pct}% Complete</span>
           <h1 className="page-hero-title">Complete Your Profile</h1>
@@ -628,7 +628,7 @@ export default function ProfileCompletionPage() {
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between bg-gray-50/50">
+          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between bg-stone-50/50">
             <button onClick={handlePrev} disabled={step === 1}
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-30 transition">
               <ChevronLeft className="h-4 w-4" /> Previous

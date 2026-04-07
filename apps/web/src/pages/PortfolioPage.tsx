@@ -248,7 +248,7 @@ function PropertyRow({ p }: { p: PortfolioProperty }) {
 
   return (
     <div className="border border-gray-200 rounded-lg bg-white overflow-hidden">
-      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-50 text-left">
+      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-stone-50 text-left">
         <div className="h-10 w-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
           {p.propertyImage ? (
             <img src={p.propertyImage} alt="" className="h-full w-full object-cover" />
@@ -269,7 +269,7 @@ function PropertyRow({ p }: { p: PortfolioProperty }) {
         {expanded ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
       </button>
       {expanded && (
-        <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="border-t border-gray-100 bg-stone-50/50 px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div><span className="text-gray-400 block">Invested</span><span className="font-mono font-semibold">{formatINR(p.investedAmount)}</span></div>
           <div><span className="text-gray-400 block">Units</span><span className="font-mono font-semibold">{p.units}</span></div>
           <div><span className="text-gray-400 block">IRR</span><span className="font-mono font-semibold">{p.irr ? `${p.irr}%` : '—'}</span></div>
@@ -330,7 +330,7 @@ function ActivityRow({ a, onClick }: { a: UserActivityItem; onClick?: () => void
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0 w-full text-left hover:bg-gray-50 transition-colors"
+      className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0 w-full text-left hover:bg-stone-50 transition-colors"
     >
       <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${meta.color}`}>
         <Icon className="h-4 w-4" />
@@ -373,11 +373,11 @@ export default function PortfolioPage() {
   const isLoading = summaryLoading || vaultLoading
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       <Navbar />
 
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]">
+      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Portfolio</span>
           <h1 className="page-hero-title">The War Chest</h1>
