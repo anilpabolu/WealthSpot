@@ -8,6 +8,7 @@ import { useLocalSearchParams, Link, router } from 'expo-router'
 import { useState, useCallback } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
+import { Badge } from '@/components/ui'
 import { useProperty } from '@/hooks/useProperties'
 import { useLikeStatus, useToggleLike, useTrackShare } from '@/hooks/useOpportunityActions'
 
@@ -105,14 +106,9 @@ export default function PropertyDetailScreen() {
           <View className="flex-row items-start justify-between">
             <View className="flex-1 mr-3">
               <View className="flex-row items-center gap-2 mb-1">
-                <View className="bg-primary/10 px-2 py-0.5 rounded-full">
-                  <Text className="text-primary text-[10px] font-bold">{property.assetType}</Text>
-                </View>
+                <Badge variant="purple" size="xs">{property.assetType}</Badge>
                 {property.reraNumber ? (
-                  <View className="bg-emerald-50 px-2 py-0.5 rounded-full flex-row items-center">
-                    <Ionicons name="checkmark-circle" size={10} color="#059669" />
-                    <Text className="text-emerald-700 text-[10px] font-semibold ml-0.5">RERA</Text>
-                  </View>
+                  <Badge variant="success" size="xs">RERA</Badge>
                 ) : null}
               </View>
               <Text className="text-gray-900 font-bold text-xl">{property.title}</Text>

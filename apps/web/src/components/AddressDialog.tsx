@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Select } from '@/components/ui'
 import { MapPin, Loader2 } from 'lucide-react'
 import { usePincodeLookup } from '@/hooks/usePincodes'
 import { INDIAN_CITIES } from '@/lib/constants'
@@ -179,19 +180,16 @@ export default function AddressDialog({ value, onChange }: Props) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <select
+                  <Select
                     value={local.city}
-                    onChange={(e) => handleField('city', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  >
-                    <option value="">Select city</option>
-                    {INDIAN_CITIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                    {local.city && !(INDIAN_CITIES as readonly string[]).includes(local.city) && (
-                      <option value={local.city}>{local.city}</option>
-                    )}
-                  </select>
+                    onChange={(v) => handleField('city', v)}
+                    placeholder="Select city"
+                    options={[
+                      ...INDIAN_CITIES.map((c) => ({ value: c, label: c })),
+                      ...(local.city && !(INDIAN_CITIES as readonly string[]).includes(local.city) ? [{ value: local.city, label: local.city }] : []),
+                    ]}
+                    searchable
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">District</label>

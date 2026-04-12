@@ -17,6 +17,7 @@ import {
   type FullAnalyticsResponse,
 } from '@/hooks/useAnalytics'
 import { formatINR, formatINRCompact } from '@/lib/formatters'
+import { EmptyState as UIEmptyState } from '@/components/ui'
 
 /* ── Palette ──────────────────────────────────────────────────────────────── */
 
@@ -123,11 +124,7 @@ function ChartCard({ title, children, className = '' }: { title: string; childre
 }
 
 function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
-      {message}
-    </div>
-  )
+  return <UIEmptyState icon={BarChart3} title="No Data" message={message} />
 }
 
 /* ── Custom Tooltip ───────────────────────────────────────────────────────── */

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Select } from '@/components/ui'
 import { CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
@@ -103,20 +104,15 @@ export default function CompanyOnboardingPage() {
                 </div>
                 <div>
                   <label className={labelClass}>Entity Type *</label>
-                  <select required value={form.entityType || 'private_limited'} onChange={(e) => handleChange('entityType', e.target.value)} className={inputClass}>
-                    {ENTITY_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
+                  <Select value={form.entityType || 'private_limited'} onChange={(v) => handleChange('entityType', v)} options={ENTITY_TYPES} />
                 </div>
                 <div>
                   <label className={labelClass}>Vault Category *</label>
-                  <select required value={form.vaultType || ''} onChange={(e) => handleChange('vaultType', e.target.value)} className={inputClass}>
-                    <option value="" disabled>Select vault…</option>
-                    <option value="wealth">Wealth Vault</option>
-                    <option value="opportunity">Opportunity Vault</option>
-                    <option value="community">Community Vault</option>
-                  </select>
+                  <Select value={form.vaultType || ''} onChange={(v) => handleChange('vaultType', v)} placeholder="Select vault…" options={[
+                    { value: 'wealth', label: 'Wealth Vault' },
+                    { value: 'opportunity', label: 'Opportunity Vault' },
+                    { value: 'community', label: 'Community Vault' },
+                  ]} />
                 </div>
                 <div>
                   <label className={labelClass}>Description</label>

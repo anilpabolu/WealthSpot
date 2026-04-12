@@ -3,13 +3,15 @@
  * Grid of properties with search & filter chips.
  */
 
-import { View, Text, ScrollView, Pressable, Image, TextInput, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, Pressable, Image, FlatList, ActivityIndicator } from 'react-native'
 import { Link, useLocalSearchParams } from 'expo-router'
 import { useState, useMemo } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { useProperties } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { EmptyState, Badge, Input } from '@/components/ui'
 
 const FILTER_CHIPS = ['All', 'Residential', 'Commercial', 'Warehousing', 'Plotted']
 const COMMUNITY_SUBTYPE_CHIPS = [
@@ -22,6 +24,8 @@ export default function MarketplaceScreen() {
   const { vault, subtype } = useLocalSearchParams<{ vault?: string; subtype?: string }>()
   const isCommunityVault = vault === 'community'
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
+  const { isVaultEnabled } = useVaultConfig()
+  const isVaultDisabled = vault ? !isVaultEnabled(vault) : false
   const [search, setSearch] = useState(filters.search ?? '')
   const [activeFilter, setActiveFilter] = useState(filters.assetType ?? 'All')
   const [communitySubtype, setCommunitySubtype] = useState(subtype ?? '')
@@ -45,16 +49,30 @@ export default function MarketplaceScreen() {
 
   return (
     <View className="flex-1 bg-surface">
+      {isVaultDisabled ? (
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-4xl mb-3">🔒</Text>
+          <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+            {vault === 'community' ? 'Rallying the Tribe...' : 'The Launchpad is Being Built...'}
+          </Text>
+          <Text className="text-sm text-gray-500 text-center">
+            {vault === 'community'
+              ? 'Community Vault is coming soon. We\'re building something special for collaborative investing.'
+              : 'Opportunity Vault is coming soon. Premium startup opportunities are being curated.'}
+          </Text>
+        </View>
+      ) : (
+      <>
       {/* Search Bar */}
       <View className="px-4 pt-4 pb-2 bg-white">
         <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-2.5">
           <Ionicons name="search-outline" size={18} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-sm text-gray-900"
+          <Input
+            className="flex-1 ml-2"
             placeholder="Search properties, cities..."
-            placeholderTextColor="#9CA3AF"
             value={search}
             onChangeText={setSearch}
+            size="sm"
           />
           {search ? (
             <Pressable onPress={() => setSearch('')}>
@@ -136,10 +154,11 @@ export default function MarketplaceScreen() {
         }
         ListEmptyComponent={
           !isLoading ? (
-            <View className="items-center py-20">
-              <Ionicons name="search-outline" size={48} color="#D1D5DB" />
-              <Text className="text-gray-400 mt-3 text-center">No properties found</Text>
-            </View>
+            <EmptyState
+              icon="search-outline"
+              title="No Properties Found"
+              message="Try adjusting your search or filters"
+            />
           ) : null
         }
         renderItem={({ item }) => (
@@ -156,8 +175,8 @@ export default function MarketplaceScreen() {
                   <Ionicons name="image-outline" size={24} color="#9CA3AF" />
                 </View>
               )}
-              <View className="absolute top-2 left-2 bg-primary/80 px-2 py-0.5 rounded-full">
-                <Text className="text-white text-[10px] font-bold">{item.assetType}</Text>
+              <View className="absolute top-2 left-2">
+                <Badge variant="purple" size="xs">{item.assetType}</Badge>
               </View>
               <View className="p-3">
                 <Text className="text-gray-900 font-bold text-xs" numberOfLines={1}>
@@ -185,6 +204,8 @@ export default function MarketplaceScreen() {
           </Link>
         )}
       />
+      </>
+      )}
     </View>
   )
 }

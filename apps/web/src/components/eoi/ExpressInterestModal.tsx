@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Toggle, Select } from '@/components/ui'
 import { X, CheckCircle2, Loader2, HandCoins, MessageSquare } from 'lucide-react'
 import { useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, type BuilderQuestion } from '@/hooks/useEOI'
 
@@ -123,10 +124,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             {/* Timeline */}
             <div>
               <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Investment Timeline</label>
-              <select value={timeline} onChange={(e) => setTimeline(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary">
-                <option value="">Select timeline</option>
-                {TIMELINE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <Select value={timeline} onChange={setTimeline} placeholder="Select timeline" options={TIMELINE_OPTIONS} />
             </div>
 
             {/* Funding Source */}
@@ -182,14 +180,12 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                         {q.questionText} {q.isRequired && <span className="text-red-500">*</span>}
                       </label>
                       {q.questionType === 'select' && q.options?.choices ? (
-                        <select
+                        <Select
                           value={customAnswers[q.id] ?? ''}
-                          onChange={(e) => setCustomAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                        >
-                          <option value="">Select an option</option>
-                          {q.options.choices.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                          onChange={(v) => setCustomAnswers(prev => ({ ...prev, [q.id]: v }))}
+                          placeholder="Select an option"
+                          options={(q.options.choices as string[]).map((c: string) => ({ value: c, label: c }))}
+                        />
                       ) : q.questionType === 'boolean' ? (
                         <div className="flex gap-4">
                           {['Yes', 'No'].map(v => (
@@ -218,10 +214,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             </div>
 
             {/* Consent */}
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" checked={communicationConsent} onChange={(e) => setCommunicationConsent(e.target.checked)} className="mt-1 rounded border-gray-300 text-primary focus:ring-primary" />
-              <span className="text-xs text-gray-500">I consent to receive communication regarding this opportunity.</span>
-            </label>
+            <Toggle checked={communicationConsent} onChange={setCommunicationConsent} label="I consent to receive communication regarding this opportunity." size="sm" />
 
             {/* Submit */}
             <button

@@ -10,6 +10,7 @@ import {
   Wallet, TrendingUp, PieChart, Building2, ArrowRight, ArrowUpRight,
   ArrowDownRight, Users, Gift, CreditCard,
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui'
 
 function PortfolioMetrics() {
   const { data: summary, isLoading } = useInvestmentSummary()
@@ -78,7 +79,7 @@ function RecentTransactionsTable() {
       </div>
 
       {!txns?.length ? (
-        <p className="text-sm text-gray-400 text-center py-8">No transactions yet</p>
+        <EmptyState icon={Wallet} title="No Transactions" message="No transactions yet" />
       ) : (
         <div className="space-y-3">
           {txns.map((tx) => {

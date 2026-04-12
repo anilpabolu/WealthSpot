@@ -4,9 +4,10 @@ import { useBuilderProfile } from '@/hooks/useProperties'
 import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import {
-  Building2, MapPin, Phone, Mail, Globe, Shield, CheckCircle2,
+  Building2, MapPin, Phone, Mail, Globe, Shield,
   ChevronRight, Briefcase, Ruler, Calendar,
 } from 'lucide-react'
+import { Badge, EmptyState } from '@/components/ui'
 
 export default function BuilderProfilePage() {
   const { id } = useParams<{ id: string }>()
@@ -33,12 +34,7 @@ export default function BuilderProfilePage() {
   if (!builder) {
     return (
       <MainLayout>
-        <div className="text-center py-20">
-          <Building2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-bold text-gray-900">Builder Not Found</h2>
-          <p className="text-gray-500 mt-1 mb-6">This builder profile may have been removed.</p>
-          <Link to="/marketplace" className="btn-primary">Back to Marketplace</Link>
-        </div>
+        <EmptyState icon={Building2} title="Builder Not Found" message="This builder profile may have been removed." actionLabel="Back to Marketplace" onAction={() => navigate('/marketplace')} />
       </MainLayout>
     )
   }
@@ -68,10 +64,7 @@ export default function BuilderProfilePage() {
               <div className="flex items-center gap-3">
                 <h1 className="font-display text-2xl font-bold text-gray-900 truncate">{builder.companyName}</h1>
                 {builder.verified && (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-full">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Verified
-                  </span>
+                  <Badge variant="success" size="sm">Verified</Badge>
                 )}
               </div>
               {builder.city && (

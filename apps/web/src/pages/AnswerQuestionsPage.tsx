@@ -13,6 +13,7 @@ import {
   MessageSquare,
   ThumbsUp,
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui'
 
 const ALLOWED_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
 
@@ -171,11 +172,7 @@ export default function AnswerQuestionsPage() {
         <div className="page-section-container max-w-4xl mx-auto">
 
         {!authorized && (
-          <div className="text-center py-16 text-gray-400">
-            <HelpCircle className="h-12 w-12 mx-auto mb-3 opacity-40" />
-            <p className="font-medium text-gray-500">Access Restricted</p>
-            <p className="text-sm mt-1">Only knowledge contributors and admins can answer questions.</p>
-          </div>
+          <EmptyState icon={HelpCircle} title="Access Restricted" message="Only knowledge contributors and admins can answer questions." />
         )}
 
         {authorized && isLoading && (
@@ -193,11 +190,7 @@ export default function AnswerQuestionsPage() {
         {authorized && !isLoading && !isError && (
           <>
             {data && data.items.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <CheckCircle2 className="h-12 w-12 mx-auto mb-3 opacity-40 text-emerald-400" />
-                <p className="font-medium text-gray-500">All caught up!</p>
-                <p className="text-sm mt-1">No unanswered questions right now. Check back later.</p>
-              </div>
+              <EmptyState icon={CheckCircle2} title="All caught up!" message="No unanswered questions right now. Check back later." />
             ) : (
               <div className="space-y-4">
                 {(data?.items ?? []).map((q) => (

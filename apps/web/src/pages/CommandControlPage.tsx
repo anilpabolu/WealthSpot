@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { Toggle, Select, Badge } from '@/components/ui'
 import {
   LayoutDashboard,
   Users,
@@ -42,9 +43,13 @@ import {
   BarChart3,
   Image,
   FileText,
+  Rocket,
+  Lock,
+  Unlock,
 } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useControlDashboard,
   useControlConfigs,
@@ -197,16 +202,13 @@ function UsersTab() {
             placeholder="Search by email or name…"
           />
         </div>
-        <select
+        <Select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none"
-        >
-          <option value="">All Roles</option>
-          {Object.entries(ROLE_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
+          onChange={setRoleFilter}
+          placeholder="All Roles"
+          options={[{ value: '', label: 'All Roles' }, ...Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))]}
+          size="sm"
+        />
       </div>
 
       {/* Table */}
@@ -236,16 +238,13 @@ function UsersTab() {
                   <td className="px-4 py-3">
                     {editingUser === u.id ? (
                       <div className="flex items-center gap-2">
-                        <select
+                        <Select
                           value={selectedRole}
-                          onChange={(e) => setSelectedRole(e.target.value)}
-                          className="text-xs rounded border border-gray-300 px-2 py-1 focus:border-primary outline-none"
-                        >
-                          <option value="">Select…</option>
-                          {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                            <option key={k} value={k}>{v}</option>
-                          ))}
-                        </select>
+                          onChange={setSelectedRole}
+                          placeholder="Select…"
+                          options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                          size="sm"
+                        />
                         <button
                           onClick={() => handleSaveRole(u.id)}
                           disabled={!selectedRole || updateRole.isPending}
@@ -267,13 +266,9 @@ function UsersTab() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                      u.kycStatus === 'approved' ? 'bg-emerald-50 text-emerald-700' :
-                      u.kycStatus === 'rejected' ? 'bg-red-50 text-red-600' :
-                      'bg-amber-50 text-amber-700'
-                    }`}>
+                    <Badge variant={u.kycStatus === 'approved' ? 'success' : u.kycStatus === 'rejected' ? 'danger' : 'warning'} size="sm">
                       {u.kycStatus}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
                     {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -386,14 +381,108 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
 /* ------------------------------------------------------------------ */
 
 const ADMIN_SECTIONS = [
+  { key: 'vaults', title: 'Vault Management', description: 'Enable or disable vaults platform-wide. Disabled vaults show "Coming Soon" everywhere.', icon: Lock },
   { key: 'approvals', title: 'Approval Configuration', description: 'Control approval workflows, thresholds, and auto-approval rules.', icon: ClipboardCheck },
   { key: 'notifications', title: 'Notification Settings', description: 'Manage email, SMS, and in-app notification triggers and templates.', icon: Bell },
   { key: 'templates', title: 'Template Configuration', description: 'Configure document, email, and report templates used across the platform.', icon: FileSpreadsheet },
   { key: 'platform', title: 'Platform Settings', description: 'Core platform parameters — fees, limits, feature flags, and global defaults.', icon: Settings },
 ]
 
+const VAULT_TOGGLE_ITEMS = [
+  { key: 'opportunity_vault_enabled', label: 'Opportunity Vault', emoji: '🚀', description: 'Startup & high-growth investment opportunities', icon: Rocket, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { key: 'community_vault_enabled', label: 'Community Vault', emoji: '🤝', description: 'Community-driven collaborative investments', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+]
+
+function VaultManagementPanel() {
+  const { data: configs, isLoading } = useControlConfigs('vaults')
+  const updateConfig = useUpdateConfig()
+  const queryClient = useQueryClient()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  const configMap = new Map((configs ?? []).map((c) => [c.key, c]))
+
+  const handleToggle = async (key: string) => {
+    const cfg = configMap.get(key)
+    if (!cfg) return
+    const currentVal = cfg.value as Record<string, unknown>
+    const isEnabled = currentVal?.enabled === true
+    await updateConfig.mutateAsync({ id: cfg.id, value: { enabled: !isEnabled } })
+    queryClient.invalidateQueries({ queryKey: ['vault-config'] })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Building2 className="h-4 w-4 text-gray-400" />
+        <p className="text-xs text-gray-500">
+          Wealth Vault is always enabled (core product). Toggle the vaults below to show or hide them across the platform.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/20">
+        <Building2 className="h-5 w-5 text-primary" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">🏛️ Wealth Vault</p>
+          <p className="text-xs text-gray-500">Real estate investment — always enabled</p>
+        </div>
+        <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+          <Unlock className="h-3 w-3" /> Active
+        </span>
+      </div>
+
+      {VAULT_TOGGLE_ITEMS.map((item) => {
+        const cfg = configMap.get(item.key)
+        const isEnabled = (cfg?.value as Record<string, unknown>)?.enabled === true
+        const Icon = item.icon
+
+        return (
+          <div
+            key={item.key}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+              isEnabled ? `${item.bg} border-${item.color.replace('text-', '')}/20` : 'bg-gray-50 border-gray-200'
+            }`}
+          >
+            <Icon className={`h-5 w-5 ${isEnabled ? item.color : 'text-gray-400'}`} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">{item.emoji} {item.label}</p>
+              <p className="text-xs text-gray-500">{item.description}</p>
+            </div>
+            <button
+              onClick={() => handleToggle(item.key)}
+              disabled={updateConfig.isPending}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${
+                isEnabled ? 'bg-primary' : 'bg-gray-300'
+              }`}
+              role="switch"
+              aria-checked={isEnabled}
+              aria-label={`Toggle ${item.label}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        )
+      })}
+
+      <p className="text-[10px] text-gray-400 mt-2">
+        Changes take effect immediately across web and mobile. Users will see "Coming Soon" for disabled vaults.
+      </p>
+    </div>
+  )
+}
+
 function AdminSettingsTab() {
-  const [expanded, setExpanded] = useState<string | null>('approvals')
+  const [expanded, setExpanded] = useState<string | null>('vaults')
 
   return (
     <div className="space-y-6">
@@ -419,7 +508,7 @@ function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-gray-100 px-5 py-5">
-                  <ConfigTab section={sec.key} title={sec.title} />
+                  {sec.key === 'vaults' ? <VaultManagementPanel /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>
@@ -486,14 +575,14 @@ function BuilderQuestionsTab() {
       <p className="text-sm text-gray-500">Manage custom questions that builders can ask investors when they express interest.</p>
 
       {/* Opportunity picker */}
-      <select
+      <Select
         value={selectedOppId}
-        onChange={(e) => setSelectedOppId(e.target.value)}
-        className="w-full max-w-md rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
-      >
-        <option value="">Select an Opportunity</option>
-        {opps.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
-      </select>
+        onChange={setSelectedOppId}
+        placeholder="Select an Opportunity"
+        options={opps.map((o) => ({ value: o.id, label: o.title }))}
+        searchable
+        className="max-w-md"
+      />
 
       {selectedOppId && (
         <>
@@ -507,12 +596,12 @@ function BuilderQuestionsTab() {
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none"
             />
             <div className="flex flex-wrap gap-3">
-              <select value={newType} onChange={(e) => setNewType(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none">
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="select">Select (dropdown)</option>
-                <option value="boolean">Yes / No</option>
-              </select>
+              <Select value={newType} onChange={setNewType} options={[
+                { value: 'text', label: 'Text' },
+                { value: 'number', label: 'Number' },
+                { value: 'select', label: 'Select (dropdown)' },
+                { value: 'boolean', label: 'Yes / No' },
+              ]} size="sm" />
               {newType === 'select' && (
                 <input
                   value={newOptions}
@@ -521,10 +610,7 @@ function BuilderQuestionsTab() {
                   className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none"
                 />
               )}
-              <label className="inline-flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                <input type="checkbox" checked={newRequired} onChange={(e) => setNewRequired(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
-                Required
-              </label>
+              <Toggle checked={newRequired} onChange={setNewRequired} label="Required" size="sm" />
               <button onClick={handleCreate} disabled={createQ.isPending || !newText.trim()} className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
                 {createQ.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 Add
@@ -603,27 +689,27 @@ function CommMappingTab() {
       <div className="flex flex-wrap gap-3 items-end">
         <div className="w-48">
           <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Vault Type</label>
-          <select
+          <Select
             value={vaultFilter}
-            onChange={(e) => { setVaultFilter(e.target.value); setSelectedOppId('') }}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
-          >
-            <option value="">All Vaults</option>
-            <option value="wealth">Wealth Vault</option>
-            <option value="opportunity">Opportunity Vault</option>
-            <option value="community">Community Vault</option>
-          </select>
+            onChange={(v) => { setVaultFilter(v); setSelectedOppId('') }}
+            placeholder="All Vaults"
+            options={[
+              { value: '', label: 'All Vaults' },
+              { value: 'wealth', label: 'Wealth Vault' },
+              { value: 'opportunity', label: 'Opportunity Vault' },
+              { value: 'community', label: 'Community Vault' },
+            ]}
+          />
         </div>
         <div className="flex-1 min-w-[250px]">
           <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Opportunity</label>
-          <select
+          <Select
             value={selectedOppId}
-            onChange={(e) => setSelectedOppId(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
-          >
-            <option value="">Select an Opportunity</option>
-            {opps.map((o) => <option key={o.id} value={o.id}>{o.title} ({o.vaultType})</option>)}
-          </select>
+            onChange={setSelectedOppId}
+            placeholder="Select an Opportunity"
+            options={opps.map((o) => ({ value: o.id, label: `${o.title} (${o.vaultType})` }))}
+            searchable
+          />
         </div>
       </div>
 
@@ -633,19 +719,16 @@ function CommMappingTab() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
               <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">User</label>
-              <select value={userId} onChange={(e) => setUserId(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none">
-                <option value="">Select user…</option>
-                {allUsers?.map((u) => <option key={u.id} value={u.id}>{u.fullName} ({u.email})</option>)}
-              </select>
+              <Select value={userId} onChange={setUserId} placeholder="Select user…" searchable options={(allUsers ?? []).map((u) => ({ value: u.id, label: `${u.fullName} (${u.email})` }))} />
             </div>
             <div className="w-40">
               <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none">
-                <option value="builder">Builder</option>
-                <option value="handler">Handler</option>
-                <option value="admin">Admin</option>
-                <option value="platform_admin">Platform Admin</option>
-              </select>
+              <Select value={role} onChange={setRole} options={[
+                { value: 'builder', label: 'Builder' },
+                { value: 'handler', label: 'Handler' },
+                { value: 'admin', label: 'Admin' },
+                { value: 'platform_admin', label: 'Platform Admin' },
+              ]} />
             </div>
             <button onClick={handleAdd} disabled={createMapping.isPending || !userId} className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
               {createMapping.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
@@ -1407,16 +1490,13 @@ function VideoManagementTab() {
       {/* Filter */}
       <div className="flex items-center gap-3">
         <label className="text-sm font-medium text-gray-700">Filter by Page:</label>
-        <select
+        <Select
           value={filterPage}
-          onChange={(e) => setFilterPage(e.target.value)}
-          className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white"
-        >
-          <option value="">All Pages</option>
-          {pages.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
+          onChange={setFilterPage}
+          placeholder="All Pages"
+          options={[{ value: '', label: 'All Pages' }, ...pages]}
+          size="sm"
+        />
         <span className="text-xs text-gray-400">{filtered.length} video(s)</span>
       </div>
 
@@ -1427,30 +1507,22 @@ function VideoManagementTab() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Page</label>
-              <select
+              <Select
                 value={addPage}
-                onChange={(e) => { setAddPage(e.target.value); setAddSection('') }}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
-              >
-                <option value="">Select page...</option>
-                {pages.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
+                onChange={(v) => { setAddPage(v); setAddSection('') }}
+                placeholder="Select page..."
+                options={pages}
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Section / Tag</label>
-              <select
+              <Select
                 value={addSection}
-                onChange={(e) => setAddSection(e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                onChange={setAddSection}
+                placeholder="Select section..."
+                options={sectionsByPage[addPage] ?? []}
                 disabled={!addPage}
-              >
-                <option value="">Select section...</option>
-                {(sectionsByPage[addPage] ?? []).map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
+              />
               <p className="text-[10px] text-gray-400 mt-1">Or type a custom tag below</p>
               <input
                 type="text"
@@ -1732,16 +1804,14 @@ function MediaManagementTab() {
 
       {/* Opportunity Selector */}
       <div className="flex items-center gap-4">
-        <select
+        <Select
           value={selectedOpp}
-          onChange={(e) => setSelectedOpp(e.target.value)}
-          className="input max-w-md"
-        >
-          <option value="">Select an opportunity…</option>
-          {(Array.isArray(opportunities) ? opportunities : []).map((o: any) => (
-            <option key={o.id} value={o.id}>{o.title}</option>
-          ))}
-        </select>
+          onChange={setSelectedOpp}
+          placeholder="Select an opportunity…"
+          options={(Array.isArray(opportunities) ? opportunities : []).map((o: any) => ({ value: o.id, label: o.title }))}
+          searchable
+          className="max-w-md"
+        />
         {selectedOpp && (
           <>
             <input

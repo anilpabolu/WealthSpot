@@ -6,6 +6,7 @@ import {
   Banknote, TrendingUp, Clock, CheckCircle2, ArrowRight,
   Calendar,
 } from 'lucide-react'
+import { DataTable, Badge, type Column } from '@/components/ui'
 
 const MOCK_SUMMARY = {
   totalLent: 25000000,
@@ -101,44 +102,67 @@ export default function LenderDashboardPage() {
               View All <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-semibold uppercase text-gray-500">Property / Builder</th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Amount</th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Return</th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Maturity</th>
-                  <th className="px-6 py-3 text-xs font-semibold uppercase text-gray-500">Repaid</th>
-                  <th className="text-center px-6 py-3 text-xs font-semibold uppercase text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {MOCK_LOANS.map((loan) => {
-                  const repaidPct = Math.round((loan.repaid / loan.amount) * 100)
-                  return (
-                    <tr key={loan.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-gray-900">{loan.property}</p>
-                        <p className="text-xs text-gray-500">{loan.builder}</p>
-                      </td>
-                      <td className="px-6 py-4 text-right font-mono">{formatINRCompact(loan.amount)}</td>
-                      <td className="px-6 py-4 text-right font-mono font-semibold text-primary">{formatPercent(loan.returnRate)}</td>
-                      <td className="px-6 py-4 text-right text-gray-600">{formatDate(loan.maturity)}</td>
-                      <td className="px-6 py-4 min-w-[120px]">
+          <div className="p-4 pt-0">
+            <DataTable
+              data={MOCK_LOANS}
+              keyExtractor={(loan) => loan.id}
+              columns={[
+                {
+                  key: 'property',
+                  header: 'Property / Builder',
+                  render: (loan) => (
+                    <div>
+                      <p className="font-medium text-gray-900">{loan.property}</p>
+                      <p className="text-xs text-gray-500">{loan.builder}</p>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'amount',
+                  header: 'Amount',
+                  headerClassName: 'text-right',
+                  className: 'text-right font-mono',
+                  render: (loan) => <>{formatINRCompact(loan.amount)}</>,
+                },
+                {
+                  key: 'return',
+                  header: 'Return',
+                  headerClassName: 'text-right',
+                  className: 'text-right font-mono font-semibold text-primary',
+                  render: (loan) => <>{formatPercent(loan.returnRate)}</>,
+                },
+                {
+                  key: 'maturity',
+                  header: 'Maturity',
+                  headerClassName: 'text-right',
+                  className: 'text-right text-gray-600',
+                  render: (loan) => <>{formatDate(loan.maturity)}</>,
+                },
+                {
+                  key: 'repaid',
+                  header: 'Repaid',
+                  className: 'min-w-[120px]',
+                  render: (loan) => {
+                    const repaidPct = Math.round((loan.repaid / loan.amount) * 100)
+                    return (
+                      <div>
                         <div className="h-1.5 bg-gray-100 rounded-full">
                           <div className="h-full bg-success rounded-full" style={{ width: `${repaidPct}%` }} />
                         </div>
                         <p className="text-xs text-gray-500 mt-1">{repaidPct}% repaid</p>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="pill-active">{loan.status}</span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    )
+                  },
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  headerClassName: 'text-center',
+                  className: 'text-center',
+                  render: (loan) => <Badge variant={loan.status === 'active' ? 'success' : 'neutral'} size="sm">{loan.status}</Badge>,
+                },
+              ] as Column<typeof MOCK_LOANS[number]>[]}
+            />
           </div>
         </div>
 

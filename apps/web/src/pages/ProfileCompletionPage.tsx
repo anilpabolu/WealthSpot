@@ -10,6 +10,7 @@ import {
   useUpdatePhone,
 } from '@/hooks/useProfileAPI'
 import { cn } from '@/lib/utils'
+import { Select } from '@/components/ui'
 import {
   User, Heart, MapPin, ShieldCheck,
   ChevronRight, ChevronLeft, Sparkles, Trophy, Rocket,
@@ -191,12 +192,13 @@ function Step3({ data, onChange }: StepProps) {
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
-          <select value={(data.state as string) || ''}
-            onChange={e => onChange({ ...data, state: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white">
-            <option value="">Select State</option>
-            {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <Select value={(data.state as string) || ''}
+            onChange={v => onChange({ ...data, state: v })}
+            options={[
+              { value: '', label: 'Select State' },
+              ...INDIAN_STATES.map(s => ({ value: s, label: s })),
+            ]}
+          />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

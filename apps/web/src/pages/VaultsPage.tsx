@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
 import { useProfilingProgress, useOverallProgress } from '@/hooks/useProfiling'
@@ -18,12 +18,16 @@ import {
   X,
   Lock,
   Sparkles,
+  Info,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { usePublicVideos } from '@/hooks/useAppVideos'
+import { Badge } from '@/components/ui'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { getVaultComingSoonText } from '@/components/VaultComingSoonOverlay'
 
 /* Map vault/pillar IDs → app_videos section_tag */
 const VAULT_VIDEO_TAGS: Record<string, string> = {
@@ -47,21 +51,20 @@ const VAULTS = [
     id: 'wealth',
     title: 'Wealth Vault',
     icon: Building2,
-    color: 'from-slate-900 via-indigo-950 to-slate-900',
+    color: 'from-[#1B2A4A] via-[#2D4A7A] to-[#1B3A5A]',
     accent: 'text-[#D4AF37]',
     accentHex: '#D4AF37',
     bg: 'bg-[#F5F0E1]',
     border: 'border-[#D4AF37]/20',
     hoverShadow: 'hover:shadow-vault-wealth',
     borderLeft: 'border-l-[#D4AF37]',
-    description:
-      'Institutional-grade real estate investments — RERA-verified properties across India\'s top cities. Earn passive rental income and long-term capital appreciation through fractional ownership.',
+    infoBody: 'A premium gateway to curated real estate opportunities positioned around intrinsic value, timing, and long-term appreciation potential.',
+    infoItalic: 'Designed for investors who believe disciplined entry can shape exceptional outcomes.',
     risk: 'Moderate',
     riskColor: 'text-amber-700 bg-amber-50',
     href: '/marketplace?vault=wealth',
     cta: 'Explore Properties',
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    comingSoon: false,
     emoji: '🏛️',
   },
   {
@@ -75,14 +78,13 @@ const VAULTS = [
     border: 'border-[#20E3B2]/20',
     hoverShadow: 'hover:shadow-vault-opportunity',
     borderLeft: 'border-l-[#20E3B2]',
-    description:
-      'Back high-potential startup ideas from vetted founders. From deep-tech to consumer brands — invest early in tomorrow\'s market leaders and earn equity-linked returns.',
+    infoBody: 'A future-focused layer for those who contribute more than money alone.',
+    infoItalic: 'It is being designed for participants who bring expertise, time, strategic guidance, or influential networks into emerging opportunities.',
     risk: 'High',
     riskColor: 'text-red-600 bg-red-50',
     href: '/marketplace?vault=opportunity',
     cta: 'Discover Startups',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
-    comingSoon: true,
     emoji: '🚀',
   },
   {
@@ -96,14 +98,13 @@ const VAULTS = [
     border: 'border-[#065F46]/20',
     hoverShadow: 'hover:shadow-vault-community',
     borderLeft: 'border-l-[#065F46]',
-    description:
-      'Community-driven opportunities where passionate individuals need collaborators — not just capital. Help establish sports complexes, co-working spaces, local businesses, and more by contributing your time, network, or expertise alongside funding.',
+    infoBody: 'A trusted environment where co-investors, co-partners, and execution-led collaborators can align around opportunity.',
+    infoItalic: 'It exists to help serious people find one another, structure participation intelligently, and move from interest to closure with confidence.',
     risk: 'Low–Moderate',
     riskColor: 'text-emerald-700 bg-emerald-50',
     href: '/marketplace?vault=community',
     cta: 'Explore Communities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
-    comingSoon: false,
     emoji: '🤝',
   },
 ]
@@ -231,12 +232,42 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
   opportunity: 18,
 }
 
+/* ------------------------------------------------------------------ */
+/*  Vault Info Tooltip                                                  */
+/* ------------------------------------------------------------------ */
+
+function VaultInfoTooltip({ body, italic, visible, onClose }: { body: string; italic: string; visible: boolean; onClose: () => void }) {
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    if (visible) {
+      timerRef.current = setTimeout(onClose, 7000)
+      return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+    }
+  }, [visible, onClose])
+
+  if (!visible) return null
+
+  return (
+    <>
+      {/* Backdrop to capture outside clicks */}
+      <div className="fixed inset-0 z-[9998]" onClick={onClose} />
+      {/* Tooltip */}
+      <div className="absolute right-0 top-full mt-2 z-[9999] w-80 rounded-xl bg-[#1a1f2e]/98 backdrop-blur-2xl border border-[#D4AF37]/30 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_0_1px_rgba(212,175,55,0.15)] animate-in fade-in slide-in-from-top-2 duration-200">
+        <p className="text-sm text-white/90 leading-relaxed mb-2.5 font-body">{body}</p>
+        <p className="text-[13px] text-[#D4AF37]/70 italic leading-relaxed font-body">{italic}</p>
+      </div>
+    </>
+  )
+}
+
 function VaultCard({
   vault,
   stats,
   opportunities,
   profilingPct,
   archetype,
+  comingSoon,
   onPlayVideo,
   onComingSoon,
   onCommunityExplore,
@@ -246,15 +277,18 @@ function VaultCard({
   opportunities: OpportunityItem[]
   profilingPct: number
   archetype?: string | null
+  comingSoon: boolean
   onPlayVideo: () => void
   onComingSoon: () => void
   onCommunityExplore?: () => void
 }) {
   const Icon = vault.icon
   const isCommunity = vault.id === 'community'
+  const [showInfo, setShowInfo] = useState(false)
+  const hideInfo = useCallback(() => setShowInfo(false), [])
 
   const handleCTAClick = (e: React.MouseEvent) => {
-    if (vault.comingSoon) {
+    if (comingSoon) {
       e.preventDefault()
       onComingSoon()
     } else if (vault.id === 'community' && onCommunityExplore) {
@@ -269,7 +303,7 @@ function VaultCard({
     : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
 
   return (
-    <div className={`rounded-3xl border border-gray-200/60 bg-white/80 backdrop-blur-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1`}>
+    <div className="rounded-3xl border border-[#D4AF37]/15 bg-gradient-to-br from-[#161b2e] via-[#1c2240] to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[#D4AF37]/30 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
         {/* Decorative background glow */}
@@ -281,12 +315,24 @@ function VaultCard({
             <Icon className="h-6 w-6 text-white" />
           </div>
           <h3 className="font-hero text-xl font-bold text-white flex-1 tracking-tight">{vault.title}</h3>
-          {vault.comingSoon && (
+          {comingSoon && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Lock className="h-3 w-3" />
               Soon
             </span>
           )}
+          {/* Info tooltip trigger */}
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setShowInfo((p) => !p)}
+              onMouseEnter={() => setShowInfo(true)}
+              className="relative group/info"
+              aria-label={`About ${vault.title}`}
+            >
+              <Info className="h-5 w-5 text-white/50 hover:text-white/90 transition-colors cursor-pointer" />
+            </button>
+            <VaultInfoTooltip body={vault.infoBody} italic={vault.infoItalic} visible={showInfo} onClose={hideInfo} />
+          </div>
           <button
             onClick={onPlayVideo}
             className="relative shrink-0 group/tip"
@@ -302,67 +348,62 @@ function VaultCard({
 
       {/* Body */}
       <div className="p-6 space-y-5 flex-1 flex flex-col">
-        <p className="text-sm text-gray-600 leading-relaxed min-h-[4.5rem]">{vault.description}</p>
-
         {/* Metrics grid — real data from API */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Risk</span>
+              <AlertTriangle className="h-3.5 w-3.5 text-white/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Risk</span>
             </div>
-            <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${vault.riskColor}`}>
+            <Badge variant={vault.risk === 'High' ? 'danger' : vault.risk === 'Moderate' ? 'warning' : 'success'} size="sm">
               {vault.risk}
-            </span>
+            </Badge>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <Wallet className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Total Invested</span>
+              <Wallet className="h-3.5 w-3.5 text-white/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Total Invested</span>
             </div>
-            <p className="font-mono text-sm font-bold text-gray-900">
+            <p className="font-mono text-sm font-bold text-white/90">
               {stats ? formatINRCompact(stats.totalInvested) : '—'}
             </p>
           </div>
 
           {isCommunity ? (
             <>
-              {/* Community vault: Projects Launched / Projects Successful instead of Investors / IRR */}
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Rocket className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Projects Launched</span>
+                  <Rocket className="h-3.5 w-3.5 text-white/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Projects Launched</span>
                 </div>
-                <p className="font-mono text-sm font-bold text-gray-900">
+                <p className="font-mono text-sm font-bold text-white/90">
                   {stats ? stats.opportunityCount.toLocaleString('en-IN') : '—'}
                 </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Projects Successful</span>
+                  <Shield className="h-3.5 w-3.5 text-white/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Projects Successful</span>
                 </div>
-                <p className="font-mono text-sm font-bold text-gray-900">—</p>
+                <p className="font-mono text-sm font-bold text-white/90">—</p>
               </div>
-              {/* Spacer row to match Wealth/Opportunity cards' Actual IRR row */}
               <div className="col-span-2" aria-hidden="true" />
             </>
           ) : (
             <>
-              {/* Wealth / Opportunity vaults: Investors + IRR */}
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Investors</span>
+                  <Users className="h-3.5 w-3.5 text-white/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Investors</span>
                 </div>
-                <p className="font-mono text-sm font-bold text-gray-900">
+                <p className="font-mono text-sm font-bold text-white/90">
                   {stats ? stats.investorCount.toLocaleString('en-IN') : '—'}
                 </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Expected IRR</span>
+                  <TrendingUp className="h-3.5 w-3.5 text-white/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Expected IRR</span>
                 </div>
                 <p className={`font-mono text-sm font-bold ${vault.accent}`}>
                   {expectedIrr != null ? `${expectedIrr}%` : '—'}
@@ -370,37 +411,12 @@ function VaultCard({
               </div>
               <div className="space-y-1 col-span-2">
                 <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-500">Actual IRR</span>
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Actual IRR</span>
                 </div>
-                <p className="font-mono text-sm font-bold text-emerald-600">
+                <p className="font-mono text-sm font-bold text-emerald-400">
                   {stats?.actualIrr != null ? `${stats.actualIrr}%` : '—'}
                 </p>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Approved opportunities in this vault */}
-        <div className="space-y-2 min-h-[2.5rem]">
-          {opportunities.length > 0 && (
-            <>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Active Opportunities ({opportunities.length})
-              </p>
-              <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                {opportunities.slice(0, 5).map((opp) => (
-                  <div
-                    key={opp.id}
-                    className="flex items-center justify-between rounded-xl bg-stone-50/80 px-3 py-2 text-xs"
-                  >
-                    <span className="font-medium text-gray-800 truncate flex-1 mr-2">{opp.title}</span>
-                    <span className="text-gray-400 shrink-0">{opp.city ?? '—'}</span>
-                  </div>
-                ))}
-                {opportunities.length > 5 && (
-                  <p className="text-[10px] text-gray-400 text-center">+{opportunities.length - 5} more</p>
-                )}
               </div>
             </>
           )}
@@ -409,34 +425,34 @@ function VaultCard({
         {/* Bottom section: profiling + CTA anchored to card bottom */}
         <div className="mt-auto space-y-4">
           {/* Profiling progress */}
-          {!vault.comingSoon && (
-            <div className={`rounded-2xl ${vault.bg} p-3.5 space-y-2 border ${vault.border}`}>
+          {!comingSoon && (
+            <div className="rounded-2xl bg-white/[0.06] border border-[#D4AF37]/15 p-3.5 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className={`h-3.5 w-3.5 ${vault.accent}`} />
-                  <span className="text-[11px] font-semibold text-gray-700">
+                  <Sparkles className="h-3.5 w-3.5 text-[#D4AF37]" />
+                  <span className="text-[11px] font-semibold text-white/70">
                     {profilingPct >= 100 ? 'Profile Complete ✨' : 'Investor Profile'}
                   </span>
                 </div>
-                <span className={`text-[10px] font-bold ${vault.accent}`}>{Math.round(profilingPct)}%</span>
+                <span className="text-[10px] font-bold text-[#D4AF37]">{Math.round(profilingPct)}%</span>
               </div>
               {profilingPct >= 100 && archetype && (
                 <div className="flex items-center gap-1.5">
-                  <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 ${vault.accent}`}>
+                  <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                     {archetype}
                   </span>
                 </div>
               )}
-              <div className="h-2 rounded-full bg-white overflow-hidden">
+              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${vault.color} transition-all duration-700 ease-out`}
+                  className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all duration-700 ease-out"
                   style={{ width: `${Math.min(profilingPct, 100)}%` }}
                 />
               </div>
               {profilingPct < 100 && (
                 <Link
                   to={`/vault-profiling?vault=${vault.id}`}
-                  className={`text-[11px] font-bold ${vault.accent} hover:underline`}
+                  className="text-[11px] font-bold text-[#D4AF37] hover:underline"
                 >
                   {profilingPct > 0 ? 'Continue Profiling →' : 'Start Profiling →'}
                 </Link>
@@ -445,19 +461,19 @@ function VaultCard({
           )}
 
           {/* CTA */}
-          {vault.comingSoon ? (
+          {comingSoon ? (
             <button
               onClick={onComingSoon}
-              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-200 text-gray-500 cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-white/10 text-white/40 cursor-not-allowed border border-white/10"
             >
               <Lock className="h-4 w-4" />
-              Launching Soon — Stay Tuned!
+              {getVaultComingSoonText(vault.id).button}
             </button>
           ) : (
             <Link
               to={vault.href}
               onClick={handleCTAClick}
-              className={`w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r ${vault.color} text-white hover:opacity-90 hover:scale-[1.02] shadow-md`}
+              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-slate-900 hover:opacity-90 hover:scale-[1.02] shadow-md"
             >
               {vault.cta}
               <ArrowRight className="h-4 w-4" />
@@ -477,26 +493,31 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
   const Icon = pillar.icon
 
   return (
-    <div className="rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${pillar.color} flex items-center justify-center`}>
-          <Icon className={`h-6 w-6 ${pillar.iconColor}`} />
+    <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/15 p-5 hover:border-[#D4AF37]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      {/* Dark warm background matching landing page */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-2xl" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
+      <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
+            <Icon className="h-6 w-6 text-[#D4AF37]" />
+          </div>
+          <button
+            onClick={onPlayVideo}
+            className="relative group/tip shrink-0"
+            aria-label={`Watch ${pillar.title} explainer video`}
+          >
+            <PlayCircle className="h-5 w-5 text-white/30 hover:text-white/60 transition-colors cursor-pointer" />
+            <span className="pointer-events-none absolute -bottom-8 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg">
+              Learn more
+            </span>
+          </button>
         </div>
-        <button
-          onClick={onPlayVideo}
-          className="relative group/tip shrink-0"
-          aria-label={`Watch ${pillar.title} explainer video`}
-        >
-          <PlayCircle className="h-5 w-5 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer" />
-          <span className="pointer-events-none absolute -bottom-8 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg">
-            Learn more
-          </span>
-        </button>
+        <h4 className="font-display text-base font-bold text-white mb-0.5">{pillar.title}</h4>
+        <p className="text-xs font-medium text-[#D4AF37]/60 mb-2">{pillar.subtitle}</p>
+        <p className="text-sm text-white/60 leading-relaxed flex-1">{pillar.description}</p>
       </div>
-      <h4 className="font-display text-base font-bold text-gray-900 mb-0.5">{pillar.title}</h4>
-      <p className="text-xs font-medium text-gray-400 mb-2">{pillar.subtitle}</p>
-      <p className="text-sm text-gray-600 leading-relaxed flex-1">{pillar.description}</p>
-      {/* Contribute link hidden until feature is ready */}
     </div>
   )
 }
@@ -510,9 +531,10 @@ export default function VaultsPage() {
   const [activePillarVideo, setActivePillarVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [showCommunityExplore, setShowCommunityExplore] = useState(false)
-  const [comingSoonToast, setComingSoonToast] = useState(false)
+  const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
   const userRole = useUserStore((s) => s.user?.role)
   const navigate = useNavigate()
+  const { isVaultEnabled } = useVaultConfig()
 
   // Fetch profiling progress per vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
@@ -554,9 +576,10 @@ export default function VaultsPage() {
   const resolveVideo = (tag: string | undefined, fallback: string): string =>
     (tag ? videoUrlMap.get(tag) : undefined) ?? fallback
 
-  const showComingSoon = () => {
-    setComingSoonToast(true)
-    setTimeout(() => setComingSoonToast(false), 3000)
+  const showComingSoon = (vaultId: string) => {
+    const text = getVaultComingSoonText(vaultId)
+    setComingSoonToast(`${text.toast} ${text.toastSub}`)
+    setTimeout(() => setComingSoonToast(null), 3500)
   }
 
   return (
@@ -589,41 +612,52 @@ export default function VaultsPage() {
       </section>
 
       {/* Vaults Grid */}
-      <section className="py-16 lg:py-20">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+      <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
+          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
+        </div>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
-            {VAULTS.map((vault) => (
-              <VaultCard
-                key={vault.id}
-                vault={vault}
-                stats={statsMap.get(vault.id)}
-                opportunities={oppsMap[vault.id] ?? []}
-                profilingPct={profilingMap[vault.id] ?? 0}
-                archetype={archetypeMap[vault.id]}
-                onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
-                onComingSoon={showComingSoon}
-                onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
-              />
-            ))}
+            {VAULTS.map((vault) => {
+              const comingSoon = !isVaultEnabled(vault.id)
+              return (
+                <VaultCard
+                  key={vault.id}
+                  vault={vault}
+                  stats={statsMap.get(vault.id)}
+                  opportunities={oppsMap[vault.id] ?? []}
+                  profilingPct={profilingMap[vault.id] ?? 0}
+                  archetype={archetypeMap[vault.id]}
+                  comingSoon={comingSoon}
+                  onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
+                  onComingSoon={() => showComingSoon(vault.id)}
+                  onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
+                />
+              )
+            })}
           </div>
         </div>
       </section>
 
       {/* 4 Investor Pillars — super_admin only */}
       {userRole === 'super_admin' && (
-      <section className="py-16 lg:py-20 bg-stone-50/50">
+      <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
+        </div>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-          <div className="text-center mb-10">
-            <span className="text-xs font-bold uppercase tracking-widest text-primary">The Four Pillars</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+          <div className="text-center mb-10 relative z-10">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37]">The Four Pillars</span>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mt-2">
               Every Investor Has Something Unique to Offer
             </h2>
-            <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
+            <p className="text-white/50 mt-2 max-w-2xl mx-auto">
               At WealthSpot, investing isn't just about money. We recognise four types of investors — each contributing a different kind of capital to create outsized value together.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
             {PILLARS.map((pillar) => (
               <PillarCard
                 key={pillar.title}
@@ -674,10 +708,7 @@ export default function VaultsPage() {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-xl shadow-2xl">
             <Lock className="h-5 w-5 text-amber-400 shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Opportunity Vault is Coming Soon 🚀</p>
-              <p className="text-xs text-gray-400 mt-0.5">We're curating something special. Stay tuned!</p>
-            </div>
+            <p className="font-semibold text-sm">{comingSoonToast}</p>
           </div>
         </div>
       )}

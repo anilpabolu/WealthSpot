@@ -7,6 +7,7 @@ import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-nati
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfolio'
+import { EmptyState } from '@/components/ui'
 
 export default function PortfolioScreen() {
   const { data: summary, isLoading: summaryLoading } = usePortfolioSummary()
@@ -76,10 +77,11 @@ export default function PortfolioScreen() {
           </View>
         )}
         {(holdings ?? []).length === 0 && !holdingsLoading && (
-          <View className="items-center py-10">
-            <Ionicons name="pie-chart-outline" size={40} color="#D1D5DB" />
-            <Text className="text-gray-400 mt-2 text-sm">No holdings yet</Text>
-          </View>
+          <EmptyState
+            icon="pie-chart-outline"
+            title="No Holdings Yet"
+            message="Start investing in properties to build your portfolio"
+          />
         )}
         {(holdings ?? []).map((prop) => (
           <Pressable key={prop.propertyId} className="bg-white rounded-xl p-4 mb-2 shadow-sm">

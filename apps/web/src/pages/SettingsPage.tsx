@@ -24,6 +24,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Select, Toggle, Badge, EmptyState } from '@/components/ui'
 import { useUser } from '@clerk/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
@@ -221,15 +222,10 @@ function NotificationsTab() {
                 <p className="text-sm font-medium text-gray-900">{s.label}</p>
                 <p className="text-xs text-gray-500">{s.desc}</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
+              <Toggle
                   checked={prefs?.[s.key] ?? false}
                   onChange={() => handleToggle(s.key)}
-                  className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
-              </label>
             </div>
           ))}
         </div>
@@ -340,10 +336,10 @@ function BankTab() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Account Type</label>
-              <select value={form.accountType} onChange={(e) => setForm({ ...form, accountType: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none">
-                <option value="savings">Savings</option>
-                <option value="current">Current</option>
-              </select>
+              <Select value={form.accountType ?? 'savings'} onChange={(v) => setForm({ ...form, accountType: v })} options={[
+                { value: 'savings', label: 'Savings' },
+                { value: 'current', label: 'Current' },
+              ]} />
             </div>
           </div>
           <div className="flex gap-2 justify-end">
@@ -357,7 +353,7 @@ function BankTab() {
 
       {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
       {!isLoading && (!banks || banks.length === 0) && !showForm && (
-        <p className="text-sm text-gray-400">No bank accounts linked yet. Add one to receive payouts.</p>
+        <EmptyState icon={CreditCard} title="No Bank Accounts" message="Add one to receive payouts." />
       )}
       {!isLoading && banks && banks.length > 0 && (
         <div className="space-y-3">
@@ -375,7 +371,7 @@ function BankTab() {
               </div>
               <div className="flex items-center gap-2">
                 {bank.isVerified && (
-                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Verified</span>
+                  <Badge variant="success" size="sm">Verified</Badge>
                 )}
                 <button
                   onClick={() => { if (confirm('Delete this bank account?')) deleteBank.mutate(bank.id) }}
@@ -799,9 +795,9 @@ function DocumentsTab() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', isVerified ? 'text-emerald-700 bg-emerald-50' : isPending ? 'text-amber-700 bg-amber-50' : 'text-red-700 bg-red-50')}>
+                  <Badge variant={isVerified ? 'success' : isPending ? 'warning' : 'danger'} size="sm">
                     {isVerified ? 'Verified' : isPending ? 'Pending' : doc.verificationStatus}
-                  </span>
+                  </Badge>
                   {doc.downloadUrl && (
                     <a
                       href={doc.downloadUrl}

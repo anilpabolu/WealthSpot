@@ -12,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import require_super_admin
 from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
-from app.models.opportunity import Opportunity
+from app.models.opportunity import Opportunity, OpportunityStatus
+from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
 from app.models.platform_config import PlatformConfig
 from app.models.user import User, UserRole
 from app.models.role_group import RoleGroup, GroupMessage
@@ -20,6 +21,93 @@ from app.schemas.platform_config import ConfigCreate, ConfigRead, ConfigUpdate
 from app.schemas.user import UserRead
 
 router = APIRouter(prefix="/control-centre", tags=["control-centre"])
+
+
+# ── Public Platform Stats ────────────────────────────────────────────────────
+
+
+@router.get("/platform-stats")
+async def platform_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """Public endpoint: aggregated platform metrics for landing page."""
+    active_statuses = [
+        OpportunityStatus.APPROVED, OpportunityStatus.ACTIVE,
+        OpportunityStatus.FUNDING, OpportunityStatus.FUNDED,
+    ]
+
+    total_members = (await db.execute(select(func.count(User.id)))).scalar() or 0
+
+    active_opps = (
+        await db.execute(
+            select(func.count(Opportunity.id)).where(
+                Opportunity.status.in_(active_statuses)
+            )
+        )
+    ).scalar() or 0
+
+    capital_deployed = (
+        await db.execute(
+            select(func.coalesce(func.sum(OpportunityInvestment.amount), 0)).where(
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED
+            )
+        )
+    ).scalar() or 0
+
+    markets = (
+        await db.execute(
+            select(func.count(func.distinct(Opportunity.city))).where(
+                Opportunity.city.isnot(None),
+                Opportunity.status.in_(active_statuses),
+            )
+        )
+    ).scalar() or 0
+
+    verified_investors = (
+        await db.execute(
+            select(func.count(func.distinct(OpportunityInvestment.user_id))).where(
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED
+            )
+        )
+    ).scalar() or 0
+
+    return {
+        "total_members": total_members,
+        "capital_deployed": float(capital_deployed),
+        "active_opportunities": active_opps,
+        "markets_covered": max(markets, 1),
+        "verified_investors": verified_investors,
+    }
+
+
+# ── Public Vault Config ──────────────────────────────────────────────────────
+
+
+@router.get("/vault-config")
+async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
+    """Public endpoint: returns which vaults are enabled/disabled.
+
+    Reads from PlatformConfig section='vaults'. Missing keys default to True (enabled).
+    """
+    result = await db.execute(
+        select(PlatformConfig).where(
+            PlatformConfig.section == "vaults",
+            PlatformConfig.is_active.is_(True),
+        )
+    )
+    configs = {c.key: c.value for c in result.scalars().all()}
+
+    def _is_enabled(key: str) -> bool:
+        val = configs.get(key)
+        if val is None:
+            return True
+        if isinstance(val, dict):
+            return bool(val.get("enabled", True))
+        return bool(val)
+
+    return {
+        "wealth_vault_enabled": True,  # always on — core product
+        "opportunity_vault_enabled": _is_enabled("opportunity_vault_enabled"),
+        "community_vault_enabled": _is_enabled("community_vault_enabled"),
+    }
 
 
 # ── Platform Config CRUD ─────────────────────────────────────────────────────

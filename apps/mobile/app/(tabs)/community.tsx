@@ -10,6 +10,7 @@ import { router } from 'expo-router'
 import { useCommunityPosts, useLikePost } from '@/hooks/useCommunity'
 import { useProfilingProgress } from '@/hooks/useProfiling'
 import { formatRelativeTime } from '@/lib/formatters'
+import { EmptyState, Badge } from '@/components/ui'
 
 const CATEGORIES = ['All', 'Discussion', 'Questions', 'Polls', 'Announcements']
 
@@ -93,10 +94,11 @@ export default function CommunityScreen() {
         }
         ListEmptyComponent={
           !isLoading ? (
-            <View className="items-center py-20">
-              <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-              <Text className="text-gray-400 mt-3 text-center">No posts yet</Text>
-            </View>
+            <EmptyState
+              icon="chatbubbles-outline"
+              title="No Posts Yet"
+              message="Be the first to start a discussion in the community"
+            />
           ) : null
         }
         renderItem={({ item }) => {
@@ -119,9 +121,7 @@ export default function CommunityScreen() {
                   <Text className="text-gray-900 font-semibold text-sm">{authorName}</Text>
                   <Text className="text-gray-400 text-[10px]">{formatRelativeTime(item.createdAt)}</Text>
                 </View>
-                <View className="bg-gray-100 px-2 py-0.5 rounded-full">
-                  <Text className="text-gray-500 text-[10px] font-semibold">{item.postType}</Text>
-                </View>
+                <Badge variant="neutral" size="xs">{item.postType}</Badge>
               </View>
 
               {/* Content */}

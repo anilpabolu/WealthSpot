@@ -1,5 +1,6 @@
 import { PortalLayout } from '@/components/layout'
 import { useState } from 'react'
+import { Select, DataTable, Badge, type Column } from '@/components/ui'
 import {
   Users, Shield, Search, MoreHorizontal,
   CheckCircle, XCircle, Clock, Eye, Ban, UserPlus,
@@ -108,100 +109,107 @@ export default function AdminUsersPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <select
-            className="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
+          <Select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as UserRole | '')}
-          >
-            <option value="">All Roles</option>
-            <option value="investor">Investor</option>
-            <option value="builder">Builder</option>
-            <option value="lender">Lender</option>
-            <option value="admin">Admin</option>
-          </select>
-          <select
-            className="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
+            onChange={(v) => setRoleFilter(v as UserRole | '')}
+            options={[
+              { value: '', label: 'All Roles' },
+              { value: 'investor', label: 'Investor' },
+              { value: 'builder', label: 'Builder' },
+              { value: 'lender', label: 'Lender' },
+              { value: 'admin', label: 'Admin' },
+            ]}
+            size="sm"
+          />
+          <Select
             value={kycFilter}
-            onChange={(e) => setKycFilter(e.target.value as KycStatus | '')}
-          >
-            <option value="">All KYC</option>
-            <option value="APPROVED">Approved</option>
-            <option value="UNDER_REVIEW">Under Review</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="NOT_STARTED">Not Started</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
+            onChange={(v) => setKycFilter(v as KycStatus | '')}
+            options={[
+              { value: '', label: 'All KYC' },
+              { value: 'APPROVED', label: 'Approved' },
+              { value: 'UNDER_REVIEW', label: 'Under Review' },
+              { value: 'IN_PROGRESS', label: 'In Progress' },
+              { value: 'NOT_STARTED', label: 'Not Started' },
+              { value: 'REJECTED', label: 'Rejected' },
+            ]}
+            size="sm"
+          />
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-stone-50 border-b-2 border-gray-200">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((user) => {
-                  const kyc = kycBadge[user.kyc_status]
-                  const KycIcon = kyc.icon
-                  return (
-                    <tr key={user.id} className="hover:bg-stone-50 transition">
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{user.full_name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge[user.role]}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${kyc.bg}`}>
-                          <KycIcon className="h-3 w-3" />
-                          {kyc.text}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {user.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="View details">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="More options">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                      No users match your filters
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataTable
+          data={filtered}
+          keyExtractor={(user) => user.id}
+          emptyMessage="No users match your filters"
+          columns={[
+            {
+              key: 'user',
+              header: 'User',
+              render: (user) => (
+                <div>
+                  <p className="font-medium text-gray-900">{user.full_name}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+              ),
+            },
+            {
+              key: 'role',
+              header: 'Role',
+              render: (user) => (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge[user.role]}`}>
+                  {user.role}
+                </span>
+              ),
+            },
+            {
+              key: 'kyc',
+              header: 'KYC Status',
+              render: (user) => {
+                const kyc = kycBadge[user.kyc_status]
+                const KycIcon = kyc.icon
+                return (
+                  <Badge variant={user.kyc_status === 'APPROVED' ? 'success' : user.kyc_status === 'REJECTED' ? 'danger' : user.kyc_status === 'UNDER_REVIEW' ? 'warning' : 'info'} icon={<KycIcon className="h-3 w-3" />}>
+                    {kyc.text}
+                  </Badge>
+                )
+              },
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (user) => (
+                <Badge variant={user.is_active ? 'success' : 'danger'} dot>
+                  {user.is_active ? 'Active' : 'Inactive'}
+                </Badge>
+              ),
+            },
+            {
+              key: 'joined',
+              header: 'Joined',
+              sortable: true,
+              sortValue: (user) => new Date(user.created_at).getTime(),
+              render: (user) => (
+                <span className="text-gray-500">
+                  {new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              ),
+            },
+            {
+              key: 'actions',
+              header: 'Actions',
+              render: () => (
+                <div className="flex items-center gap-1">
+                  <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="View details">
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="More options">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </div>
+              ),
+            },
+          ] as Column<typeof filtered[number]>[]}
+        />
       </div>
     </PortalLayout>
   )

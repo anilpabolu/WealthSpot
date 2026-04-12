@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MainLayout from '@/components/layout/MainLayout'
 import { Copy, Share2, Users, IndianRupee, Check, ChevronRight } from 'lucide-react'
+import { EmptyState, Badge } from '@/components/ui'
 import { formatINR } from '@/lib/formatters'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 
@@ -153,7 +154,9 @@ export default function ReferralPage() {
           </div>
           {histLoading && <p className="px-6 py-4 text-sm text-gray-400">Loading…</p>}
           {!histLoading && (!history || history.length === 0) && (
-            <p className="px-6 py-8 text-center text-sm text-gray-400">Your referral scoreboard is empty — time to rally the squad! 📢</p>
+            <div className="px-6 py-4">
+              <EmptyState icon={Users} title="No Referrals Yet" message="Your referral scoreboard is empty — time to rally the squad!" />
+            </div>
           )}
           {!histLoading && history && history.length > 0 && (
             <div className="divide-y divide-gray-50">
@@ -166,15 +169,12 @@ export default function ReferralPage() {
                     <p className="font-medium text-gray-900 text-sm">{ref.refereeName}</p>
                     <p className="text-xs text-gray-400">{new Date(ref.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                      ref.status === 'invested'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-amber-50 text-amber-700'
-                    }`}
+                  <Badge
+                    variant={ref.status === 'invested' ? 'success' : 'warning'}
+                    size="sm"
                   >
                     {ref.status === 'invested' ? 'Invested' : 'Signed Up'}
-                  </span>
+                  </Badge>
                   {ref.rewardAmount > 0 && (
                     <span className="text-sm font-bold text-primary">+{formatINR(ref.rewardAmount / 100, 0)}</span>
                   )}

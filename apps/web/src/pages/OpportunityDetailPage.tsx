@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import FundingBar from '@/components/wealth/FundingBar'
 import IrrBadge from '@/components/wealth/IrrBadge'
@@ -17,6 +17,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import { useMyMatchScore, useProfilingProgress } from '@/hooks/useProfiling'
 import { MatchScoreFull, ProfilePrompt } from '@/components/profiling/MatchScoreBadge'
+import { EmptyState } from '@/components/ui'
 import { OpportunityMatchesPanel } from '@/components/profiling'
 import { useUserStore } from '@/stores/user.store'
 
@@ -397,6 +398,7 @@ function MatchScoreSection({ opportunityId, vaultType, creatorId }: { opportunit
 
 export default function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const { data: opp, isLoading } = useOpportunityBySlug(slug ?? '')
   const [showShareModal, setShowShareModal] = useState(false)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
@@ -439,12 +441,7 @@ export default function OpportunityDetailPage() {
   if (!opp) {
     return (
       <MainLayout>
-        <div className="text-center py-20">
-          <Building2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-bold text-gray-900">Opportunity Not Found</h2>
-          <p className="text-gray-500 mt-1 mb-6">This opportunity may have been removed or the URL is incorrect.</p>
-          <Link to="/marketplace" className="btn-primary">Back to Marketplace</Link>
-        </div>
+        <EmptyState icon={Building2} title="Opportunity Not Found" message="This opportunity may have been removed or the URL is incorrect." actionLabel="Back to Marketplace" onAction={() => navigate('/marketplace')} />
       </MainLayout>
     )
   }

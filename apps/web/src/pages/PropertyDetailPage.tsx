@@ -6,6 +6,7 @@ import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useProperty } from '@/hooks/useProperties'
 import { useInvestmentStore } from '@/stores/investment.store'
 import { useKycStatus } from '@/hooks/useKycBank'
+import { EmptyState } from '@/components/ui'
 import { formatINR, formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
   MapPin, Calendar, Users, Building2, FileText, Shield,
@@ -256,6 +257,7 @@ function InvestmentPanel({
 
 export default function PropertyDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const { data: property, isLoading } = useProperty(slug ?? '')
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
@@ -286,14 +288,7 @@ export default function PropertyDetailPage() {
   if (!property) {
     return (
       <MainLayout>
-        <div className="text-center py-20">
-          <Building2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-bold text-gray-900">Property Not Found</h2>
-          <p className="text-gray-500 mt-1 mb-6">This property may have been removed or the URL is incorrect.</p>
-          <Link to="/marketplace" className="btn-primary">
-            Back to Marketplace
-          </Link>
-        </div>
+        <EmptyState icon={Building2} title="Property Not Found" message="This property may have been removed or the URL is incorrect." actionLabel="Back to Marketplace" onAction={() => navigate('/marketplace')} />
       </MainLayout>
     )
   }

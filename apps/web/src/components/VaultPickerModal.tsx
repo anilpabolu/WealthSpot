@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Building2, Rocket, Users, X, Sparkles, Lock, ArrowRight } from 'lucide-react'
 import { useOverallProgress } from '@/hooks/useProfiling'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import type { VaultProgressDetail } from '@/hooks/useProfiling'
 
 interface VaultPickerModalProps {
@@ -31,7 +32,6 @@ const VAULT_OPTIONS = [
     bg: 'bg-[#F5F0E1]',
     border: 'border-[#D4AF37]/30',
     emoji: '🏛️',
-    comingSoon: false,
   },
   {
     id: 'opportunity' as const,
@@ -42,7 +42,6 @@ const VAULT_OPTIONS = [
     bg: 'bg-[#FFF0F0]',
     border: 'border-[#20E3B2]/30',
     emoji: '🚀',
-    comingSoon: true,
   },
   {
     id: 'community' as const,
@@ -53,13 +52,13 @@ const VAULT_OPTIONS = [
     bg: 'bg-[#FFFBEB]',
     border: 'border-[#065F46]/30',
     emoji: '🤝',
-    comingSoon: false,
   },
 ] as const
 
 export default function VaultPickerModal({ open, onClose }: VaultPickerModalProps) {
   const navigate = useNavigate()
   const { data: overall } = useOverallProgress()
+  const { isVaultEnabled } = useVaultConfig()
   const [selected, setSelected] = useState<string | null>(null)
 
   if (!open) return null
@@ -112,14 +111,15 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
             const progress = overall?.vaults[vault.id]
             const isSelected = selected === vault.id
             const isComplete = progress?.isComplete ?? false
+            const comingSoon = !isVaultEnabled(vault.id)
 
             return (
               <button
                 key={vault.id}
-                onClick={() => handleVaultClick(vault.id, vault.comingSoon)}
-                disabled={vault.comingSoon}
+                onClick={() => handleVaultClick(vault.id, comingSoon)}
+                disabled={comingSoon}
                 className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${
-                  vault.comingSoon
+                  comingSoon
                     ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
                     : isSelected
                       ? `${vault.border} ${vault.bg} shadow-md scale-[1.01]`
@@ -133,18 +133,18 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm text-gray-900">{vault.title}</span>
-                      {vault.comingSoon && (
+                      {comingSoon && (
                         <span className="flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-full">
                           <Lock className="h-2.5 w-2.5" /> Soon
                         </span>
                       )}
-                      {isComplete && !vault.comingSoon && (
+                      {isComplete && !comingSoon && (
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                           ✨ DNA Ready
                         </span>
                       )}
                     </div>
-                    {!vault.comingSoon && progress && (
+                    {!comingSoon && progress && (
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                           <div
@@ -155,7 +155,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
                         <span className="text-[10px] font-bold text-gray-400">{Math.round(progress.pct)}%</span>
                       </div>
                     )}
-                    {!vault.comingSoon && !progress && (
+                    {!comingSoon && !progress && (
                       <p className="text-xs text-gray-400 mt-0.5">Not started yet</p>
                     )}
                   </div>
@@ -167,7 +167,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
 
         {/* Result section */}
         <div className="px-6 pb-6 pt-4">
-          {selected && selectedVault && !selectedVault.comingSoon && (
+          {selected && selectedVault && isVaultEnabled(selected) && (
             <div className="space-y-3">
               {vaultProgress?.isComplete ? (
                 <>

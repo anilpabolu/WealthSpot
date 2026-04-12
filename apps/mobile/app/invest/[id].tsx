@@ -3,13 +3,14 @@
  * Amount input → review → payment → confirmation.
  */
 
-import { View, Text, Pressable, TextInput, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { useInitiateInvestment, useConfirmPayment } from '@/hooks/useInvestment'
 import { useProperty } from '@/hooks/useProperties'
+import { Input } from '@/components/ui'
 
 const STEPS = ['Amount', 'Review', 'Payment', 'Confirm']
 
@@ -100,17 +101,13 @@ export default function InvestScreen() {
                 Unit price: {formatINR(unitPrice)} per unit
               </Text>
 
-              <View className="border-2 border-primary rounded-xl px-4 py-3 flex-row items-center">
-                <Text className="text-gray-400 text-lg mr-1">₹</Text>
-                <TextInput
-                  className="flex-1 text-gray-900 text-2xl font-bold"
-                  placeholder="0"
-                  placeholderTextColor="#D1D5DB"
-                  keyboardType="numeric"
-                  value={amount}
-                  onChangeText={setAmount}
-                />
-              </View>
+              <Input
+                icon={<Text className="text-gray-400 text-lg">₹</Text>}
+                placeholder="0"
+                keyboardType="numeric"
+                value={amount}
+                onChangeText={setAmount}
+              />
 
               {/* Quick amounts */}
               <View className="flex-row gap-2 mt-3">

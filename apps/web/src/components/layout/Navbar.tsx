@@ -52,11 +52,16 @@ export default function Navbar(_props?: NavbarProps) {
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/vaults" className="flex items-center gap-2 shrink-0" aria-label="WealthSpot Home">
+          <Link to="/vaults" className="flex items-center gap-2.5 shrink-0" aria-label="WealthSpot Home">
             <Shield className="h-8 w-8 text-indigo-400" />
-            <span className="font-display text-xl font-bold tracking-tight text-white">
-              Wealth<span className="text-indigo-400">Spot</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-display text-xl font-bold tracking-tight text-white leading-none">
+                Wealth<span className="text-indigo-400">Spot</span>
+              </span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/40 leading-none mt-0.5">
+                Private Wealth Access
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav — only visible when signed in */}
@@ -97,7 +102,7 @@ export default function Navbar(_props?: NavbarProps) {
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button className="btn-ghost text-sm">Sign In</button>
                 </SignInButton>
-                <button className="btn-primary text-sm" onClick={() => setShowVideo(true)}>Join Free — See How It Works</button>
+                <button className="btn-primary text-sm" onClick={() => setShowVideo(true)}>Get Access to a Better Opportunity Environment</button>
               </div>
             </Show>
 
@@ -152,7 +157,7 @@ export default function Navbar(_props?: NavbarProps) {
                   className="btn-primary text-sm flex-1 text-center"
                   onClick={() => { setMobileOpen(false); setShowVideo(true) }}
                 >
-                  Join Free
+                  Get Access
                 </button>
               </div>
             </Show>

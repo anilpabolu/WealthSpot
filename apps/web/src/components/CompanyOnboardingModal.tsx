@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Select } from '@/components/ui'
 import { Building2, CheckCircle2, Loader2, X, AlertTriangle, AlertCircle } from 'lucide-react'
 import { useCreateCompany, type CompanyCreatePayload } from '@/hooks/useCompanies'
 import { usePincodeLookup } from '@/hooks/usePincodes'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import axios from 'axios'
 
 const ENTITY_TYPES = [
@@ -34,6 +36,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
   const [toast, setToast] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null)
   const createMutation = useCreateCompany()
   const { data: pincodeData } = usePincodeLookup(form.pincode ?? '')
+  const { isVaultEnabled } = useVaultConfig()
 
   // Auto-dismiss toast after 5 seconds
   useEffect(() => {
@@ -185,19 +188,16 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
                 </div>
                 <div>
                   <label className={labelClass}>Entity Type *</label>
-                  <select required value={form.entityType || 'private_limited'} onChange={(e) => handleChange('entityType', e.target.value)} className={inputClass('entityType')}>
-                    {ENTITY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
+                  <Select value={form.entityType || 'private_limited'} onChange={(v) => handleChange('entityType', v)} options={ENTITY_TYPES} />
                   {errorMsg('entityType')}
                 </div>
                 <div>
                   <label className={labelClass}>Vault Category *</label>
-                  <select required value={form.vaultType || ''} onChange={(e) => handleChange('vaultType', e.target.value)} className={inputClass('vaultType')}>
-                    <option value="" disabled>Select vault…</option>
-                    <option value="wealth">Wealth Vault</option>
-                    <option value="opportunity">Opportunity Vault</option>
-                    <option value="community">Community Vault</option>
-                  </select>
+                  <Select value={form.vaultType || ''} onChange={(v) => handleChange('vaultType', v)} placeholder="Select vault…" options={[
+                    { value: 'wealth', label: 'Wealth Vault' },
+                    { value: 'opportunity', label: isVaultEnabled('opportunity') ? 'Opportunity Vault' : 'Opportunity Vault (Coming Soon)', disabled: !isVaultEnabled('opportunity') },
+                    { value: 'community', label: isVaultEnabled('community') ? 'Community Vault' : 'Community Vault (Coming Soon)', disabled: !isVaultEnabled('community') },
+                  ]} />
                   {errorMsg('vaultType')}
                 </div>
                 <div>

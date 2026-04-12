@@ -14,11 +14,12 @@ import {
   Pressable,
   ScrollView,
   Dimensions,
-  TextInput,
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import Svg, { Circle, Polygon, Line } from 'react-native-svg'
+import { EmptyState, Input } from '@/components/ui'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import {
   useVaultQuestions,
   useSubmitVaultAnswers,
@@ -444,6 +445,7 @@ export default function VaultProfilingScreen() {
   const { vault: vaultParam } = useLocalSearchParams<{ vault: string }>()
   const vaultType = vaultParam || 'wealth'
   const theme = VAULT_THEMES[vaultType] ?? VAULT_THEMES.wealth
+  const { isVaultEnabled } = useVaultConfig()
 
   const { data: questions, isLoading } = useVaultQuestions(vaultType)
   const submitAnswers = useSubmitVaultAnswers()
@@ -517,6 +519,21 @@ export default function VaultProfilingScreen() {
     setCurrentIdx(0)
     setAnswers({})
     setShowFunFact(false)
+  }
+
+  // ── Vault Disabled ──────────────────────────────────────────────────────
+  if (!isVaultEnabled(vaultType)) {
+    return (
+      <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: theme.bgLight }}>
+        <EmptyState
+          icon="lock-closed-outline"
+          title={vaultType === 'community' ? 'Rallying the Tribe...' : 'The Launchpad is Being Built...'}
+          message={`${theme.name} profiling will be available once this vault launches. Stay tuned!`}
+          actionLabel="Go Back"
+          onAction={() => router.back()}
+        />
+      </View>
+    )
   }
 
   // ── Loading ─────────────────────────────────────────────────────────────
@@ -636,17 +653,13 @@ export default function VaultProfilingScreen() {
   if (!currentQ) {
     return (
       <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: theme.bgLight }}>
-        <Text className="text-5xl mb-3">🚧</Text>
-        <Text className="text-lg font-bold text-gray-800 mb-1">Profiling Coming Soon</Text>
-        <Text className="text-sm text-gray-500 text-center mb-5">
-          We're crafting the perfect questions for {theme.name}. Check back soon!
-        </Text>
-        <Pressable
-          onPress={() => router.back()}
-          className="px-6 py-2.5 rounded-xl bg-gray-200"
-        >
-          <Text className="text-gray-700 font-semibold text-sm">Back to Vaults</Text>
-        </Pressable>
+        <EmptyState
+          icon="construct-outline"
+          title="Profiling Coming Soon"
+          message={`We're crafting the perfect questions for ${theme.name}. Check back soon!`}
+          actionLabel="Back to Vaults"
+          onAction={() => router.back()}
+        />
       </View>
     )
   }
@@ -777,17 +790,13 @@ export default function VaultProfilingScreen() {
 
         {/* Text Input */}
         {isText && (
-          <View className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
-            <TextInput
-              className="p-4 text-sm text-gray-900 min-h-[120px]"
-              placeholder="Share your thoughts..."
-              placeholderTextColor="#9CA3AF"
-              multiline
-              textAlignVertical="top"
-              value={(currentAnswer as string) ?? ''}
-              onChangeText={(text) => setAnswer(text)}
-            />
-          </View>
+          <Input
+            placeholder="Share your thoughts..."
+            multiline
+            numberOfLines={5}
+            value={(currentAnswer as string) ?? ''}
+            onChangeText={(text) => setAnswer(text)}
+          />
         )}
 
         {/* Fun Fact */}

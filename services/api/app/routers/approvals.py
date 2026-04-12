@@ -132,7 +132,7 @@ async def review_approval(
     db: AsyncSession = Depends(get_db),
     reviewer: User = Depends(approver_dep),
 ) -> ApprovalRead:
-    """Approve or reject an approval request. Syncs linked opportunity status."""
+    """Approve or reject an approval request. Syncs linked resource status."""
     import uuid as _uuid
     result = await db.execute(
         select(ApprovalRequest).where(ApprovalRequest.id == _uuid.UUID(approval_id))
@@ -180,6 +180,36 @@ async def review_approval(
             if kyc_user:
                 kyc_user.kyc_status = KycStatus.APPROVED
 
+        # Sync linked user role assignment
+        if approval.resource_type == "user" and approval.resource_id:
+            from app.models.user import User as UserModel
+            target_user_result = await db.execute(
+                select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
+            )
+            target_user = target_user_result.scalar_one_or_none()
+            if target_user and approval.payload and approval.payload.get("target_role"):
+                try:
+                    target_user.role = UserRole(approval.payload["target_role"])
+                except ValueError:
+                    pass  # Invalid role value — skip silently
+
+        # Sync linked community reply to approved
+        if approval.resource_type == "community_reply" and approval.resource_id:
+            from app.models.community import CommunityReply, CommunityPost
+            reply_result = await db.execute(
+                select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
+            )
+            reply = reply_result.scalar_one_or_none()
+            if reply and not reply.is_approved:
+                reply.is_approved = True
+                # Increment the parent post reply count
+                post_result = await db.execute(
+                    select(CommunityPost).where(CommunityPost.id == reply.post_id)
+                )
+                post = post_result.scalar_one_or_none()
+                if post:
+                    post.reply_count += 1
+
         await create_notification(
             db,
             user_id=approval.requester_id,
@@ -220,6 +250,27 @@ async def review_approval(
             if kyc_user:
                 kyc_user.kyc_status = KycStatus.REJECTED
 
+        # Sync linked user role — revert to investor on rejection
+        if approval.resource_type == "user" and approval.resource_id:
+            from app.models.user import User as UserModel
+            target_user_result = await db.execute(
+                select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
+            )
+            target_user = target_user_result.scalar_one_or_none()
+            # Don't revert admins/approvers
+            if target_user and target_user.role not in (UserRole.ADMIN, UserRole.APPROVER, UserRole.SUPER_ADMIN):
+                target_user.role = UserRole.INVESTOR
+
+        # Sync linked community reply — keep rejected (not approved)
+        if approval.resource_type == "community_reply" and approval.resource_id:
+            from app.models.community import CommunityReply
+            reply_result = await db.execute(
+                select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
+            )
+            reply = reply_result.scalar_one_or_none()
+            if reply:
+                reply.is_approved = False
+
         await create_notification(
             db,
             user_id=approval.requester_id,
@@ -229,7 +280,9 @@ async def review_approval(
             data={"approval_id": str(approval.id), "category": approval.category},
         )
 
-    await db.flush()
+    # Explicit commit to ensure all sync changes are persisted before the
+    # response reaches the client (prevents race with frontend cache refetch).
+    await db.commit()
     await db.refresh(approval)
     return ApprovalRead.model_validate(approval)
 

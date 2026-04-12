@@ -4,6 +4,7 @@ import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfoli
 import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { Wallet, TrendingUp, PieChart, BarChart3, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { DataTable, Badge, type Column } from '@/components/ui'
 
 function SummaryMetrics() {
   const { data: summary, isLoading } = usePortfolioSummary()
@@ -144,50 +145,71 @@ function PropertiesTable() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left px-6 py-3 text-xs font-semibold uppercase text-gray-500">Property</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Invested</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Current Value</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Returns</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">IRR</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold uppercase text-gray-500">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {properties.map((p) => {
-                const returnPct = p.returnPercentage
-                const isPositive = returnPct >= 0
-                return (
-                  <tr key={p.propertyId} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                        <div>
-                          <p className="font-medium text-gray-900">{p.propertyTitle}</p>
-                          <p className="text-xs text-gray-500">{p.propertyCity} · {p.assetType}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono">{formatINRCompact(p.investedAmount)}</td>
-                    <td className="px-6 py-4 text-right font-mono">{formatINRCompact(p.currentValue)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center gap-1 font-mono font-semibold ${isPositive ? 'text-success' : 'text-danger'}`}>
-                        {isPositive ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-                        {formatPercent(returnPct)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-semibold text-primary">{formatPercent(p.irr)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="pill-active">{p.status}</span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="p-4 pt-0">
+          <DataTable
+            data={properties}
+            keyExtractor={(p) => p.propertyId}
+            columns={[
+              {
+                key: 'property',
+                header: 'Property',
+                render: (p) => (
+                  <div className="flex items-center gap-3">
+                    <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                    <div>
+                      <p className="font-medium text-gray-900">{p.propertyTitle}</p>
+                      <p className="text-xs text-gray-500">{p.propertyCity} · {p.assetType}</p>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: 'invested',
+                header: 'Invested',
+                headerClassName: 'text-right',
+                className: 'text-right font-mono',
+                render: (p) => <>{formatINRCompact(p.investedAmount)}</>,
+              },
+              {
+                key: 'currentValue',
+                header: 'Current Value',
+                headerClassName: 'text-right',
+                className: 'text-right font-mono',
+                render: (p) => <>{formatINRCompact(p.currentValue)}</>,
+              },
+              {
+                key: 'returns',
+                header: 'Returns',
+                headerClassName: 'text-right',
+                className: 'text-right',
+                sortable: true,
+                sortValue: (p) => p.returnPercentage,
+                render: (p) => {
+                  const isPositive = p.returnPercentage >= 0
+                  return (
+                    <span className={`inline-flex items-center gap-1 font-mono font-semibold ${isPositive ? 'text-success' : 'text-danger'}`}>
+                      {isPositive ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+                      {formatPercent(p.returnPercentage)}
+                    </span>
+                  )
+                },
+              },
+              {
+                key: 'irr',
+                header: 'IRR',
+                headerClassName: 'text-right',
+                className: 'text-right font-mono font-semibold text-primary',
+                render: (p) => <>{formatPercent(p.irr)}</>,
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                headerClassName: 'text-right',
+                className: 'text-right',
+                render: (p) => <Badge variant={p.status === 'active' ? 'success' : 'neutral'} size="sm">{p.status}</Badge>,
+              },
+            ] as Column<typeof properties[number]>[]}
+          />
         </div>
       )}
     </div>

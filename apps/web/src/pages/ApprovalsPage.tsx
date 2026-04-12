@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
+import { Select, Badge, EmptyState } from '@/components/ui'
 import {
-  ChevronDown,
   CheckCircle2,
   XCircle,
   Clock,
@@ -529,13 +529,13 @@ function EditCompanyPanel({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Entity Type</label>
-          <select value={form.entityType} onChange={(e) => handleChange('entityType', e.target.value)} className={inputClass}>
-            <option value="private_limited">Private Limited</option>
-            <option value="public_limited">Public Limited</option>
-            <option value="llp">LLP</option>
-            <option value="partnership">Partnership</option>
-            <option value="proprietorship">Proprietorship</option>
-          </select>
+          <Select value={form.entityType} onChange={(v) => handleChange('entityType', v)} options={[
+            { value: 'private_limited', label: 'Private Limited' },
+            { value: 'public_limited', label: 'Public Limited' },
+            { value: 'llp', label: 'LLP' },
+            { value: 'partnership', label: 'Partnership' },
+            { value: 'proprietorship', label: 'Proprietorship' },
+          ]} />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">CIN</label>
@@ -1033,9 +1033,9 @@ function KanbanBoard({
                           {a.requester?.fullName ?? 'Unknown'}
                         </span>
                       </div>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_BADGE[a.priority] ?? 'bg-gray-100 text-gray-400'}`}>
+                      <Badge variant={a.priority === 'urgent' ? 'danger' : a.priority === 'high' ? 'warning' : 'neutral'} size="sm">
                         {a.priority}
-                      </span>
+                      </Badge>
                     </div>
                   </button>
                 ))
@@ -1116,10 +1116,11 @@ export default function ApprovalsPage() {
             <>
               {/* Category filter for board */}
               <div className="mb-6">
-                <SelectFilter
+                <Select
                   value={boardCategory}
                   options={CATEGORIES}
                   onChange={(v) => setBoardCategory(v)}
+                  size="sm"
                 />
               </div>
               <KanbanBoard
@@ -1134,9 +1135,9 @@ export default function ApprovalsPage() {
             <>
               {/* Filters */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
-                <SelectFilter value={filters.category} options={CATEGORIES} onChange={(v) => setFilter('category', v)} />
-                <SelectFilter value={filters.status} options={STATUSES} onChange={(v) => setFilter('status', v)} />
-                <SelectFilter value={filters.priority} options={PRIORITIES} onChange={(v) => setFilter('priority', v)} />
+                <Select value={filters.category} options={CATEGORIES} onChange={(v) => setFilter('category', v)} size="sm" />
+                <Select value={filters.status} options={STATUSES} onChange={(v) => setFilter('status', v)} size="sm" />
+                <Select value={filters.priority} options={PRIORITIES} onChange={(v) => setFilter('priority', v)} size="sm" />
               </div>
 
               {/* Table */}
@@ -1178,8 +1179,8 @@ export default function ApprovalsPage() {
                         </tr>
                       ) : approvals.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                            No approval requests found
+                          <td colSpan={7} className="px-4 py-12">
+                            <EmptyState icon={Clock} title="No Approvals" message="No approval requests found." />
                           </td>
                         </tr>
                       ) : (
@@ -1213,9 +1214,9 @@ export default function ApprovalsPage() {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PRIORITY_BADGE[a.priority] ?? ''}`}>
+                              <Badge variant={a.priority === 'urgent' ? 'danger' : a.priority === 'high' ? 'warning' : 'neutral'} size="sm">
                                 {a.priority}
-                              </span>
+                              </Badge>
                             </td>
                             <td className="px-4 py-3">
                               <StatusBadge status={a.status} />
@@ -1303,32 +1304,5 @@ export default function ApprovalsPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tiny Select Filter                                                 */
+/*  SelectFilter replaced by imported Select from @/components/ui      */
 /* ------------------------------------------------------------------ */
-
-function SelectFilter({
-  value,
-  options,
-  onChange,
-}: {
-  value: string
-  options: Array<{ value: string; label: string }>
-  onChange: (v: string) => void
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2 pr-8 text-sm font-medium text-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-    </div>
-  )
-}

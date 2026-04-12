@@ -86,7 +86,16 @@ export function useReviewApproval() {
     mutationFn: ({ id, action, reviewNote }: { id: string; action: 'approve' | 'reject'; reviewNote?: string }) =>
       apiPost(`/approvals/${id}/review`, { action, review_note: reviewNote }),
     onSuccess: () => {
+      // Invalidate approvals list + stats
       qc.invalidateQueries({ queryKey: ['approvals'] })
+      // Invalidate all resource queries that may have been updated by the approval
+      qc.invalidateQueries({ queryKey: ['opportunities'] })
+      qc.invalidateQueries({ queryKey: ['companies'] })
+      qc.invalidateQueries({ queryKey: ['control-centre', 'users'] })
+      qc.invalidateQueries({ queryKey: ['vault-stats'] })
+      qc.invalidateQueries({ queryKey: ['platform-stats'] })
+      qc.invalidateQueries({ queryKey: ['analytics'] })
+      qc.invalidateQueries({ queryKey: ['community'] })
     },
   })
 }

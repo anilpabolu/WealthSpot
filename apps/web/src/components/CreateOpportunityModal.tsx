@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { Select } from '@/components/ui'
 import { X, Rocket, Building2, Users, CheckCircle2, Loader2, Lock, Wallet, Handshake, ArrowLeft } from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { INDIAN_CITIES } from '@/lib/constants'
 import MediaUploadZone from './MediaUploadZone'
 import AddressDialog, { type AddressFields } from './AddressDialog'
@@ -37,9 +39,9 @@ const COMMUNITY_SUBTYPES = [
 ]
 
 const VAULT_OPTIONS = [
-  { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5', comingSoon: false },
-  { value: 'opportunity', label: 'Opportunity Vault', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50', comingSoon: true },
-  { value: 'community', label: 'Community Vault', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50', comingSoon: false },
+  { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5' },
+  { value: 'opportunity', label: 'Opportunity Vault', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 bg-violet-50' },
+  { value: 'community', label: 'Community Vault', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 bg-emerald-50' },
 ] as const
 
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
@@ -93,6 +95,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
+  const { isVaultEnabled } = useVaultConfig()
 
   if (!open) return null
 
@@ -219,20 +222,21 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               </p>
               {VAULT_OPTIONS.map((opt) => {
                 const Icon = opt.icon
+                const comingSoon = !isVaultEnabled(opt.value)
                 return (
                   <button
                     key={opt.value}
-                    onClick={() => !opt.comingSoon && handleVaultSelect(opt.value)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 ${opt.comingSoon ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : opt.color + ' hover:shadow-md cursor-pointer'} transition-all text-left relative`}
-                    disabled={opt.comingSoon}
+                    onClick={() => !comingSoon && handleVaultSelect(opt.value)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 ${comingSoon ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : opt.color + ' hover:shadow-md cursor-pointer'} transition-all text-left relative`}
+                    disabled={comingSoon}
                   >
                     <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
-                      {opt.comingSoon ? <Lock className="h-6 w-6 text-gray-400" /> : <Icon className="h-6 w-6" />}
+                      {comingSoon ? <Lock className="h-6 w-6 text-gray-400" /> : <Icon className="h-6 w-6" />}
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 flex items-center gap-2">
                         {opt.label}
-                        {opt.comingSoon && (
+                        {comingSoon && (
                           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Coming Soon</span>
                         )}
                       </div>
@@ -397,17 +401,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Stage *</label>
-                      <select
-                        required
+                      <Select
                         value={form.stage ?? ''}
-                        onChange={(e) => handleChange('stage', e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="">Select stage</option>
-                        {STARTUP_STAGES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
+                        onChange={(v) => handleChange('stage', v)}
+                        placeholder="Select stage"
+                        options={STARTUP_STAGES.map((s) => ({ value: s, label: s }))}
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -443,16 +442,13 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <select
+                      <Select
                         value={form.city ?? ''}
-                        onChange={(e) => handleChange('city', e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="">Select city</option>
-                        {INDIAN_CITIES.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
+                        onChange={(v) => handleChange('city', v)}
+                        placeholder="Select city"
+                        options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))}
+                        searchable
+                      />
                     </div>
                   </div>
                 </>
@@ -465,31 +461,21 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Community Type *</label>
-                      <select
-                        required
+                      <Select
                         value={form.communityType ?? ''}
-                        onChange={(e) => handleChange('communityType', e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="">Select type</option>
-                        {COMMUNITY_TYPES.map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        onChange={(v) => handleChange('communityType', v)}
+                        placeholder="Select type"
+                        options={COMMUNITY_TYPES.map((t) => ({ value: t, label: t }))}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Collaboration *</label>
-                      <select
-                        required
+                      <Select
                         value={form.collaborationType ?? ''}
-                        onChange={(e) => handleChange('collaborationType', e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="">Select collaboration</option>
-                        {COLLABORATION_TYPES.map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        onChange={(v) => handleChange('collaborationType', v)}
+                        placeholder="Select collaboration"
+                        options={COLLABORATION_TYPES.map((t) => ({ value: t, label: t }))}
+                      />
                     </div>
                   </div>
 
@@ -554,77 +540,52 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Investment Tenure *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.investmentTenure as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('investmentTenure', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {INVESTMENT_TENURES.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('investmentTenure', v)}
+                            placeholder="Select"
+                            options={INVESTMENT_TENURES.map((t) => ({ value: t, label: t }))}
+                          />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Revenue Model *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.revenueModel as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('revenueModel', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {REVENUE_MODELS.map((m) => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('revenueModel', v)}
+                            placeholder="Select"
+                            options={REVENUE_MODELS.map((m) => ({ value: m, label: m }))}
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Legal Structure *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.legalStructure as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('legalStructure', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {LEGAL_STRUCTURES.map((l) => (
-                              <option key={l} value={l}>{l}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('legalStructure', v)}
+                            placeholder="Select"
+                            options={LEGAL_STRUCTURES.map((l) => ({ value: l, label: l }))}
+                          />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.riskLevel as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('riskLevel', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {RISK_LEVELS.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('riskLevel', v)}
+                            placeholder="Select"
+                            options={RISK_LEVELS.map((r) => ({ value: r, label: r }))}
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Projected Timeline *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.projectedTimeline as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('projectedTimeline', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {TIMELINE_OPTIONS.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('projectedTimeline', v)}
+                            placeholder="Select"
+                            options={TIMELINE_OPTIONS.map((t) => ({ value: t, label: t }))}
+                          />
                         </div>
                       </div>
                       <div>
@@ -683,31 +644,21 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Time Commitment *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.timeCommitment as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('timeCommitment', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {TIME_COMMITMENTS.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('timeCommitment', v)}
+                            placeholder="Select"
+                            options={TIME_COMMITMENTS.map((t) => ({ value: t, label: t }))}
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Partnership Duration *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.partnershipDuration as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('partnershipDuration', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {PARTNERSHIP_DURATIONS.map((d) => (
-                              <option key={d} value={d}>{d}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('partnershipDuration', v)}
+                            placeholder="Select"
+                            options={PARTNERSHIP_DURATIONS.map((d) => ({ value: d, label: d }))}
+                          />
                         </div>
                       </div>
 
@@ -746,17 +697,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Decision Making Authority *</label>
-                          <select
-                            required
+                          <Select
                             value={(communityDetails.decisionAuthority as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('decisionAuthority', e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Select</option>
-                            {DECISION_AUTHORITIES.map((d) => (
-                              <option key={d} value={d}>{d}</option>
-                            ))}
-                          </select>
+                            onChange={(v) => handleCommunityDetailChange('decisionAuthority', v)}
+                            placeholder="Select"
+                            options={DECISION_AUTHORITIES.map((d) => ({ value: d, label: d }))}
+                          />
                         </div>
                       </div>
                       <div>

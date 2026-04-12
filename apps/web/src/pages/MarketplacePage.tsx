@@ -5,10 +5,13 @@ import FundingBar from '@/components/wealth/FundingBar'
 import { useProperties, usePropertyAutocomplete, type Property, type SearchSuggestion } from '@/hooks/useProperties'
 import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home, HandCoins, AlertCircle } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { Select } from '@/components/ui'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
@@ -43,31 +46,27 @@ function FilterSidebar() {
       {/* City */}
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">City</label>
-        <select
+        <Select
           value={filters.city}
-          onChange={(e) => setFilter('city', e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary"
-        >
-          <option value="">All Cities</option>
-          {INDIAN_CITIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+          onChange={(v) => setFilter('city', v)}
+          options={[
+            { value: '', label: 'All Cities' },
+            ...INDIAN_CITIES.map((c) => ({ value: c, label: c })),
+          ]}
+        />
       </div>
 
       {/* Asset Type */}
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Asset Type</label>
-        <select
+        <Select
           value={filters.assetType}
-          onChange={(e) => setFilter('assetType', e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary"
-        >
-          <option value="">All Types</option>
-          {Object.values(ASSET_TYPES).map((t) => (
-            <option key={t} value={t}>{t.replace('_', ' ')}</option>
-          ))}
-        </select>
+          onChange={(v) => setFilter('assetType', v)}
+          options={[
+            { value: '', label: 'All Types' },
+            ...Object.values(ASSET_TYPES).map((t) => ({ value: t, label: t.replace('_', ' ') })),
+          ]}
+        />
       </div>
 
       {/* Status */}
@@ -93,18 +92,18 @@ function FilterSidebar() {
       {/* Sort */}
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Sort By</label>
-        <select
+        <Select
           value={filters.sortBy}
-          onChange={(e) => setFilter('sortBy', e.target.value as typeof filters.sortBy)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary"
-        >
-          <option value="newest">Newest First</option>
-          <option value="irr_high">Highest IRR</option>
-          <option value="irr_low">Lowest IRR</option>
-          <option value="funding">Most Funded</option>
-          <option value="price_low">Lowest Price</option>
-          <option value="price_high">Highest Price</option>
-        </select>
+          onChange={(v) => setFilter('sortBy', v as typeof filters.sortBy)}
+          options={[
+            { value: 'newest', label: 'Newest First' },
+            { value: 'irr_high', label: 'Highest IRR' },
+            { value: 'irr_low', label: 'Lowest IRR' },
+            { value: 'funding', label: 'Most Funded' },
+            { value: 'price_low', label: 'Lowest Price' },
+            { value: 'price_high', label: 'Highest Price' },
+          ]}
+        />
       </div>
 
       {/* Reset */}
@@ -339,6 +338,8 @@ export default function MarketplacePage() {
   const vaultParam = searchParams.get('vault') ?? ''
   const subtypeParam = searchParams.get('subtype') ?? ''
   const vaultMeta = VAULT_META[vaultParam]
+  const { isVaultEnabled } = useVaultConfig()
+  const isVaultDisabled = vaultParam && !isVaultEnabled(vaultParam)
 
   // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
   const { data: oppsData } = useOpportunities(
@@ -387,8 +388,13 @@ export default function MarketplacePage() {
 
       <div className="page-section">
         <div className="page-section-container">
+        {/* Vault disabled banner */}
+        {isVaultDisabled && (
+          <VaultComingSoonBanner vaultId={vaultParam} onExploreOther={clearVault} />
+        )}
+
         {/* Vault context banner */}
-        {vaultMeta && (
+        {vaultMeta && !isVaultDisabled && (
           <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 mb-5 ${vaultMeta.color}`}>
             <vaultMeta.Icon className="h-5 w-5 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">

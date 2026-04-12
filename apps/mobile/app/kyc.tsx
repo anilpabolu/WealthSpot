@@ -3,13 +3,14 @@
  * Step-by-step identity verification.
  */
 
-import { View, Text, ScrollView, Pressable, TextInput, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native'
 import { router } from 'expo-router'
 import { useState, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { useUserStore } from '@/stores/user.store'
 import { mobileKycBff, type KycStatusView } from '@/services/bff/kyc.bff'
 import * as ImagePicker from 'expo-image-picker'
+import { Input } from '@/components/ui'
 
 const STEPS = ['Personal', 'Documents', 'Selfie']
 
@@ -161,18 +162,16 @@ export default function KycScreen() {
               { key: 'city' as const, label: 'City', placeholder: 'City name' },
               { key: 'pincode' as const, label: 'Pincode', placeholder: '6-digit pincode' },
             ].map((field) => (
-              <View key={field.key} className="mb-3">
-                <Text className="text-gray-600 text-sm font-medium mb-1">{field.label}</Text>
-                <TextInput
-                  className="border border-gray-200 rounded-xl px-4 py-3 text-gray-900"
-                  placeholder={field.placeholder}
-                  placeholderTextColor="#9CA3AF"
-                  value={form[field.key]}
-                  onChangeText={(v: string) => setForm({ ...form, [field.key]: v })}
-                  autoCapitalize={field.key === 'panNumber' ? 'characters' : 'words'}
-                  keyboardType={field.key === 'pincode' ? 'numeric' : 'default'}
-                />
-              </View>
+              <Input
+                key={field.key}
+                label={field.label}
+                placeholder={field.placeholder}
+                value={form[field.key]}
+                onChangeText={(v: string) => setForm({ ...form, [field.key]: v })}
+                autoCapitalize={field.key === 'panNumber' ? 'characters' : 'words'}
+                keyboardType={field.key === 'pincode' ? 'numeric' : 'default'}
+                className="mb-3"
+              />
             ))}
           </View>
         )}

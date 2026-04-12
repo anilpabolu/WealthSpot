@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PortalLayout } from '@/components/layout'
+import { Badge } from '@/components/ui'
 import {
   useAdminReferralSummary,
   useAdminReferralDetails,
@@ -22,16 +23,6 @@ import {
 function fmtDate(iso: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-function Badge({ text, variant }: { text: string; variant: 'success' | 'warning' | 'neutral' }) {
-  const cls =
-    variant === 'success'
-      ? 'bg-emerald-50 text-emerald-700'
-      : variant === 'warning'
-        ? 'bg-amber-50 text-amber-700'
-        : 'bg-gray-100 text-gray-600'
-  return <span className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full ${cls}`}>{text}</span>
 }
 
 /* ── Summary Row ─────────────────────────────────────────────────── */
@@ -128,33 +119,25 @@ function DetailPanel({ referrerId }: { referrerId: string }) {
               </td>
               <td className="py-2">
                 <Badge
-                  text={d.referralType}
                   variant={d.referralType === 'property' ? 'success' : 'neutral'}
-                />
+                  size="sm"
+                >{d.referralType}</Badge>
               </td>
               <td className="py-2 text-gray-700 max-w-[160px] truncate">{d.opportunityTitle ?? '—'}</td>
               <td className="py-2 font-mono text-xs text-gray-600">{d.codeUsed}</td>
               <td className="py-2 text-center">
                 {d.refereeStatus === 'invested' ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Invested
-                  </span>
+                  <Badge variant="success" size="sm" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Invested</Badge>
                 ) : d.refereeStatus === 'active' ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-500">
-                    <Clock className="h-3.5 w-3.5" /> Active
-                  </span>
+                  <Badge variant="info" size="sm" icon={<Clock className="h-3.5 w-3.5" />}>Active</Badge>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-400">
-                    <Clock className="h-3.5 w-3.5" /> Stale
-                  </span>
+                  <Badge variant="neutral" size="sm" icon={<Clock className="h-3.5 w-3.5" />}>Stale</Badge>
                 )}
               </td>
               <td className="py-2 text-center font-mono font-bold text-gray-900">{d.refereeTotalInvestments}</td>
               <td className="py-2 text-center">
                 {d.firstInvestmentRewarded ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> {formatINR(d.rewardAmount)}
-                  </span>
+                  <Badge variant="success" size="sm" icon={<CheckCircle2 className="h-3.5 w-3.5" />}>{formatINR(d.rewardAmount)}</Badge>
                 ) : (
                   <span className="text-[11px] text-gray-400">—</span>
                 )}

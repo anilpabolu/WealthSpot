@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/lib/api'
+import { useUserStore } from '@/stores/user.store'
 
 /* ─── CamelCase types (post-API-conversion) ────────────────────────────── */
 
@@ -202,10 +203,13 @@ export function useProfilingProgress(vaultType: string) {
 // ── Overall Progress (all vaults) ───────────────────────────────────────────
 
 export function useOverallProgress() {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'overall-progress'],
     queryFn: () => apiGet<OverallProgress>('/profiling/overall-progress'),
     staleTime: 30_000,
+    enabled: isAuthenticated && !!token,
   })
 }
 

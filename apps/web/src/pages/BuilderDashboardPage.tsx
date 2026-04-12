@@ -10,6 +10,7 @@ import {
   Building2, Users, IndianRupee, ArrowRight, Clock,
   AlertCircle, PlusCircle, Loader2,
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui'
 
 export default function BuilderDashboardPage() {
   const { data, isLoading, isError } = useQuery({
@@ -89,10 +90,7 @@ export default function BuilderDashboardPage() {
               </div>
 
               {listings.length === 0 ? (
-                <div className="card p-8 text-center">
-                  <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No properties yet. Create your first listing!</p>
-                </div>
+                <EmptyState icon={Building2} title="No Properties Yet" message="Create your first listing!" />
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {listings.slice(0, 6).map((p) => (

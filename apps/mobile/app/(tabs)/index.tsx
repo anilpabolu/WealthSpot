@@ -12,7 +12,9 @@ import { formatINR, formatINRCompact } from '@/lib/formatters'
 import { useFeaturedProperties } from '@/hooks/useProperties'
 import { usePortfolioSummary } from '@/hooks/usePortfolio'
 import { useProfilingProgress } from '@/hooks/useProfiling'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useQueryClient } from '@tanstack/react-query'
+import { MetricCard, EmptyState, Badge } from '@/components/ui'
 
 /* ─── Vault config ────────────────────────────────────────────────────── */
 
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const qc = useQueryClient()
   const { data: featured, isLoading: featuredLoading } = useFeaturedProperties()
   const { data: portfolio } = usePortfolioSummary()
+  const { isVaultEnabled } = useVaultConfig()
 
   // Profiling progress for each vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
@@ -91,15 +94,14 @@ export default function HomeScreen() {
       </View>
 
       {/* Stats Bar */}
-      <View className="flex-row mx-4 mt-[-20] bg-white rounded-2xl p-4 shadow-md">
-        {stats.map((stat, i) => (
-          <View
+      <View className="flex-row gap-2 mx-4 mt-[-20]">
+        {stats.map((stat) => (
+          <MetricCard
             key={stat.label}
-            className={`flex-1 items-center ${i < stats.length - 1 ? 'border-r border-gray-100' : ''}`}
-          >
-            <Text className="font-bold text-base" style={{ color: '#1B2A4A' }}>{stat.value}</Text>
-            <Text className="text-gray-400 text-[10px] font-semibold mt-0.5">{stat.label}</Text>
-          </View>
+            label={stat.label}
+            value={stat.value}
+            className="shadow-md"
+          />
         ))}
       </View>
 
@@ -134,8 +136,8 @@ export default function HomeScreen() {
                   <Ionicons name="image-outline" size={32} color="#9CA3AF" />
                 </View>
               )}
-              <View className="absolute top-3 left-3 bg-primary/90 px-2.5 py-1 rounded-full">
-                <Text className="text-white text-xs font-semibold">{property.assetType}</Text>
+              <View className="absolute top-3 left-3">
+                <Badge variant="purple" size="xs">{property.assetType}</Badge>
               </View>
 
               <View className="p-4">
@@ -197,26 +199,33 @@ export default function HomeScreen() {
               const pct = progressMap[v.key]
               const isComplete = pct !== undefined && pct >= 100
               const hasProgress = pct !== undefined && pct > 0 && pct < 100
+              const disabled = !isVaultEnabled(v.key)
 
               return (
                 <Pressable
                   key={v.key}
-                  onPress={() => router.push(`/profiling?vault=${v.key}`)}
+                  onPress={() => !disabled && router.push(`/profiling?vault=${v.key}`)}
                   className="flex-1 rounded-2xl p-3 items-center border"
                   style={{
-                    backgroundColor: v.bg,
-                    borderColor: isComplete ? v.accent : '#E5E7EB',
+                    backgroundColor: disabled ? '#F3F4F6' : v.bg,
+                    borderColor: disabled ? '#D1D5DB' : isComplete ? v.accent : '#E5E7EB',
+                    opacity: disabled ? 0.7 : 1,
                   }}
                 >
                   <Text className="text-2xl mb-1">{v.emoji}</Text>
                   <Text
                     className="text-[10px] font-bold mb-1.5"
-                    style={{ color: v.primary }}
+                    style={{ color: disabled ? '#9CA3AF' : v.primary }}
                   >
                     {v.label}
                   </Text>
 
-                  {isComplete ? (
+                  {disabled ? (
+                    <View className="flex-row items-center gap-1">
+                      <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
+                      <Text className="text-[9px] font-bold text-gray-400">Soon</Text>
+                    </View>
+                  ) : isComplete ? (
                     <View className="flex-row items-center gap-1">
                       <Ionicons name="checkmark-circle" size={12} color={v.accent} />
                       <Text className="text-[9px] font-bold" style={{ color: v.accent }}>

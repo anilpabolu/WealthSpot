@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
+import { EmptyState, Badge } from '@/components/ui'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { VaultComingSoonPortfolioCard } from '@/components/VaultComingSoonOverlay'
 import {
   usePortfolioSummary,
   usePortfolioProperties,
@@ -304,11 +307,9 @@ function TransactionRow({ t }: { t: RecentTransaction }) {
         <p className={`text-sm font-mono font-bold ${t.type === 'investment' ? 'text-gray-900' : 'text-emerald-600'}`}>
           {t.type === 'investment' ? '-' : '+'}{formatINR(t.amount)}
         </p>
-        <span className={`text-[10px] font-semibold uppercase ${
-          t.status === 'confirmed' || t.status === 'completed' ? 'text-emerald-500' : 'text-amber-500'
-        }`}>
+        <Badge variant={t.status === 'confirmed' || t.status === 'completed' ? 'success' : 'warning'} size="xs">
           {t.status}
-        </span>
+        </Badge>
       </div>
     </div>
   )
@@ -369,8 +370,10 @@ export default function PortfolioPage() {
   const { data: transactions, isLoading: txnLoading } = useRecentTransactions(10)
   const { data: vaultData, isLoading: vaultLoading } = useVaultWisePortfolio()
   const { data: activities } = useUserActivities(10)
+  const { isVaultEnabled } = useVaultConfig()
 
   const isLoading = summaryLoading || vaultLoading
+  const disabledVaultIds = ['opportunity', 'community'].filter((id) => !isVaultEnabled(id))
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-50">
@@ -423,13 +426,28 @@ export default function PortfolioPage() {
               </section>
 
               {/* ── Vault-Wise Breakdown ──────────────────────────── */}
-              {vaultData && vaultData.vaults.length > 0 && (
+              {(vaultData && vaultData.vaults.length > 0 || disabledVaultIds.length > 0) && (
                 <section>
                   <h2 className="section-title text-xl">Vault-Wise Breakdown</h2>
                   <div className="grid md:grid-cols-3 gap-6">
-                    {vaultData.vaults.map((v) => (
+                    {vaultData?.vaults.map((v) => (
                       <VaultBreakdownCard key={v.vaultType} vault={v} />
                     ))}
+                    {disabledVaultIds
+                      .filter((id) => !vaultData?.vaults.some((v) => v.vaultType === id))
+                      .map((id) => {
+                        const meta = VAULT_META[id]
+                        return meta ? (
+                          <VaultComingSoonPortfolioCard
+                            key={id}
+                            vaultId={id}
+                            icon={meta.icon}
+                            label={meta.label}
+                            gradient={meta.gradient}
+                            accent={meta.accent}
+                          />
+                        ) : null
+                      })}
                   </div>
                 </section>
               )}
@@ -461,10 +479,7 @@ export default function PortfolioPage() {
                 {propsLoading ? (
                   <LoadingState />
                 ) : !properties || properties.length === 0 ? (
-                  <div className="text-center py-12 rounded-xl bg-white border border-gray-200">
-                    <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No holdings yet. Start investing to see your portfolio here.</p>
-                  </div>
+                  <EmptyState icon={Building2} title="No Holdings Yet" message="Start investing to see your portfolio here." />
                 ) : (
                   <div className="space-y-2">
                     {properties.map((p) => (
@@ -496,10 +511,7 @@ export default function PortfolioPage() {
                 {txnLoading ? (
                   <LoadingState />
                 ) : !transactions || transactions.length === 0 ? (
-                  <div className="text-center py-12 rounded-xl bg-white border border-gray-200">
-                    <Clock className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No transactions yet.</p>
-                  </div>
+                  <EmptyState icon={Clock} title="No Transactions" message="No transactions yet." />
                 ) : (
                   <div className="rounded-xl border border-gray-200 bg-white p-4">
                     {transactions.map((t) => (

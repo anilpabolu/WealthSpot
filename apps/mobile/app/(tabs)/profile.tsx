@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useProfileCompletion } from '@/hooks/useProfileCompletion'
+import { Badge } from '@/components/ui'
 
 const MENU_ITEMS = [
   { icon: 'person-outline' as const, label: 'Personal Details', route: '/kyc' },
@@ -61,16 +62,20 @@ export default function ProfileScreen() {
         <View className={`mt-4 rounded-xl p-3 flex-row items-center ${
           user?.kycStatus === 'APPROVED' ? 'bg-emerald-50' : 'bg-amber-50'
         }`}>
-          <Ionicons
-            name={user?.kycStatus === 'APPROVED' ? 'checkmark-circle' : 'alert-circle'}
-            size={20}
-            color={user?.kycStatus === 'APPROVED' ? '#059669' : '#D97706'}
-          />
-          <Text className={`ml-2 text-sm font-semibold ${
-            user?.kycStatus === 'APPROVED' ? 'text-emerald-700' : 'text-amber-700'
-          }`}>
-            KYC {user?.kycStatus === 'APPROVED' ? 'Verified' : 'Pending'}
-          </Text>
+          <Badge
+            variant={user?.kycStatus === 'APPROVED' ? 'success' : 'warning'}
+            dot
+            size="sm"
+            icon={
+              <Ionicons
+                name={user?.kycStatus === 'APPROVED' ? 'checkmark-circle' : 'alert-circle'}
+                size={14}
+                color={user?.kycStatus === 'APPROVED' ? '#059669' : '#D97706'}
+              />
+            }
+          >
+            {user?.kycStatus === 'APPROVED' ? 'KYC Verified' : 'KYC Pending'}
+          </Badge>
           {user?.kycStatus !== 'APPROVED' && (
             <Link href="/kyc" asChild>
               <Pressable className="ml-auto">
