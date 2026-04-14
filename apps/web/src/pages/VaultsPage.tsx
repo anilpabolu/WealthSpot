@@ -1,32 +1,38 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { useProfilingProgress, useOverallProgress } from '@/hooks/useProfiling'
 import {
   Building2,
   Rocket,
   Users,
   TrendingUp,
-  Shield,
   ArrowRight,
   Wallet,
   Clock,
   Network,
   GraduationCap,
-  AlertTriangle,
   PlayCircle,
   X,
   Lock,
-  Sparkles,
-  Info,
+  Banknote,
+  Percent,
+  Target,
+  Layers,
+  MapPin,
+  Handshake,
+  UserCheck,
+  Trophy,
+  type LucideIcon,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { usePublicVideos } from '@/hooks/useAppVideos'
-import { Badge } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { useVaultMetricsConfig } from '@/hooks/useVaultMetricsConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { getVaultComingSoonText } from '@/components/VaultComingSoonOverlay'
 
@@ -234,32 +240,116 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Vault Info Tooltip                                                  */
+/*  Vault Metrics Registry                                             */
 /* ------------------------------------------------------------------ */
 
-function VaultInfoTooltip({ body, italic, visible, onClose }: { body: string; italic: string; visible: boolean; onClose: () => void }) {
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+type MetricDef = {
+  label: string
+  icon: LucideIcon
+  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number } | undefined, vaultId: string) => string
+}
 
-  useEffect(() => {
-    if (visible) {
-      timerRef.current = setTimeout(onClose, 7000)
-      return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-    }
-  }, [visible, onClose])
+export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
+  total_invested: {
+    label: 'Total Invested',
+    icon: Wallet,
+    resolve: (s) => (s ? formatINRCompact(s.totalInvested) : '—'),
+  },
+  investor_count: {
+    label: 'Investors',
+    icon: Users,
+    resolve: (s) => (s ? s.investorCount.toLocaleString('en-IN') : '—'),
+  },
+  expected_irr: {
+    label: 'Expected IRR',
+    icon: TrendingUp,
+    resolve: (s, vaultId) => {
+      const val = s?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vaultId] ?? null
+      return val != null ? `${val}%` : '—'
+    },
+  },
+  actual_irr: {
+    label: 'Actual IRR',
+    icon: TrendingUp,
+    resolve: (s) => (s?.actualIrr != null ? `${s.actualIrr}%` : '—'),
+  },
+  properties_listed: {
+    label: 'Properties Listed',
+    icon: Building2,
+    resolve: (s) => (s ? s.opportunityCount.toLocaleString('en-IN') : '—'),
+  },
+  min_investment: {
+    label: 'Min Investment',
+    icon: Banknote,
+    resolve: () => '₹10,000',
+  },
+  avg_occupancy: {
+    label: 'Avg Occupancy',
+    icon: Percent,
+    resolve: () => '—',
+  },
+  avg_rental_yield: {
+    label: 'Avg Rental Yield',
+    icon: Percent,
+    resolve: () => '—',
+  },
+  startups_listed: {
+    label: 'Startups Listed',
+    icon: Rocket,
+    resolve: (s) => (s ? s.opportunityCount.toLocaleString('en-IN') : '—'),
+  },
+  avg_ticket_size: {
+    label: 'Avg Ticket Size',
+    icon: Banknote,
+    resolve: () => '—',
+  },
+  sectors_covered: {
+    label: 'Sectors Covered',
+    icon: Layers,
+    resolve: () => '—',
+  },
+  success_rate: {
+    label: 'Success Rate',
+    icon: Target,
+    resolve: () => '—',
+  },
+  projects_launched: {
+    label: 'Projects Launched',
+    icon: Rocket,
+    resolve: (s) => (s ? s.opportunityCount.toLocaleString('en-IN') : '—'),
+  },
+  projects_successful: {
+    label: 'Projects Successful',
+    icon: Trophy,
+    resolve: () => '—',
+  },
+  co_investors: {
+    label: 'Co-Investors',
+    icon: Handshake,
+    resolve: () => '—',
+  },
+  co_partners: {
+    label: 'Co-Partners',
+    icon: UserCheck,
+    resolve: () => '—',
+  },
+  avg_project_size: {
+    label: 'Avg Project Size',
+    icon: Banknote,
+    resolve: () => '—',
+  },
+  cities_covered: {
+    label: 'Cities Covered',
+    icon: MapPin,
+    resolve: () => '—',
+  },
+}
 
-  if (!visible) return null
-
-  return (
-    <>
-      {/* Backdrop to capture outside clicks */}
-      <div className="fixed inset-0 z-[9998]" onClick={onClose} />
-      {/* Tooltip */}
-      <div className="absolute right-0 top-full mt-2 z-[9999] w-80 rounded-xl bg-[#1a1f2e]/98 backdrop-blur-2xl border border-[#D4AF37]/30 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_0_1px_rgba(212,175,55,0.15)] animate-in fade-in slide-in-from-top-2 duration-200">
-        <p className="text-sm text-white/90 leading-relaxed mb-2.5 font-body">{body}</p>
-        <p className="text-[13px] text-[#D4AF37]/70 italic leading-relaxed font-body">{italic}</p>
-      </div>
-    </>
-  )
+/* All available metric keys per vault (for admin UI) */
+export const ALL_VAULT_METRICS: Record<string, string[]> = {
+  wealth: ['total_invested', 'investor_count', 'properties_listed', 'avg_occupancy', 'avg_rental_yield'],
+  opportunity: ['total_invested', 'investor_count', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
+  community: ['total_invested', 'investor_count', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
 }
 
 function VaultCard({
@@ -267,8 +357,9 @@ function VaultCard({
   stats,
   opportunities: _opportunities,
   profilingPct,
-  archetype,
+  archetype: _archetype,
   comingSoon,
+  enabledMetrics,
   onPlayVideo,
   onComingSoon,
   onCommunityExplore,
@@ -279,14 +370,12 @@ function VaultCard({
   profilingPct: number
   archetype?: string | null
   comingSoon: boolean
+  enabledMetrics: string[]
   onPlayVideo?: () => void
   onComingSoon: () => void
   onCommunityExplore?: () => void
 }) {
   const Icon = vault.icon
-  const isCommunity = vault.id === 'community'
-  const [showInfo, setShowInfo] = useState(false)
-  const hideInfo = useCallback(() => setShowInfo(false), [])
 
   const handleCTAClick = (e: React.MouseEvent) => {
     if (comingSoon) {
@@ -298,13 +387,8 @@ function VaultCard({
     }
   }
 
-  /* Resolve expected IRR: API value → default → null (community has none) */
-  const expectedIrr = isCommunity
-    ? null
-    : (stats?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vault.id] ?? null)
-
   return (
-    <div className="rounded-3xl border border-[#D4AF37]/15 bg-gradient-to-br from-[#161b2e] via-[#1c2240] to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[#D4AF37]/30 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
+    <div className="rounded-3xl border border-[#D4AF37]/15 bg-white dark:bg-gradient-to-br dark:from-[#161b2e] dark:via-[#1c2240] dark:to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[#D4AF37]/30 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
         {/* Decorative background glow */}
@@ -316,24 +400,24 @@ function VaultCard({
             <Icon className="h-6 w-6 text-white" />
           </div>
           <h3 className="font-hero text-xl font-bold text-white flex-1 tracking-tight">{vault.title}</h3>
+          {!comingSoon && (
+            <div className="shrink-0 relative h-9 w-9" title={`${Math.round(profilingPct)}% profiled`}>
+              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="3" />
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray={`${(profilingPct / 100) * 87.96} 87.96`} />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white/90">
+                {Math.round(profilingPct)}%
+              </span>
+            </div>
+          )}
           {comingSoon && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Lock className="h-3 w-3" />
               Soon
             </span>
           )}
-          {/* Info tooltip trigger */}
-          <div className="relative shrink-0">
-            <button
-              onClick={() => setShowInfo((p) => !p)}
-              onMouseEnter={() => setShowInfo(true)}
-              className="relative group/info"
-              aria-label={`About ${vault.title}`}
-            >
-              <Info className="h-5 w-5 text-white/50 hover:text-white/90 transition-colors cursor-pointer" />
-            </button>
-            <VaultInfoTooltip body={vault.infoBody} italic={vault.infoItalic} visible={showInfo} onClose={hideInfo} />
-          </div>
           {onPlayVideo && (
           <button
             onClick={onPlayVideo}
@@ -351,123 +435,44 @@ function VaultCard({
 
       {/* Body */}
       <div className="p-6 space-y-5 flex-1 flex flex-col">
-        {/* Metrics grid — real data from API */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-white/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Risk</span>
-            </div>
-            <Badge variant={vault.risk === 'High' ? 'danger' : vault.risk === 'Moderate' ? 'warning' : 'success'} size="sm">
-              {vault.risk}
-            </Badge>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <Wallet className="h-3.5 w-3.5 text-white/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Total Invested</span>
-            </div>
-            <p className="font-mono text-sm font-bold text-white/90">
-              {stats ? formatINRCompact(stats.totalInvested) : '—'}
-            </p>
-          </div>
+        {/* Vault description — moved from tooltip */}
+        <div className="space-y-1.5">
+          <p className="text-sm text-gray-600 dark:text-white/80 leading-relaxed font-body">{vault.infoBody}</p>
+          <p className="text-[13px] text-[#D4AF37]/60 italic leading-relaxed font-body">{vault.infoItalic}</p>
+        </div>
 
-          {isCommunity ? (
-            <>
-              <div className="space-y-1">
+        {/* Metrics grid — dynamic from config */}
+        <div className="grid grid-cols-2 gap-4">
+          {enabledMetrics.map((key) => {
+            const def = VAULT_METRICS_REGISTRY[key]
+            if (!def) return null
+            const MetricIcon = def.icon
+            const value = def.resolve(stats, vault.id)
+            const isIrr = key === 'actual_irr'
+            return (
+              <div key={key} className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Rocket className="h-3.5 w-3.5 text-white/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Projects Launched</span>
+                  <MetricIcon className={`h-3.5 w-3.5 ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`} />
+                  <span className={`text-[11px] font-semibold uppercase tracking-wider ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>{def.label}</span>
                 </div>
-                <p className="font-mono text-sm font-bold text-white/90">
-                  {stats ? stats.opportunityCount.toLocaleString('en-IN') : '—'}
+                <p className={`font-mono text-sm font-bold ${isIrr ? 'text-emerald-400' : key === 'expected_irr' ? vault.accent : 'text-gray-800 dark:text-white/90'}`}>
+                  {value}
                 </p>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-white/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Projects Successful</span>
-                </div>
-                <p className="font-mono text-sm font-bold text-white/90">—</p>
-              </div>
-              <div className="col-span-2" aria-hidden="true" />
-            </>
-          ) : (
-            <>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5 text-white/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Investors</span>
-                </div>
-                <p className="font-mono text-sm font-bold text-white/90">
-                  {stats ? stats.investorCount.toLocaleString('en-IN') : '—'}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-white/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Expected IRR</span>
-                </div>
-                <p className={`font-mono text-sm font-bold ${vault.accent}`}>
-                  {expectedIrr != null ? `${expectedIrr}%` : '—'}
-                </p>
-              </div>
-              <div className="space-y-1 col-span-2">
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Actual IRR</span>
-                </div>
-                <p className="font-mono text-sm font-bold text-emerald-400">
-                  {stats?.actualIrr != null ? `${stats.actualIrr}%` : '—'}
-                </p>
-              </div>
-            </>
-          )}
+            )
+          })}
         </div>
 
         {/* Bottom section: profiling + CTA anchored to card bottom */}
         <div className="mt-auto space-y-4">
           {/* Profiling progress */}
-          {!comingSoon && (
-            <div className="rounded-2xl bg-white/[0.06] border border-[#D4AF37]/15 p-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-[#D4AF37]" />
-                  <span className="text-[11px] font-semibold text-white/70">
-                    {profilingPct >= 100 ? 'Profile Complete ✨' : 'Investor Profile'}
-                  </span>
-                </div>
-                <span className="text-[10px] font-bold text-[#D4AF37]">{Math.round(profilingPct)}%</span>
-              </div>
-              {profilingPct >= 100 && archetype && (
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
-                    {archetype}
-                  </span>
-                </div>
-              )}
-              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all duration-700 ease-out"
-                  style={{ width: `${Math.min(profilingPct, 100)}%` }}
-                />
-              </div>
-              {profilingPct < 100 && (
-                <Link
-                  to={`/vault-profiling?vault=${vault.id}`}
-                  className="text-[11px] font-bold text-[#D4AF37] hover:underline"
-                >
-                  {profilingPct > 0 ? 'Continue Profiling →' : 'Start Profiling →'}
-                </Link>
-              )}
-            </div>
-          )}
+
 
           {/* CTA */}
           {comingSoon ? (
             <button
               onClick={onComingSoon}
-              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-white/10 text-white/40 cursor-not-allowed border border-white/10"
+              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/40 cursor-not-allowed border border-gray-200 dark:border-white/10"
             >
               <Lock className="h-4 w-4" />
               {getVaultComingSoonText(vault.id).button}
@@ -540,6 +545,9 @@ export default function VaultsPage() {
   const userRole = useUserStore((s) => s.user?.role)
   const navigate = useNavigate()
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
+
+  // Fetch vault metrics config (which metrics to show per vault)
+  const { data: metricsConfig } = useVaultMetricsConfig()
 
   // CMS content
   const heroBadge = useContent('vaults', 'hero_badge', 'Three Vaults. Infinite Possibilities.')
@@ -643,6 +651,7 @@ export default function VaultsPage() {
                   profilingPct={profilingMap[vault.id] ?? 0}
                   archetype={archetypeMap[vault.id]}
                   comingSoon={comingSoon}
+                  enabledMetrics={metricsConfig?.[vault.id] ?? ALL_VAULT_METRICS[vault.id] ?? []}
                   onPlayVideo={vaultVideosEnabled ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) }) : undefined}
                   onComingSoon={() => showComingSoon(vault.id)}
                   onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
@@ -682,6 +691,8 @@ export default function VaultsPage() {
         </div>
       </section>
       )}
+
+      <Footer />
     </div>
 
       {/* Vault intro video popup */}

@@ -99,6 +99,7 @@ services:
         condition: service_healthy
     volumes:
       - ./services/api/app:/app/app  # hot-reload in dev
+      - ./services/api/alembic:/app/alembic  # pick up new migrations in dev
 
   # ── Celery Worker ───────────────────────────────────────────
   celery-worker:

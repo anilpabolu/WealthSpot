@@ -3,11 +3,15 @@ Prometheus metrics middleware for request tracking.
 Exposes /metrics endpoint for Prometheus scraping.
 """
 
+import logging
 import time
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
+
+_logger = logging.getLogger("app.slow_requests")
+_SLOW_REQUEST_THRESHOLD = 2.0  # seconds
 
 # Simple metrics counters (no external dependency required)
 _request_count: dict[str, int] = {}
@@ -54,6 +58,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         if status_code >= 500:
             err_label = _label(method, path, status_code)
             _request_errors[err_label] = _request_errors.get(err_label, 0) + 1
+
+        if duration >= _SLOW_REQUEST_THRESHOLD:
+            _logger.warning(
+                "Slow request: %s %s took %.2fs (status=%d)",
+                method, path, duration, status_code,
+            )
 
         return response
 

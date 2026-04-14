@@ -30,6 +30,7 @@ from app.schemas.investment import (
     TransactionRead,
 )
 from app.services.xirr import calculate_xirr
+from app.services.cache import cache_get, cache_set, make_cache_key
 
 router = APIRouter(prefix="/investments", tags=["investments"])
 settings = get_settings()
@@ -106,17 +107,19 @@ async def investment_summary(
 
     monthly_income = total_invested * Decimal("0.006")
 
-    # Compute real XIRR from cashflows
-    cashflows: list[tuple[datetime, float]] = []
-    for inv in investments:
-        # Investment outflow (negative)
-        inv_date = inv.created_at or datetime.now(timezone.utc)
-        cashflows.append((inv_date, -float(inv.amount)))
-    # Current portfolio value as inflow (positive)
-    if cashflows:
-        cashflows.append((datetime.now(timezone.utc), float(current_value)))
-
-    xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
+    # Compute real XIRR from cashflows (with Redis cache)
+    xirr_cache_key = make_cache_key("xirr", str(user.id), "inv_summary")
+    xirr_value = cache_get(xirr_cache_key)
+    if xirr_value is None:
+        cashflows: list[tuple[datetime, float]] = []
+        for inv in investments:
+            inv_date = inv.created_at or datetime.now(timezone.utc)
+            cashflows.append((inv_date, -float(inv.amount)))
+        if cashflows:
+            cashflows.append((datetime.now(timezone.utc), float(current_value)))
+        xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
+        if xirr_value is not None:
+            cache_set(xirr_cache_key, xirr_value, ttl_seconds=300)
 
     return InvestmentSummary(
         total_invested=total_invested,

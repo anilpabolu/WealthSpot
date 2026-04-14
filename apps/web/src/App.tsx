@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '@clerk/react'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -139,6 +139,8 @@ export default function App() {
     if (onboarded !== 'true') {
       localStorage.setItem('ws_onboarded', 'false')
       navigate('/onboarding')
+    } else if (wsUser?.primaryRole === 'builder') {
+      navigate('/portal/builder/listings')
     } else {
       navigate('/vaults')
     }
@@ -158,6 +160,7 @@ export default function App() {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/:slug" element={<PropertyDetail />} />
           <Route path="/opportunity/:slug" element={<OpportunityDetail />} />
+          <Route path="/builder/listings" element={<Navigate to="/portal/builder/listings" replace />} />
           <Route path="/builder/:id" element={<BuilderProfile />} />
 
           {/* Investor portal */}

@@ -132,9 +132,9 @@ class User(Base):
     )
 
     # Relationships
-    investments = relationship("Investment", back_populates="user", lazy="selectin")
-    kyc_documents = relationship("KycDocument", back_populates="user", lazy="selectin")
-    bank_details = relationship("BankDetail", back_populates="user", lazy="selectin")
+    investments = relationship("Investment", back_populates="user", lazy="noload")
+    kyc_documents = relationship("KycDocument", back_populates="user", lazy="noload")
+    bank_details = relationship("BankDetail", back_populates="user", lazy="noload")
 
     def __repr__(self) -> str:
         return f"<User {self.email} role={self.role}>"

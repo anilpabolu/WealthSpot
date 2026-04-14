@@ -46,6 +46,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { panSchema } from '@/lib/validators'
+import { useContent } from '@/hooks/useSiteContent'
 
 type Tab = 'profile' | 'notifications' | 'security' | 'bank' | 'documents' | 'kyc' | 'referrals'
 
@@ -76,9 +77,9 @@ export default function SettingsPage() {
       {/* Hero section */}
       <div className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">Settings</span>
-          <h1 className="page-hero-title">Mission Control</h1>
-          <p className="page-hero-subtitle">Manage your profile, security, and preferences — everything in one place.</p>
+          <span className="page-hero-badge">{useContent('settings', 'hero_badge', 'Settings')}</span>
+          <h1 className="page-hero-title">{useContent('settings', 'hero_title', 'Mission Control')}</h1>
+          <p className="page-hero-subtitle">{useContent('settings', 'hero_subtitle', 'Manage your profile, security, and preferences — everything in one place.')}</p>
         </div>
       </div>
 

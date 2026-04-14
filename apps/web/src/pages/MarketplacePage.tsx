@@ -2,7 +2,7 @@ import { MainLayout } from '@/components/layout'
 import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import FundingBar from '@/components/wealth/FundingBar'
-import { useProperties, usePropertyAutocomplete, type Property, type SearchSuggestion } from '@/hooks/useProperties'
+import { useProperties, type Property } from '@/hooks/useProperties'
 import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -10,8 +10,8 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, User2, Home, HandCoins, AlertCircle } from 'lucide-react'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, HandCoins, AlertCircle, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
@@ -158,136 +158,12 @@ function FilterSidebar() {
   )
 }
 
-const SUGGESTION_ICONS: Record<SearchSuggestion['type'], React.ElementType> = {
-  property: Home,
-  city: MapPin,
-  area: MapPin,
-  builder: Building2,
-  referrer: User2,
-}
-
-const SUGGESTION_LABELS: Record<SearchSuggestion['type'], string> = {
-  property: 'Property',
-  city: 'City',
-  area: 'Area',
-  builder: 'Builder',
-  referrer: 'Referrer',
-}
-
 /** Format number as compact INR (e.g. ₹2.5 Cr, ₹1.2 L) */
 function formatINR(num: number): string {
   if (num >= 1e7) return `₹${(num / 1e7).toFixed(1).replace(/\.0$/, '')} Cr`
   if (num >= 1e5) return `₹${(num / 1e5).toFixed(1).replace(/\.0$/, '')} L`
   if (num >= 1e3) return `₹${(num / 1e3).toFixed(1).replace(/\.0$/, '')} K`
   return `₹${num.toLocaleString('en-IN')}`
-}
-
-function SearchBar() {
-  const navigate = useNavigate()
-  const { filters, setFilter } = useMarketplaceStore()
-  const [inputValue, setInputValue] = useState(filters.search)
-  const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [showDropdown, setShowDropdown] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  const { data: suggestions = [] } = usePropertyAutocomplete(debouncedQuery)
-
-  // Debounce the autocomplete query
-  const handleInputChange = useCallback((value: string) => {
-    setInputValue(value)
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedQuery(value.trim())
-    }, 300)
-  }, [])
-
-  // Submit search to filter properties
-  const handleSearch = useCallback((text: string) => {
-    setFilter('search', text)
-    setInputValue(text)
-    setShowDropdown(false)
-  }, [setFilter])
-
-  // Handle suggestion click
-  const handleSuggestionClick = useCallback((s: SearchSuggestion) => {
-    if (s.type === 'property' && s.slug) {
-      navigate(`/marketplace/${s.slug}`)
-    } else if (s.type === 'city') {
-      setFilter('city', s.text)
-      setFilter('search', '')
-      setInputValue('')
-    } else {
-      handleSearch(s.text)
-    }
-    setShowDropdown(false)
-  }, [navigate, setFilter, handleSearch])
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  // Cleanup debounce timer
-  useEffect(() => () => clearTimeout(debounceRef.current), [])
-
-  return (
-    <div ref={wrapperRef} className="relative mb-6">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-theme-tertiary z-10" />
-      <input
-        type="search"
-        value={inputValue}
-        onChange={(e) => {
-          handleInputChange(e.target.value)
-          setShowDropdown(true)
-        }}
-        onFocus={() => { if (debouncedQuery.length >= 2) setShowDropdown(true) }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') handleSearch(inputValue.trim())
-          if (e.key === 'Escape') setShowDropdown(false)
-        }}
-        placeholder="Search by property name, city, area, builder, or referrer..."
-        className="w-full pl-11 pr-10 py-3 text-sm bg-[var(--bg-surface)] border border-theme rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-      />
-      {inputValue && (
-        <button
-          onClick={() => { setInputValue(''); handleSearch(''); setDebouncedQuery('') }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-tertiary hover:text-theme-secondary"
-          aria-label="Clear search"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
-
-      {/* Autocomplete dropdown */}
-      {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-theme rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
-          {suggestions.map((s, i) => {
-            const Icon = SUGGESTION_ICONS[s.type]
-            return (
-              <button
-                key={`${s.type}-${s.text}-${i}`}
-                onClick={() => handleSuggestionClick(s)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-theme-surface transition-colors first:rounded-t-xl last:rounded-b-xl"
-              >
-                <Icon className="h-4 w-4 text-theme-tertiary shrink-0" />
-                <span className="text-sm text-theme-primary flex-1 truncate">{s.text}</span>
-                <span className="text-[10px] uppercase tracking-wider text-theme-tertiary font-semibold shrink-0">
-                  {SUGGESTION_LABELS[s.type]}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
 }
 
 const VAULT_META: Record<string, { label: string; description: string; color: string; Icon: React.ElementType }> = {
@@ -340,6 +216,16 @@ export default function MarketplacePage() {
       queryClient.invalidateQueries({ queryKey: ['properties'] })
     } catch {
       setToast('Failed to archive property. Please try again.')
+    }
+  }
+
+  const handleDeleteOpportunity = async (opportunityId: string, title: string) => {
+    if (!window.confirm(`Archive "${title}"? It will no longer appear in listings.`)) return
+    try {
+      await apiDelete(`/opportunities/${opportunityId}`)
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] })
+    } catch {
+      setToast('Failed to archive opportunity. Please try again.')
     }
   }
 
@@ -401,24 +287,6 @@ export default function MarketplacePage() {
           <VaultComingSoonBanner vaultId={vaultParam} onExploreOther={clearVault} />
         )}
 
-        {/* Vault context banner */}
-        {vaultMeta && !isVaultDisabled && (
-          <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 mb-5 ${vaultMeta.color}`}>
-            <vaultMeta.Icon className="h-5 w-5 mt-0.5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">{vaultMeta.label}</p>
-              <p className="text-xs opacity-80 mt-0.5">{vaultMeta.description}</p>
-            </div>
-            <button
-              onClick={clearVault}
-              className="shrink-0 p-1 rounded hover:bg-black/10 transition-colors"
-              aria-label="Clear vault filter"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
         {/* Community subtype filter chips */}
         {vaultParam === 'community' && (
           <div className="flex items-center gap-2 mb-5">
@@ -438,9 +306,6 @@ export default function MarketplacePage() {
             ))}
           </div>
         )}
-
-        {/* Search bar with autocomplete */}
-        <SearchBar />
 
         <div className="flex gap-8">
           <FilterSidebar />
@@ -513,6 +378,19 @@ export default function MarketplacePage() {
                             <span className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-md capitalize">
                               {opp.vaultType} vault
                             </span>
+                            {isAdmin && (
+                              <button
+                                className="absolute bottom-3 right-3 z-10 flex items-center justify-center h-7 w-7 rounded-full bg-red-600/90 hover:bg-red-700 text-white shadow-lg transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteOpportunity(opp.id, opp.title)
+                                }}
+                                aria-label={`Archive ${opp.title}`}
+                                title="Archive this listing"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
                           </div>
                           <div className="p-4 space-y-2">
                             <h4 className="font-semibold text-theme-primary truncate group-hover:text-primary transition-colors">{opp.title}</h4>

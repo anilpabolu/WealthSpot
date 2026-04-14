@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface MetricCardProps {
@@ -10,7 +11,7 @@ export interface MetricCardProps {
   isLoading?: boolean
 }
 
-export default function MetricCard({
+export default memo(function MetricCard({
   label,
   value,
   delta,
@@ -59,4 +60,4 @@ export default function MetricCard({
       </div>
     </div>
   )
-}
+})

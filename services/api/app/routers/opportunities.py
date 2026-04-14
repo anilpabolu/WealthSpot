@@ -6,12 +6,12 @@ import math
 import re
 import uuid as _uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user, get_optional_user
+from app.middleware.auth import get_current_user, get_optional_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
 from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
@@ -52,6 +52,11 @@ async def list_opportunities(
     """List opportunities (public / marketplace-facing)."""
     query = select(Opportunity)
     count_query = select(func.count(Opportunity.id))
+
+    # Hide archived opportunities unless explicitly requested
+    if status != OpportunityStatus.ARCHIVED:
+        query = query.where(Opportunity.status != OpportunityStatus.ARCHIVED)
+        count_query = count_query.where(Opportunity.status != OpportunityStatus.ARCHIVED)
 
     if vault_type:
         query = query.where(Opportunity.vault_type == vault_type)
@@ -602,3 +607,29 @@ async def user_activities(
         }
         for a in activities
     ]
+
+
+# ── Soft-delete (archive) ────────────────────────────────────────────────────
+
+
+@router.delete("/{opportunity_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def soft_delete_opportunity(
+    opportunity_id: str,
+    user: User = Depends(require_role(UserRole.ADMIN, UserRole.SUPER_ADMIN)),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Soft-delete an opportunity tile (admin/super_admin only). Sets status to ARCHIVED."""
+    opp_uuid = _uuid.UUID(opportunity_id)
+    result = await db.execute(
+        select(Opportunity).where(Opportunity.id == opp_uuid)
+    )
+    opp = result.scalar_one_or_none()
+
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    if opp.status == OpportunityStatus.ARCHIVED:
+        raise HTTPException(status_code=400, detail="Opportunity is already archived")
+
+    opp.status = OpportunityStatus.ARCHIVED
+    await db.flush()

@@ -120,6 +120,40 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
     }
 
 
+# ── Public Vault Metrics Config ──────────────────────────────────────────────
+
+# Default metrics per vault (used when no DB config exists yet)
+_DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
+    "wealth": ["total_invested", "investor_count", "properties_listed"],
+    "opportunity": ["total_invested", "investor_count", "startups_listed"],
+    "community": ["total_invested", "investor_count", "projects_launched", "co_investors"],
+}
+
+
+@router.get("/vault-metrics-config")
+async def get_vault_metrics_config(db: AsyncSession = Depends(get_db)) -> dict[str, list[str]]:
+    """Public endpoint: returns enabled metric keys per vault."""
+    result = await db.execute(
+        select(PlatformConfig).where(
+            PlatformConfig.section == "vault_metrics",
+            PlatformConfig.is_active.is_(True),
+        )
+    )
+    configs = {c.key: c.value for c in result.scalars().all()}
+
+    def _metrics(key: str, vault: str) -> list[str]:
+        val = configs.get(key)
+        if isinstance(val, dict) and "metrics" in val:
+            return val["metrics"]
+        return _DEFAULT_VAULT_METRICS.get(vault, [])
+
+    return {
+        "wealth": _metrics("wealth_metrics", "wealth"),
+        "opportunity": _metrics("opportunity_metrics", "opportunity"),
+        "community": _metrics("community_metrics", "community"),
+    }
+
+
 # ── Platform Config CRUD ─────────────────────────────────────────────────────
 
 

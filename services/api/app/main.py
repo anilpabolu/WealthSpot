@@ -3,7 +3,10 @@ WealthSpot API – main application entry point.
 """
 
 import logging
+import time
 from contextlib import asynccontextmanager
+
+_app_start_time = time.monotonic()
 
 import sentry_sdk
 from fastapi import FastAPI, Request
@@ -129,15 +132,45 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
+from sqlalchemy.exc import IntegrityError, OperationalError
+
+
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSONResponse:
+    """Translate DB constraint violations into user-friendly 409 responses."""
+    _logger.warning("IntegrityError on %s %s: %s", request.method, request.url.path, exc.orig)
+    detail = "A record with this information already exists."
+    orig = str(exc.orig) if exc.orig else ""
+    if "unique" in orig.lower() or "duplicate" in orig.lower():
+        detail = "Duplicate entry — this record already exists."
+    elif "foreign" in orig.lower():
+        detail = "Referenced record not found."
+    elif "check" in orig.lower():
+        detail = "Value does not satisfy validation rules."
+    return JSONResponse(status_code=409, content={"detail": detail})
+
+
+@app.exception_handler(OperationalError)
+async def operational_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
+    """Handle database connectivity issues with a clear 503."""
+    _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
+    return JSONResponse(status_code=503, content={"detail": "Service temporarily unavailable. Please try again."})
+
+
 # ── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/health")
 async def health() -> dict:
-    """Deep health check – verifies database and Redis connectivity."""
-    import logging
+    """Deep health check – verifies database, Redis, and reports version/uptime."""
+    import time
 
     _logger = logging.getLogger(__name__)
-    checks: dict[str, str] = {"service": "wealthspot-api"}
+    checks: dict[str, object] = {
+        "service": "wealthspot-api",
+        "version": app.version,
+        "environment": settings.app_env,
+        "uptime_seconds": round(time.monotonic() - _app_start_time, 1),
+    }
 
     # Database check
     try:
@@ -160,6 +193,19 @@ async def health() -> dict:
     except Exception as e:
         _logger.error("Health check Redis failure: %s", e)
         checks["redis"] = "error"
+
+    # Alembic migration head
+    try:
+        from app.core.database import engine
+        from sqlalchemy import text
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text("SELECT version_num FROM alembic_version LIMIT 1")
+            )
+            row = result.first()
+            checks["migration_head"] = row[0] if row else "none"
+    except Exception:
+        checks["migration_head"] = "unknown"
 
     all_ok = checks.get("db") == "ok" and checks.get("redis") == "ok"
     checks["status"] = "ok" if all_ok else "degraded"

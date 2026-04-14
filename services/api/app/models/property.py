@@ -156,7 +156,7 @@ class Property(Base):
 
     # Relationships
     builder = relationship("Builder", back_populates="properties")
-    investments = relationship("Investment", back_populates="property", lazy="selectin")
+    investments = relationship("Investment", back_populates="property", lazy="noload")
     referrer = relationship("User", foreign_keys="[Property.referrer_user_id]", lazy="joined")
 
     @property

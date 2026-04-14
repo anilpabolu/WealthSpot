@@ -4,7 +4,7 @@ import FundingBar from './FundingBar'
 import StatusBadge from './StatusBadge'
 import type { StatusType } from './StatusBadge'
 import { Mail, MessageCircle, Trash2, ChevronLeft, ChevronRight, Play } from 'lucide-react'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { memo, useState, useEffect, useRef, useCallback } from 'react'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 export interface PropertyCardProps {
@@ -32,7 +32,7 @@ export interface PropertyCardProps {
   onDelete?: (id: string) => void
 }
 
-export default function PropertyCard({
+export default memo(function PropertyCard({
   title,
   city,
   micromarket,
@@ -336,4 +336,4 @@ export default function PropertyCard({
       )}
     </div>
   )
-}
+})

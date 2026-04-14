@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 
 export type StatusType =
@@ -37,7 +38,7 @@ const statusConfig: Record<string, { label: string; classes: string; icon: strin
 
 const fallbackConfig = { label: 'Unknown', classes: 'bg-theme-surface-hover text-theme-secondary', icon: '?' }
 
-export default function StatusBadge({ status, className }: StatusBadgeProps) {
+export default memo(function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status] ?? fallbackConfig
   return (
     <span
@@ -48,4 +49,4 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
       {config.label}
     </span>
   )
-}
+})

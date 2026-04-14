@@ -14,6 +14,7 @@ import {
   User, FileText, Camera, Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useContent } from '@/hooks/useSiteContent'
 
 const kycSchema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -142,9 +143,9 @@ export default function KycIdentityPage() {
       {/* Hero */}
       <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">KYC</span>
-          <h1 className="page-hero-title">Identity Verification</h1>
-          <p className="page-hero-subtitle">Complete KYC to start investing — takes only 5 minutes</p>
+          <span className="page-hero-badge">{useContent('kyc', 'hero_badge', 'KYC')}</span>
+          <h1 className="page-hero-title">{useContent('kyc', 'hero_title', 'Identity Verification')}</h1>
+          <p className="page-hero-subtitle">{useContent('kyc', 'hero_subtitle', 'Complete KYC to start investing \u2014 takes only 5 minutes')}</p>
         </div>
       </section>
 

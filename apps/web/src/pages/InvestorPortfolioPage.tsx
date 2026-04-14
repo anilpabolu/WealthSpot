@@ -5,6 +5,7 @@ import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { Wallet, TrendingUp, PieChart, BarChart3, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { DataTable, Badge, type Column } from '@/components/ui'
+import { useContent } from '@/hooks/useSiteContent'
 
 function SummaryMetrics() {
   const { data: summary, isLoading } = usePortfolioSummary()
@@ -155,7 +156,7 @@ function PropertiesTable() {
                 header: 'Property',
                 render: (p) => (
                   <div className="flex items-center gap-3">
-                    <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                    <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" loading="lazy" />
                     <div>
                       <p className="font-medium text-theme-primary">{p.propertyTitle}</p>
                       <p className="text-xs text-theme-secondary">{p.propertyCity} · {p.assetType}</p>
@@ -221,8 +222,8 @@ export default function InvestorPortfolioPage() {
     <PortalLayout variant="investor">
       <div className="space-y-6">
         <div>
-          <h1 className="section-title text-2xl">My Portfolio</h1>
-          <p className="text-theme-secondary mt-1">Track your real estate investments</p>
+          <h1 className="section-title text-2xl">{useContent('investor_portfolio', 'page_title', 'My Portfolio')}</h1>
+          <p className="text-theme-secondary mt-1">{useContent('investor_portfolio', 'page_subtitle', 'Track your real estate investments')}</p>
         </div>
 
         <SummaryMetrics />

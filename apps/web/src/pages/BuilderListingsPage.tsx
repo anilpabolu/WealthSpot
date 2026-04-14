@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { PlusCircle, Building2, Search, Eye, Edit, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { DataTable, Select, type Column } from '@/components/ui'
+import { useContent } from '@/hooks/useSiteContent'
 
 const MOCK_LISTINGS = [
   {
@@ -45,8 +46,8 @@ export default function BuilderListingsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="section-title text-2xl">My Listings</h1>
-            <p className="text-theme-secondary mt-1">Manage and track your property listings</p>
+            <h1 className="section-title text-2xl">{useContent('builder_listings', 'page_title', 'My Listings')}</h1>
+            <p className="text-theme-secondary mt-1">{useContent('builder_listings', 'page_subtitle', 'Manage and track your property listings')}</p>
           </div>
           <Link to="/portal/builder/listings/new" className="btn-primary inline-flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />

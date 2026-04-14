@@ -37,6 +37,7 @@ class OpportunityStatus(str, PyEnum):
     FUNDED = "funded"
     REJECTED = "rejected"
     CLOSED = "closed"
+    ARCHIVED = "archived"
 
 
 class Opportunity(Base):

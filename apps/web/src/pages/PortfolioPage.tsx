@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { EmptyState, Badge } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
@@ -255,7 +256,7 @@ function PropertyRow({ p }: { p: PortfolioProperty }) {
       <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-theme-surface text-left">
         <div className="h-10 w-10 rounded-lg bg-theme-surface-hover overflow-hidden shrink-0">
           {p.propertyImage ? (
-            <img src={p.propertyImage} alt="" className="h-full w-full object-cover" />
+            <img src={p.propertyImage} alt="" className="h-full w-full object-cover" loading="lazy" />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-theme-tertiary"><Building2 className="h-5 w-5" /></div>
           )}
@@ -510,7 +511,7 @@ export default function PortfolioPage() {
                 <section>
                   <h2 className="section-title text-xl">{sectionActivity}</h2>
                   <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-4">
-                    {activities.map((a) => (
+                    {activities.slice(0, 5).map((a) => (
                       <ActivityRow
                         key={a.id}
                         a={a}
@@ -541,6 +542,7 @@ export default function PortfolioPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 import { formatINR } from '@/lib/formatters'
 
@@ -11,7 +12,7 @@ export interface FundingBarProps {
   isLoading?: boolean
 }
 
-export default function FundingBar({
+export default memo(function FundingBar({
   raised,
   target,
   showLabels = true,
@@ -60,4 +61,4 @@ export default function FundingBar({
       )}
     </div>
   )
-}
+})

@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
+import Footer from './Footer'
 import InvestorSidebar from './InvestorSidebar'
 import BuilderSidebar from './BuilderSidebar'
 import AdminSidebar from './AdminSidebar'
@@ -36,6 +37,7 @@ export default function PortalLayout({ variant, children }: PortalLayoutProps) {
           {children ?? <Outlet />}
         </main>
       </div>
+      <Footer />
     </div>
   )
 }

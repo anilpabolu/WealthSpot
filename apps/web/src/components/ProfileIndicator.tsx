@@ -36,8 +36,6 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   const avatarSize = size === 'md' ? 'h-9 w-9' : 'h-8 w-8'
   const pct = completion?.profileCompletionPct ?? 0
   const isComplete = completion?.isComplete ?? false
-  const vaultsDone = overall ? Object.values(overall.vaults).filter((v) => v.isComplete).length : 0
-  const vaultsTotal = overall ? Object.keys(overall.vaults).length : 0
   const isFullyProfiled = overall?.isFullyProfiled ?? false
 
   // Close on outside click
@@ -184,7 +182,7 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
             )}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            {vaultsDone > 0 ? `${vaultsDone}/${vaultsTotal} Vaults` : 'Discover Your DNA'}
+            DNA
           </button>
         )}
         <div className="relative" ref={menuRef}>

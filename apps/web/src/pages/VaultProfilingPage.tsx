@@ -26,6 +26,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { useVaultQuestions, useSubmitVaultAnswers, useProfilingProgress } from '@/hooks/useProfiling'
 import type { VaultProfileQuestion, QuestionOption, SliderOptions } from '@/hooks/useProfiling'
 
@@ -808,6 +809,7 @@ export default function VaultProfilingPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

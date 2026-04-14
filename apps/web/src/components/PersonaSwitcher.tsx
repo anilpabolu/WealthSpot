@@ -22,8 +22,19 @@ export default function PersonaSwitcher() {
 
   if (!user) return null
 
-  // Don't show for admin/super_admin
-  if (['admin', 'super_admin'].includes(user.primaryRole)) return null
+  // Admin/super_admin see a badge instead of persona switcher
+  if (['admin', 'super_admin'].includes(user.primaryRole)) {
+    return (
+      <div className="px-4 py-3 border-b border-theme">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-theme-tertiary uppercase tracking-wider">Mode</span>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full border bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
+            {user.primaryRole === 'super_admin' ? 'Super Admin' : 'Admin'}
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   const switchable = (user.roles || []).filter((r) => r !== user.primaryRole && PERSONA_META[r])
   const addable = Object.keys(PERSONA_META).filter((r) => !(user.roles || []).includes(r))

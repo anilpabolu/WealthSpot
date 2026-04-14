@@ -22,6 +22,7 @@ import {
   Save,
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { useApprovals, useAllApprovals, useReviewApproval, type Approval } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approval.store'
 import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
@@ -1074,7 +1075,7 @@ export default function ApprovalsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-theme-surface">
+      <div className="min-h-screen bg-theme-surface flex flex-col">
         {/* Shared Navbar */}
         <Navbar />
 
@@ -1277,6 +1278,7 @@ export default function ApprovalsPage() {
             </>
           )}
         </main>
+        <Footer />
       </div>
 
       {/* Detail popup (from board or table click) */}

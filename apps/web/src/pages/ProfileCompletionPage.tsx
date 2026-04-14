@@ -11,6 +11,7 @@ import {
 } from '@/hooks/useProfileAPI'
 import { cn } from '@/lib/utils'
 import { Select } from '@/components/ui'
+import { useContent } from '@/hooks/useSiteContent'
 import {
   User, Heart, MapPin, ShieldCheck,
   ChevronRight, ChevronLeft, Sparkles, Trophy, Rocket,
@@ -557,8 +558,8 @@ export default function ProfileCompletionPage() {
       <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{pct}% Complete</span>
-          <h1 className="page-hero-title">Complete Your Profile</h1>
-          <p className="page-hero-subtitle">Unlock premium features, personalized recommendations & your unique referral code</p>
+          <h1 className="page-hero-title">{useContent('profile', 'hero_title', 'Complete Your Profile')}</h1>
+          <p className="page-hero-subtitle">{useContent('profile', 'hero_subtitle', 'Unlock premium features, personalized recommendations & your unique referral code')}</p>
         </div>
       </section>
 

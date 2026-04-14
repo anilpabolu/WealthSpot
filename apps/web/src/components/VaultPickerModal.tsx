@@ -97,7 +97,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="h-5 w-5 text-violet-500" />
-            <h2 className="font-display text-xl font-bold text-theme-primary">Discover Your Investor DNA</h2>
+            <h2 className="font-display text-xl font-bold text-gray-900 dark:text-white">Discover Your Investor DNA</h2>
           </div>
           <p className="text-sm text-theme-secondary">
             Select a vault to view your personality profile or start your profiling journey.
@@ -132,9 +132,9 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-theme-primary">{vault.title}</span>
+                      <span className="font-semibold text-sm text-gray-900 dark:text-white">{vault.title}</span>
                       {comingSoon && (
-                        <span className="flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-theme-tertiary bg-[var(--bg-surface-hover)] px-1.5 py-0.5 rounded-full">
+                        <span className="flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded-full">
                           <Lock className="h-2.5 w-2.5" /> Soon
                         </span>
                       )}
@@ -146,17 +146,17 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
                     </div>
                     {!comingSoon && progress && (
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-surface-hover)] overflow-hidden">
+                        <div className="flex-1 h-1.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${vault.gradient} transition-all`}
                             style={{ width: `${Math.min(progress.pct, 100)}%` }}
                           />
                         </div>
-                        <span className="text-[10px] font-bold text-theme-tertiary">{Math.round(progress.pct)}%</span>
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{Math.round(progress.pct)}%</span>
                       </div>
                     )}
                     {!comingSoon && !progress && (
-                      <p className="text-xs text-theme-tertiary mt-0.5">Not started yet</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Not started yet</p>
                     )}
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
               {vaultProgress?.isComplete ? (
                 <>
                   <div className={`rounded-xl ${selectedVault.bg} p-3 text-center`}>
-                    <p className="text-sm font-semibold text-theme-primary">
+                    <p className="text-sm font-semibold text-gray-900">
                       🎉 Your {selectedVault.title} DNA is ready!
                     </p>
                     {vaultProgress.archetype && (
@@ -213,7 +213,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
             </div>
           )}
           {!selected && (
-            <p className="text-center text-xs text-theme-tertiary">Pick a vault above to get started</p>
+            <p className="text-center text-xs text-gray-500 dark:text-gray-400">Pick a vault above to get started</p>
           )}
         </div>
       </div>

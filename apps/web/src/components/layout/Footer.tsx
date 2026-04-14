@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Shield, Twitter, Linkedin, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
+import { useUserStore } from '@/stores/user.store'
 
 const FOOTER_LINKS = {
   Platform: [
@@ -27,6 +28,25 @@ const SOCIAL_LINKS = [
 ]
 
 export default function Footer() {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+
+  if (isAuthenticated) {
+    return (
+      <footer className="bg-slate-950 text-theme-tertiary" role="contentinfo">
+        <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-theme-secondary">
+            © {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4">
+            <Link to="/legal/terms" className="text-xs text-theme-tertiary hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/legal/privacy" className="text-xs text-theme-tertiary hover:text-primary transition-colors">Privacy Policy</Link>
+          </div>
+        </div>
+      </footer>
+    )
+  }
+
   return (
     <footer className="bg-slate-950 text-theme-tertiary" role="contentinfo">
       {/* Gradient accent stripe */}

@@ -16,8 +16,9 @@ import { useOverallProgress } from '@/hooks/useProfiling'
 
 const AUTH_NAV_LINKS = [
   { label: 'Home', href: '/vaults', icon: Home },
-  { label: 'Portfolio', href: '/portfolio', icon: PieChart },
-  { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin'] },
+  { label: 'Portfolio', href: '/portfolio', icon: PieChart, roles: ['investor', 'admin', 'super_admin'] },
+  { label: 'My Listings', href: '/portal/builder/listings', icon: Sparkles, roles: ['builder', 'admin', 'super_admin'] },
+  { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin', 'admin'] },
 ] as const
 
 interface NavbarProps {
@@ -46,7 +47,9 @@ export default function Navbar(_props?: NavbarProps) {
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {
     if (!('roles' in link) || !link.roles) return true
-    return userRole && (link.roles as readonly string[]).includes(userRole)
+    const allowed = link.roles as readonly string[]
+    // Check primary role AND multi-role array
+    return (userRole && allowed.includes(userRole)) || userRoles.some((r) => allowed.includes(r))
   })
   const allNavLinks = [...filteredAuthLinks, ...extraLinks]
 

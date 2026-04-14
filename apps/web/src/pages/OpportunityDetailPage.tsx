@@ -242,7 +242,7 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
           <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((img, i) => (
               <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 ring-2 transition-all ${i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-[var(--bg-surface-hover)]'); }} />
+                <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-[var(--bg-surface-hover)]'); }} />
               </button>
           ))}
         </div>

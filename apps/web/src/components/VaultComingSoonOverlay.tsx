@@ -19,7 +19,7 @@ const VAULT_COMING_SOON: Record<
     emoji: '🤝',
     headline: 'We\'re rallying the tribe.\nSomething powerful is brewing.',
     subtext: 'Community-powered ventures need the right crowd. We\'re building the hive — you\'ll be first in.',
-    button: 'The Hive Awakens Soon!',
+    button: 'Launching Soon — Stay Tuned!',
     toast: 'Community Vault: Where crowds build kingdoms 🏰',
     toastSub: 'Great things take a village. Watch this space.',
     portfolioText: 'The community treasury is warming up. Collective power, coming soon.',

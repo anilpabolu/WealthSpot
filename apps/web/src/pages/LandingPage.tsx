@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import { usePlatformStats } from '@/hooks/usePlatformStats'
@@ -8,13 +8,10 @@ import {
   TrendingUp,
   Users,
   ArrowRight,
-  CheckCircle2,
   Zap,
   IndianRupee,
   MapPin,
   BadgeCheck,
-  Eye,
-  Lightbulb,
 } from 'lucide-react'
 
 
@@ -60,7 +57,6 @@ function HeroSection({ onRequestAccess, onExplore }: { onRequestAccess: () => vo
   const thesisHeading = useContent('landing', 'thesis_heading', 'Where access, judgment, and trust align.')
   const thesisCorebelief = useContent('landing', 'thesis_core_belief', 'The best opportunities are often recognized early, understood deeply, and pursued selectively. WealthSpot is being built around that belief.')
   const thesisPromise = useContent('landing', 'thesis_promise', 'We bring together curated deal flow, aligned investor communities, and future-facing participation models in one premium ecosystem.')
-  const thesisGold = useContent('landing', 'thesis_gold', 'The result is a platform that feels less like a listing portal and more like a private gateway into quality opportunity.')
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center">
@@ -136,12 +132,6 @@ function HeroSection({ onRequestAccess, onExplore }: { onRequestAccess: () => vo
               </p>
             </div>
 
-            {/* Gold highlight */}
-            <div className="relative z-10 rounded-xl border-2 border-[#D4AF37]/40 bg-[#D4AF37]/5 p-5">
-              <p className="text-sm text-white/80 leading-relaxed font-body">
-                {thesisGold}
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -189,103 +179,37 @@ function StatsBar() {
   )
 }
 
-/* ---------- Closing Section (Why Investors + CTA) ---------- */
-function ClosingSection({ onRequestAccess, onReviewVaults }: { onRequestAccess: () => void; onReviewVaults: () => void }) {
+/* ---------- Closing CTA ---------- */
+function ClosingSection({ onRequestAccess }: { onRequestAccess: () => void }) {
   const closingHeading = useContent('landing', 'closing_heading', 'Where access, judgment, and trust align, wealth has a better place to grow.')
   const closingBody = useContent('landing', 'closing_body', 'WealthSpot is being created for those who prefer meaningful entry, selective opportunities, and relationships that compound beyond capital alone.')
   const closingCta1 = useContent('landing', 'closing_cta_1', 'Request Access')
-  const closingCta2 = useContent('landing', 'closing_cta_2', 'Review the Vaults')
-
-  const cards = [
-    {
-      icon: Eye,
-      title: 'Why Affluent Investors Relate',
-      points: [
-        'Access to quality deal flow — not noise',
-        'Strong filters for who can participate',
-        'Alignment of values, intent & expertise',
-        'Built for those who invest with conviction',
-      ],
-    },
-    {
-      icon: Lightbulb,
-      title: 'Knowledge and Credibility',
-      points: [
-        'Conviction begins with clarity',
-        'Due-diligence reports on every opportunity',
-        'Transparent financials, timelines & risk ratings',
-        'Educational content on asset-class strategy',
-      ],
-    },
-  ]
 
   return (
-    <section className="py-16 content-section-bg relative overflow-hidden">
-      <div className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <div className="relative overflow-hidden rounded-2xl border-2 border-[#D4AF37]/30 p-10 sm:p-14">
-          {/* Gradient bg */}
-          <div className="absolute inset-0 content-card-bg rounded-2xl" />
-          {/* Shine overlay */}
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
-          {/* Ambient glow */}
-          <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-[#D4AF37]/5 blur-3xl pointer-events-none" />
-
-          {/* WhyInvestors tiles */}
-          <div className="relative z-10 grid md:grid-cols-2 gap-6">
-            {cards.map((c) => (
-              <div key={c.title} className="rounded-xl border border-theme bg-[var(--bg-surface)]/60 dark:border-white/10 dark:bg-white/[0.04] p-8">
-                <div className="flex items-center gap-2 mb-5">
-                  <c.icon className="h-5 w-5 text-[#D4AF37]" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">{c.title}</h3>
-                </div>
-                <ul className="space-y-3">
-                  {c.points.map((pt) => (
-                    <li key={pt} className="flex items-start gap-2.5 text-sm text-theme-secondary leading-relaxed font-body">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
-                      {pt}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="relative z-10 border-t border-theme dark:border-white/10 my-10" />
-
-          {/* CTA content */}
-          <div className="relative z-10 grid lg:grid-cols-[1fr_auto] gap-10 items-center">
-            <div className="space-y-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37]">Closing CTA</p>
-              <h2 className="font-hero text-2xl sm:text-3xl lg:text-4xl font-bold text-theme-primary leading-[1.2] tracking-tight">
-                {closingHeading}
-              </h2>
-              <p className="text-[15px] text-theme-secondary leading-relaxed font-body max-w-xl">
-                {closingBody}
-              </p>
-              <div className="w-12 h-px bg-[#D4AF37]/50" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]/70 leading-relaxed">
-                For investors, partners, and contributors who take<br />
-                opportunity seriously.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={onRequestAccess}
-                className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-3 text-sm inline-flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                {closingCta1}
-              </button>
-              <button
-                onClick={onReviewVaults}
-                className="px-8 py-3 text-sm rounded-2xl border border-theme dark:border-white/20 text-theme-secondary dark:text-white/80 hover:border-[#D4AF37]/40 hover:text-theme-primary dark:hover:text-white transition-colors whitespace-nowrap"
-              >
-                {closingCta2}
-              </button>
-            </div>
-          </div>
-        </div>
+    <section className="py-20 content-section-bg relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
+      </div>
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37] mb-5">Closing CTA</p>
+        <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-theme-primary leading-[1.15] tracking-tight mb-6">
+          {closingHeading}
+        </h2>
+        <p className="text-[15px] text-theme-secondary leading-relaxed font-body max-w-xl mb-8">
+          {closingBody}
+        </p>
+        <div className="w-12 h-px bg-[#D4AF37]/50 mb-6" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]/70 leading-relaxed mb-8">
+          For investors, partners, and contributors who take<br />
+          opportunity seriously.
+        </p>
+        <button
+          onClick={onRequestAccess}
+          className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-3.5 text-sm inline-flex items-center justify-center gap-2"
+        >
+          {closingCta1}
+          <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
     </section>
   )
@@ -333,7 +257,7 @@ function IntroSection() {
 }
 
 /* ---------- The Vaults ---------- */
-const TheVaultsSection = forwardRef<HTMLElement>(function TheVaultsSection(_, ref) {
+function TheVaultsSection() {
   const vaultsLabel = useContent('landing', 'vaults_label', 'The Vaults')
   const vaultsHeading = useContent('landing', 'vaults_heading', 'Three distinct entry points into the WealthSpot ecosystem.')
 
@@ -365,7 +289,7 @@ const TheVaultsSection = forwardRef<HTMLElement>(function TheVaultsSection(_, re
   ]
 
   return (
-    <section ref={ref} className="py-20 content-section-bg relative overflow-hidden">
+    <section className="py-20 content-section-bg relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
       </div>
@@ -401,7 +325,7 @@ const TheVaultsSection = forwardRef<HTMLElement>(function TheVaultsSection(_, re
       </div>
     </section>
   )
-})
+}
 
 /* ---------- Investor Identities ---------- */
 function InvestorIdentitiesSection() {
@@ -471,17 +395,12 @@ function InvestorIdentitiesSection() {
 export default function LandingPage() {
   const [showVideo, setShowVideo] = useState(false)
   const [videoMode, setVideoMode] = useState<'browse' | 'signup'>('browse')
-  const vaultsRef = useRef<HTMLElement>(null)
   const { introVideosEnabled } = useVaultConfig()
 
   const openVideo = (mode: 'browse' | 'signup') => {
     if (!introVideosEnabled) return
     setVideoMode(mode)
     setShowVideo(true)
-  }
-
-  const scrollToVaults = () => {
-    vaultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
@@ -492,9 +411,9 @@ export default function LandingPage() {
         <StatsBar />
       </div>
       <IntroSection />
-      <TheVaultsSection ref={vaultsRef} />
+      <TheVaultsSection />
       <InvestorIdentitiesSection />
-      <ClosingSection onRequestAccess={() => openVideo('signup')} onReviewVaults={scrollToVaults} />
+      <ClosingSection onRequestAccess={() => openVideo('signup')} />
 
       {/* Video overlay */}
       {introVideosEnabled && showVideo && (

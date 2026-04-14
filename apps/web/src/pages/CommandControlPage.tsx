@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { Toggle, Select, Badge } from '@/components/ui'
+import SectionErrorBoundary from '@/components/SectionErrorBoundary'
 import {
   LayoutDashboard,
   Users,
@@ -46,13 +47,17 @@ import {
   Rocket,
   Lock,
   Unlock,
+  AlertTriangle,
+  ArrowLeft,
 } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   useControlDashboard,
   useControlConfigs,
+  useCreateConfig,
   useUpdateConfig,
   useControlUsers,
   useUpdateUserRole,
@@ -111,13 +116,16 @@ import {
   useUpdateSiteContent,
   useCreateSiteContent,
   useDeleteSiteContent,
+  type SiteContentItem,
 } from '../hooks/useSiteContent'
+import { useVaultMetricsConfig } from '@/hooks/useVaultMetricsConfig'
+import { ALL_VAULT_METRICS, VAULT_METRICS_REGISTRY } from '@/pages/VaultsPage'
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites' | 'vault-metrics'
 
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
@@ -134,6 +142,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
   { id: 'site-content', label: 'Site Content (CMS)', icon: FileText, group: 'Content' },
   { id: 'vault-features', label: 'Feature Matrix', icon: Shield, group: 'Settings' },
+  { id: 'vault-metrics', label: 'Vault Metrics', icon: BarChart3, group: 'Settings' },
   { id: 'admin-invites', label: 'Admin Invites', icon: Mail, group: 'Settings' },
   { id: 'admin-settings', label: 'Admin Settings', icon: Settings, group: 'Settings' },
 ]
@@ -499,11 +508,46 @@ const VIDEO_TOGGLE_ITEMS = [
 ]
 
 function VideoContentPanel() {
-  const { data: configs, isLoading } = useControlConfigs('content')
+  const { data: configs, isLoading, isError, refetch } = useControlConfigs('content')
   const updateConfig = useUpdateConfig()
+  const createConfig = useCreateConfig()
   const queryClient = useQueryClient()
+  const [toggleError, setToggleError] = useState<string | null>(null)
+  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({})
+  const [seeding, setSeeding] = useState(false)
+  const seededRef = useRef(false)
 
-  if (isLoading) {
+  const configMap = useMemo(
+    () => new Map((configs ?? []).map((c) => [c.key, c])),
+    [configs],
+  )
+
+  // Auto-seed missing video toggle configs when data has loaded
+  useEffect(() => {
+    if (isLoading || isError || seeding || seededRef.current) return
+    const missing = VIDEO_TOGGLE_ITEMS.filter((item) => !configMap.has(item.key))
+    if (missing.length === 0) return
+    seededRef.current = true
+    setSeeding(true)
+    ;(async () => {
+      try {
+        for (const item of missing) {
+          await createConfig.mutateAsync({
+            section: 'content',
+            key: item.key,
+            value: { enabled: true },
+            description: item.description,
+          })
+        }
+      } catch {
+        // seed failed — user can still retry manually
+      } finally {
+        setSeeding(false)
+      }
+    })()
+  }, [isLoading, isError, seeding, configMap, createConfig])
+
+  if (isLoading || seeding) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-theme-tertiary" />
@@ -511,15 +555,50 @@ function VideoContentPanel() {
     )
   }
 
-  const configMap = new Map((configs ?? []).map((c) => [c.key, c]))
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 space-y-3">
+        <p className="text-sm font-semibold text-red-700 dark:text-red-400">Failed to load video configuration</p>
+        <p className="text-xs text-red-600 dark:text-red-300">The server may be unreachable, or you may not have super-admin permissions.</p>
+        <button
+          onClick={() => refetch()}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   const handleToggle = async (key: string) => {
     const cfg = configMap.get(key)
     if (!cfg) return
     const currentVal = cfg.value as Record<string, unknown>
     const isEnabled = currentVal?.enabled === true
-    await updateConfig.mutateAsync({ id: cfg.id, value: { enabled: !isEnabled } })
-    queryClient.invalidateQueries({ queryKey: ['vault-config'] })
+    const newEnabled = !isEnabled
+
+    // Optimistic update
+    setOptimistic((prev) => ({ ...prev, [key]: newEnabled }))
+    setToggleError(null)
+
+    try {
+      await updateConfig.mutateAsync({ id: cfg.id, value: { enabled: newEnabled } })
+      // Clear optimistic state — fresh data comes from query invalidation
+      setOptimistic((prev) => {
+        const next = { ...prev }
+        delete next[key]
+        return next
+      })
+      queryClient.invalidateQueries({ queryKey: ['vault-config'] })
+    } catch {
+      // Rollback optimistic state
+      setOptimistic((prev) => {
+        const next = { ...prev }
+        delete next[key]
+        return next
+      })
+      setToggleError(`Failed to toggle ${VIDEO_TOGGLE_ITEMS.find((i) => i.key === key)?.label ?? key}. Please try again.`)
+    }
   }
 
   return (
@@ -531,9 +610,16 @@ function VideoContentPanel() {
         </p>
       </div>
 
+      {toggleError && (
+        <div className="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 px-3 py-2">
+          <p className="text-xs text-red-700 dark:text-red-400">{toggleError}</p>
+        </div>
+      )}
+
       {VIDEO_TOGGLE_ITEMS.map((item) => {
         const cfg = configMap.get(item.key)
-        const isEnabled = (cfg?.value as Record<string, unknown>)?.enabled === true
+        const serverEnabled = (cfg?.value as Record<string, unknown>)?.enabled === true
+        const isEnabled = item.key in optimistic ? optimistic[item.key] : serverEnabled
         const Icon = item.icon
 
         return (
@@ -550,10 +636,10 @@ function VideoContentPanel() {
             </div>
             <button
               onClick={() => handleToggle(item.key)}
-              disabled={updateConfig.isPending}
+              disabled={updateConfig.isPending || !cfg}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${
                 isEnabled ? 'bg-primary' : 'bg-[var(--bg-surface-hover)]'
-              }`}
+              } ${!cfg ? 'opacity-50 cursor-not-allowed' : ''}`}
               role="switch"
               aria-checked={isEnabled}
               aria-label={`Toggle ${item.label}`}
@@ -1021,7 +1107,7 @@ const PIPELINE_COLORS: Record<string, { bg: string; border: string; text: string
   deal_completed: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', dot: 'bg-green-600' },
 }
 
-function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoiId: string, to: string) => void; onShowUser: (user: EOIUser, label: string) => void }) {
+function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdvance: (eoiId: string, to: string) => void; onRevert: (eoiId: string, to: string) => void; onShowUser: (user: EOIUser, label: string) => void }) {
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
   const fmtDateTime = (iso: string) =>
@@ -1031,15 +1117,29 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
   const nextStatus = currentIdx >= 0 && currentIdx < EOI_PIPELINE_STATUSES.length - 1
     ? EOI_PIPELINE_STATUSES[currentIdx + 1]
     : null
+  const prevStatus = currentIdx > 0
+    ? EOI_PIPELINE_STATUSES[currentIdx - 1]
+    : null
 
   return (
     <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 shadow-sm p-4 space-y-3">
+      {/* Move back button */}
+      {prevStatus && (
+        <button
+          onClick={() => onRevert(eoi.id, prevStatus)}
+          className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Move back to {EOI_STATUS_LABELS[prevStatus] ?? prevStatus}
+        </button>
+      )}
+
       {/* User info */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
           <User className="h-4 w-4 text-primary" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-theme-primary truncate">{eoi.user?.fullName ?? 'Unknown'}</p>
           <p className="text-[11px] text-theme-tertiary">{fmtDate(eoi.createdAt)}</p>
         </div>
@@ -1308,16 +1408,37 @@ function EOIPipelineTab() {
   const updateStatus = useUpdateEOIStatus()
   const [search, setSearch] = useState('')
   const [modalUser, setModalUser] = useState<{ user: EOIUser; label: string } | null>(null)
+  const [pendingAdvance, setPendingAdvance] = useState<{ eoiId: string; to: string; userName: string; fromLabel: string; toLabel: string; direction: 'forward' | 'back' } | null>(null)
 
   const handleAdvance = (eoiId: string, to: string) => {
-    updateStatus.mutate({ eoiId, newStatus: to })
+    const eoi = (allEOIs ?? []).find((e) => e.id === eoiId)
+    const currentIdx = EOI_PIPELINE_STATUSES.indexOf((eoi?.status ?? 'submitted') as typeof EOI_PIPELINE_STATUSES[number])
+    const fromLabel = EOI_STATUS_LABELS[EOI_PIPELINE_STATUSES[currentIdx] ?? 'submitted'] ?? eoi?.status ?? 'Unknown'
+    const toLabel = EOI_STATUS_LABELS[to] ?? to
+    const userName = eoi?.user?.fullName ?? 'Unknown'
+    setPendingAdvance({ eoiId, to, userName, fromLabel, toLabel, direction: 'forward' })
+  }
+
+  const handleRevert = (eoiId: string, to: string) => {
+    const eoi = (allEOIs ?? []).find((e) => e.id === eoiId)
+    const currentIdx = EOI_PIPELINE_STATUSES.indexOf((eoi?.status ?? 'submitted') as typeof EOI_PIPELINE_STATUSES[number])
+    const fromLabel = EOI_STATUS_LABELS[EOI_PIPELINE_STATUSES[currentIdx] ?? 'submitted'] ?? eoi?.status ?? 'Unknown'
+    const toLabel = EOI_STATUS_LABELS[to] ?? to
+    const userName = eoi?.user?.fullName ?? 'Unknown'
+    setPendingAdvance({ eoiId, to, userName, fromLabel, toLabel, direction: 'back' })
+  }
+
+  const confirmAdvance = () => {
+    if (!pendingAdvance) return
+    updateStatus.mutate({ eoiId: pendingAdvance.eoiId, newStatus: pendingAdvance.to })
+    setPendingAdvance(null)
   }
 
   const handleShowUser = useCallback((user: EOIUser, label: string) => {
     setModalUser({ user, label })
   }, [])
 
-  const filtered = (allEOIs ?? []).filter((e) => {
+  const filtered = useMemo(() => (allEOIs ?? []).filter((e) => {
     if (!search) return true
     const q = search.toLowerCase()
     return (
@@ -1325,12 +1446,12 @@ function EOIPipelineTab() {
       (e.opportunity?.title ?? '').toLowerCase().includes(q) ||
       (e.referrer?.fullName ?? '').toLowerCase().includes(q)
     )
-  })
+  }), [allEOIs, search])
 
-  const grouped = EOI_PIPELINE_STATUSES.reduce<Record<string, EOIItem[]>>((acc, status) => {
+  const grouped = useMemo(() => EOI_PIPELINE_STATUSES.reduce<Record<string, EOIItem[]>>((acc, status) => {
     acc[status] = filtered.filter((e) => e.status === status)
     return acc
-  }, {})
+  }, {}), [filtered])
 
   return (
     <div className="space-y-6">
@@ -1376,13 +1497,85 @@ function EOIPipelineTab() {
                     <div className="text-center py-8 text-theme-tertiary text-xs">No items</div>
                   ) : (
                     items.map((eoi) => (
-                      <EOICard key={eoi.id} eoi={eoi} onAdvance={handleAdvance} onShowUser={handleShowUser} />
+                      <EOICard key={eoi.id} eoi={eoi} onAdvance={handleAdvance} onRevert={handleRevert} onShowUser={handleShowUser} />
                     ))
                   )}
                 </div>
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Stage Advance Confirmation Modal */}
+      {pendingAdvance && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPendingAdvance(null)}>
+          <div
+            className="bg-[var(--bg-card)] border border-theme rounded-2xl shadow-2xl w-full max-w-sm mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
+                  pendingAdvance.direction === 'back'
+                    ? 'bg-red-100 dark:bg-red-900/40'
+                    : 'bg-amber-100 dark:bg-amber-900/40'
+                }`}>
+                  <AlertTriangle className={`h-5 w-5 ${
+                    pendingAdvance.direction === 'back'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-theme-primary">
+                    {pendingAdvance.direction === 'back' ? 'Revert Stage?' : 'Confirm Stage Change'}
+                  </h3>
+                  <p className="text-xs text-theme-tertiary mt-0.5">
+                    {pendingAdvance.direction === 'back'
+                      ? 'This will move the EOI back to a previous stage.'
+                      : 'This will move the EOI to the next stage.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-theme-surface border border-theme p-3 space-y-2">
+                <p className="text-sm text-theme-secondary">
+                  <span className="font-semibold text-theme-primary">{pendingAdvance.userName}</span>
+                </p>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="px-2 py-1 rounded-md bg-[var(--bg-surface-hover)] text-theme-secondary font-medium">{pendingAdvance.fromLabel}</span>
+                  {pendingAdvance.direction === 'back'
+                    ? <ArrowLeft className="h-3.5 w-3.5 text-red-400" />
+                    : <ArrowRight className="h-3.5 w-3.5 text-theme-tertiary" />}
+                  <span className={`px-2 py-1 rounded-md font-semibold ${
+                    pendingAdvance.direction === 'back'
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                      : 'bg-primary/10 text-primary'
+                  }`}>{pendingAdvance.toLabel}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={() => setPendingAdvance(null)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-theme text-theme-secondary hover:bg-[var(--bg-surface-hover)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmAdvance}
+                  className={`flex-1 px-4 py-2.5 text-sm font-bold rounded-lg text-white transition-colors ${
+                    pendingAdvance.direction === 'back'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
+                >
+                  {pendingAdvance.direction === 'back' ? 'Revert' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1403,16 +1596,18 @@ function ReferralTrackingTab() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
-  const filtered = (summaries ?? []).filter(
+  const filtered = useMemo(() => (summaries ?? []).filter(
     (s) =>
       s.referrerName.toLowerCase().includes(search.toLowerCase()) ||
       s.referrerEmail.toLowerCase().includes(search.toLowerCase()),
-  )
+  ), [summaries, search])
 
-  const totalReferred = filtered.reduce((n, s) => n + s.totalReferrals, 0)
-  const totalRewarded = filtered.reduce((n, s) => n + s.successfulReferrals, 0)
-  const totalEarned = filtered.reduce((n, s) => n + s.totalRewardEarned, 0)
-  const totalPending = filtered.reduce((n, s) => n + s.pendingReferrals, 0)
+  const { totalReferred, totalRewarded, totalEarned, totalPending } = useMemo(() => ({
+    totalReferred: filtered.reduce((n, s) => n + s.totalReferrals, 0),
+    totalRewarded: filtered.reduce((n, s) => n + s.successfulReferrals, 0),
+    totalEarned: filtered.reduce((n, s) => n + s.totalRewardEarned, 0),
+    totalPending: filtered.reduce((n, s) => n + s.pendingReferrals, 0),
+  }), [filtered])
 
   return (
     <div className="space-y-6">
@@ -1517,13 +1712,13 @@ function VideoManagementTab() {
 
   const pages = pagesMeta?.pages ?? []
   const sectionsByPage = pagesMeta?.sections ?? {}
-  const filtered = (videos ?? []).filter((v) => !filterPage || v.page === filterPage)
+  const filtered = useMemo(() => (videos ?? []).filter((v) => !filterPage || v.page === filterPage), [videos, filterPage])
 
   // Group by page for display
-  const grouped = filtered.reduce<Record<string, AppVideo[]>>((acc, v) => {
+  const grouped = useMemo(() => filtered.reduce<Record<string, AppVideo[]>>((acc, v) => {
     ;(acc[v.page] ??= []).push(v)
     return acc
-  }, {})
+  }, {}), [filtered])
 
   const pageLabel = (p: string) => pages.find((pg) => pg.value === p)?.label ?? p
   const sectionLabel = (page: string, tag: string) =>
@@ -1902,7 +2097,7 @@ function MediaManagementTab() {
           value={selectedOpp}
           onChange={setSelectedOpp}
           placeholder="Select an opportunity…"
-          options={(Array.isArray(opportunities) ? opportunities : []).map((o: any) => ({ value: o.id, label: o.title }))}
+          options={(Array.isArray(opportunities) ? opportunities : []).map((o) => ({ value: o.id, label: o.title }))}
           searchable
           className="max-w-md"
         />
@@ -2010,27 +2205,25 @@ function SiteContentTab() {
   const pageCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const c of allContent || []) {
-      const p = (c as any).page || 'unknown'
-      counts[p] = (counts[p] || 0) + 1
+      counts[c.page || 'unknown'] = (counts[c.page || 'unknown'] || 0) + 1
     }
     return counts
   }, [allContent])
 
   const pageNames = useMemo(() => Object.keys(pageCounts).sort(), [pageCounts])
 
-  const items = (allContent || []).filter((c: any) => {
+  const items = useMemo(() => (allContent || []).filter((c) => {
     if (activePage && c.page !== activePage) return false
     if (!searchTerm) return true
     const q = searchTerm.toLowerCase()
     return c.page?.toLowerCase().includes(q) || c.section_tag?.toLowerCase().includes(q) || c.value?.toLowerCase().includes(q)
-  })
+  }), [allContent, activePage, searchTerm])
 
-  const grouped = items.reduce((acc: Record<string, any[]>, item: any) => {
+  const grouped = useMemo(() => items.reduce<Record<string, SiteContentItem[]>>((acc, item) => {
     const page = item.page || 'unknown'
-    if (!acc[page]) acc[page] = []
-    acc[page].push(item)
+    ;(acc[page] ??= []).push(item)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {}), [items])
 
   return (
     <div className="space-y-6">
@@ -2128,10 +2321,10 @@ function SiteContentTab() {
           <div key={page} className="space-y-2">
             <h3 className="font-semibold text-sm text-primary uppercase tracking-wide flex items-center gap-2">
               <FileText className="h-4 w-4" /> {page}
-              <span className="text-theme-tertiary font-normal">({(pageItems as any[]).length} entries)</span>
+              <span className="text-theme-tertiary font-normal">({pageItems.length} entries)</span>
             </h3>
             <div className="divide-y bg-[var(--bg-surface)] rounded-lg border shadow-sm">
-              {(pageItems as any[]).map((item: any) => (
+              {pageItems.map((item) => (
                 <div key={item.id} className="px-4 py-3 flex items-start gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -2393,13 +2586,118 @@ function AdminInvitesTab() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Vault Metrics Config Tab                                           */
+/* ------------------------------------------------------------------ */
+
+const VAULT_LABELS: Record<string, string> = { wealth: 'Wealth Vault', opportunity: 'Opportunity Vault', community: 'Community Vault' }
+
+function VaultMetricsTab() {
+  const { data: metricsConfig, isLoading: metricsLoading } = useVaultMetricsConfig()
+  const { data: allConfigs, isLoading: configsLoading } = useControlConfigs('vault_metrics')
+  const updateConfig = useUpdateConfig()
+  const queryClient = useQueryClient()
+  const [localState, setLocalState] = useState<Record<string, Set<string>>>({})
+  const [saving, setSaving] = useState(false)
+
+  // Initialise local state from fetched config
+  useEffect(() => {
+    if (metricsConfig && Object.keys(localState).length === 0) {
+      const init: Record<string, Set<string>> = {}
+      for (const vaultId of Object.keys(ALL_VAULT_METRICS)) {
+        init[vaultId] = new Set(metricsConfig[vaultId] ?? ALL_VAULT_METRICS[vaultId])
+      }
+      setLocalState(init)
+    }
+  }, [metricsConfig]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (metricsLoading || configsLoading) return <CenteredLoader />
+
+  const toggle = (vaultId: string, metric: string) => {
+    setLocalState((prev) => {
+      const updated = { ...prev }
+      const set = new Set(updated[vaultId] ?? [])
+      if (set.has(metric)) set.delete(metric)
+      else set.add(metric)
+      updated[vaultId] = set
+      return updated
+    })
+  }
+
+  const handleSave = async () => {
+    if (!allConfigs) return
+    setSaving(true)
+    try {
+      const keyMap: Record<string, string> = { wealth: 'wealth_metrics', opportunity: 'opportunity_metrics', community: 'community_metrics' }
+      for (const vaultId of Object.keys(ALL_VAULT_METRICS)) {
+        const config = allConfigs.find((c) => c.key === keyMap[vaultId])
+        if (!config) continue
+        const metrics = ALL_VAULT_METRICS[vaultId]?.filter((m) => localState[vaultId]?.has(m)) ?? []
+        await updateConfig.mutateAsync({ id: config.id, value: { metrics } })
+      }
+      queryClient.invalidateQueries({ queryKey: ['vault-metrics-config'] })
+      queryClient.invalidateQueries({ queryKey: ['control-centre', 'configs'] })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold text-theme-primary">Vault Metrics Configuration</h2>
+          <p className="text-sm text-theme-secondary mt-1">Choose which metrics appear on each vault card. Changes take effect immediately.</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Save Changes
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {Object.entries(ALL_VAULT_METRICS).map(([vaultId, metricKeys]) => (
+          <div key={vaultId} className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 p-5 space-y-4">
+            <h3 className="font-display text-base font-bold text-theme-primary">{VAULT_LABELS[vaultId] ?? vaultId}</h3>
+            <div className="space-y-2">
+              {metricKeys.map((key) => {
+                const def = VAULT_METRICS_REGISTRY[key]
+                if (!def) return null
+                const checked = localState[vaultId]?.has(key) ?? false
+                return (
+                  <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(vaultId, key)}
+                      className="h-4 w-4 rounded border-theme accent-primary"
+                    />
+                    <span className="text-sm text-theme-secondary group-hover:text-theme-primary transition-colors">{def.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function CommandControlPage() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard')
   const { videoManagementEnabled } = useVaultConfig()
-  const visibleSections = videoManagementEnabled ? SECTIONS : SECTIONS.filter((s) => s.id !== 'content')
+  const visibleSections = useMemo(
+    () => videoManagementEnabled ? SECTIONS : SECTIONS.filter((s) => s.id !== 'content'),
+    [videoManagementEnabled],
+  )
 
   return (
     <div className="min-h-screen bg-theme-surface flex flex-col">
@@ -2472,19 +2770,28 @@ export default function CommandControlPage() {
 
         {/* Content */}
         <main className="flex-1 p-6 sm:p-8 bg-theme-surface min-w-0">
-          {activeSection === 'dashboard' && <DashboardTab />}
-          {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
-          {activeSection === 'users' && <UsersTab />}
-          {activeSection === 'admin-settings' && <AdminSettingsTab />}
-          {activeSection === 'content' && videoManagementEnabled && <VideoManagementTab />}
-          {activeSection === 'builder-questions' && <BuilderQuestionsTab />}
-          {activeSection === 'comm-mapping' && <CommMappingTab />}
-          {activeSection === 'referral-tracking' && <ReferralTrackingTab />}
-          {activeSection === 'eoi-pipeline' && <EOIPipelineTab />}
-          {activeSection === 'media-management' && <MediaManagementTab />}
-          {activeSection === 'site-content' && <SiteContentTab />}
-          {activeSection === 'vault-features' && <VaultFeatureMatrixTab />}
-          {activeSection === 'admin-invites' && <AdminInvitesTab />}
+          <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
+            {activeSection === 'dashboard' && <DashboardTab />}
+          </SectionErrorBoundary>
+          <SectionErrorBoundary fallbackTitle="Analytics failed to load">
+            {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
+          </SectionErrorBoundary>
+          <SectionErrorBoundary fallbackTitle="Users section failed to load">
+            {activeSection === 'users' && <UsersTab />}
+            {activeSection === 'admin-settings' && <AdminSettingsTab />}
+          </SectionErrorBoundary>
+          <SectionErrorBoundary fallbackTitle="Content section failed to load">
+            {activeSection === 'content' && videoManagementEnabled && <VideoManagementTab />}
+            {activeSection === 'builder-questions' && <BuilderQuestionsTab />}
+            {activeSection === 'comm-mapping' && <CommMappingTab />}
+            {activeSection === 'referral-tracking' && <ReferralTrackingTab />}
+            {activeSection === 'eoi-pipeline' && <EOIPipelineTab />}
+            {activeSection === 'media-management' && <MediaManagementTab />}
+            {activeSection === 'site-content' && <SiteContentTab />}
+            {activeSection === 'vault-features' && <VaultFeatureMatrixTab />}
+            {activeSection === 'vault-metrics' && <VaultMetricsTab />}
+            {activeSection === 'admin-invites' && <AdminInvitesTab />}
+          </SectionErrorBoundary>
           {activeSection === 'answer-questions' && (
             <div className="space-y-4">
               <h2 className="font-display text-xl font-bold text-theme-primary">Answer Questions</h2>
@@ -2500,6 +2807,7 @@ export default function CommandControlPage() {
           )}
         </main>
       </div>
+      <Footer />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { apiPost } from '@/lib/api'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 
 type Status = 'loading' | 'success' | 'error'
 
@@ -69,6 +70,7 @@ export default function InviteAcceptPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
