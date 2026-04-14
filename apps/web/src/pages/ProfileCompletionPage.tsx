@@ -50,7 +50,7 @@ function ChipSelect({ options, selected, onChange, multiple = true }: {
             'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200',
             selected.includes(o.value)
               ? 'border-primary bg-primary/10 text-primary shadow-sm shadow-primary/20 scale-105'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-stone-50'
+              : 'border-theme bg-[var(--bg-surface)] text-theme-secondary hover:border-theme hover:bg-theme-surface'
           )}
         >
           {o.icon && <span>{o.icon}</span>}
@@ -114,34 +114,34 @@ function Step1({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-gray-500 text-sm">Let's start with the basics — this helps us personalize your experience 🎯</p>
+        <p className="text-theme-secondary text-sm">Let's start with the basics — this helps us personalize your experience 🎯</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Full Name</label>
           <input type="text" value={(data.full_name as string) || ''} placeholder="e.g. Anil Kumar"
             onChange={e => onChange({ ...data, full_name: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Date of Birth</label>
           <input type="date" value={(data.date_of_birth as string) || ''}
             onChange={e => onChange({ ...data, date_of_birth: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-2">Gender</label>
         <ChipSelect options={GENDER_OPTIONS} selected={data.gender ? [data.gender as string] : []} onChange={v => onChange({ ...data, gender: v[0] ?? null })} multiple={false} />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Occupation</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Occupation</label>
         <input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
           onChange={e => onChange({ ...data, occupation: e.target.value })}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
       </div>
     </div>
   )
@@ -151,14 +151,14 @@ function Step2({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-gray-500 text-sm">Pick what gets you excited — we'll curate opportunities just for you ✨</p>
+        <p className="text-theme-secondary text-sm">Pick what gets you excited — we'll curate opportunities just for you ✨</p>
       </div>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">🏗️ Asset Types I'm Interested In</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-2">🏗️ Asset Types I'm Interested In</label>
         <ChipSelect options={INTEREST_OPTIONS} selected={(data.interests as string[]) || []} onChange={v => onChange({ ...data, interests: v })} />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">📍 Preferred Cities</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-2">📍 Preferred Cities</label>
         <ChipSelect options={CITY_OPTIONS} selected={(data.preferred_cities as string[]) || []} onChange={v => onChange({ ...data, preferred_cities: v })} />
       </div>
     </div>
@@ -169,29 +169,29 @@ function Step3({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-gray-500 text-sm">We need your address for legal compliance and document delivery 🏠</p>
+        <p className="text-theme-secondary text-sm">We need your address for legal compliance and document delivery 🏠</p>
       </div>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address Line 1</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 1</label>
         <input type="text" value={(data.address_line1 as string) || ''} placeholder="House/Flat No, Building Name"
           onChange={e => onChange({ ...data, address_line1: e.target.value })}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address Line 2 (optional)</label>
+        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 2 (optional)</label>
         <input type="text" value={(data.address_line2 as string) || ''} placeholder="Street, Locality"
           onChange={e => onChange({ ...data, address_line2: e.target.value })}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">City</label>
           <input type="text" value={(data.city as string) || ''} placeholder="e.g. Hyderabad"
             onChange={e => onChange({ ...data, city: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">State</label>
           <Select value={(data.state as string) || ''}
             onChange={v => onChange({ ...data, state: v })}
             options={[
@@ -203,15 +203,15 @@ function Step3({ data, onChange }: StepProps) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pincode</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Pincode</label>
           <input type="text" value={(data.pincode as string) || ''} placeholder="e.g. 500001" maxLength={6}
             onChange={e => onChange({ ...data, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Country</label>
+          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Country</label>
           <input type="text" value={(data.country as string) || 'India'} readOnly
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-stone-50 text-gray-500" />
+            className="w-full px-3 py-2.5 border border-theme rounded-xl bg-theme-surface text-theme-secondary" />
         </div>
       </div>
     </div>
@@ -278,21 +278,21 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-gray-500 text-sm">One last step — verify your contact details to secure your account 🔐</p>
+        <p className="text-theme-secondary text-sm">One last step — verify your contact details to secure your account 🔐</p>
       </div>
 
       {/* Email Verification */}
-      <div className={cn('border-2 rounded-2xl p-5 transition-all', emailVerified ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white')}>
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', emailVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30/50' : 'border-theme bg-[var(--bg-surface)]')}>
         <div className="flex items-center gap-3 mb-3">
           <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', emailVerified ? 'bg-emerald-100' : 'bg-blue-100')}>
-            <Mail className={cn('h-5 w-5', emailVerified ? 'text-emerald-600' : 'text-blue-600')} />
+            <Mail className={cn('h-5 w-5', emailVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400')} />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-gray-900">Email Verification</h4>
-            <p className="text-xs text-gray-500">{email}</p>
+            <h4 className="font-semibold text-theme-primary">Email Verification</h4>
+            <p className="text-xs text-theme-secondary">{email}</p>
           </div>
           {emailVerified && (
-            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 px-2.5 py-1 rounded-full">
               <Check className="h-3.5 w-3.5" /> Verified
             </span>
           )}
@@ -309,18 +309,18 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
                 <div className="flex gap-2">
                   <input type="text" value={emailOtp} maxLength={6} placeholder="Enter 6-digit OTP"
                     onChange={e => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-blue-300 focus:border-blue-500" />
+                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-blue-300 focus:border-blue-500" />
                   <button onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyOtp.isPending}
                     className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50">
                     {verifyOtp.isPending ? '...' : 'Verify'}
                   </button>
                 </div>
                 <button onClick={handleSendEmail} disabled={emailCountdown > 0 || sendOtp.isPending}
-                  className="text-xs text-gray-500 hover:text-primary disabled:opacity-50">
+                  className="text-xs text-theme-secondary hover:text-primary disabled:opacity-50">
                   {emailCountdown > 0 ? `Resend in ${emailCountdown}s` : 'Resend code'}
                 </button>
                 {emailDevHint && (
-                  <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1">{emailDevHint}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg px-2 py-1">{emailDevHint}</p>
                 )}
               </>
             )}
@@ -329,17 +329,17 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
       </div>
 
       {/* Phone Verification */}
-      <div className={cn('border-2 rounded-2xl p-5 transition-all', phoneVerified ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white')}>
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', phoneVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30/50' : 'border-theme bg-[var(--bg-surface)]')}>
         <div className="flex items-center gap-3 mb-3">
           <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', phoneVerified ? 'bg-emerald-100' : 'bg-purple-100')}>
-            <Phone className={cn('h-5 w-5', phoneVerified ? 'text-emerald-600' : 'text-purple-600')} />
+            <Phone className={cn('h-5 w-5', phoneVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400')} />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-gray-900">Phone Verification</h4>
-            <p className="text-xs text-gray-500">{phone || 'No phone number added yet'}</p>
+            <h4 className="font-semibold text-theme-primary">Phone Verification</h4>
+            <p className="text-xs text-theme-secondary">{phone || 'No phone number added yet'}</p>
           </div>
           {phoneVerified && (
-            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 px-2.5 py-1 rounded-full">
               <Check className="h-3.5 w-3.5" /> Verified
             </span>
           )}
@@ -348,13 +348,13 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
           <div className="space-y-3">
             {!phoneSaved ? (
               <div className="space-y-2">
-                <p className="text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 rounded-lg px-3 py-2">
                   📱 Add your mobile number to receive verification OTP
                 </p>
                 <div className="flex gap-2">
                   <input type="tel" value={phoneInput} placeholder="+91 9876543210"
                     onChange={e => setPhoneInput(e.target.value.replace(/[^\d+\s]/g, '').slice(0, 15))}
-                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
+                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
                   <button onClick={handleSavePhone} disabled={phoneInput.replace(/\s/g, '').length < 10 || updatePhone.isPending}
                     className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
                     {updatePhone.isPending ? '...' : 'Save'}
@@ -371,18 +371,18 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
                 <div className="flex gap-2">
                   <input type="text" value={phoneOtp} maxLength={6} placeholder="Enter 6-digit OTP"
                     onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
+                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
                   <button onClick={handleVerifyPhone} disabled={phoneOtp.length !== 6 || verifyOtp.isPending}
                     className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
                     {verifyOtp.isPending ? '...' : 'Verify'}
                   </button>
                 </div>
                 <button onClick={handleSendPhone} disabled={phoneCountdown > 0 || sendOtp.isPending}
-                  className="text-xs text-gray-500 hover:text-primary disabled:opacity-50">
+                  className="text-xs text-theme-secondary hover:text-primary disabled:opacity-50">
                   {phoneCountdown > 0 ? `Resend in ${phoneCountdown}s` : 'Resend code'}
                 </button>
                 {phoneDevHint && (
-                  <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1">{phoneDevHint}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg px-2 py-1">{phoneDevHint}</p>
                 )}
               </>
             )}
@@ -418,29 +418,29 @@ function CelebrationScreen({ referralCode }: { referralCode: string | null }) {
       </div>
 
       <div>
-        <h2 className="font-display text-3xl font-bold text-gray-900">You're 100% Verified! 🎉</h2>
-        <p className="text-gray-500 mt-2 max-w-sm mx-auto">Welcome to the WealthSpot community. Your profile is fully complete and verified.</p>
+        <h2 className="font-display text-3xl font-bold text-theme-primary">You're 100% Verified! 🎉</h2>
+        <p className="text-theme-secondary mt-2 max-w-sm mx-auto">Welcome to the WealthSpot community. Your profile is fully complete and verified.</p>
       </div>
 
-      <div className="inline-flex items-center gap-2 bg-emerald-50 border-2 border-emerald-200 rounded-full px-6 py-3">
-        <ShieldCheck className="h-5 w-5 text-emerald-600" />
-        <span className="font-bold text-emerald-700">Fully Verified Investor</span>
+      <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 border-2 border-emerald-200 dark:border-emerald-700/40 rounded-full px-6 py-3">
+        <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+        <span className="font-bold text-emerald-700 dark:text-emerald-300">Fully Verified Investor</span>
       </div>
 
       {referralCode && (
         <div className="bg-gradient-to-r from-primary/5 to-purple-50 border-2 border-primary/20 rounded-2xl p-6 max-w-sm mx-auto">
           <div className="flex items-center gap-2 justify-center mb-3">
             <Gift className="h-5 w-5 text-primary" />
-            <h3 className="font-bold text-gray-900">Your Referral Code</h3>
+            <h3 className="font-bold text-theme-primary">Your Referral Code</h3>
           </div>
-          <div className="bg-white rounded-xl px-4 py-3 font-mono text-2xl font-bold text-primary tracking-wider border border-primary/20 mb-3">
+          <div className="bg-[var(--bg-surface)] rounded-xl px-4 py-3 font-mono text-2xl font-bold text-primary tracking-wider border border-primary/20 mb-3">
             {referralCode}
           </div>
           <button onClick={handleCopy}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition">
             {copied ? <><CheckCheck className="h-4 w-4" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Referral Link</>}
           </button>
-          <p className="text-xs text-gray-500 mt-2">Share with friends and earn rewards</p>
+          <p className="text-xs text-theme-secondary mt-2">Share with friends and earn rewards</p>
         </div>
       )}
 
@@ -450,7 +450,7 @@ function CelebrationScreen({ referralCode }: { referralCode: string | null }) {
           <Rocket className="h-4 w-4" /> Explore Opportunities
         </button>
         <button onClick={() => navigate('/settings')}
-          className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-stone-50 transition">
+          className="px-6 py-3 border-2 border-theme text-theme-primary rounded-xl font-semibold hover:bg-theme-surface transition">
           View Settings
         </button>
       </div>
@@ -532,7 +532,7 @@ export default function ProfileCompletionPage() {
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="h-12 w-12 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-500 animate-pulse">Loading your profile...</p>
+            <p className="text-theme-secondary animate-pulse">Loading your profile...</p>
           </div>
         </div>
       </MainLayout>
@@ -565,7 +565,7 @@ export default function ProfileCompletionPage() {
       <div className="page-section">
         <div className="page-section-container max-w-3xl mx-auto">
         {/* Back link */}
-        <Link to="/vaults" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-4">
+        <Link to="/vaults" className="inline-flex items-center gap-1.5 text-sm text-theme-tertiary hover:text-theme-secondary mb-4">
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
 
@@ -585,21 +585,21 @@ export default function ProfileCompletionPage() {
                   )}>
                     {isDone && !isCurrent ? <Check className="h-5 w-5" /> : <SIcon className="h-5 w-5" />}
                   </div>
-                  <span className={cn('text-[10px] font-semibold hidden sm:block', isCurrent ? 'text-gray-900' : 'text-gray-400')}>
+                  <span className={cn('text-[10px] font-semibold hidden sm:block', isCurrent ? 'text-theme-primary' : 'text-theme-tertiary')}>
                     {s.title}
                   </span>
                 </button>
               )
             })}
           </div>
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden -mt-1">
+          <div className="h-1.5 bg-theme-surface-hover rounded-full overflow-hidden -mt-1">
             <div className="h-full bg-gradient-to-r from-primary to-purple-600 rounded-full transition-all duration-500"
               style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
           </div>
         </div>
 
         {/* Step content card */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[var(--bg-surface)] border border-theme rounded-2xl shadow-sm overflow-hidden">
           {currentStep && (
             <div className={cn('bg-gradient-to-r px-6 py-4 text-white', currentStep.color)}>
               <div className="flex items-center gap-3">
@@ -630,9 +630,9 @@ export default function ProfileCompletionPage() {
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between bg-stone-50/50">
+          <div className="border-t border-theme px-6 py-4 flex items-center justify-between bg-theme-surface/50">
             <button onClick={handlePrev} disabled={step === 1}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-30 transition">
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-theme-secondary hover:text-theme-primary disabled:opacity-30 transition">
               <ChevronLeft className="h-4 w-4" /> Previous
             </button>
             {step < 4 ? (

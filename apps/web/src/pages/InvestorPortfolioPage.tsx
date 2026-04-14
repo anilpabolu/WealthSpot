@@ -58,18 +58,18 @@ function AssetAllocation() {
 
   return (
     <div className="card p-6">
-      <h3 className="font-display text-lg font-bold text-gray-900 mb-4">Asset Allocation</h3>
+      <h3 className="font-display text-lg font-bold text-theme-primary mb-4">Asset Allocation</h3>
       {allocation.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-4">No data</p>
+        <p className="text-sm text-theme-tertiary text-center py-4">No data</p>
       ) : (
         <div className="space-y-3">
           {allocation.map((a) => (
             <div key={a.type}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-gray-700 capitalize">{a.type.replace('_', ' ')}</span>
-                <span className="text-sm font-mono font-semibold text-gray-900">{formatPercent(a.percentage)}</span>
+                <span className="text-sm text-theme-primary capitalize">{a.type.replace('_', ' ')}</span>
+                <span className="text-sm font-mono font-semibold text-theme-primary">{formatPercent(a.percentage)}</span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-theme-surface-hover rounded-full overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${a.percentage}%` }} />
               </div>
             </div>
@@ -97,17 +97,17 @@ function CityDistribution() {
 
   return (
     <div className="card p-6">
-      <h3 className="font-display text-lg font-bold text-gray-900 mb-4">City Distribution</h3>
+      <h3 className="font-display text-lg font-bold text-theme-primary mb-4">City Distribution</h3>
       {cities.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-4">No data</p>
+        <p className="text-sm text-theme-tertiary text-center py-4">No data</p>
       ) : (
         <div className="space-y-3">
           {cities.map((c) => (
-            <div key={c.city} className="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50">
-              <span className="text-sm text-gray-700">{c.city}</span>
+            <div key={c.city} className="flex items-center justify-between p-2 rounded-lg hover:bg-theme-surface">
+              <span className="text-sm text-theme-primary">{c.city}</span>
               <div className="text-right">
-                <span className="text-sm font-mono font-semibold text-gray-900">{formatINRCompact(c.value)}</span>
-                <span className="text-xs text-gray-500 ml-2">({formatPercent(c.percentage)})</span>
+                <span className="text-sm font-mono font-semibold text-theme-primary">{formatINRCompact(c.value)}</span>
+                <span className="text-xs text-theme-secondary ml-2">({formatPercent(c.percentage)})</span>
               </div>
             </div>
           ))}
@@ -134,12 +134,12 @@ function PropertiesTable() {
   return (
     <div className="card overflow-hidden">
       <div className="p-6 pb-3">
-        <h3 className="font-display text-lg font-bold text-gray-900">My Properties</h3>
+        <h3 className="font-display text-lg font-bold text-theme-primary">My Properties</h3>
       </div>
 
       {!properties?.length ? (
         <div className="p-6 pt-0 text-center">
-          <p className="text-sm text-gray-400 py-8">No investments yet. Start investing today!</p>
+          <p className="text-sm text-theme-tertiary py-8">No investments yet. Start investing today!</p>
           <Link to="/marketplace" className="btn-primary">
             Explore Properties
           </Link>
@@ -157,8 +157,8 @@ function PropertiesTable() {
                   <div className="flex items-center gap-3">
                     <img src={p.propertyImage} alt="" className="h-10 w-10 rounded-lg object-cover" />
                     <div>
-                      <p className="font-medium text-gray-900">{p.propertyTitle}</p>
-                      <p className="text-xs text-gray-500">{p.propertyCity} · {p.assetType}</p>
+                      <p className="font-medium text-theme-primary">{p.propertyTitle}</p>
+                      <p className="text-xs text-theme-secondary">{p.propertyCity} · {p.assetType}</p>
                     </div>
                   </div>
                 ),
@@ -222,7 +222,7 @@ export default function InvestorPortfolioPage() {
       <div className="space-y-6">
         <div>
           <h1 className="section-title text-2xl">My Portfolio</h1>
-          <p className="text-gray-500 mt-1">Track your real estate investments</p>
+          <p className="text-theme-secondary mt-1">Track your real estate investments</p>
         </div>
 
         <SummaryMetrics />

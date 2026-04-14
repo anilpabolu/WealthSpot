@@ -3,6 +3,7 @@ import MetricCard from '@/components/wealth/MetricCard'
 import FundingBar from '@/components/wealth/FundingBar'
 import StatusBadge from '@/components/wealth/StatusBadge'
 import { formatINRCompact } from '@/lib/formatters'
+import { useContent } from '@/hooks/useSiteContent'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardBff } from '@/services/bff/dashboard.bff'
@@ -22,19 +23,30 @@ export default function BuilderDashboardPage() {
   const stats = data?.stats
   const listings = data?.listings ?? []
 
+  const heroBadge = useContent('builder_dashboard', 'hero_badge', 'Builder Portal')
+  const heroTitle = useContent('builder_dashboard', 'hero_title', 'Builder Dashboard')
+  const heroSubtitle = useContent('builder_dashboard', 'hero_subtitle', 'Manage your property listings and track investor activity.')
+  const ctaAdd = useContent('builder_dashboard', 'cta_add', 'Add New Property')
+  const sectionProperties = useContent('builder_dashboard', 'section_properties', 'My Properties')
+  const emptyTitle = useContent('builder_dashboard', 'empty_title', 'No Properties Yet')
+  const emptyMessage = useContent('builder_dashboard', 'empty_message', 'Create your first listing!')
+  const errorMessage = useContent('builder_dashboard', 'error_message', 'Failed to load dashboard data. Please try again later.')
+  const verifyTitle = useContent('builder_dashboard', 'verify_title', 'Verification pending')
+  const verifyMessage = useContent('builder_dashboard', 'verify_message', 'Your builder profile is awaiting admin verification. Some features may be limited.')
+
   return (
     <PortalLayout variant="builder">
       {/* Hero */}
       <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content flex items-center justify-between">
           <div>
-            <span className="page-hero-badge">Builder Portal</span>
-            <h1 className="page-hero-title">Builder Dashboard</h1>
-            <p className="page-hero-subtitle">Manage your property listings and track investor activity.</p>
+            <span className="page-hero-badge">{heroBadge}</span>
+            <h1 className="page-hero-title">{heroTitle}</h1>
+            <p className="page-hero-subtitle">{heroSubtitle}</p>
           </div>
           <Link to="/portal/builder/listings/new" className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] hidden sm:inline-flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
-            Add New Property
+            {ctaAdd}
           </Link>
         </div>
       </div>
@@ -49,8 +61,8 @@ export default function BuilderDashboardPage() {
         )}
 
         {isError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
-            Failed to load dashboard data. Please try again later.
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700/40 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
+            {errorMessage}
           </div>
         )}
 
@@ -83,27 +95,27 @@ export default function BuilderDashboardPage() {
             {/* Property Cards */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="section-title text-lg">My Properties</h2>
+                <h2 className="section-title text-lg">{sectionProperties}</h2>
                 <Link to="/portal/builder/listings" className="text-sm text-primary hover:underline flex items-center gap-1">
                   View All <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
               {listings.length === 0 ? (
-                <EmptyState icon={Building2} title="No Properties Yet" message="Create your first listing!" />
+                <EmptyState icon={Building2} title={emptyTitle} message={emptyMessage} />
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {listings.slice(0, 6).map((p) => (
-                    <Link key={p.id} to={`/portal/builder/listings/${p.id}`} className="card p-5 hover:border-gray-300 transition-colors">
+                    <Link key={p.id} to={`/portal/builder/listings/${p.id}`} className="card p-5 hover:border-theme transition-colors">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{p.title}</h3>
-                          <p className="text-xs text-gray-500">{p.city ?? ''}</p>
+                          <h3 className="font-semibold text-theme-primary">{p.title}</h3>
+                          <p className="text-xs text-theme-secondary">{p.city ?? ''}</p>
                         </div>
                         <StatusBadge status={p.status as 'live' | 'upcoming' | 'funded'} />
                       </div>
                       <FundingBar raised={p.raised_amount} target={p.target_amount} showLabels showPercent showAmount />
-                      <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                      <div className="flex items-center justify-between mt-3 text-xs text-theme-secondary">
                         <span className="flex items-center gap-1">
                           <Users className="h-3.5 w-3.5" />
                           {p.investor_count} investors
@@ -121,11 +133,11 @@ export default function BuilderDashboardPage() {
 
             {/* Verification notice */}
             {data?.builder && !data.builder.verified && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Verification pending</p>
-                  <p className="text-xs text-gray-600 mt-0.5">Your builder profile is awaiting admin verification. Some features may be limited.</p>
+                  <p className="text-sm font-semibold text-theme-primary">{verifyTitle}</p>
+                  <p className="text-xs text-theme-secondary mt-0.5">{verifyMessage}</p>
                 </div>
               </div>
             )}

@@ -7,7 +7,7 @@ export default {
     extend: {
       colors: {
         primary: { DEFAULT: '#6366F1', dark: '#4F46E5', light: '#EEF2FF' },
-        surface: '#FAFAF9',
+        surface: '#F5F0FF',
         status: {
           live: '#10B981',
           upcoming: '#3B82F6',

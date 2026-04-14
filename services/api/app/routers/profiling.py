@@ -466,13 +466,15 @@ async def get_opportunity_matches(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Get top matching users for an opportunity (creator only)."""
+    """Get top matching users for an opportunity (creator, admin, or builder)."""
     opp = (await db.execute(
         select(Opportunity).where(Opportunity.id == opportunity_id)
     )).scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-    if opp.creator_id != user.id:
+    privileged_roles = {"admin", "super_admin", "builder"}
+    user_role = user.role.value if hasattr(user.role, 'value') else str(user.role)
+    if opp.creator_id != user.id and user_role not in privileged_roles:
         raise HTTPException(status_code=403, detail="Only the creator can view matches")
 
     matches = await get_top_matches_for_opportunity(db, opportunity_id, limit)

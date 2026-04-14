@@ -112,6 +112,16 @@ class User(Base):
     # ── Notification Preferences ─────────────────────────────────────────────
     notification_preferences: Mapped[dict | None] = mapped_column(JSONB)
 
+    # ── Persona / Multi-Role ─────────────────────────────────────────────────
+    roles: Mapped[list] = mapped_column(JSONB, nullable=False, default=lambda: ["investor"])
+    primary_role: Mapped[str] = mapped_column(String(50), nullable=False, default="investor")
+    builder_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    builder_approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    builder_approved_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id")
+    )
+    persona_selected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -128,6 +138,16 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"<User {self.email} role={self.role}>"
+
+    # ── Persona helpers ──────────────────────────────────────────────────────
+
+    def has_role(self, role: str) -> bool:
+        """Check if the user holds a specific role in their roles array."""
+        return role in (self.roles or [])
+
+    def is_builder_active(self) -> bool:
+        """Builder role present AND approved by super_admin."""
+        return self.has_role("builder") and self.builder_approved
 
 
 class KycDocument(Base):

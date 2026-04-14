@@ -9,6 +9,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 
+/** Check if the stored JWT is present and not expired (with 60s buffer). */
+function hasValidToken(): boolean {
+  const token = localStorage.getItem('ws_token')
+  if (!token) return false
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return false
+    const payload = JSON.parse(atob(parts[1]!))
+    return payload.exp * 1000 > Date.now() - 60_000
+  } catch {
+    return false
+  }
+}
+
 /* ─── CamelCase types (post-API-conversion) ────────────────────────────── */
 
 export interface QuestionOption {
@@ -149,10 +163,12 @@ export interface OverallProgress {
 // ── Vault Profile Questions ─────────────────────────────────────────────────
 
 export function useVaultQuestions(vaultType: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'questions', vaultType],
     queryFn: () => apiGet<VaultProfileQuestion[]>(`/profiling/questions/${vaultType}`),
-    enabled: !!vaultType,
+    enabled: !!vaultType && isAuthenticated && !!token && hasValidToken(),
     staleTime: 5 * 60_000,
   })
 }
@@ -160,10 +176,12 @@ export function useVaultQuestions(vaultType: string) {
 // ── My Answers ──────────────────────────────────────────────────────────────
 
 export function useMyAnswers(vaultType: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'answers', vaultType],
     queryFn: () => apiGet<UserProfileAnswer[]>(`/profiling/answers/${vaultType}`),
-    enabled: !!vaultType,
+    enabled: !!vaultType && isAuthenticated && !!token && hasValidToken(),
   })
 }
 
@@ -193,10 +211,12 @@ export function useSubmitVaultAnswers() {
 // ── Profiling Progress ──────────────────────────────────────────────────────
 
 export function useProfilingProgress(vaultType: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'progress', vaultType],
     queryFn: () => apiGet<ProfilingProgress>(`/profiling/progress/${vaultType}`),
-    enabled: !!vaultType,
+    enabled: !!vaultType && isAuthenticated && !!token && hasValidToken(),
   })
 }
 
@@ -209,28 +229,32 @@ export function useOverallProgress() {
     queryKey: ['profiling', 'overall-progress'],
     queryFn: () => apiGet<OverallProgress>('/profiling/overall-progress'),
     staleTime: 30_000,
-    enabled: isAuthenticated && !!token,
+    enabled: isAuthenticated && !!token && hasValidToken(),
   })
 }
 
 // ── Personality Dimensions ──────────────────────────────────────────────────
 
 export function useMyPersonality(vaultType: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'personality', vaultType],
     queryFn: () => apiGet<PersonalityDimension | null>(`/profiling/personality/${vaultType}`),
-    enabled: !!vaultType,
+    enabled: !!vaultType && isAuthenticated && !!token && hasValidToken(),
   })
 }
 
 // ── Opportunity Custom Questions ────────────────────────────────────────────
 
 export function useOpportunityQuestions(opportunityId: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'opportunity-questions', opportunityId],
     queryFn: () =>
       apiGet<OpportunityCustomQuestion[]>(`/profiling/opportunities/${opportunityId}/questions`),
-    enabled: !!opportunityId,
+    enabled: !!opportunityId && isAuthenticated && !!token && hasValidToken(),
   })
 }
 
@@ -273,10 +297,12 @@ export function useSubmitApplicationAnswers() {
 // ── Match Score ─────────────────────────────────────────────────────────────
 
 export function useMyMatchScore(opportunityId: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'match', opportunityId],
     queryFn: () => apiGet<MatchScore | null>(`/profiling/match/${opportunityId}`),
-    enabled: !!opportunityId,
+    enabled: !!opportunityId && isAuthenticated && !!token && hasValidToken(),
   })
 }
 
@@ -289,10 +315,12 @@ interface OpportunityMatchesResponse {
 }
 
 export function useOpportunityMatches(opportunityId: string) {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const token = useUserStore((s) => s.token)
   return useQuery({
     queryKey: ['profiling', 'opportunity-matches', opportunityId],
     queryFn: () =>
       apiGet<OpportunityMatchesResponse>(`/profiling/opportunities/${opportunityId}/matches`),
-    enabled: !!opportunityId,
+    enabled: !!opportunityId && isAuthenticated && !!token && hasValidToken(),
   })
 }

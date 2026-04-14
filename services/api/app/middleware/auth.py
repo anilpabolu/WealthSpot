@@ -80,16 +80,20 @@ async def get_current_active_user(
 
 def require_role(*roles: UserRole):
     """Factory for role-based access control dependency.
+    Checks the user's roles JSONB array (multi-role).
     Super-admins bypass all role checks automatically.
     """
+    role_values = {r.value if isinstance(r, UserRole) else r for r in roles}
 
     async def _check_role(user: User = Depends(get_current_user)) -> User:
-        if user.role == UserRole.SUPER_ADMIN:
-            return user  # unrestricted access
-        if user.role not in roles:
+        # Super-admin bypass
+        if user.has_role(UserRole.SUPER_ADMIN.value):
+            return user
+        user_roles = set(user.roles or [])
+        if not user_roles & role_values:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role '{user.role}' is not authorized for this resource",
+                detail=f"None of your roles {list(user_roles)} are authorized for this resource",
             )
         return user
 
@@ -98,7 +102,7 @@ def require_role(*roles: UserRole):
 
 def require_super_admin(user: User = Depends(get_current_user)) -> User:
     """Only super-admin users may proceed."""
-    if user.role != UserRole.SUPER_ADMIN:
+    if not user.has_role(UserRole.SUPER_ADMIN.value):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Super-admin access required",
@@ -116,3 +120,36 @@ def require_kyc_approved(user: User = Depends(get_current_user)) -> User:
             detail="KYC_REQUIRED",
         )
     return user
+
+
+def require_feature(vault_type: str, feature_key: str):
+    """Factory dependency that checks if the user's roles grant access to a
+    specific vault feature via vault_feature_flags table."""
+
+    async def _check_feature(
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        from app.models.vault_feature_flag import VaultFeatureFlag
+
+        # Super-admin bypass
+        if user.has_role(UserRole.SUPER_ADMIN.value):
+            return user
+
+        user_roles = user.roles or []
+        result = await db.execute(
+            select(VaultFeatureFlag).where(
+                VaultFeatureFlag.vault_type == vault_type,
+                VaultFeatureFlag.feature_key == feature_key,
+                VaultFeatureFlag.role.in_(user_roles),
+                VaultFeatureFlag.enabled.is_(True),
+            )
+        )
+        if not result.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Feature '{feature_key}' is not enabled for your roles in '{vault_type}' vault",
+            )
+        return user
+
+    return _check_feature

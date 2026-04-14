@@ -1,5 +1,6 @@
 import { X, PlayCircle, Wallet, Handshake } from 'lucide-react'
 import { usePublicVideos } from '@/hooks/useAppVideos'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 const SUBTYPES = [
   {
@@ -8,8 +9,8 @@ const SUBTYPES = [
     badge: 'Capital Only',
     badgeColor: 'bg-amber-100 text-amber-800',
     icon: Wallet,
-    iconBg: 'bg-amber-50 text-amber-600',
-    border: 'border-amber-200 hover:border-amber-400 hover:shadow-amber-100',
+    iconBg: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    border: 'border-amber-200 dark:border-amber-700/40 hover:border-amber-400 hover:shadow-amber-100',
     videoTag: 'community_co_investor_explainer',
     description:
       'Contribute capital to fund a community project and earn returns through profit-sharing, rental income, or equity appreciation — without active involvement.',
@@ -21,8 +22,8 @@ const SUBTYPES = [
     badge: 'Capital + Active Role',
     badgeColor: 'bg-emerald-100 text-emerald-800',
     icon: Handshake,
-    iconBg: 'bg-emerald-50 text-emerald-600',
-    border: 'border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100',
+    iconBg: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+    border: 'border-emerald-200 dark:border-emerald-700/40 hover:border-emerald-400 hover:shadow-emerald-100',
     videoTag: 'community_co_partner_explainer',
     description:
       'Partner up by contributing capital plus your time, skills, and network. Earn equity and profit share in exchange for hands-on involvement in the project.',
@@ -42,11 +43,12 @@ interface Props {
 
 export default function CommunitySubtypeModal({ open, onClose, onSelect, mode }: Props) {
   const { data: videos } = usePublicVideos('vaults')
+  const { vaultVideosEnabled } = useVaultConfig()
 
   if (!open) return null
 
   const getVideoUrl = (sectionTag: string) =>
-    videos?.find((v) => v.sectionTag === sectionTag)?.videoUrl
+    vaultVideosEnabled ? videos?.find((v) => v.sectionTag === sectionTag)?.videoUrl : undefined
 
   return (
     <div className="modal-overlay z-[9999]" onClick={onClose}>
@@ -90,17 +92,17 @@ export default function CommunitySubtypeModal({ open, onClose, onSelect, mode }:
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-900">{st.label}</span>
+                      <span className="font-semibold text-theme-primary">{st.label}</span>
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.badgeColor}`}>
                         {st.badge}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{st.description}</p>
+                    <p className="text-sm text-theme-secondary leading-relaxed">{st.description}</p>
 
                     {/* Highlights */}
                     <div className="flex flex-wrap gap-2 mt-3">
                       {st.highlights.map((h) => (
-                        <span key={h} className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                        <span key={h} className="text-[11px] text-theme-secondary bg-theme-surface-hover px-2 py-0.5 rounded-full">
                           {h}
                         </span>
                       ))}

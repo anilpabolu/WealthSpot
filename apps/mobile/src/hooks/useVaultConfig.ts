@@ -5,10 +5,14 @@ interface VaultConfigResponse {
   wealthVaultEnabled: boolean
   opportunityVaultEnabled: boolean
   communityVaultEnabled: boolean
+  introVideosEnabled: boolean
+  vaultVideosEnabled: boolean
+  propertyVideosEnabled: boolean
+  videoManagementEnabled: boolean
 }
 
 /**
- * Public hook: fetches which vaults are enabled/disabled from the backend.
+ * Public hook: fetches which vaults are enabled/disabled + video toggles from the backend.
  * Used across Home screen, Marketplace, Profiling, etc.
  */
 export function useVaultConfig() {
@@ -25,6 +29,10 @@ export function useVaultConfig() {
     wealthEnabled: true,
     opportunityEnabled: config?.opportunityVaultEnabled ?? false,
     communityEnabled: config?.communityVaultEnabled ?? false,
+    // Video toggles
+    introVideosEnabled: config?.introVideosEnabled ?? true,
+    vaultVideosEnabled: config?.vaultVideosEnabled ?? true,
+    propertyVideosEnabled: config?.propertyVideosEnabled ?? true,
     isVaultEnabled: (vaultId: string): boolean => {
       if (vaultId === 'wealth') return true
       if (vaultId === 'opportunity') return config?.opportunityVaultEnabled ?? false

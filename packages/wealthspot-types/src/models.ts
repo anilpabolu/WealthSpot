@@ -18,6 +18,8 @@ import type {
   ApprovalPriority,
   VaultType,
   OpportunityStatus,
+  FeatureKey,
+  InviteStatus,
 } from "./enums";
 
 // ── User ────────────────────────────────────────────────────────────────────
@@ -30,6 +32,10 @@ export interface User {
   phone: string | null;
   avatar_url: string | null;
   role: UserRole;
+  roles: string[];
+  primary_role: string;
+  builder_approved: boolean;
+  persona_selected_at: string | null;
   kyc_status: KycStatus;
   pan_number: string | null;
   aadhaar_hash: string | null;
@@ -647,4 +653,51 @@ export interface ProfilingProgress {
   completion_pct: number;
   is_complete: boolean;
   personality: PersonalityDimension | null;
+}
+
+// ── Persona & Vault Feature Flags ───────────────────────────────────────────
+
+export interface PersonaSelectionRequest {
+  roles: string[];
+  primary_role: string;
+}
+
+export interface VaultFeatureFlag {
+  id: string;
+  vault_type: string;
+  role: string;
+  feature_key: string;
+  enabled: boolean;
+  updated_at: string;
+}
+
+export interface VaultFeatureFlagUpdate {
+  vault_type: string;
+  role: string;
+  feature_key: string;
+  enabled: boolean;
+}
+
+export interface VaultFeatureMatrixUpdate {
+  updates: VaultFeatureFlagUpdate[];
+}
+
+export interface MyFeatureFlags {
+  wealth: Record<string, boolean>;
+  opportunity: Record<string, boolean>;
+  community: Record<string, boolean>;
+}
+
+export interface AdminInvite {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface AdminInviteCreate {
+  email: string;
+  role: "admin" | "super_admin";
 }

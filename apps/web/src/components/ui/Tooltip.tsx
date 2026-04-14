@@ -80,7 +80,7 @@ export function NumberTooltip({ value, format = 'number', children, className }:
       content={
         <span className="flex flex-col gap-0.5">
           <span className="font-mono">{formatted}</span>
-          {inWords !== formatted && <span className="text-gray-400">{inWords}</span>}
+          {inWords !== formatted && <span className="text-theme-tertiary">{inWords}</span>}
         </span>
       }
       className={className}

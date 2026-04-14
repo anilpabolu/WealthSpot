@@ -34,41 +34,41 @@ const TIERS = {
   excellent: {
     label: 'Excellent Match',
     emoji: '🌟',
-    color: 'text-emerald-600',
+    color: 'text-emerald-600 dark:text-emerald-400',
     ringColor: 'stroke-emerald-500',
-    bg: 'bg-emerald-50',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/30',
     glow: 'shadow-glow-teal',
   },
   great: {
     label: 'Great Match',
     emoji: '🔥',
-    color: 'text-violet-600',
+    color: 'text-violet-600 dark:text-violet-400',
     ringColor: 'stroke-violet-500',
-    bg: 'bg-violet-50',
+    bg: 'bg-violet-50 dark:bg-violet-900/30',
     glow: 'shadow-glow-primary',
   },
   good: {
     label: 'Good Match',
     emoji: '👍',
-    color: 'text-blue-600',
+    color: 'text-blue-600 dark:text-blue-400',
     ringColor: 'stroke-blue-500',
-    bg: 'bg-blue-50',
+    bg: 'bg-blue-50 dark:bg-blue-900/30',
     glow: '',
   },
   partial: {
     label: 'Partial Match',
     emoji: '🤔',
-    color: 'text-amber-600',
+    color: 'text-amber-600 dark:text-amber-400',
     ringColor: 'stroke-amber-400',
-    bg: 'bg-amber-50',
+    bg: 'bg-amber-50 dark:bg-amber-900/30',
     glow: '',
   },
   exploring: {
     label: 'Exploring',
     emoji: '🔍',
-    color: 'text-gray-500',
+    color: 'text-theme-secondary',
     ringColor: 'stroke-gray-300',
-    bg: 'bg-gray-50',
+    bg: 'bg-theme-surface',
     glow: '',
   },
 } satisfies Record<string, TierConfig>
@@ -165,7 +165,7 @@ export function MatchScoreCompact({ score, vaultType }: { score: MatchScore; vau
     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${tier.bg} ${tier.glow}`}>
       <div className="relative">
         <ScoreRing score={score.overallScore} size={28} strokeWidth={3} vaultType={vaultType} />
-        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-gray-700">
+        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-theme-primary">
           {Math.round(score.overallScore)}
         </span>
       </div>
@@ -196,8 +196,8 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
         <div className="relative shrink-0">
           <ScoreRing score={score.overallScore} size={80} strokeWidth={6} vaultType={vaultType} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-xl font-bold text-gray-900">{Math.round(score.overallScore)}</span>
-            <span className="text-[9px] text-gray-400 font-medium -mt-0.5">%</span>
+            <span className="text-xl font-bold text-theme-primary">{Math.round(score.overallScore)}</span>
+            <span className="text-[9px] text-theme-tertiary font-medium -mt-0.5">%</span>
           </div>
         </div>
         <div>
@@ -206,7 +206,7 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
             <h3 className={`font-hero text-lg font-bold ${vaultColors?.primary || tier.color}`}>{tier.label}</h3>
           </div>
           {breakdown?.note && (
-            <p className="text-sm text-gray-500 mt-1">{breakdown.note}</p>
+            <p className="text-sm text-theme-secondary mt-1">{breakdown.note}</p>
           )}
           {/* Archetype compatibility label */}
           {score.archetypeCompatibility && (
@@ -220,20 +220,20 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
       {/* Dimension bars */}
       {topDimensions.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">How You Match</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-theme-tertiary">How You Match</p>
           {topDimensions.map(([key, value]) => {
             const config = DIMENSION_CONFIG[key]
             const Icon = config?.icon ?? Sparkles
             const label = config?.label ?? key.replace(/_/g, ' ')
             return (
               <div key={key} className="flex items-center gap-3">
-                <Icon className={`h-4 w-4 shrink-0 ${config?.color ?? 'text-gray-400'}`} />
+                <Icon className={`h-4 w-4 shrink-0 ${config?.color ?? 'text-theme-tertiary'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-gray-700 capitalize">{label}</span>
-                    <span className="text-xs font-bold text-gray-900">{Math.round(value)}%</span>
+                    <span className="text-xs font-medium text-theme-primary capitalize">{label}</span>
+                    <span className="text-xs font-bold text-theme-primary">{Math.round(value)}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="h-2 rounded-full bg-[var(--bg-surface-hover)] overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -255,10 +255,10 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
         <div className="grid grid-cols-2 gap-4">
           {breakdown.strengths.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-emerald-600 mb-2">Strengths</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">Strengths</p>
               <div className="space-y-1.5">
                 {breakdown.strengths.map((s: string) => (
-                  <span key={s} className="block text-xs text-gray-600 capitalize bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  <span key={s} className="block text-xs text-theme-secondary capitalize bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg">
                     {s.replace(/_/g, ' ')}
                   </span>
                 ))}
@@ -267,10 +267,10 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
           )}
           {breakdown.areasToGrow.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-amber-600 mb-2">Growth Areas</p>
+              <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-2">Growth Areas</p>
               <div className="space-y-1.5">
                 {breakdown.areasToGrow.map((a: string) => (
-                  <span key={a} className="block text-xs text-gray-600 capitalize bg-amber-50 px-2.5 py-1 rounded-lg">
+                  <span key={a} className="block text-xs text-theme-secondary capitalize bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-lg">
                     {a.replace(/_/g, ' ')}
                   </span>
                 ))}
@@ -297,10 +297,10 @@ export function ProfilePrompt({ vaultType, className = '' }: { vaultType: string
   return (
     <div className={`rounded-3xl border border-dashed ${vc.border} ${vc.bg} p-5 text-center ${className}`}>
       <div className="text-3xl mb-2">{vc.emoji}</div>
-      <h3 className="font-hero text-base font-bold text-gray-900 mb-1">
+      <h3 className="font-hero text-base font-bold text-theme-primary mb-1">
         Complete Your {vc.label} Profile
       </h3>
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-xs text-theme-secondary mb-4">
         Answer a few fun questions so we can find your perfect match!
       </p>
       <a

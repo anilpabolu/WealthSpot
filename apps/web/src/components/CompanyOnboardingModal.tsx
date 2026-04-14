@@ -139,9 +139,9 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
 
   const inputClass = (field?: string) => {
     const hasError = field && fieldErrors[field]
-    return `w-full rounded-lg border ${hasError ? 'border-red-400 ring-1 ring-red-300 bg-red-50/30' : 'border-gray-300'} px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none`
+    return `w-full rounded-lg border ${hasError ? 'border-red-400 ring-1 ring-red-300 bg-red-50 dark:bg-red-900/30/30' : 'border-theme'} px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none`
   }
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
+  const labelClass = 'block text-sm font-medium text-theme-primary mb-1'
   const errorMsg = (field: string) => fieldErrors[field] ? (
     <p className="text-xs text-red-500 mt-0.5">{fieldErrors[field]}</p>
   ) : null
@@ -153,18 +153,18 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 z-10 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-gray-900">Company Onboarding 🏗️</h2>
-              <p className="text-xs text-gray-500">Register your company to create opportunities</p>
+              <h2 className="font-display text-lg font-bold text-theme-primary">Company Onboarding 🏗️</h2>
+              <p className="text-xs text-theme-secondary">Register your company to create opportunities</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
-            <X className="h-5 w-5 text-gray-500" />
+          <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors" aria-label="Close">
+            <X className="h-5 w-5 text-theme-secondary" />
           </button>
         </div>
 
@@ -173,7 +173,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Basic Info */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Basic Information</h3>
+                <h3 className="font-semibold text-theme-primary text-sm uppercase tracking-wider">Basic Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Company Name *</label>
@@ -213,8 +213,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
               </div>
 
               {/* Legal */}
-              <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Legal & Compliance</h3>
+              <div className="space-y-4 pt-4 border-t border-theme">
+                <h3 className="font-semibold text-theme-primary text-sm uppercase tracking-wider">Legal & Compliance</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>CIN</label>
@@ -242,8 +242,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
               </div>
 
               {/* Contact */}
-              <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Primary Contact</h3>
+              <div className="space-y-4 pt-4 border-t border-theme">
+                <h3 className="font-semibold text-theme-primary text-sm uppercase tracking-wider">Primary Contact</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className={labelClass}>Name</label>
@@ -264,8 +264,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
               </div>
 
               {/* Address */}
-              <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Registered Address</h3>
+              <div className="space-y-4 pt-4 border-t border-theme">
+                <h3 className="font-semibold text-theme-primary text-sm uppercase tracking-wider">Registered Address</h3>
                 <div>
                   <label className={labelClass}>Address Line 1</label>
                   <input value={form.addressLine1 ?? ''} onChange={(e) => handleChange('addressLine1', e.target.value)} className={inputClass('addressLine1')} placeholder="123 Business Park, MG Road" />
@@ -284,7 +284,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
                     />
                     {fieldErrors.pincode ? errorMsg('pincode') : (
                       pincodeData && pincodeData.length > 0 && pincodeData[0] && (
-                        <p className="text-xs text-emerald-600 mt-0.5">✓ {pincodeData[0].officeName}</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ {pincodeData[0].officeName}</p>
                       )
                     )}
                   </div>
@@ -302,8 +302,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
               </div>
 
               {/* Track Record */}
-              <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wider">Track Record</h3>
+              <div className="space-y-4 pt-4 border-t border-theme">
+                <h3 className="font-semibold text-theme-primary text-sm uppercase tracking-wider">Track Record</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className={labelClass}>Years in Business</label>
@@ -340,8 +340,8 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
           {step === 'success' && (
             <div className="text-center py-12">
               <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-              <h2 className="font-display text-xl font-bold text-gray-900 mb-2">You're In! 🎉</h2>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+              <h2 className="font-display text-xl font-bold text-theme-primary mb-2">You're In! 🎉</h2>
+              <p className="text-sm text-theme-secondary max-w-sm mx-auto mb-6">
                 Your company is registered and pending verification. You can now select it when creating opportunities.
               </p>
               <button
@@ -357,20 +357,20 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
         {/* Toast notification */}
         {toast && (
           <div className={`absolute bottom-4 left-4 right-4 flex items-start gap-3 p-4 rounded-xl shadow-lg border animate-in slide-in-from-bottom-2 ${
-            toast.type === 'success' ? 'bg-emerald-50 border-emerald-200' :
-            toast.type === 'warning' ? 'bg-amber-50 border-amber-200' :
-            'bg-red-50 border-red-200'
+            toast.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700/40' :
+            toast.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700/40' :
+            'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700/40'
           }`}>
-            {toast.type === 'success' ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" /> :
-             toast.type === 'warning' ? <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" /> :
-             <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />}
+            {toast.type === 'success' ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" /> :
+             toast.type === 'warning' ? <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" /> :
+             <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />}
             <p className={`text-sm font-medium flex-1 ${
               toast.type === 'success' ? 'text-emerald-800' :
               toast.type === 'warning' ? 'text-amber-800' :
               'text-red-800'
             }`}>{toast.message}</p>
             <button onClick={() => setToast(null)} className="shrink-0 p-0.5 hover:bg-black/5 rounded">
-              <X className="h-4 w-4 text-gray-400" />
+              <X className="h-4 w-4 text-theme-tertiary" />
             </button>
           </div>
         )}

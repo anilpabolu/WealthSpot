@@ -28,13 +28,13 @@ export function EmptyState({
   ) : null);
   return (
     <div className={`flex flex-col items-center justify-center text-center ${compact ? 'py-6' : 'py-12'} ${className}`}>
-      <div className={`${compact ? 'h-10 w-10' : 'h-12 w-12'} rounded-2xl bg-gray-100 flex items-center justify-center mb-3`}>
-        <Icon className={`${compact ? 'h-5 w-5' : 'h-6 w-6'} text-gray-400`} />
+      <div className={`${compact ? 'h-10 w-10' : 'h-12 w-12'} rounded-2xl bg-theme-surface-hover flex items-center justify-center mb-3`}>
+        <Icon className={`${compact ? 'h-5 w-5' : 'h-6 w-6'} text-theme-tertiary`} />
       </div>
       {title && (
-        <p className="text-sm font-semibold text-gray-500 mb-1">{title}</p>
+        <p className="text-sm font-semibold text-theme-secondary mb-1">{title}</p>
       )}
-      <p className={`${compact ? 'text-xs' : 'text-sm'} text-gray-400 max-w-xs`}>{message}</p>
+      <p className={`${compact ? 'text-xs' : 'text-sm'} text-theme-tertiary max-w-xs`}>{message}</p>
       {actionEl && <div className="mt-4">{actionEl}</div>}
     </div>
   );

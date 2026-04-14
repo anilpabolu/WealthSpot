@@ -4,6 +4,7 @@ import { Copy, Share2, Users, IndianRupee, Check, ChevronRight } from 'lucide-re
 import { EmptyState, Badge } from '@/components/ui'
 import { formatINR } from '@/lib/formatters'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
+import { useContent } from '@/hooks/useSiteContent'
 
 const STEPS = [
   { step: 1, title: 'Share Your Code', desc: 'Send your unique referral code to friends and family.' },
@@ -15,6 +16,28 @@ export default function ReferralPage() {
   const [copied, setCopied] = useState(false)
   const { data: stats, isLoading: statsLoading } = useReferralStats()
   const { data: history, isLoading: histLoading } = useReferralHistory()
+
+  // CMS content
+  const heroBadge = useContent('referral', 'hero_badge', 'Referrals')
+  const heroTitle = useContent('referral', 'hero_title', 'The Referral Hustle')
+  const heroSubtitle = useContent('referral', 'hero_subtitle', 'Spread the word, stack the rewards. When your friend invests, you both pocket \u20B9250. Easy money.')
+  const codeLabel = useContent('referral', 'code_label', 'Your Referral Code')
+  const hiwHeading = useContent('referral', 'hiw_heading', 'How It Works')
+  const hiwStep1Title = useContent('referral', 'hiw_step1_title', 'Share Your Code')
+  const hiwStep1Desc = useContent('referral', 'hiw_step1_desc', 'Send your unique referral code to friends and family.')
+  const hiwStep2Title = useContent('referral', 'hiw_step2_title', 'Friend Signs Up')
+  const hiwStep2Desc = useContent('referral', 'hiw_step2_desc', 'They create an account using your referral link.')
+  const hiwStep3Title = useContent('referral', 'hiw_step3_title', 'Both Earn \u20B9250')
+  const hiwStep3Desc = useContent('referral', 'hiw_step3_desc', 'When they make their first investment, you both get rewarded.')
+  const historyHeading = useContent('referral', 'history_heading', 'Referral History')
+  const emptyTitle = useContent('referral', 'empty_title', 'No Referrals Yet')
+  const emptyMessage = useContent('referral', 'empty_message', 'Your referral scoreboard is empty \u2014 time to rally the squad!')
+
+  const steps = [
+    { step: 1, title: hiwStep1Title, desc: hiwStep1Desc },
+    { step: 2, title: hiwStep2Title, desc: hiwStep2Desc },
+    { step: 3, title: hiwStep3Title, desc: hiwStep3Desc },
+  ]
 
   const referralCode = stats?.referralCode ?? '—'
   const referralLink = stats?.referralLink ?? `${window.location.origin}/signup?ref=${referralCode}`
@@ -38,9 +61,9 @@ export default function ReferralPage() {
       {/* Hero */}
       <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">Referrals</span>
-          <h1 className="page-hero-title">The Referral Hustle</h1>
-          <p className="page-hero-subtitle">Spread the word, stack the rewards. When your friend invests, you both pocket ₹250. Easy money.</p>
+          <span className="page-hero-badge">{heroBadge}</span>
+          <h1 className="page-hero-title">{heroTitle}</h1>
+          <p className="page-hero-subtitle">{heroSubtitle}</p>
         </div>
       </section>
 
@@ -49,7 +72,7 @@ export default function ReferralPage() {
 
         {/* Referral Code Card */}
         <div className="bg-gradient-to-br from-primary to-primary-dark rounded-2xl p-6 text-white mb-8">
-          <p className="text-sm text-white/70 mb-2">Your Referral Code</p>
+          <p className="text-sm text-white/70 mb-2">{codeLabel}</p>
           {statsLoading ? (
             <p className="text-white/50 text-sm">Loading…</p>
           ) : (
@@ -71,7 +94,7 @@ export default function ReferralPage() {
                 />
                 <button
                   onClick={() => handleCopy(referralLink)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-white/90 transition"
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-[var(--bg-card)] transition"
                 >
                   <Share2 className="h-4 w-4" />
                   Share
@@ -112,35 +135,35 @@ export default function ReferralPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Referred', value: totalReferred, icon: Users, color: 'text-blue-600 bg-blue-50' },
-            { label: 'Invested', value: investedCount, icon: Check, color: 'text-emerald-600 bg-emerald-50' },
+            { label: 'Referred', value: totalReferred, icon: Users, color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30' },
+            { label: 'Invested', value: investedCount, icon: Check, color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30' },
             { label: 'Earned', value: formatINR(totalEarned / 100, 0), icon: IndianRupee, color: 'text-primary bg-primary/10' },
           ].map((s) => {
             const Icon = s.icon
             return (
-              <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div key={s.label} className="bg-[var(--bg-surface)] border border-theme rounded-xl p-4">
                 <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center mb-3`}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="text-2xl font-bold text-theme-primary">{s.value}</p>
+                <p className="text-sm text-theme-secondary">{s.label}</p>
               </div>
             )
           })}
         </div>
 
         {/* How it Works */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-          <h2 className="section-title text-lg">How It Works</h2>
+        <div className="bg-[var(--bg-surface)] border border-theme rounded-xl p-6 mb-8">
+          <h2 className="section-title text-lg">{hiwHeading}</h2>
           <div className="grid sm:grid-cols-3 gap-6">
-            {STEPS.map((s) => (
+            {steps.map((s) => (
               <div key={s.step} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
                   {s.step}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm">{s.title}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">{s.desc}</p>
+                  <h3 className="font-semibold text-theme-primary text-sm">{s.title}</h3>
+                  <p className="text-xs text-theme-secondary mt-0.5">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -148,26 +171,26 @@ export default function ReferralPage() {
         </div>
 
         {/* Referral History */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="section-title text-lg">Referral History</h2>
+        <div className="bg-[var(--bg-surface)] border border-theme rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-theme">
+            <h2 className="section-title text-lg">{historyHeading}</h2>
           </div>
-          {histLoading && <p className="px-6 py-4 text-sm text-gray-400">Loading…</p>}
+          {histLoading && <p className="px-6 py-4 text-sm text-theme-tertiary">Loading…</p>}
           {!histLoading && (!history || history.length === 0) && (
             <div className="px-6 py-4">
-              <EmptyState icon={Users} title="No Referrals Yet" message="Your referral scoreboard is empty — time to rally the squad!" />
+              <EmptyState icon={Users} title={emptyTitle} message={emptyMessage} />
             </div>
           )}
           {!histLoading && history && history.length > 0 && (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-theme">
               {history.map((ref) => (
                 <div key={ref.id} className="px-6 py-4 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                     {(ref.refereeName[0] ?? '?').toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 text-sm">{ref.refereeName}</p>
-                    <p className="text-xs text-gray-400">{new Date(ref.createdAt).toLocaleDateString()}</p>
+                    <p className="font-medium text-theme-primary text-sm">{ref.refereeName}</p>
+                    <p className="text-xs text-theme-tertiary">{new Date(ref.createdAt).toLocaleDateString()}</p>
                   </div>
                   <Badge
                     variant={ref.status === 'invested' ? 'success' : 'warning'}
@@ -178,7 +201,7 @@ export default function ReferralPage() {
                   {ref.rewardAmount > 0 && (
                     <span className="text-sm font-bold text-primary">+{formatINR(ref.rewardAmount / 100, 0)}</span>
                   )}
-                  <ChevronRight className="h-4 w-4 text-gray-300" />
+                  <ChevronRight className="h-4 w-4 text-theme-tertiary" />
                 </div>
               ))}
             </div>

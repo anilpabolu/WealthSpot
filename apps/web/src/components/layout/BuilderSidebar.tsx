@@ -31,16 +31,16 @@ export default function BuilderSidebar() {
   const location = useLocation()
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 h-[calc(100vh-64px)] sticky top-16">
+    <aside className="hidden lg:flex flex-col w-64 backdrop-blur-xl border-r h-[calc(100vh-64px)] sticky top-16 transition-colors duration-300" style={{ background: 'var(--bg-sidebar)', borderColor: 'var(--bg-sidebar-border)' }}>
       {/* Builder badge */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-primary" />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-[#D4AF37]/10 dark:bg-[#D4AF37]/15">
+            <Building2 className="h-5 w-5 text-theme-accent" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Builder Portal</p>
-            <p className="text-xs text-gray-500">Manage your properties</p>
+            <p className="text-sm font-semibold text-theme-primary">Builder Portal</p>
+            <p className="text-xs text-theme-secondary">Manage your properties</p>
           </div>
         </div>
       </div>
@@ -60,11 +60,11 @@ export default function BuilderSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-primary/5 text-primary'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-[var(--text-accent)]/10 text-theme-accent'
+                  : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary'
               )}
             >
-              <item.icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-gray-400')} />
+              <item.icon className={cn('h-5 w-5', isActive ? 'text-theme-accent' : 'text-theme-tertiary')} />
               {item.label}
             </NavLink>
           )
@@ -72,12 +72,12 @@ export default function BuilderSidebar() {
       </nav>
 
       {/* Bottom nav */}
-      <div className="p-3 border-t border-gray-100 space-y-1">
+      <div className="p-3 border-t space-y-1" style={{ borderColor: 'var(--border-default)' }}>
         {BUILDER_BOTTOM.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary transition-colors"
           >
             <item.icon className="h-4 w-4" />
             {item.label}

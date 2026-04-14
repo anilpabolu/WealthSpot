@@ -2,6 +2,7 @@ import { PortalLayout } from '@/components/layout'
 import MetricCard from '@/components/wealth/MetricCard'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import { useInvestmentSummary } from '@/hooks/useInvestment'
+import { useContent } from '@/hooks/useSiteContent'
 import { useRecentTransactions } from '@/hooks/usePortfolio'
 import { useFeaturedProperties, type Property } from '@/hooks/useProperties'
 import { formatINRCompact, formatPercent, formatDate } from '@/lib/formatters'
@@ -41,6 +42,9 @@ function PortfolioMetrics() {
 
 function RecentTransactionsTable() {
   const { data: txns, isLoading } = useRecentTransactions(5)
+  const sectionTitle = useContent('investor_dashboard', 'section_txns', 'Recent Transactions')
+  const emptyTxnTitle = useContent('investor_dashboard', 'empty_txns_title', 'No Transactions')
+  const emptyTxnMsg = useContent('investor_dashboard', 'empty_txns_msg', 'No transactions yet')
 
   const typeIcon: Record<string, typeof Wallet> = {
     investment: ArrowUpRight,
@@ -72,27 +76,27 @@ function RecentTransactionsTable() {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="section-title text-lg">Recent Transactions</h3>
+        <h3 className="section-title text-lg">{sectionTitle}</h3>
         <Link to="/portal/investor/transactions" className="text-sm font-semibold text-primary hover:underline">
           View All
         </Link>
       </div>
 
       {!txns?.length ? (
-        <EmptyState icon={Wallet} title="No Transactions" message="No transactions yet" />
+        <EmptyState icon={Wallet} title={emptyTxnTitle} message={emptyTxnMsg} />
       ) : (
         <div className="space-y-3">
           {txns.map((tx) => {
             const Icon = typeIcon[tx.type] ?? Wallet
-            const color = typeColor[tx.type] ?? 'text-gray-400'
+            const color = typeColor[tx.type] ?? 'text-theme-tertiary'
             return (
-              <div key={tx.id} className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                <div className={`h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm ${color}`}>
+              <div key={tx.id} className="flex items-center gap-3 p-3 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-colors">
+                <div className={`h-9 w-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shadow-sm ${color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{tx.propertyTitle || tx.type.replace('_', ' ')}</p>
-                  <p className="text-xs text-gray-500">{formatDate(tx.date)}</p>
+                  <p className="text-sm font-medium text-theme-primary truncate">{tx.propertyTitle || tx.type.replace('_', ' ')}</p>
+                  <p className="text-xs text-theme-secondary">{formatDate(tx.date)}</p>
                 </div>
                 <p className={`font-mono text-sm font-semibold ${tx.type === 'investment' ? 'text-danger' : 'text-success'}`}>
                   {tx.type === 'investment' ? '-' : '+'}{formatINRCompact(tx.amount)}
@@ -110,11 +114,12 @@ function RecommendedProperties() {
   const navigate = useNavigate()
   const { data, isLoading } = useFeaturedProperties()
   const properties = data?.properties?.slice(0, 3) ?? ([] as Property[])
+  const recoTitle = useContent('investor_dashboard', 'section_reco', 'Recommended for You')
 
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="section-title text-lg">Recommended for You</h3>
+        <h3 className="section-title text-lg">{recoTitle}</h3>
         <Link to="/marketplace" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
           Explore <ArrowRight className="h-4 w-4" />
         </Link>
@@ -145,14 +150,19 @@ function RecommendedProperties() {
 }
 
 export default function InvestorDashboardPage() {
+  const heroBadge = useContent('investor_dashboard', 'hero_badge', 'Investor Dashboard')
+  const heroTitle = useContent('investor_dashboard', 'hero_title', 'Welcome back \uD83D\uDC4B')
+  const heroSubtitle = useContent('investor_dashboard', 'hero_subtitle', "Here's your portfolio overview \u2014 track your wealth journey in real time.")
+  const actionsTitle = useContent('investor_dashboard', 'section_actions', 'Quick Actions')
+
   return (
     <PortalLayout variant="investor">
       {/* Hero section */}
       <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">Investor Dashboard</span>
-          <h1 className="page-hero-title">Welcome back 👋</h1>
-          <p className="page-hero-subtitle">Here's your portfolio overview — track your wealth journey in real time.</p>
+          <span className="page-hero-badge">{heroBadge}</span>
+          <h1 className="page-hero-title">{heroTitle}</h1>
+          <p className="page-hero-subtitle">{heroSubtitle}</p>
         </div>
       </div>
 
@@ -165,31 +175,31 @@ export default function InvestorDashboardPage() {
             <div className="space-y-6">
               {/* Quick actions */}
               <div className="card p-6">
-                <h3 className="section-title text-lg mb-4">Quick Actions</h3>
+                <h3 className="section-title text-lg mb-4">{actionsTitle}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/marketplace" className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl hover:bg-primary/10 transition-all duration-200 hover:shadow-sm group">
                     <div className="stat-card-icon bg-primary/10 group-hover:scale-110 transition-transform">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">Browse Properties</span>
+                    <span className="text-sm font-semibold text-theme-primary">Browse Properties</span>
                   </Link>
-                  <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
-                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
-                      <PieChart className="h-5 w-5 text-gray-500" />
+                  <Link to="/portal/investor/portfolio" className="flex items-center gap-3 p-4 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-theme-surface-hover group-hover:scale-110 transition-transform">
+                      <PieChart className="h-5 w-5 text-theme-secondary" />
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">My Portfolio</span>
+                    <span className="text-sm font-semibold text-theme-primary">My Portfolio</span>
                   </Link>
-                  <Link to="/community" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
-                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
-                      <Users className="h-5 w-5 text-gray-500" />
+                  <Link to="/community" className="flex items-center gap-3 p-4 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-theme-surface-hover group-hover:scale-110 transition-transform">
+                      <Users className="h-5 w-5 text-theme-secondary" />
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">Community</span>
+                    <span className="text-sm font-semibold text-theme-primary">Community</span>
                   </Link>
-                  <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-stone-50 rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:shadow-sm group">
-                    <div className="stat-card-icon bg-gray-100 group-hover:scale-110 transition-transform">
-                      <Gift className="h-5 w-5 text-gray-500" />
+                  <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-all duration-200 hover:shadow-sm group">
+                    <div className="stat-card-icon bg-theme-surface-hover group-hover:scale-110 transition-transform">
+                      <Gift className="h-5 w-5 text-theme-secondary" />
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">Refer & Earn</span>
+                    <span className="text-sm font-semibold text-theme-primary">Refer & Earn</span>
                   </Link>
                 </div>
               </div>

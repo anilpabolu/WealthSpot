@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { Toggle, Select, Badge } from '@/components/ui'
 import {
   LayoutDashboard,
@@ -58,6 +58,7 @@ import {
   useUpdateUserRole,
 } from '@/hooks/useControlCentre'
 import { useApprovalStats } from '@/hooks/useApprovals'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { ROLE_LABELS, type UserRole } from '@/lib/constants'
 import { useOpportunities } from '@/hooks/useOpportunities'
 import {
@@ -92,6 +93,12 @@ import {
   type AppVideo,
 } from '@/hooks/useAppVideos'
 import { formatINR } from '@/lib/formatters'
+import {
+  useFeatureMatrix,
+  useUpdateFeatureMatrix,
+  useAdminInvites,
+  useCreateAdminInvite,
+} from '@/hooks/useVaultFeatures'
 import VaultAnalyticsDashboard from '@/pages/VaultAnalyticsDashboard'
 import {
   useListOpportunityMedia,
@@ -110,7 +117,7 @@ import {
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites'
 
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
@@ -126,6 +133,8 @@ const SECTIONS: SideNavItem[] = [
   { id: 'media-management', label: 'Media Manager', icon: Image, group: 'Content' },
   { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
   { id: 'site-content', label: 'Site Content (CMS)', icon: FileText, group: 'Content' },
+  { id: 'vault-features', label: 'Feature Matrix', icon: Shield, group: 'Settings' },
+  { id: 'admin-invites', label: 'Admin Invites', icon: Mail, group: 'Settings' },
   { id: 'admin-settings', label: 'Admin Settings', icon: Settings, group: 'Settings' },
 ]
 
@@ -138,28 +147,28 @@ function DashboardTab() {
   const { data: approvalStats } = useApprovalStats()
 
   if (isLoading) return <CenteredLoader />
-  if (!data) return <p className="text-gray-400 text-center py-12">Failed to load dashboard</p>
+  if (!data) return <p className="text-theme-tertiary text-center py-12">Failed to load dashboard</p>
 
   return (
     <div className="space-y-8">
-      <h2 className="font-display text-xl font-bold text-gray-900">Platform Overview</h2>
+      <h2 className="font-display text-xl font-bold text-theme-primary">Platform Overview</h2>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Users" value={data.totalUsers} color="text-primary bg-primary/5" />
-        <StatCard label="Pending Approvals" value={approvalStats?.pending ?? data.pendingApprovals} color="text-amber-600 bg-amber-50" />
-        <StatCard label="Opportunities" value={data.totalOpportunities} color="text-violet-600 bg-violet-50" />
-        <StatCard label="Active Configs" value={data.activeConfigs} color="text-emerald-600 bg-emerald-50" />
+        <StatCard label="Pending Approvals" value={approvalStats?.pending ?? data.pendingApprovals} color="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30" />
+        <StatCard label="Opportunities" value={data.totalOpportunities} color="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30" />
+        <StatCard label="Active Configs" value={data.activeConfigs} color="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30" />
       </div>
 
       {/* Role distribution */}
       <div>
-        <h3 className="font-semibold text-gray-900 mb-3">Role Distribution</h3>
+        <h3 className="font-semibold text-theme-primary mb-3">Role Distribution</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(data.roleDistribution).map(([role, count]) => (
-            <div key={role} className="rounded-lg border border-gray-200 px-4 py-3 bg-white">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{ROLE_LABELS[role as UserRole] ?? role}</p>
-              <p className="text-lg font-bold font-mono text-gray-900 mt-1">{count}</p>
+            <div key={role} className="rounded-lg border border-theme px-4 py-3 bg-[var(--bg-surface)]">
+              <p className="text-xs font-medium text-theme-tertiary uppercase tracking-wider">{ROLE_LABELS[role as UserRole] ?? role}</p>
+              <p className="text-lg font-bold font-mono text-theme-primary mt-1">{count}</p>
             </div>
           ))}
         </div>
@@ -189,16 +198,16 @@ function UsersTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl font-bold text-gray-900">Users & Roles</h2>
+      <h2 className="font-display text-xl font-bold text-theme-primary">Users & Roles</h2>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="rounded-lg border border-gray-200 pl-9 pr-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-64"
+            className="rounded-lg border border-theme pl-9 pr-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-64"
             placeholder="Search by email or name…"
           />
         </div>
@@ -212,28 +221,28 @@ function UsersTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
+      <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 overflow-hidden">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-stone-50 border-b border-gray-200">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+            <tr className="bg-theme-surface border-b border-theme">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">User</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">Role</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">KYC</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">Joined</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-theme-secondary uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-theme">
             {isLoading ? (
               <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" /></td></tr>
             ) : !users || users.length === 0 ? (
-              <tr><td colSpan={5} className="py-12 text-center text-gray-400">No users found</td></tr>
+              <tr><td colSpan={5} className="py-12 text-center text-theme-tertiary">No users found</td></tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="hover:bg-stone-50/50">
+                <tr key={u.id} className="hover:bg-theme-surface/50">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{u.fullName}</p>
-                    <p className="text-xs text-gray-400">{u.email}</p>
+                    <p className="font-medium text-theme-primary">{u.fullName}</p>
+                    <p className="text-xs text-theme-tertiary">{u.email}</p>
                   </td>
                   <td className="px-4 py-3">
                     {editingUser === u.id ? (
@@ -248,19 +257,19 @@ function UsersTab() {
                         <button
                           onClick={() => handleSaveRole(u.id)}
                           disabled={!selectedRole || updateRole.isPending}
-                          className="p-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-40"
+                          className="p-1 rounded bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 disabled:opacity-40"
                         >
                           <Check className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => { setEditingUser(null); setSelectedRole('') }}
-                          className="p-1 rounded bg-stone-50 text-gray-400 hover:bg-gray-100"
+                          className="p-1 rounded bg-theme-surface text-theme-tertiary hover:bg-[var(--bg-surface-hover)]"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ) : (
-                      <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                      <span className="text-xs font-medium bg-theme-surface-hover text-theme-secondary px-2 py-0.5 rounded">
                         {ROLE_LABELS[u.role as UserRole] ?? u.role}
                       </span>
                     )}
@@ -270,14 +279,14 @@ function UsersTab() {
                       {u.kycStatus}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                  <td className="px-4 py-3 text-xs text-theme-tertiary whitespace-nowrap">
                     {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {editingUser !== u.id && (
                       <button
                         onClick={() => { setEditingUser(u.id); setSelectedRole(u.role) }}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 text-gray-400 hover:text-gray-600"
+                        className="p-1.5 rounded-lg border border-theme hover:bg-theme-surface text-theme-tertiary hover:text-theme-secondary"
                         title="Change role"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
@@ -313,32 +322,32 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl font-bold text-gray-900">{title}</h2>
+      <h2 className="font-display text-xl font-bold text-theme-primary">{title}</h2>
 
       {isLoading ? (
         <CenteredLoader />
       ) : !configs || configs.length === 0 ? (
-        <p className="text-gray-400 text-center py-12">No configurations found for this section</p>
+        <p className="text-theme-tertiary text-center py-12">No configurations found for this section</p>
       ) : (
         <div className="space-y-3">
           {configs.map((cfg) => (
-            <div key={cfg.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 px-5 py-4">
+            <div key={cfg.id} className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900 text-sm">{cfg.key}</p>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${cfg.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                    <p className="font-medium text-theme-primary text-sm">{cfg.key}</p>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${cfg.isActive ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-theme-surface-hover text-theme-tertiary'}`}>
                       {cfg.isActive ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  {cfg.description && <p className="text-xs text-gray-400 mt-0.5">{cfg.description}</p>}
+                  {cfg.description && <p className="text-xs text-theme-tertiary mt-0.5">{cfg.description}</p>}
 
                   {editingId === cfg.id ? (
                     <div className="mt-2 flex items-center gap-2">
                       <input
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        className="flex-1 rounded-lg border border-theme px-3 py-1.5 text-sm font-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                       />
                       <button
                         onClick={() => handleSave(cfg.id)}
@@ -347,12 +356,12 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
                       >
                         Save
                       </button>
-                      <button onClick={() => setEditingId(null)} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">
+                      <button onClick={() => setEditingId(null)} className="px-3 py-1.5 text-xs text-theme-secondary hover:text-theme-primary">
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs font-mono text-gray-500 mt-1 break-all">
+                    <p className="text-xs font-mono text-theme-secondary mt-1 break-all">
                       {typeof cfg.value === 'object' ? JSON.stringify(cfg.value) : String(cfg.value)}
                     </p>
                   )}
@@ -361,7 +370,7 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
                 {editingId !== cfg.id && (
                   <button
                     onClick={() => { setEditingId(cfg.id); setEditValue(typeof cfg.value === 'object' ? JSON.stringify(cfg.value) : String(cfg.value)) }}
-                    className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 text-gray-400 hover:text-gray-600 shrink-0"
+                    className="p-1.5 rounded-lg border border-theme hover:bg-theme-surface text-theme-tertiary hover:text-theme-secondary shrink-0"
                     title="Edit value"
                   >
                     <Edit3 className="h-3.5 w-3.5" />
@@ -382,6 +391,7 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
 
 const ADMIN_SECTIONS = [
   { key: 'vaults', title: 'Vault Management', description: 'Enable or disable vaults platform-wide. Disabled vaults show "Coming Soon" everywhere.', icon: Lock },
+  { key: 'video-content', title: 'Video Content', description: 'Control video visibility per category — intro, vault, property, and admin video management.', icon: Video },
   { key: 'approvals', title: 'Approval Configuration', description: 'Control approval workflows, thresholds, and auto-approval rules.', icon: ClipboardCheck },
   { key: 'notifications', title: 'Notification Settings', description: 'Manage email, SMS, and in-app notification triggers and templates.', icon: Bell },
   { key: 'templates', title: 'Template Configuration', description: 'Configure document, email, and report templates used across the platform.', icon: FileSpreadsheet },
@@ -389,8 +399,8 @@ const ADMIN_SECTIONS = [
 ]
 
 const VAULT_TOGGLE_ITEMS = [
-  { key: 'opportunity_vault_enabled', label: 'Opportunity Vault', emoji: '🚀', description: 'Startup & high-growth investment opportunities', icon: Rocket, color: 'text-violet-600', bg: 'bg-violet-50' },
-  { key: 'community_vault_enabled', label: 'Community Vault', emoji: '🤝', description: 'Community-driven collaborative investments', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { key: 'opportunity_vault_enabled', label: 'Opportunity Vault', emoji: '🚀', description: 'Startup & high-growth investment opportunities', icon: Rocket, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30' },
+  { key: 'community_vault_enabled', label: 'Community Vault', emoji: '🤝', description: 'Community-driven collaborative investments', icon: Users, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
 ]
 
 function VaultManagementPanel() {
@@ -401,7 +411,7 @@ function VaultManagementPanel() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+        <Loader2 className="h-5 w-5 animate-spin text-theme-tertiary" />
       </div>
     )
   }
@@ -420,8 +430,8 @@ function VaultManagementPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
-        <Building2 className="h-4 w-4 text-gray-400" />
-        <p className="text-xs text-gray-500">
+        <Building2 className="h-4 w-4 text-theme-tertiary" />
+        <p className="text-xs text-theme-secondary">
           Wealth Vault is always enabled (core product). Toggle the vaults below to show or hide them across the platform.
         </p>
       </div>
@@ -429,8 +439,8 @@ function VaultManagementPanel() {
       <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/20">
         <Building2 className="h-5 w-5 text-primary" />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-900">🏛️ Wealth Vault</p>
-          <p className="text-xs text-gray-500">Real estate investment — always enabled</p>
+          <p className="text-sm font-semibold text-theme-primary">🏛️ Wealth Vault</p>
+          <p className="text-xs text-theme-secondary">Real estate investment — always enabled</p>
         </div>
         <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
           <Unlock className="h-3 w-3" /> Active
@@ -446,26 +456,26 @@ function VaultManagementPanel() {
           <div
             key={item.key}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
-              isEnabled ? `${item.bg} border-${item.color.replace('text-', '')}/20` : 'bg-gray-50 border-gray-200'
+              isEnabled ? `${item.bg} border-${item.color.replace('text-', '')}/20` : 'bg-theme-surface border-theme'
             }`}
           >
-            <Icon className={`h-5 w-5 ${isEnabled ? item.color : 'text-gray-400'}`} />
+            <Icon className={`h-5 w-5 ${isEnabled ? item.color : 'text-theme-tertiary'}`} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{item.emoji} {item.label}</p>
-              <p className="text-xs text-gray-500">{item.description}</p>
+              <p className="text-sm font-semibold text-theme-primary">{item.emoji} {item.label}</p>
+              <p className="text-xs text-theme-secondary">{item.description}</p>
             </div>
             <button
               onClick={() => handleToggle(item.key)}
               disabled={updateConfig.isPending}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${
-                isEnabled ? 'bg-primary' : 'bg-gray-300'
+                isEnabled ? 'bg-primary' : 'bg-[var(--bg-surface-hover)]'
               }`}
               role="switch"
               aria-checked={isEnabled}
               aria-label={`Toggle ${item.label}`}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--bg-surface)] shadow ring-0 transition duration-200 ease-in-out ${
                   isEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
@@ -474,8 +484,92 @@ function VaultManagementPanel() {
         )
       })}
 
-      <p className="text-[10px] text-gray-400 mt-2">
+      <p className="text-[10px] text-theme-tertiary mt-2">
         Changes take effect immediately across web and mobile. Users will see "Coming Soon" for disabled vaults.
+      </p>
+    </div>
+  )
+}
+
+const VIDEO_TOGGLE_ITEMS = [
+  { key: 'intro_videos_enabled', label: 'Intro / How-It-Works Videos', emoji: '🎬', description: 'Landing page intro video, onboarding walkthrough, and browse-mode video overlay', icon: Play, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
+  { key: 'vault_videos_enabled', label: 'Vault & Pillar Videos', emoji: '🏛️', description: 'Vault intro videos and four-pillar investor type videos on the Vaults page', icon: Video, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30' },
+  { key: 'property_videos_enabled', label: 'Property Tour Videos', emoji: '🏠', description: 'Virtual tour / walkthrough videos on opportunity detail pages', icon: Eye, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
+  { key: 'video_management_enabled', label: 'Video Management (Admin)', emoji: '⚙️', description: 'Show or hide the Video Management section in Control Centre', icon: Settings, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30' },
+]
+
+function VideoContentPanel() {
+  const { data: configs, isLoading } = useControlConfigs('content')
+  const updateConfig = useUpdateConfig()
+  const queryClient = useQueryClient()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-theme-tertiary" />
+      </div>
+    )
+  }
+
+  const configMap = new Map((configs ?? []).map((c) => [c.key, c]))
+
+  const handleToggle = async (key: string) => {
+    const cfg = configMap.get(key)
+    if (!cfg) return
+    const currentVal = cfg.value as Record<string, unknown>
+    const isEnabled = currentVal?.enabled === true
+    await updateConfig.mutateAsync({ id: cfg.id, value: { enabled: !isEnabled } })
+    queryClient.invalidateQueries({ queryKey: ['vault-config'] })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Video className="h-4 w-4 text-theme-tertiary" />
+        <p className="text-xs text-theme-secondary">
+          Toggle video visibility per category. Disabled categories hide all related video icons, buttons, and overlays across web and mobile.
+        </p>
+      </div>
+
+      {VIDEO_TOGGLE_ITEMS.map((item) => {
+        const cfg = configMap.get(item.key)
+        const isEnabled = (cfg?.value as Record<string, unknown>)?.enabled === true
+        const Icon = item.icon
+
+        return (
+          <div
+            key={item.key}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+              isEnabled ? `${item.bg} border-${item.color.replace('text-', '')}/20` : 'bg-theme-surface border-theme'
+            }`}
+          >
+            <Icon className={`h-5 w-5 ${isEnabled ? item.color : 'text-theme-tertiary'}`} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-theme-primary">{item.emoji} {item.label}</p>
+              <p className="text-xs text-theme-secondary">{item.description}</p>
+            </div>
+            <button
+              onClick={() => handleToggle(item.key)}
+              disabled={updateConfig.isPending}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${
+                isEnabled ? 'bg-primary' : 'bg-[var(--bg-surface-hover)]'
+              }`}
+              role="switch"
+              aria-checked={isEnabled}
+              aria-label={`Toggle ${item.label}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--bg-surface)] shadow ring-0 transition duration-200 ease-in-out ${
+                  isEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        )
+      })}
+
+      <p className="text-[10px] text-theme-tertiary mt-2">
+        Changes take effect immediately. When a category is disabled, video icons and play buttons are hidden across all pages.
       </p>
     </div>
   )
@@ -486,29 +580,29 @@ function AdminSettingsTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl font-bold text-gray-900">Admin Settings</h2>
-      <p className="text-sm text-gray-500">Manage all platform configuration in one place — approvals, notifications, templates, and global settings.</p>
+      <h2 className="font-display text-xl font-bold text-theme-primary">Admin Settings</h2>
+      <p className="text-sm text-theme-secondary">Manage all platform configuration in one place — approvals, notifications, templates, and global settings.</p>
 
       <div className="space-y-3">
         {ADMIN_SECTIONS.map((sec) => {
           const Icon = sec.icon
           const isOpen = expanded === sec.key
           return (
-            <div key={sec.key} className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
+            <div key={sec.key} className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 overflow-hidden">
               <button
                 onClick={() => setExpanded(isOpen ? null : sec.key)}
-                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-stone-50/50 transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-theme-surface/50 transition-colors"
               >
-                <Icon className="h-5 w-5 text-gray-400 shrink-0" />
+                <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">{sec.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{sec.description}</p>
+                  <p className="text-sm font-semibold text-theme-primary">{sec.title}</p>
+                  <p className="text-xs text-theme-tertiary mt-0.5">{sec.description}</p>
                 </div>
-                {isOpen ? <ChevronUp className="h-4 w-4 text-gray-400 shrink-0" /> : <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />}
+                {isOpen ? <ChevronUp className="h-4 w-4 text-theme-tertiary shrink-0" /> : <ChevronDown className="h-4 w-4 text-theme-tertiary shrink-0" />}
               </button>
               {isOpen && (
-                <div className="border-t border-gray-100 px-5 py-5">
-                  {sec.key === 'vaults' ? <VaultManagementPanel /> : <ConfigTab section={sec.key} title={sec.title} />}
+                <div className="border-t border-theme px-5 py-5">
+                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>
@@ -571,8 +665,8 @@ function BuilderQuestionsTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl font-bold text-gray-900">Builder Questions</h2>
-      <p className="text-sm text-gray-500">Manage custom questions that builders can ask investors when they express interest.</p>
+      <h2 className="font-display text-xl font-bold text-theme-primary">Builder Questions</h2>
+      <p className="text-sm text-theme-secondary">Manage custom questions that builders can ask investors when they express interest.</p>
 
       {/* Opportunity picker */}
       <Select
@@ -587,13 +681,13 @@ function BuilderQuestionsTab() {
       {selectedOppId && (
         <>
           {/* Add new question */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase">Add Question</p>
+          <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 p-4 space-y-3">
+            <p className="text-xs font-semibold text-theme-secondary uppercase">Add Question</p>
             <input
               value={newText}
               onChange={(e) => setNewText(e.target.value)}
               placeholder="Question text…"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none"
             />
             <div className="flex flex-wrap gap-3">
               <Select value={newType} onChange={setNewType} options={[
@@ -607,7 +701,7 @@ function BuilderQuestionsTab() {
                   value={newOptions}
                   onChange={(e) => setNewOptions(e.target.value)}
                   placeholder="Option1, Option2, Option3"
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary outline-none"
+                  className="flex-1 rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none"
                 />
               )}
               <Toggle checked={newRequired} onChange={setNewRequired} label="Required" size="sm" />
@@ -619,33 +713,33 @@ function BuilderQuestionsTab() {
           </div>
 
           {/* Questions list */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
+          <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 overflow-hidden">
             {isLoading ? (
               <CenteredLoader />
             ) : questions.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No questions added yet.</p>
+              <p className="text-sm text-theme-tertiary text-center py-8">No questions added yet.</p>
             ) : (
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-theme">
                 {questions.map((q: BuilderQuestion) => (
-                  <li key={q.id} className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50">
-                    <GripVertical className="h-4 w-4 text-gray-300 shrink-0" />
+                  <li key={q.id} className="flex items-center gap-3 px-4 py-3 hover:bg-theme-surface/50">
+                    <GripVertical className="h-4 w-4 text-theme-tertiary shrink-0" />
                     <div className="flex-1 min-w-0">
                       {editId === q.id ? (
                         <div className="flex items-center gap-2">
-                          <input value={editText} onChange={(e) => setEditText(e.target.value)} className="flex-1 rounded border border-gray-200 px-2 py-1 text-sm focus:border-primary outline-none" />
+                          <input value={editText} onChange={(e) => setEditText(e.target.value)} className="flex-1 rounded border border-theme px-2 py-1 text-sm focus:border-primary outline-none" />
                           <button onClick={() => handleSaveEdit(q)} className="text-green-600 hover:text-green-700"><Check className="h-4 w-4" /></button>
-                          <button onClick={() => setEditId(null)} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
+                          <button onClick={() => setEditId(null)} className="text-theme-tertiary hover:text-theme-secondary"><X className="h-4 w-4" /></button>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-900 truncate">{q.questionText}</p>
+                        <p className="text-sm text-theme-primary truncate">{q.questionText}</p>
                       )}
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider">{q.questionType}</span>
+                        <span className="text-[10px] uppercase font-semibold text-theme-tertiary tracking-wider">{q.questionType}</span>
                         {q.isRequired && <span className="text-[10px] font-semibold text-red-400">Required</span>}
                       </div>
                     </div>
-                    <button onClick={() => { setEditId(q.id); setEditText(q.questionText) }} className="text-gray-400 hover:text-primary"><Edit3 className="h-4 w-4" /></button>
-                    <button onClick={() => deleteQ.mutate({ opportunityId: q.opportunityId, questionId: q.id })} className="text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => { setEditId(q.id); setEditText(q.questionText) }} className="text-theme-tertiary hover:text-primary"><Edit3 className="h-4 w-4" /></button>
+                    <button onClick={() => deleteQ.mutate({ opportunityId: q.opportunityId, questionId: q.id })} className="text-theme-tertiary hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                   </li>
                 ))}
               </ul>
@@ -682,13 +776,13 @@ function CommMappingTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl font-bold text-gray-900">Communication Mapping</h2>
-      <p className="text-sm text-gray-500">Assign users to receive notifications for each opportunity&rsquo;s Expression of Interest flow.</p>
+      <h2 className="font-display text-xl font-bold text-theme-primary">Communication Mapping</h2>
+      <p className="text-sm text-theme-secondary">Assign users to receive notifications for each opportunity&rsquo;s Expression of Interest flow.</p>
 
       {/* Vault type filter + Opportunity picker */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="w-48">
-          <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Vault Type</label>
+          <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Vault Type</label>
           <Select
             value={vaultFilter}
             onChange={(v) => { setVaultFilter(v); setSelectedOppId('') }}
@@ -702,7 +796,7 @@ function CommMappingTab() {
           />
         </div>
         <div className="flex-1 min-w-[250px]">
-          <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Opportunity</label>
+          <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Opportunity</label>
           <Select
             value={selectedOppId}
             onChange={setSelectedOppId}
@@ -716,13 +810,13 @@ function CommMappingTab() {
       {selectedOppId && (
         <>
           {/* Add mapping */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 flex flex-wrap items-end gap-3">
+          <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 p-4 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
-              <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">User</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">User</label>
               <Select value={userId} onChange={setUserId} placeholder="Select user…" searchable options={(allUsers ?? []).map((u) => ({ value: u.id, label: `${u.fullName} (${u.email})` }))} />
             </div>
             <div className="w-40">
-              <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Role</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Role</label>
               <Select value={role} onChange={setRole} options={[
                 { value: 'builder', label: 'Builder' },
                 { value: 'handler', label: 'Handler' },
@@ -737,29 +831,29 @@ function CommMappingTab() {
           </div>
 
           {/* Mappings table */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden">
+          <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 overflow-hidden">
             {isLoading ? (
               <CenteredLoader />
             ) : mappings.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No communication mappings yet.</p>
+              <p className="text-sm text-theme-tertiary text-center py-8">No communication mappings yet.</p>
             ) : (
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-stone-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <tr className="bg-theme-surface border-b border-theme">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">User</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-theme-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-theme">
                   {mappings.map((m: CommMapping) => (
-                    <tr key={m.id} className="hover:bg-stone-50/50">
-                      <td className="px-4 py-3 text-gray-900">{m.userId}</td>
+                    <tr key={m.id} className="hover:bg-theme-surface/50">
+                      <td className="px-4 py-3 text-theme-primary">{m.userId}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">{m.role.replace('_', ' ')}</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-theme-surface-hover text-theme-primary capitalize">{m.role.replace('_', ' ')}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => deleteMapping.mutate({ mappingId: m.id, opportunityId: selectedOppId })} className="text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => deleteMapping.mutate({ mappingId: m.id, opportunityId: selectedOppId })} className="text-theme-tertiary hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
                   ))}
@@ -801,12 +895,12 @@ function CenteredLoader() {
 function RefBadge({ text, variant }: { text: string; variant: 'success' | 'warning' | 'neutral' | 'info' }) {
   const cls =
     variant === 'success'
-      ? 'bg-emerald-50 text-emerald-700'
+      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
       : variant === 'warning'
-        ? 'bg-amber-50 text-amber-700'
+        ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
         : variant === 'info'
-          ? 'bg-blue-50 text-blue-600'
-          : 'bg-gray-100 text-gray-600'
+          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+          : 'bg-theme-surface-hover text-theme-secondary'
   return <span className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full ${cls}`}>{text}</span>
 }
 
@@ -814,36 +908,36 @@ function RefSummaryRow({ s, expanded, onToggle }: { s: RefSummary; expanded: boo
   return (
     <button
       onClick={onToggle}
-      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-stone-50 transition-colors"
+      className="flex flex-wrap items-center gap-4 w-full text-left px-4 py-3 border-b border-theme last:border-0 hover:bg-theme-surface transition-colors"
     >
       <div className="flex items-center gap-3 flex-1 min-w-[180px]">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary uppercase">
           {s.referrerName.charAt(0)}
         </div>
         <div>
-          <p className="text-sm font-semibold text-gray-900">{s.referrerName}</p>
-          <p className="text-xs text-gray-400">{s.referrerEmail}</p>
+          <p className="text-sm font-semibold text-theme-primary">{s.referrerName}</p>
+          <p className="text-xs text-theme-tertiary">{s.referrerEmail}</p>
         </div>
       </div>
       <div className="flex items-center gap-5 text-sm">
         <div className="text-center">
-          <p className="font-mono font-bold text-gray-900">{s.totalReferrals}</p>
-          <p className="text-[10px] text-gray-400 uppercase">Total</p>
+          <p className="font-mono font-bold text-theme-primary">{s.totalReferrals}</p>
+          <p className="text-[10px] text-theme-tertiary uppercase">Total</p>
         </div>
         <div className="text-center">
-          <p className="font-mono font-bold text-emerald-600">{s.successfulReferrals}</p>
-          <p className="text-[10px] text-gray-400 uppercase">Rewarded</p>
+          <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{s.successfulReferrals}</p>
+          <p className="text-[10px] text-theme-tertiary uppercase">Rewarded</p>
         </div>
         <div className="text-center">
-          <p className="font-mono font-bold text-amber-600">{s.pendingReferrals}</p>
-          <p className="text-[10px] text-gray-400 uppercase">Pending</p>
+          <p className="font-mono font-bold text-amber-600 dark:text-amber-400">{s.pendingReferrals}</p>
+          <p className="text-[10px] text-theme-tertiary uppercase">Pending</p>
         </div>
         <div className="text-center">
-          <p className="font-mono font-bold text-gray-900">{formatINR(s.totalRewardEarned)}</p>
-          <p className="text-[10px] text-gray-400 uppercase">Earned</p>
+          <p className="font-mono font-bold text-theme-primary">{formatINR(s.totalRewardEarned)}</p>
+          <p className="text-[10px] text-theme-tertiary uppercase">Earned</p>
         </div>
       </div>
-      {expanded ? <ChevronUp className="h-4 w-4 text-gray-400 shrink-0" /> : <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />}
+      {expanded ? <ChevronUp className="h-4 w-4 text-theme-tertiary shrink-0" /> : <ChevronDown className="h-4 w-4 text-theme-tertiary shrink-0" />}
     </button>
   )
 }
@@ -851,16 +945,16 @@ function RefSummaryRow({ s, expanded, onToggle }: { s: RefSummary; expanded: boo
 function RefDetailPanel({ referrerId }: { referrerId: string }) {
   const { data: details, isLoading } = useAdminReferralDetails(referrerId)
   if (isLoading) return <CenteredLoader />
-  if (!details || details.length === 0) return <p className="text-sm text-gray-400 text-center py-4">No referral details found.</p>
+  if (!details || details.length === 0) return <p className="text-sm text-theme-tertiary text-center py-4">No referral details found.</p>
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
   return (
-    <div className="bg-stone-50 border-b border-gray-200 px-4 py-3 overflow-x-auto">
+    <div className="bg-theme-surface border-b border-theme px-4 py-3 overflow-x-auto">
       <table className="w-full text-sm min-w-[700px]">
         <thead>
-          <tr className="text-[10px] text-gray-400 uppercase">
+          <tr className="text-[10px] text-theme-tertiary uppercase">
             <th className="text-left pb-2 font-semibold">Referee</th>
             <th className="text-left pb-2 font-semibold">Type</th>
             <th className="text-left pb-2 font-semibold">Property</th>
@@ -871,20 +965,20 @@ function RefDetailPanel({ referrerId }: { referrerId: string }) {
             <th className="text-left pb-2 font-semibold">Referred</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-theme">
           {details.map((d) => (
-            <tr key={d.id} className="hover:bg-white transition-colors">
+            <tr key={d.id} className="hover:bg-[var(--bg-surface)] transition-colors">
               <td className="py-2">
-                <p className="font-medium text-gray-900">{d.refereeName}</p>
-                <p className="text-xs text-gray-400">{d.refereeEmail}</p>
+                <p className="font-medium text-theme-primary">{d.refereeName}</p>
+                <p className="text-xs text-theme-tertiary">{d.refereeEmail}</p>
               </td>
               <td className="py-2">
                 <RefBadge text={d.referralType} variant={d.referralType === 'property' ? 'success' : 'neutral'} />
               </td>
-              <td className="py-2 text-gray-700 max-w-[140px] truncate">{d.opportunityTitle ?? '—'}</td>
+              <td className="py-2 text-theme-primary max-w-[140px] truncate">{d.opportunityTitle ?? '—'}</td>
               <td className="py-2 text-center">
                 {d.refereeStatus === 'invested' ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Invested
                   </span>
                 ) : d.refereeStatus === 'active' ? (
@@ -892,21 +986,21 @@ function RefDetailPanel({ referrerId }: { referrerId: string }) {
                     <Clock className="h-3.5 w-3.5" /> Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-400">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-theme-tertiary">
                     <Clock className="h-3.5 w-3.5" /> Stale
                   </span>
                 )}
               </td>
-              <td className="py-2 text-center font-mono font-bold text-gray-900">{d.refereeTotalInvestments}</td>
+              <td className="py-2 text-center font-mono font-bold text-theme-primary">{d.refereeTotalInvestments}</td>
               <td className="py-2 text-center">
                 {d.firstInvestmentRewarded ? (
-                  <span className="text-[11px] font-semibold text-emerald-600">{formatINR(d.rewardAmount)}</span>
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{formatINR(d.rewardAmount)}</span>
                 ) : (
-                  <span className="text-[11px] text-gray-400">—</span>
+                  <span className="text-[11px] text-theme-tertiary">—</span>
                 )}
               </td>
-              <td className="py-2 text-gray-500 text-xs">{fmtDate(d.refereeJoinedAt)}</td>
-              <td className="py-2 text-gray-500 text-xs">{fmtDate(d.createdAt)}</td>
+              <td className="py-2 text-theme-secondary text-xs">{fmtDate(d.refereeJoinedAt)}</td>
+              <td className="py-2 text-theme-secondary text-xs">{fmtDate(d.createdAt)}</td>
             </tr>
           ))}
         </tbody>
@@ -920,10 +1014,10 @@ function RefDetailPanel({ referrerId }: { referrerId: string }) {
 /* ------------------------------------------------------------------ */
 
 const PIPELINE_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  submitted: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', dot: 'bg-blue-500' },
-  builder_connected: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500' },
-  deal_in_progress: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', dot: 'bg-purple-500' },
-  payment_done: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  submitted: { bg: 'bg-blue-50 dark:bg-blue-900/30', border: 'border-blue-200 dark:border-blue-700/40', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
+  builder_connected: { bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-700/40', text: 'text-amber-700 dark:text-amber-300', dot: 'bg-amber-500' },
+  deal_in_progress: { bg: 'bg-purple-50 dark:bg-purple-900/30', border: 'border-purple-200 dark:border-purple-700/40', text: 'text-purple-700 dark:text-purple-300', dot: 'bg-purple-500' },
+  payment_done: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-700/40', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
   deal_completed: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', dot: 'bg-green-600' },
 }
 
@@ -939,61 +1033,61 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
     : null
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 shadow-sm p-4 space-y-3">
+    <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 shadow-sm p-4 space-y-3">
       {/* User info */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
           <User className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{eoi.user?.fullName ?? 'Unknown'}</p>
-          <p className="text-[11px] text-gray-400">{fmtDate(eoi.createdAt)}</p>
+          <p className="text-sm font-semibold text-theme-primary truncate">{eoi.user?.fullName ?? 'Unknown'}</p>
+          <p className="text-[11px] text-theme-tertiary">{fmtDate(eoi.createdAt)}</p>
         </div>
       </div>
 
       {/* Property */}
-      <div className="flex items-center gap-2 p-2 bg-stone-50 rounded-lg">
-        <Building2 className="h-4 w-4 text-gray-400 shrink-0" />
+      <div className="flex items-center gap-2 p-2 bg-theme-surface rounded-lg">
+        <Building2 className="h-4 w-4 text-theme-tertiary shrink-0" />
         <a
           href={`/opportunity/${eoi.opportunity?.slug ?? ''}`}
-          className="text-xs font-medium text-gray-700 hover:text-primary truncate"
+          className="text-xs font-medium text-theme-primary hover:text-primary truncate"
           target="_blank"
           rel="noopener noreferrer"
         >
           {eoi.opportunity?.title ?? 'N/A'}
         </a>
-        <ExternalLink className="h-3 w-3 text-gray-300 shrink-0" />
+        <ExternalLink className="h-3 w-3 text-theme-tertiary shrink-0" />
       </div>
 
       {/* Investment amount */}
       {eoi.investmentAmount != null && (
-        <p className="text-xs text-gray-500">
-          Investment: <span className="font-mono font-semibold text-gray-700">{formatINR(eoi.investmentAmount)}</span>
+        <p className="text-xs text-theme-secondary">
+          Investment: <span className="font-mono font-semibold text-theme-primary">{formatINR(eoi.investmentAmount)}</span>
         </p>
       )}
 
       {/* Referrer */}
       <div className="flex items-center gap-1.5 text-xs">
-        <Gift className="h-3.5 w-3.5 text-gray-400" />
+        <Gift className="h-3.5 w-3.5 text-theme-tertiary" />
         {eoi.referrer ? (
-          <span className="text-gray-600">
-            Referred by <span className="font-semibold text-gray-800">{eoi.referrer.fullName}</span>
+          <span className="text-theme-secondary">
+            Referred by <span className="font-semibold text-theme-primary">{eoi.referrer.fullName}</span>
           </span>
         ) : (
-          <span className="text-gray-400">Direct (no referral)</span>
+          <span className="text-theme-tertiary">Direct (no referral)</span>
         )}
       </div>
 
       {/* Links row */}
-      <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+      <div className="flex items-center gap-2 pt-1 border-t border-theme">
         <button
           onClick={() => eoi.user && onShowUser(eoi.user, 'User Details')}
-          className="text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1 disabled:text-gray-300"
+          className="text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1 disabled:text-theme-tertiary"
           disabled={!eoi.user}
         >
           <User className="h-3 w-3" /> User Details
         </button>
-        <span className="text-gray-200">|</span>
+        <span className="text-[var(--border-default)]">|</span>
         <a
           href={`/opportunity/${eoi.opportunity?.slug ?? ''}`}
           className="text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1"
@@ -1004,10 +1098,10 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
         </a>
         {eoi.referrer && (
           <>
-            <span className="text-gray-200">|</span>
+            <span className="text-[var(--border-default)]">|</span>
             <button
               onClick={() => eoi.referrer && onShowUser(eoi.referrer, 'Referrer Details')}
-              className="text-[11px] font-medium text-emerald-600 hover:underline inline-flex items-center gap-1"
+              className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
             >
               <Gift className="h-3 w-3" /> Referrer Details
             </button>
@@ -1026,8 +1120,8 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
         // Fall back to createdAt for the submitted stage
         if (!historyMap.has('submitted')) historyMap.set('submitted', eoi.createdAt)
         return (
-          <div className="pt-2 border-t border-dashed border-gray-200 space-y-1.5">
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Stage Timeline</p>
+          <div className="pt-2 border-t border-dashed border-theme space-y-1.5">
+            <p className="text-[10px] font-semibold text-theme-secondary uppercase tracking-wider mb-1">Stage Timeline</p>
             {relevantStatuses.map((s, idx) => {
               const enteredAt = historyMap.get(s)
               const isCurrent = idx === relevantStatuses.length - 1
@@ -1055,20 +1149,20 @@ function EOICard({ eoi, onAdvance, onShowUser }: { eoi: EOIItem; onAdvance: (eoi
                       <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                     )}
                     {idx < relevantStatuses.length - 1 && (
-                      <div className="w-px h-3 bg-gray-200 mt-0.5" />
+                      <div className="w-px h-3 bg-[var(--bg-surface-hover)] mt-0.5" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className={isCurrent ? 'font-semibold text-gray-800' : 'text-gray-500'}>
+                      <span className={isCurrent ? 'font-semibold text-theme-primary' : 'text-theme-secondary'}>
                         {EOI_STATUS_LABELS[s] ?? s}
                       </span>
-                      <span className="text-gray-400 font-mono text-[10px]">
+                      <span className="text-theme-tertiary font-mono text-[10px]">
                         {enteredAt ? fmtDateTime(enteredAt) : '—'}
                       </span>
                     </div>
                     {duration && (
-                      <span className={`text-[9px] ${isCurrent ? 'text-primary font-medium' : 'text-gray-400'}`}>
+                      <span className={`text-[9px] ${isCurrent ? 'text-primary font-medium' : 'text-theme-tertiary'}`}>
                         {isCurrent ? `In stage: ${duration}` : `Stayed: ${duration}`}
                       </span>
                     )}
@@ -1110,12 +1204,12 @@ function UserDetailsModal({
 
   const Field = ({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) => (
     <div className="flex items-start gap-3 py-2">
-      <div className="h-8 w-8 rounded-lg bg-stone-50 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-4 w-4 text-gray-400" />
+      <div className="h-8 w-8 rounded-lg bg-theme-surface flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="h-4 w-4 text-theme-tertiary" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-sm font-medium text-gray-800 break-all">{value || '—'}</p>
+        <p className="text-[11px] text-theme-tertiary uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-medium text-theme-primary break-all">{value || '—'}</p>
       </div>
     </div>
   )
@@ -1142,17 +1236,17 @@ function UserDetailsModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-display text-lg font-bold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors">
-            <X className="h-4 w-4 text-gray-500" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+          <h3 className="font-display text-lg font-bold text-theme-primary">{title}</h3>
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-[var(--bg-surface-hover)] transition-colors">
+            <X className="h-4 w-4 text-theme-secondary" />
           </button>
         </div>
 
         {/* Body */}
         <div className="overflow-y-auto px-6 py-4 space-y-1 max-h-[65vh]">
           {/* Avatar + name banner */}
-          <div className="flex items-center gap-4 pb-4 border-b border-gray-100 mb-2">
+          <div className="flex items-center gap-4 pb-4 border-b border-theme mb-2">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
@@ -1165,7 +1259,7 @@ function UserDetailsModal({
               </div>
             )}
             <div>
-              <p className="text-base font-bold text-gray-900">{user.fullName}</p>
+              <p className="text-base font-bold text-theme-primary">{user.fullName}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 {user.role && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary">
@@ -1174,9 +1268,9 @@ function UserDetailsModal({
                 )}
                 {user.kycStatus && (
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                    user.kycStatus === 'verified' ? 'bg-emerald-50 text-emerald-700'
-                    : user.kycStatus === 'rejected' ? 'bg-red-50 text-red-700'
-                    : 'bg-amber-50 text-amber-700'
+                    user.kycStatus === 'verified' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                    : user.kycStatus === 'rejected' ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                    : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                   }`}>
                     {kycLabel[user.kycStatus] ?? user.kycStatus}
                   </span>
@@ -1241,21 +1335,21 @@ function EOIPipelineTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-xl font-bold text-gray-900">EOI Pipeline</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="font-display text-xl font-bold text-theme-primary">EOI Pipeline</h2>
+        <p className="text-sm text-theme-secondary mt-1">
           Track Expression of Interest from submission to deal completion. Move cards through stages to monitor the deal lifecycle.
         </p>
       </div>
 
       {/* Search */}
       <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
         <input
           type="text"
           placeholder="Search user, property, referrer…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-theme text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
         />
       </div>
 
@@ -1279,7 +1373,7 @@ function EOIPipelineTab() {
                 {/* Cards */}
                 <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
                   {items.length === 0 ? (
-                    <div className="text-center py-8 text-gray-300 text-xs">No items</div>
+                    <div className="text-center py-8 text-theme-tertiary text-xs">No items</div>
                   ) : (
                     items.map((eoi) => (
                       <EOICard key={eoi.id} eoi={eoi} onAdvance={handleAdvance} onShowUser={handleShowUser} />
@@ -1323,8 +1417,8 @@ function ReferralTrackingTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-xl font-bold text-gray-900">Referral Tracking</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="font-display text-xl font-bold text-theme-primary">Referral Tracking</h2>
+        <p className="text-sm text-theme-secondary mt-1">
           Track who referred whom, whether they invested or stayed stale, and referral reward payouts.
         </p>
       </div>
@@ -1333,46 +1427,46 @@ function ReferralTrackingTab() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="rounded-xl bg-primary/5 px-4 py-3">
           <p className="font-mono text-xl font-bold text-primary">{filtered.length}</p>
-          <p className="text-xs font-medium text-gray-500">Referrers</p>
+          <p className="text-xs font-medium text-theme-secondary">Referrers</p>
         </div>
-        <div className="rounded-xl bg-blue-50 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-blue-600">{totalReferred}</p>
-          <p className="text-xs font-medium text-gray-500">Total Referrals</p>
+        <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 px-4 py-3">
+          <p className="font-mono text-xl font-bold text-blue-600 dark:text-blue-400">{totalReferred}</p>
+          <p className="text-xs font-medium text-theme-secondary">Total Referrals</p>
         </div>
-        <div className="rounded-xl bg-emerald-50 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-emerald-600">{totalRewarded}</p>
-          <p className="text-xs font-medium text-gray-500">Rewarded</p>
+        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/30 px-4 py-3">
+          <p className="font-mono text-xl font-bold text-emerald-600 dark:text-emerald-400">{totalRewarded}</p>
+          <p className="text-xs font-medium text-theme-secondary">Rewarded</p>
         </div>
-        <div className="rounded-xl bg-amber-50 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-amber-600">{totalPending}</p>
-          <p className="text-xs font-medium text-gray-500">Pending</p>
+        <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 px-4 py-3">
+          <p className="font-mono text-xl font-bold text-amber-600 dark:text-amber-400">{totalPending}</p>
+          <p className="text-xs font-medium text-theme-secondary">Pending</p>
         </div>
-        <div className="rounded-xl bg-gray-100 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-gray-900">{formatINR(totalEarned)}</p>
-          <p className="text-xs font-medium text-gray-500">Total Earned</p>
+        <div className="rounded-xl bg-theme-surface-hover px-4 py-3">
+          <p className="font-mono text-xl font-bold text-theme-primary">{formatINR(totalEarned)}</p>
+          <p className="text-xs font-medium text-theme-secondary">Total Earned</p>
         </div>
       </div>
 
       {/* Search */}
       <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
         <input
           type="text"
           placeholder="Search referrer…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-theme text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
         />
       </div>
 
       {/* Referrer list with expandable details */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-theme bg-[var(--bg-surface)] overflow-hidden">
         {isLoading ? (
           <CenteredLoader />
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
-            <Gift className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">No referrals found.</p>
+            <Gift className="h-10 w-10 text-theme-tertiary mx-auto mb-3" />
+            <p className="text-theme-secondary text-sm">No referrals found.</p>
           </div>
         ) : (
           filtered.map((s) => (
@@ -1475,8 +1569,8 @@ function VideoManagementTab() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="font-display text-xl font-bold text-gray-900">Video Management</h2>
-          <p className="text-sm text-gray-500 mt-1">Manage videos across all application pages. Upload, tag, and replace videos from here.</p>
+          <h2 className="font-display text-xl font-bold text-theme-primary">Video Management</h2>
+          <p className="text-sm text-theme-secondary mt-1">Manage videos across all application pages. Upload, tag, and replace videos from here.</p>
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
@@ -1489,7 +1583,7 @@ function VideoManagementTab() {
 
       {/* Filter */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">Filter by Page:</label>
+        <label className="text-sm font-medium text-theme-primary">Filter by Page:</label>
         <Select
           value={filterPage}
           onChange={setFilterPage}
@@ -1497,16 +1591,16 @@ function VideoManagementTab() {
           options={[{ value: '', label: 'All Pages' }, ...pages]}
           size="sm"
         />
-        <span className="text-xs text-gray-400">{filtered.length} video(s)</span>
+        <span className="text-xs text-theme-tertiary">{filtered.length} video(s)</span>
       </div>
 
       {/* Add Video Form */}
       {showAdd && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-gray-900">Add New Video Slot</h3>
+        <div className="bg-[var(--bg-surface)] border border-theme rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-theme-primary">Add New Video Slot</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Page</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Page</label>
               <Select
                 value={addPage}
                 onChange={(v) => { setAddPage(v); setAddSection('') }}
@@ -1515,7 +1609,7 @@ function VideoManagementTab() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Section / Tag</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Section / Tag</label>
               <Select
                 value={addSection}
                 onChange={setAddSection}
@@ -1523,41 +1617,41 @@ function VideoManagementTab() {
                 options={sectionsByPage[addPage] ?? []}
                 disabled={!addPage}
               />
-              <p className="text-[10px] text-gray-400 mt-1">Or type a custom tag below</p>
+              <p className="text-[10px] text-theme-tertiary mt-1">Or type a custom tag below</p>
               <input
                 type="text"
                 value={addSection}
                 onChange={(e) => setAddSection(e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                className="w-full text-sm border border-theme rounded-lg px-3 py-2 mt-1"
                 placeholder="Custom section tag..."
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Title</label>
               <input
                 type="text"
                 value={addTitle}
                 onChange={(e) => setAddTitle(e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full text-sm border border-theme rounded-lg px-3 py-2"
                 placeholder="e.g. Wealth Vault Introduction"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Video URL</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Video URL</label>
               <input
                 type="text"
                 value={addUrl}
                 onChange={(e) => setAddUrl(e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full text-sm border border-theme rounded-lg px-3 py-2"
                 placeholder="https://..."
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
               <textarea
                 value={addDesc}
                 onChange={(e) => setAddDesc(e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full text-sm border border-theme rounded-lg px-3 py-2"
                 rows={2}
                 placeholder="Optional description..."
               />
@@ -1571,7 +1665,7 @@ function VideoManagementTab() {
             >
               {createVideo.isPending ? 'Creating...' : 'Create Video Slot'}
             </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-stone-50">
+            <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg border border-theme text-sm text-theme-secondary hover:bg-theme-surface">
               Cancel
             </button>
           </div>
@@ -1580,24 +1674,24 @@ function VideoManagementTab() {
 
       {/* Video List grouped by page */}
       {Object.keys(grouped).length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-          <Video className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No videos found. Add your first video slot above.</p>
+        <div className="bg-[var(--bg-surface)] border border-theme rounded-xl p-8 text-center">
+          <Video className="h-10 w-10 text-theme-tertiary mx-auto mb-3" />
+          <p className="text-theme-secondary text-sm">No videos found. Add your first video slot above.</p>
         </div>
       ) : (
         Object.entries(grouped).map(([page, vids]) => (
           <div key={page} className="space-y-3">
-            <h3 className="font-display text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="font-display text-sm font-bold text-theme-primary uppercase tracking-wider flex items-center gap-2">
               <Video className="h-4 w-4" />
               {pageLabel(page)}
-              <span className="text-gray-400 font-normal">({vids.length})</span>
+              <span className="text-theme-tertiary font-normal">({vids.length})</span>
             </h3>
 
             <div className="grid grid-cols-1 gap-3">
               {vids.map((v) => (
                 <div
                   key={v.id}
-                  className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                  className="bg-[var(--bg-surface)] border border-theme rounded-xl overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start gap-4 p-4">
                     {/* Thumbnail / video preview */}
@@ -1617,12 +1711,12 @@ function VideoManagementTab() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h4 className="font-semibold text-gray-900 truncate">{v.title}</h4>
+                          <h4 className="font-semibold text-theme-primary truncate">{v.title}</h4>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                            <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                               {sectionLabel(v.page, v.sectionTag)}
                             </span>
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${v.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${v.isActive ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-theme-surface-hover text-theme-secondary'}`}>
                               {v.isActive ? <><Eye className="h-3 w-3" /> Active</> : <><EyeOff className="h-3 w-3" /> Inactive</>}
                             </span>
                           </div>
@@ -1635,12 +1729,12 @@ function VideoManagementTab() {
                               setEditDesc(v.description ?? '')
                               setEditActive(v.isActive)
                             }}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] text-theme-tertiary hover:text-theme-secondary transition-colors"
                             title="Edit"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
-                          <label className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600 cursor-pointer transition-colors" title="Upload new video">
+                          <label className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] text-theme-tertiary hover:text-blue-600 dark:text-blue-400 cursor-pointer transition-colors" title="Upload new video">
                             <Upload className="h-4 w-4" />
                             <input
                               type="file"
@@ -1659,7 +1753,7 @@ function VideoManagementTab() {
                                 await deleteVideo.mutateAsync(v.id)
                               }
                             }}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-red-50 dark:bg-red-900/30 text-theme-tertiary hover:text-red-500 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1668,17 +1762,17 @@ function VideoManagementTab() {
                       </div>
 
                       {v.description && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{v.description}</p>
+                        <p className="text-xs text-theme-secondary mt-1 line-clamp-2">{v.description}</p>
                       )}
 
-                      <div className="flex items-center gap-4 mt-2 text-[11px] text-gray-400">
+                      <div className="flex items-center gap-4 mt-2 text-[11px] text-theme-tertiary">
                         {v.sizeBytes && <span>{(v.sizeBytes / (1024 * 1024)).toFixed(1)} MB</span>}
                         {v.contentType && <span>{v.contentType}</span>}
                         <span>Updated {new Date(v.updatedAt).toLocaleDateString()}</span>
                       </div>
 
                       {uploadingId === v.id && (
-                        <div className="flex items-center gap-2 mt-2 text-xs text-blue-600">
+                        <div className="flex items-center gap-2 mt-2 text-xs text-blue-600 dark:text-blue-400">
                           <Loader2 className="h-3 w-3 animate-spin" />
                           Uploading...
                         </div>
@@ -1688,15 +1782,15 @@ function VideoManagementTab() {
 
                   {/* Inline edit form */}
                   {editId === v.id && (
-                    <div className="border-t border-gray-100 bg-stone-50 p-4 space-y-3">
+                    <div className="border-t border-theme bg-theme-surface p-4 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                          <label className="block text-xs font-medium text-theme-secondary mb-1">Title</label>
                           <input
                             type="text"
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                            className="w-full text-sm border border-theme rounded-lg px-3 py-2"
                           />
                         </div>
                         <div className="flex items-end gap-3">
@@ -1705,17 +1799,17 @@ function VideoManagementTab() {
                               type="checkbox"
                               checked={editActive}
                               onChange={(e) => setEditActive(e.target.checked)}
-                              className="rounded border-gray-300"
+                              className="rounded border-theme"
                             />
                             Active
                           </label>
                         </div>
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                          <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
                           <textarea
                             value={editDesc}
                             onChange={(e) => setEditDesc(e.target.value)}
-                            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                            className="w-full text-sm border border-theme rounded-lg px-3 py-2"
                             rows={2}
                           />
                         </div>
@@ -1728,7 +1822,7 @@ function VideoManagementTab() {
                         >
                           {updateVideo.isPending ? 'Saving...' : 'Save'}
                         </button>
-                        <button onClick={() => setEditId(null)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-stone-50">
+                        <button onClick={() => setEditId(null)} className="px-3 py-1.5 rounded-lg border border-theme text-xs text-theme-secondary hover:bg-theme-surface">
                           Cancel
                         </button>
                       </div>
@@ -1798,8 +1892,8 @@ function MediaManagementTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-xl font-bold text-gray-900">Media Manager</h2>
-        <p className="text-sm text-gray-500 mt-1">Upload, manage and delete images/videos for any opportunity.</p>
+        <h2 className="font-display text-xl font-bold text-theme-primary">Media Manager</h2>
+        <p className="text-sm text-theme-secondary mt-1">Upload, manage and delete images/videos for any opportunity.</p>
       </div>
 
       {/* Opportunity Selector */}
@@ -1842,18 +1936,18 @@ function MediaManagementTab() {
       {selectedOpp && (
         <div>
           {isLoading ? (
-            <div className="flex items-center gap-2 text-gray-400 py-8">
+            <div className="flex items-center gap-2 text-theme-tertiary py-8">
               <Loader2 className="h-5 w-5 animate-spin" /> Loading media…
             </div>
           ) : !mediaList?.length ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-theme-tertiary">
               <Image className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No media uploaded yet for this opportunity.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {mediaList.map((m) => (
-                <div key={m.id} className="relative group rounded-lg overflow-hidden border bg-white shadow-sm">
+                <div key={m.id} className="relative group rounded-lg overflow-hidden border bg-[var(--bg-surface)] shadow-sm">
                   {m.media_type === 'video' ? (
                     <div className="aspect-video bg-gray-900 flex items-center justify-center">
                       <Play className="h-8 w-8 text-white/70" />
@@ -1861,7 +1955,7 @@ function MediaManagementTab() {
                   ) : (
                     <img src={m.url} alt={m.filename} className="aspect-video w-full object-cover" />
                   )}
-                  <div className="p-2 text-xs text-gray-500 truncate">{m.filename}</div>
+                  <div className="p-2 text-xs text-theme-secondary truncate">{m.filename}</div>
                   {m.is_cover && (
                     <span className="absolute top-2 left-2 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-semibold">Cover</span>
                   )}
@@ -1869,7 +1963,7 @@ function MediaManagementTab() {
                     {!m.is_cover && (
                       <button
                         onClick={() => updateMut.mutate({ mediaId: m.id, isCover: true })}
-                        className="p-1.5 bg-white/90 rounded shadow text-xs hover:bg-white"
+                        className="p-1.5 bg-[var(--bg-card)] rounded shadow text-xs hover:bg-[var(--bg-surface)]"
                         title="Set as cover"
                       >
                         <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
@@ -1877,7 +1971,7 @@ function MediaManagementTab() {
                     )}
                     <button
                       onClick={() => { if (confirm('Delete this media?')) deleteMut.mutate(m.id) }}
-                      className="p-1.5 bg-white/90 rounded shadow text-xs hover:bg-red-50"
+                      className="p-1.5 bg-[var(--bg-card)] rounded shadow text-xs hover:bg-red-50 dark:bg-red-900/30"
                       title="Delete"
                     >
                       <Trash2 className="h-3.5 w-3.5 text-red-500" />
@@ -1903,6 +1997,7 @@ function SiteContentTab() {
   const createMut = useCreateSiteContent()
   const deleteMut = useDeleteSiteContent()
   const [searchTerm, setSearchTerm] = useState('')
+  const [activePage, setActivePage] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [showNew, setShowNew] = useState(false)
@@ -1911,12 +2006,24 @@ function SiteContentTab() {
   const [newValue, setNewValue] = useState('')
   const [newDesc, setNewDesc] = useState('')
 
-  const items = (allContent || []).filter((c: any) =>
-    !searchTerm ||
-    c.page?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.section_tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.value?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Build page counts from all content (unfiltered)
+  const pageCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const c of allContent || []) {
+      const p = (c as any).page || 'unknown'
+      counts[p] = (counts[p] || 0) + 1
+    }
+    return counts
+  }, [allContent])
+
+  const pageNames = useMemo(() => Object.keys(pageCounts).sort(), [pageCounts])
+
+  const items = (allContent || []).filter((c: any) => {
+    if (activePage && c.page !== activePage) return false
+    if (!searchTerm) return true
+    const q = searchTerm.toLowerCase()
+    return c.page?.toLowerCase().includes(q) || c.section_tag?.toLowerCase().includes(q) || c.value?.toLowerCase().includes(q)
+  })
 
   const grouped = items.reduce((acc: Record<string, any[]>, item: any) => {
     const page = item.page || 'unknown'
@@ -1929,8 +2036,8 @@ function SiteContentTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-xl font-bold text-gray-900">Site Content (CMS)</h2>
-          <p className="text-sm text-gray-500 mt-1">Edit text content across all pages. Changes are reflected in real-time.</p>
+          <h2 className="font-display text-xl font-bold text-theme-primary">Site Content (CMS)</h2>
+          <p className="text-sm text-theme-secondary mt-1">Edit text content across all pages. Changes are reflected in real-time.</p>
         </div>
         <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2 text-sm">
           <Plus className="h-4 w-4" /> Add Content
@@ -1939,7 +2046,7 @@ function SiteContentTab() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
         <input
           type="text"
           placeholder="Search by page, section or text…"
@@ -1949,10 +2056,39 @@ function SiteContentTab() {
         />
       </div>
 
+      {/* Page Filter Tabs */}
+      {pageNames.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActivePage(null)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activePage === null
+                ? 'bg-primary text-white'
+                : 'bg-theme-surface-hover text-theme-secondary hover:bg-theme-surface-hover/80'
+            }`}
+          >
+            All Pages ({(allContent || []).length})
+          </button>
+          {pageNames.map((page) => (
+            <button
+              key={page}
+              onClick={() => setActivePage(activePage === page ? null : page)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize ${
+                activePage === page
+                  ? 'bg-primary text-white'
+                  : 'bg-theme-surface-hover text-theme-secondary hover:bg-theme-surface-hover/80'
+              }`}
+            >
+              {page} ({pageCounts[page]})
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* New Content Form */}
       {showNew && (
         <div className="card p-4 space-y-3 border-primary/30">
-          <h3 className="text-sm font-semibold text-gray-700">New Content Entry</h3>
+          <h3 className="text-sm font-semibold text-theme-primary">New Content Entry</h3>
           <div className="grid grid-cols-2 gap-3">
             <input placeholder="Page (e.g. landing)" value={newPage} onChange={(e) => setNewPage(e.target.value)} className="input text-sm" />
             <input placeholder="Section tag (e.g. hero_title)" value={newSection} onChange={(e) => setNewSection(e.target.value)} className="input text-sm" />
@@ -1979,11 +2115,11 @@ function SiteContentTab() {
 
       {/* Content List */}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-gray-400 py-8">
+        <div className="flex items-center gap-2 text-theme-tertiary py-8">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading content…
         </div>
       ) : !items.length ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-theme-tertiary">
           <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>No site content found. Click "Add Content" to create entries.</p>
         </div>
@@ -1992,15 +2128,15 @@ function SiteContentTab() {
           <div key={page} className="space-y-2">
             <h3 className="font-semibold text-sm text-primary uppercase tracking-wide flex items-center gap-2">
               <FileText className="h-4 w-4" /> {page}
-              <span className="text-gray-400 font-normal">({(pageItems as any[]).length} entries)</span>
+              <span className="text-theme-tertiary font-normal">({(pageItems as any[]).length} entries)</span>
             </h3>
-            <div className="divide-y bg-white rounded-lg border shadow-sm">
+            <div className="divide-y bg-[var(--bg-surface)] rounded-lg border shadow-sm">
               {(pageItems as any[]).map((item: any) => (
                 <div key={item.id} className="px-4 py-3 flex items-start gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{item.section_tag}</code>
-                      {item.description && <span className="text-xs text-gray-400">— {item.description}</span>}
+                      <code className="text-xs bg-theme-surface-hover px-1.5 py-0.5 rounded text-theme-secondary">{item.section_tag}</code>
+                      {item.description && <span className="text-xs text-theme-tertiary">— {item.description}</span>}
                     </div>
                     {editingId === item.id ? (
                       <textarea
@@ -2010,7 +2146,7 @@ function SiteContentTab() {
                         autoFocus
                       />
                     ) : (
-                      <p className="text-sm text-gray-700 mt-1 line-clamp-2">{item.value}</p>
+                      <p className="text-sm text-theme-primary mt-1 line-clamp-2">{item.value}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0 mt-1">
@@ -2023,21 +2159,21 @@ function SiteContentTab() {
                         >
                           <Check className="h-4 w-4 text-green-600" />
                         </button>
-                        <button onClick={() => setEditingId(null)} className="p-1.5 rounded hover:bg-gray-100">
-                          <X className="h-4 w-4 text-gray-400" />
+                        <button onClick={() => setEditingId(null)} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)]">
+                          <X className="h-4 w-4 text-theme-tertiary" />
                         </button>
                       </>
                     ) : (
                       <>
                         <button
                           onClick={() => { setEditingId(item.id); setEditValue(item.value || '') }}
-                          className="p-1.5 rounded hover:bg-gray-100"
+                          className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)]"
                         >
-                          <Edit3 className="h-4 w-4 text-gray-400" />
+                          <Edit3 className="h-4 w-4 text-theme-tertiary" />
                         </button>
                         <button
                           onClick={() => { if (confirm('Delete this content entry?')) deleteMut.mutate(item.id) }}
-                          className="p-1.5 rounded hover:bg-red-50"
+                          className="p-1.5 rounded hover:bg-red-50 dark:bg-red-900/30"
                         >
                           <Trash2 className="h-4 w-4 text-red-400" />
                         </button>
@@ -2055,14 +2191,218 @@ function SiteContentTab() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Vault Feature Matrix Tab                                           */
+/* ------------------------------------------------------------------ */
+
+const VAULT_TYPES = ['wealth', 'opportunity', 'community'] as const
+const ROLES = ['investor', 'builder', 'admin', 'super_admin'] as const
+const FEATURE_KEYS = [
+  'view_vault', 'create_opportunity', 'invest', 'community_post',
+  'community_reply', 'view_analytics', 'manage_media', 'export_data',
+  'admin_panel', 'approve_content',
+] as const
+
+function VaultFeatureMatrixTab() {
+  const { data: flags, isLoading } = useFeatureMatrix()
+  const updateMatrix = useUpdateFeatureMatrix()
+  const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({})
+
+  const matrix = useMemo(() => {
+    const m: Record<string, boolean> = {}
+    if (flags) {
+      for (const f of flags) {
+        m[`${f.vaultType}:${f.role}:${f.featureKey}`] = f.enabled
+      }
+    }
+    return m
+  }, [flags])
+
+  const getVal = (v: string, r: string, k: string) => {
+    const key = `${v}:${r}:${k}`
+    return key in pendingChanges ? pendingChanges[key] : !!matrix[key]
+  }
+
+  const toggle = (v: string, r: string, k: string) => {
+    const key = `${v}:${r}:${k}`
+    const cur = key in pendingChanges ? pendingChanges[key] : !!matrix[key]
+    setPendingChanges((p) => ({ ...p, [key]: !cur }))
+  }
+
+  const hasPending = Object.keys(pendingChanges).length > 0
+
+  const handleSave = () => {
+    const updates = Object.entries(pendingChanges).map(([key, enabled]) => {
+      const [vault_type, role, feature_key] = key.split(':') as [string, string, string]
+      return { vault_type, role, feature_key, enabled }
+    })
+    updateMatrix.mutate(updates, { onSuccess: () => setPendingChanges({}) })
+  }
+
+  if (isLoading) return <CenteredLoader />
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-xl font-bold text-theme-primary">Vault Feature Matrix</h2>
+        {hasPending && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPendingChanges({})}
+              className="px-4 py-2 rounded-lg text-sm font-medium border border-theme text-theme-secondary hover:bg-theme-surface transition-colors"
+            >
+              Discard
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={updateMatrix.isPending}
+              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+            >
+              {updateMatrix.isPending ? 'Saving…' : `Save ${Object.keys(pendingChanges).length} change(s)`}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {VAULT_TYPES.map((vault) => (
+        <div key={vault} className="rounded-xl border border-theme bg-[var(--bg-surface)] overflow-hidden">
+          <div className="px-4 py-3 bg-theme-surface border-b border-theme">
+            <h3 className="font-semibold text-theme-primary capitalize">{vault} Vault</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-theme">
+                  <th className="text-left px-4 py-2 text-theme-tertiary font-medium">Feature</th>
+                  {ROLES.map((r) => (
+                    <th key={r} className="text-center px-3 py-2 text-theme-tertiary font-medium capitalize">{r.replace('_', ' ')}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {FEATURE_KEYS.map((fk) => (
+                  <tr key={fk} className="border-b border-theme last:border-0">
+                    <td className="px-4 py-2 text-theme-secondary font-mono text-xs">{fk}</td>
+                    {ROLES.map((r) => (
+                      <td key={r} className="text-center px-3 py-2">
+                        <button
+                          onClick={() => toggle(vault, r, fk)}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            getVal(vault, r, fk)
+                              ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-red-50 dark:bg-red-900/20 text-red-400 dark:text-red-500'
+                          } ${`${vault}:${r}:${fk}` in pendingChanges ? 'ring-2 ring-primary' : ''}`}
+                        >
+                          {getVal(vault, r, fk) ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                        </button>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin Invites Tab                                                  */
+/* ------------------------------------------------------------------ */
+
+function AdminInvitesTab() {
+  const { data: invites, isLoading } = useAdminInvites()
+  const createInvite = useCreateAdminInvite()
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState<'admin' | 'super_admin'>('admin')
+
+  const handleInvite = () => {
+    if (!email) return
+    createInvite.mutate({ email, role }, { onSuccess: () => setEmail('') })
+  }
+
+  if (isLoading) return <CenteredLoader />
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold text-theme-primary">Admin Invites</h2>
+
+      {/* Invite form */}
+      <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-5 space-y-4">
+        <h3 className="font-semibold text-theme-primary">Send Invite</h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@example.com"
+            className="flex-1 px-4 py-2 rounded-lg border border-theme bg-theme-surface text-theme-primary placeholder:text-theme-tertiary text-sm"
+          />
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'admin' | 'super_admin')}
+            className="px-4 py-2 rounded-lg border border-theme bg-theme-surface text-theme-primary text-sm"
+          >
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+          <button
+            onClick={handleInvite}
+            disabled={createInvite.isPending || !email}
+            className="px-5 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+          >
+            {createInvite.isPending ? 'Sending…' : 'Send Invite'}
+          </button>
+        </div>
+        {createInvite.isError && (
+          <p className="text-red-500 text-sm">Failed to send invite. Please try again.</p>
+        )}
+      </div>
+
+      {/* Invites list */}
+      <div className="rounded-xl border border-theme bg-[var(--bg-surface)] overflow-hidden">
+        <div className="px-4 py-3 border-b border-theme">
+          <h3 className="font-semibold text-theme-primary">All Invites</h3>
+        </div>
+        {(!invites || invites.length === 0) ? (
+          <p className="text-theme-tertiary text-center py-8 text-sm">No invites yet.</p>
+        ) : (
+          <div className="divide-y divide-theme">
+            {invites.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-theme-primary">{inv.email}</p>
+                  <p className="text-xs text-theme-tertiary mt-0.5 capitalize">{inv.role.replace('_', ' ')}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={inv.status === 'accepted' ? 'success' : inv.status === 'expired' ? 'danger' : 'warning'}>
+                    {inv.status}
+                  </Badge>
+                  <span className="text-xs text-theme-tertiary">
+                    Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function CommandControlPage() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard')
+  const { videoManagementEnabled } = useVaultConfig()
+  const visibleSections = videoManagementEnabled ? SECTIONS : SECTIONS.filter((s) => s.id !== 'content')
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
+    <div className="min-h-screen bg-theme-surface flex flex-col">
       {/* Shared Navbar */}
       <Navbar />
 
@@ -2078,25 +2418,25 @@ export default function CommandControlPage() {
       {/* Body */}
       <div className="flex flex-1 w-full">
         {/* Side Nav */}
-        <aside className="w-56 shrink-0 border-r border-gray-200 bg-white py-6 px-3 hidden md:block">
+        <aside className="w-56 shrink-0 border-r border-theme bg-[var(--bg-surface)] py-6 px-3 hidden md:block">
           <nav className="space-y-1">
-            {SECTIONS.map((s, i) => {
+            {visibleSections.map((s, i) => {
               const Icon = s.icon
               const active = activeSection === s.id
-              const prev = SECTIONS[i - 1] as SideNavItem | undefined
+              const prev = visibleSections[i - 1] as SideNavItem | undefined
               const prevGroup = prev?.group ?? null
               const showGroup = s.group && s.group !== prevGroup
               return (
                 <div key={s.id}>
                   {showGroup && (
-                    <p className={`text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 ${i > 0 ? 'pt-4' : ''} pb-1`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider text-theme-tertiary px-3 ${i > 0 ? 'pt-4' : ''} pb-1`}>
                       {s.group}
                     </p>
                   )}
                   <button
                     onClick={() => setActiveSection(s.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      active ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-stone-50 hover:text-gray-900'
+                      active ? 'bg-primary/5 text-primary' : 'text-theme-secondary hover:bg-theme-surface hover:text-theme-primary'
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -2109,9 +2449,9 @@ export default function CommandControlPage() {
         </aside>
 
         {/* Mobile section picker */}
-        <div className="md:hidden sticky top-16 z-40 bg-white border-b border-gray-200 overflow-x-auto">
+        <div className="md:hidden sticky top-16 z-40 bg-[var(--bg-surface)] border-b border-theme overflow-x-auto">
           <div className="flex items-center gap-1 px-4 py-2">
-            {SECTIONS.map((s) => {
+            {visibleSections.map((s) => {
               const Icon = s.icon
               const active = activeSection === s.id
               return (
@@ -2119,7 +2459,7 @@ export default function CommandControlPage() {
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
                   className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                    active ? 'bg-primary/10 text-primary' : 'text-gray-500 hover:bg-stone-50'
+                    active ? 'bg-primary/10 text-primary' : 'text-theme-secondary hover:bg-theme-surface'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -2131,22 +2471,24 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-6 sm:p-8 bg-stone-50 min-w-0">
+        <main className="flex-1 p-6 sm:p-8 bg-theme-surface min-w-0">
           {activeSection === 'dashboard' && <DashboardTab />}
           {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
           {activeSection === 'users' && <UsersTab />}
           {activeSection === 'admin-settings' && <AdminSettingsTab />}
-          {activeSection === 'content' && <VideoManagementTab />}
+          {activeSection === 'content' && videoManagementEnabled && <VideoManagementTab />}
           {activeSection === 'builder-questions' && <BuilderQuestionsTab />}
           {activeSection === 'comm-mapping' && <CommMappingTab />}
           {activeSection === 'referral-tracking' && <ReferralTrackingTab />}
           {activeSection === 'eoi-pipeline' && <EOIPipelineTab />}
           {activeSection === 'media-management' && <MediaManagementTab />}
           {activeSection === 'site-content' && <SiteContentTab />}
+          {activeSection === 'vault-features' && <VaultFeatureMatrixTab />}
+          {activeSection === 'admin-invites' && <AdminInvitesTab />}
           {activeSection === 'answer-questions' && (
             <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold text-gray-900">Answer Questions</h2>
-              <p className="text-sm text-gray-500">Review and respond to community questions submitted by investors.</p>
+              <h2 className="font-display text-xl font-bold text-theme-primary">Answer Questions</h2>
+              <p className="text-sm text-theme-secondary">Review and respond to community questions submitted by investors.</p>
               <a
                 href="/community/answer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors"

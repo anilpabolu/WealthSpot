@@ -6,7 +6,7 @@ import { Home, Search, ArrowLeft } from 'lucide-react'
  */
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-theme-surface">
       {/* Hero */}
       <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
@@ -18,7 +18,7 @@ export default function NotFoundPage() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="card px-8 py-6">
                 <Search className="h-12 w-12 text-primary mx-auto mb-3" />
-                <p className="text-gray-900 font-semibold text-lg">Page not found</p>
+                <p className="text-theme-primary font-semibold text-lg">Page not found</p>
               </div>
             </div>
           </div>

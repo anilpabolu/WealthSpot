@@ -33,19 +33,19 @@ export function Toggle({ checked, onChange, label, size = 'md', disabled = false
           relative inline-flex shrink-0 ${w} ${h} items-center rounded-full
           transition-colors duration-200 ease-in-out
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2
-          ${checked ? 'bg-primary' : 'bg-gray-200'}
+          ${checked ? 'bg-primary' : 'bg-[var(--bg-surface-hover)]'}
         `}
       >
         <span
           className={`
-            ${knob} rounded-full bg-white shadow-sm
+            ${knob} rounded-full bg-[var(--bg-surface)] shadow-sm
             transition-transform duration-200 ease-in-out
             ${checked ? travel : 'translate-x-0.5'}
           `}
         />
       </button>
       {label && (
-        <span className="text-sm text-gray-600">{label}</span>
+        <span className="text-sm text-theme-secondary">{label}</span>
       )}
     </label>
   );

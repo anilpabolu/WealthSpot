@@ -5,6 +5,9 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
+import { useThemeStore } from '@/stores/theme.store'
+import { useUserStore } from '@/stores/user.store'
+import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 
 // Lazy-loaded route components
 const Landing = lazy(() => import('@/pages/LandingPage'))
@@ -39,6 +42,7 @@ const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetailPage'))
 const AdminReferrals = lazy(() => import('@/pages/AdminReferralsPage'))
 const VaultProfiling = lazy(() => import('@/pages/VaultProfilingPage'))
 const VaultAnalytics = lazy(() => import('@/pages/VaultAnalyticsDashboard'))
+const InviteAccept = lazy(() => import('@/pages/InviteAcceptPage'))
 
 const LOADING_MESSAGES = [
   'Curating premium opportunities…',
@@ -52,21 +56,21 @@ function PageLoader() {
   const message = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-theme-base">
       <div className="flex flex-col items-center gap-5">
         {/* Branded logo mark */}
         <div className="relative">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] dark:from-[#D4AF37] dark:to-[#B8860B] flex items-center justify-center shadow-xl shadow-[#D4AF37]/20 animate-pulse">
             <svg viewBox="0 0 40 40" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
               <path d="M13 20L18 25L27 16" />
             </svg>
           </div>
         </div>
-        <span className="font-display text-lg font-bold text-gray-900">
-          Wealth<span className="text-primary">Spot</span>
+        <span className="font-display text-lg font-bold text-theme-primary">
+          Wealth<span className="text-theme-accent">Spot</span>
         </span>
-        <p className="text-sm text-gray-400 font-body animate-pulse">{message}</p>
+        <p className="text-sm text-theme-tertiary font-body animate-pulse">{message}</p>
       </div>
     </div>
   )
@@ -92,6 +96,17 @@ export default function App() {
   const { user, isLoaded } = useUser()
   const redirectedRef = useRef(false)
 
+  // Apply saved theme on mount
+  const theme = useThemeStore((s) => s.theme)
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+  }, [theme])
+
   // Capture ?ref=CODE from URL and stash in localStorage for post-signup apply
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -113,24 +128,29 @@ export default function App() {
   }, [location.pathname])
 
   // Redirect signed-in users on the landing page only:
-  // first-timers → onboarding video, returning → vaults.
-  // If the user is already on a deep link (e.g. /settings, /marketplace), stay there.
+  // No persona yet → persona selection, first-timers → onboarding video, returning → vaults.
+  const wsUser = useUserStore((s) => s.user)
   useEffect(() => {
     if (!isLoaded || !user || redirectedRef.current) return
     if (location.pathname !== '/') return          // don't redirect deep links
-    const onboarded = localStorage.getItem('ws_onboarded')
     redirectedRef.current = true
+
+    const onboarded = localStorage.getItem('ws_onboarded')
     if (onboarded !== 'true') {
       localStorage.setItem('ws_onboarded', 'false')
       navigate('/onboarding')
     } else {
       navigate('/vaults')
     }
-  }, [isLoaded, user, navigate, location.pathname])
+  }, [isLoaded, user, wsUser, navigate, location.pathname])
 
   return (
     <ErrorBoundary>
       <NotRegisteredBanner />
+      {wsUser &&
+        !wsUser.personaSelectedAt &&
+        !['admin', 'super_admin'].includes(wsUser.primaryRole) &&
+        <PersonaSelectionModal />}
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
@@ -154,7 +174,8 @@ export default function App() {
           <Route path="/portal/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
           <Route path="/portal/admin/referrals" element={<ProtectedRoute><AdminReferrals /></ProtectedRoute>} />
 
-          {/* Auth */}
+          {/* Auth & Persona */}
+          <Route path="/invite/:token" element={<ProtectedRoute><InviteAccept /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/vaults" element={<ProtectedRoute><Vaults /></ProtectedRoute>} />
           <Route path="/auth/kyc/identity" element={<ProtectedRoute><KycIdentity /></ProtectedRoute>} />

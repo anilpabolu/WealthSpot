@@ -5,6 +5,7 @@ import StatusBadge from './StatusBadge'
 import type { StatusType } from './StatusBadge'
 import { Mail, MessageCircle, Trash2, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 export interface PropertyCardProps {
   title: string
@@ -54,9 +55,11 @@ export default function PropertyCard({
   propertyId,
   onDelete,
 }: PropertyCardProps) {
+  const { propertyVideosEnabled } = useVaultConfig()
+
   if (isLoading) {
     return (
-      <div className={cn('bg-white/80 border border-gray-200/60 rounded-xl overflow-hidden', className)}>
+      <div className={cn('bg-[var(--bg-card)] border border-theme/60 rounded-xl overflow-hidden', className)}>
         <div className="skeleton aspect-video w-full" />
         <div className="p-4 space-y-3">
           <div className="skeleton h-5 w-3/4" />
@@ -112,7 +115,7 @@ export default function PropertyCard({
   return (
     <div
       className={cn(
-        'bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-gray-300/60 cursor-pointer group relative',
+        'bg-[var(--bg-card)] backdrop-blur-sm border border-theme/60 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-theme/60 cursor-pointer group relative',
         className
       )}
       onClick={onCardClick}
@@ -146,17 +149,17 @@ export default function PropertyCard({
           <>
             <button
               onClick={goPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-1 shadow opacity-0 group-hover:opacity-100 transition-opacity"
               aria-label="Previous image"
             >
-              <ChevronLeft className="h-4 w-4 text-gray-700" />
+              <ChevronLeft className="h-4 w-4 text-theme-primary" />
             </button>
             <button
               onClick={goNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-1 shadow opacity-0 group-hover:opacity-100 transition-opacity"
               aria-label="Next image"
             >
-              <ChevronRight className="h-4 w-4 text-gray-700" />
+              <ChevronRight className="h-4 w-4 text-theme-primary" />
             </button>
           </>
         )}
@@ -169,7 +172,7 @@ export default function PropertyCard({
                 key={i}
                 onClick={(e) => { e.stopPropagation(); setActiveIdx(i); startAutoPlay() }}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === activeIdx ? 'w-4 bg-white' : 'w-1.5 bg-white/60'
+                  i === activeIdx ? 'w-4 bg-[var(--bg-surface)]' : 'w-1.5 bg-[var(--bg-card)]'
                 }`}
                 aria-label={`Image ${i + 1}`}
               />
@@ -178,7 +181,7 @@ export default function PropertyCard({
         )}
 
         {/* Video icon */}
-        {videoUrl && (
+        {propertyVideosEnabled && videoUrl && (
           <a
             href={videoUrl}
             target="_blank"
@@ -221,7 +224,7 @@ export default function PropertyCard({
         {/* Property info overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
           <h3 className="text-white font-semibold text-lg drop-shadow-sm">{title}</h3>
-          <p className="text-gray-200 text-sm flex items-center gap-1">
+          <p className="text-[var(--border-default)] text-sm flex items-center gap-1">
             📍 {micromarket ? `${micromarket}, ` : ''}{city}
           </p>
         </div>
@@ -232,12 +235,12 @@ export default function PropertyCard({
         {/* Financial metrics */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Target IRR</p>
-            <p className="font-mono font-bold text-2xl text-gray-900">{formatPercent(targetIrr)}</p>
+            <p className="text-xs uppercase tracking-wider text-theme-secondary font-semibold">Target IRR</p>
+            <p className="font-mono font-bold text-2xl text-theme-primary">{formatPercent(targetIrr)}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Min Invest</p>
-            <p className="font-mono font-bold text-lg text-gray-900">{formatINRCompact(minInvestment)}</p>
+            <p className="text-xs uppercase tracking-wider text-theme-secondary font-semibold">Min Invest</p>
+            <p className="font-mono font-bold text-lg text-theme-primary">{formatINRCompact(minInvestment)}</p>
           </div>
         </div>
 
@@ -247,10 +250,10 @@ export default function PropertyCard({
         {/* Footer */}
         <div className="flex items-center justify-between mt-3">
           {investorCount !== undefined && (
-            <span className="text-xs text-gray-400">{investorCount} investors</span>
+            <span className="text-xs text-theme-tertiary">{investorCount} investors</span>
           )}
           {reraNumber && (
-            <span className="text-xs text-gray-400 truncate max-w-[120px]" title={reraNumber}>
+            <span className="text-xs text-theme-tertiary truncate max-w-[120px]" title={reraNumber}>
               RERA ✓
             </span>
           )}
@@ -259,7 +262,7 @@ export default function PropertyCard({
           {isUpcoming ? (
             /* Upcoming: reminder buttons */
             <div className="flex items-center gap-2 ml-auto">
-              <span className="text-xs text-gray-400 mr-1">Notify me:</span>
+              <span className="text-xs text-theme-tertiary mr-1">Notify me:</span>
               <a
                 href={`https://wa.me/?text=I'm interested in ${encodeURIComponent(title)} on WealthSpot. Please notify me when it opens for investment.`}
                 target="_blank"
@@ -285,7 +288,7 @@ export default function PropertyCard({
             /* Fully Funded: disabled button */
             <button
               disabled
-              className="text-gray-400 font-semibold text-sm ml-auto cursor-not-allowed select-none"
+              className="text-theme-tertiary font-semibold text-sm ml-auto cursor-not-allowed select-none"
               aria-label="This property is fully funded"
             >
               FULLY FUNDED ✓

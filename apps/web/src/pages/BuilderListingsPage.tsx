@@ -46,7 +46,7 @@ export default function BuilderListingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="section-title text-2xl">My Listings</h1>
-            <p className="text-gray-500 mt-1">Manage and track your property listings</p>
+            <p className="text-theme-secondary mt-1">Manage and track your property listings</p>
           </div>
           <Link to="/portal/builder/listings/new" className="btn-primary inline-flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
@@ -57,13 +57,13 @@ export default function BuilderListingsPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
             <input
               type="search"
               placeholder="Search listings..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-surface)] border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
           <Select
@@ -92,12 +92,12 @@ export default function BuilderListingsPage() {
               header: 'Property',
               render: (l) => (
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+                  <div className="h-10 w-10 rounded-lg bg-theme-surface-hover flex items-center justify-center shrink-0">
+                    <Building2 className="h-5 w-5 text-theme-tertiary" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{l.title}</p>
-                    <p className="text-xs text-gray-500">{l.micromarket}, {l.city} · {l.assetType}</p>
+                    <p className="font-medium text-theme-primary">{l.title}</p>
+                    <p className="text-xs text-theme-secondary">{l.micromarket}, {l.city} · {l.assetType}</p>
                   </div>
                 </div>
               ),
@@ -142,13 +142,13 @@ export default function BuilderListingsPage() {
               headerClassName: 'text-center',
               render: (l) => (
                 <div className="flex items-center justify-center gap-1">
-                  <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-primary" title="View">
+                  <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="View">
                     <Eye className="h-4 w-4" />
                   </Link>
-                  <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-primary" title="Edit">
+                  <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="Edit">
                     <Edit className="h-4 w-4" />
                   </Link>
-                  <button className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-danger" title="Delete">
+                  <button className="p-1.5 rounded hover:bg-red-50 dark:bg-red-900/30 text-theme-secondary hover:text-danger" title="Delete">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

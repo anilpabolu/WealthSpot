@@ -12,6 +12,10 @@ export interface UserProfile {
   phone: string
   avatarUrl?: string
   role: UserRole
+  roles: string[]
+  primaryRole: string
+  builderApproved: boolean
+  personaSelectedAt: string | null
   kycStatus: string
   referralCode: string
   wealthPassActive: boolean

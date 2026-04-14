@@ -83,7 +83,7 @@ export function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <div className={`rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-xl ${className}`}>
+      <div className={`rounded-2xl border border-theme/60 bg-[var(--bg-card)] backdrop-blur-xl ${className}`}>
         <EmptyState
           message={emptyMessage}
           icon={emptyIcon as any}
@@ -94,16 +94,16 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={`rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-xl overflow-hidden ${className}`}>
+    <div className={`rounded-2xl border border-theme/60 bg-[var(--bg-card)] backdrop-blur-xl overflow-hidden ${className}`}>
       <div className="overflow-x-auto scroll-thin">
         <table className="w-full text-left">
           <thead>
-            <tr className={`border-b border-gray-100 ${stickyHeader ? 'sticky top-0 z-10 bg-white/95 backdrop-blur-sm' : ''}`}>
+            <tr className={`border-b border-theme ${stickyHeader ? 'sticky top-0 z-10 bg-[var(--bg-card)] backdrop-blur-sm' : ''}`}>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`${px} ${py} text-[10px] font-bold text-gray-400 uppercase tracking-wider ${
-                    col.sortable ? 'cursor-pointer select-none hover:text-gray-600 transition-colors' : ''
+                  className={`${px} ${py} text-[10px] font-bold text-theme-tertiary uppercase tracking-wider ${
+                    col.sortable ? 'cursor-pointer select-none hover:text-theme-secondary transition-colors' : ''
                   } ${col.headerClassName || ''}`}
                   onClick={col.sortable ? () => handleSort(col.key) : undefined}
                 >
@@ -123,7 +123,7 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100/80">
+          <tbody className="divide-y divide-theme/80">
             {sorted.map((row, i) => {
               const key = keyExtractor(row, i);
               const isExpanded = expandedKeys.has(key);
@@ -134,8 +134,8 @@ export function DataTable<T>({
                   className={`
                     transition-colors duration-100
                     ${onRowClick || expandedRow ? 'cursor-pointer' : ''}
-                    hover:bg-stone-50/60
-                    ${isExpanded ? 'bg-stone-50/40' : ''}
+                    hover:bg-theme-surface/60
+                    ${isExpanded ? 'bg-theme-surface/40' : ''}
                     ${rowClassName ? rowClassName(row, i) : ''}
                   `}
                 >

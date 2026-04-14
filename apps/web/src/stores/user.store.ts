@@ -8,6 +8,10 @@ export interface UserProfile {
   phone: string
   avatarUrl?: string
   role: 'investor' | 'builder' | 'admin' | 'lender' | 'founder' | 'community_lead' | 'approver' | 'super_admin'
+  roles: string[]
+  primaryRole: string
+  builderApproved: boolean
+  personaSelectedAt: string | null
   kycStatus: string
   referralCode: string
   wealthPassActive: boolean

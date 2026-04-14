@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import { Select, EmptyState } from '@/components/ui'
 import MainLayout from '@/components/layout/MainLayout'
 import { useUserStore } from '@/stores/user.store'
+import { useContent } from '@/hooks/useSiteContent'
 import {
   useCommunityPosts,
   useCommunityReplies,
@@ -88,24 +89,24 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
   }
 
   return (
-    <div className="mt-4 border-t border-gray-100 pt-4">
+    <div className="mt-4 border-t border-theme pt-4">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <h4 className="text-xs font-semibold text-theme-secondary uppercase tracking-wider">
           {isQuestion ? 'Answers' : 'Replies'} ({post.replyCount})
         </h4>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <button onClick={onClose} className="text-theme-tertiary hover:text-theme-secondary">
           <ChevronUp className="h-4 w-4" />
         </button>
       </div>
 
       {isLoading && (
         <div className="flex justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-theme-tertiary" />
         </div>
       )}
 
       {replies && replies.length === 0 && (
-        <p className="text-sm text-gray-400 italic py-2">
+        <p className="text-sm text-theme-tertiary italic py-2">
           {isQuestion ? 'No approved answers yet.' : 'No replies yet. Be the first!'}
         </p>
       )}
@@ -117,7 +118,7 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
               key={r.id}
               className={cn(
                 'flex gap-3 text-sm p-3 rounded-lg',
-                isQuestion ? 'bg-emerald-50 border border-emerald-100' : 'bg-stone-50'
+                isQuestion ? 'bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100' : 'bg-theme-surface'
               )}
             >
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
@@ -125,15 +126,15 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-medium text-gray-700 text-xs">{r.author?.fullName ?? 'Anonymous'}</span>
-                  <span className="text-[10px] text-gray-400">{relativeTime(r.createdAt)}</span>
+                  <span className="font-medium text-theme-primary text-xs">{r.author?.fullName ?? 'Anonymous'}</span>
+                  <span className="text-[10px] text-theme-tertiary">{relativeTime(r.createdAt)}</span>
                   {isQuestion && (
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                       ✓ Answer
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-gray-600 leading-relaxed">{r.body}</p>
+                <p className="mt-1 text-theme-secondary leading-relaxed">{r.body}</p>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -146,8 +147,8 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
                   className={cn(
                     'flex items-center gap-1 mt-1.5 text-[11px] transition',
                     !isAuthenticated
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : r.userHasLiked ? 'text-primary font-semibold' : 'text-gray-400 hover:text-primary'
+                      ? 'text-theme-tertiary cursor-not-allowed'
+                      : r.userHasLiked ? 'text-primary font-semibold' : 'text-theme-tertiary hover:text-primary'
                   )}
                 >
                   <ThumbsUp className="h-3 w-3" />
@@ -166,7 +167,7 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={isQuestion ? 'Write your answer...' : 'Write a reply...'}
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+            className="flex-1 text-sm border border-theme rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
           />
           <button
             type="submit"
@@ -184,7 +185,7 @@ function ReplySection({ post, onClose }: ReplySectionProps) {
       )}
 
       {isQuestion && isAuthenticated && (
-        <p className="mt-1.5 text-[11px] text-amber-600">
+        <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400">
           ⚠ Answers to questions go through a review process before being published.
         </p>
       )}
@@ -213,18 +214,18 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
   }[post.postType]
 
   const typeBadgeClass = {
-    discussion: 'bg-blue-50 text-blue-700',
-    question: 'bg-amber-50 text-amber-700',
-    insight: 'bg-purple-50 text-purple-700',
-    poll: 'bg-gray-100 text-gray-600',
-    announcement: 'bg-red-50 text-red-700',
+    discussion: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+    question: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+    insight: 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
+    poll: 'bg-theme-surface-hover text-theme-secondary',
+    announcement: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300',
   }[post.postType]
 
   return (
     <article
       className={cn(
-        'bg-white/80 backdrop-blur-sm border rounded-xl p-5 transition-all duration-300',
-        post.isPinned ? 'border-primary/30 bg-primary/[0.02] shadow-sm' : 'border-gray-200/60 hover:shadow-md'
+        'bg-[var(--bg-card)] backdrop-blur-sm border rounded-xl p-5 transition-all duration-300',
+        post.isPinned ? 'border-primary/30 bg-primary/[0.02] shadow-sm' : 'border-theme/60 hover:shadow-md'
       )}
     >
       {post.isPinned && (
@@ -249,13 +250,13 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
             className={cn(
               'p-1 rounded transition',
               !isAuthenticated
-                ? 'text-gray-300 cursor-not-allowed'
-                : post.userHasLiked ? 'text-primary' : 'text-gray-400 hover:text-primary hover:bg-primary/5'
+                ? 'text-theme-tertiary cursor-not-allowed'
+                : post.userHasLiked ? 'text-primary' : 'text-theme-tertiary hover:text-primary hover:bg-primary/5'
             )}
           >
             <ThumbsUp className={cn('h-4 w-4', post.userHasLiked && 'fill-current')} />
           </button>
-          <span className="text-sm font-bold text-gray-700">{post.upvotes}</span>
+          <span className="text-sm font-bold text-theme-primary">{post.upvotes}</span>
         </div>
 
         {/* Content */}
@@ -273,8 +274,8 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
             </span>
           </div>
 
-          <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">{post.title}</h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.bodyPreview}</p>
+          <h3 className="font-semibold text-theme-primary leading-snug line-clamp-2">{post.title}</h3>
+          <p className="text-sm text-theme-secondary mt-1 line-clamp-2">{post.bodyPreview}</p>
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
@@ -282,7 +283,7 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-[10px] font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+                  className="text-[10px] font-medium bg-theme-surface-hover text-theme-secondary px-2 py-0.5 rounded-full"
                 >
                   #{tag}
                 </span>
@@ -291,7 +292,7 @@ function PostCard({ post, filters, isAuthenticated }: PostCardProps) {
           )}
 
           {/* Meta */}
-          <div className="flex items-center gap-4 mt-3 text-xs text-gray-400 flex-wrap">
+          <div className="flex items-center gap-4 mt-3 text-xs text-theme-tertiary flex-wrap">
             <span className="flex items-center gap-1">
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                 {post.author?.fullName?.charAt(0) ?? '?'}
@@ -397,9 +398,9 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
     <div className="modal-overlay p-4">
       <div className="modal-panel max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-          <h2 className="font-display text-lg font-bold text-gray-900">New Post</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-theme">
+          <h2 className="font-display text-lg font-bold text-theme-primary">New Post</h2>
+          <button onClick={onClose} className="text-theme-tertiary hover:text-theme-primary transition">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -407,7 +408,7 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
           {/* Post type selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Post type</label>
+            <label className="block text-sm font-medium text-theme-primary mb-2">Post type</label>
             <div className="space-y-2">
               {typeOptions.map((opt) => {
                 const Icon = opt.icon
@@ -418,7 +419,7 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
                       'flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition',
                       postType === opt.value
                         ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-theme hover:border-theme'
                     )}
                   >
                     <input
@@ -429,10 +430,10 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
                       onChange={() => setPostType(opt.value)}
                       className="mt-0.5 accent-primary"
                     />
-                    <Icon className={cn('h-5 w-5 mt-0.5 shrink-0', postType === opt.value ? 'text-primary' : 'text-gray-400')} />
+                    <Icon className={cn('h-5 w-5 mt-0.5 shrink-0', postType === opt.value ? 'text-primary' : 'text-theme-tertiary')} />
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{opt.label}</p>
-                      <p className="text-xs text-gray-500">{opt.desc}</p>
+                      <p className="text-sm font-medium text-theme-primary">{opt.label}</p>
+                      <p className="text-xs text-theme-secondary">{opt.desc}</p>
                     </div>
                   </label>
                 )
@@ -442,7 +443,7 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <label className="block text-sm font-medium text-theme-primary mb-1">Title</label>
             <input
               type="text"
               value={title}
@@ -450,18 +451,18 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
               placeholder="Write a clear, descriptive title..."
               maxLength={500}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+              className="w-full border border-theme rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
             />
           </div>
 
           {/* Body */}
           <div>
             <div className="flex items-baseline justify-between mb-1">
-              <label className="text-sm font-medium text-gray-700">Body</label>
+              <label className="text-sm font-medium text-theme-primary">Body</label>
               <span
                 className={cn(
                   'text-xs',
-                  overLimit ? 'text-red-500 font-semibold' : underLimit ? 'text-amber-500' : 'text-gray-400'
+                  overLimit ? 'text-red-500 font-semibold' : underLimit ? 'text-amber-500' : 'text-theme-tertiary'
                 )}
               >
                 {words} / {maxWords} words
@@ -475,7 +476,7 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
               required
               className={cn(
                 'w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 outline-none resize-none',
-                overLimit ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-primary'
+                overLimit ? 'border-red-400 focus:border-red-400' : 'border-theme focus:border-primary'
               )}
             />
             {overLimit && (
@@ -485,9 +486,9 @@ function NewPostModal({ onClose, userRole, initialType, onQuestionPosted }: NewP
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tags (up to 5)</label>
+            <label className="block text-sm font-medium text-theme-primary mb-1">Tags (up to 5)</label>
             <div
-              className="flex flex-wrap gap-1.5 items-center border border-gray-200 rounded-lg px-3 py-2 min-h-[40px] cursor-text"
+              className="flex flex-wrap gap-1.5 items-center border border-theme rounded-lg px-3 py-2 min-h-[40px] cursor-text"
               onClick={() => tagRef.current?.focus()}
             >
               {tags.map((tag) => (
@@ -574,16 +575,28 @@ export default function CommunityPage() {
 
   const { data, isLoading, isError } = useCommunityPosts(filters)
 
+  // CMS content
+  const heroBadge = useContent('community', 'hero_badge', 'Community')
+  const heroTitle = useContent('community', 'hero_title', 'The Water Cooler')
+  const heroSubtitle = useContent('community', 'hero_subtitle', "Where investors swap alpha, share war stories, and ask the questions Google can't answer.")
+  const ctaDiscussion = useContent('community', 'cta_discussion', 'New Discussion')
+  const ctaQuestion = useContent('community', 'cta_question', 'Ask Question')
+  const ctaInsight = useContent('community', 'cta_insight', 'Share Insight')
+  const emptySearchTitle = useContent('community', 'empty_search_title', 'No Posts Found')
+  const emptySearchMsg = useContent('community', 'empty_search_msg', 'Try a different search term.')
+  const emptyTitle = useContent('community', 'empty_title', 'No Posts Found')
+  const emptyMessage = useContent('community', 'empty_message', 'Be the first to start a discussion!')
+
   return (
     <MainLayout>
       {/* Hero */}
       <div className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
         <div className="page-hero-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <span className="page-hero-badge">Community</span>
-            <h1 className="page-hero-title">The Water Cooler</h1>
+            <span className="page-hero-badge">{heroBadge}</span>
+            <h1 className="page-hero-title">{heroTitle}</h1>
             <p className="page-hero-subtitle">
-              Where investors swap alpha, share war stories, and ask the questions Google can't answer.
+              {heroSubtitle}
             </p>
           </div>
           {isAuthenticated && (
@@ -593,14 +606,14 @@ export default function CommunityPage() {
                 className="btn-gradient bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-sm text-sm flex items-center gap-1.5 px-4 py-2.5"
               >
                 <TrendingUp className="h-4 w-4" />
-                New Discussion
+                {ctaDiscussion}
               </button>
               <button
                 onClick={() => openModalWith('question')}
                 className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition"
               >
                 <HelpCircle className="h-4 w-4" />
-                Ask Question
+                {ctaQuestion}
               </button>
               {isPrivileged && (
                 <button
@@ -608,7 +621,7 @@ export default function CommunityPage() {
                   className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition"
                 >
                   <Lightbulb className="h-4 w-4" />
-                  Share Insight
+                  {ctaInsight}
                 </button>
               )}
             </div>
@@ -622,13 +635,13 @@ export default function CommunityPage() {
         {/* Search & Sort */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
             <input
               type="search"
               placeholder="Search posts and tags..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+              className="w-full pl-10 pr-4 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
             />
           </div>
           <Select
@@ -654,7 +667,7 @@ export default function CommunityPage() {
                   'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition',
                   activeType === cat.id
                     ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -688,13 +701,13 @@ export default function CommunityPage() {
             {data && data.items.length === 0 && (
               <EmptyState
                 icon={MessageSquare}
-                title="No Posts Found"
-                message={search ? 'Try a different search term.' : 'Be the first to start a discussion!'}
+                title={search ? emptySearchTitle : emptyTitle}
+                message={search ? emptySearchMsg : emptyMessage}
               />
             )}
 
             {data && data.totalPages > 1 && (
-              <p className="text-center text-xs text-gray-400 mt-6">
+              <p className="text-center text-xs text-theme-tertiary mt-6">
                 Showing page 1 of {data.totalPages} &nbsp;·&nbsp; {data.total} total posts
               </p>
             )}
@@ -715,19 +728,19 @@ export default function CommunityPage() {
 
       {/* Question posted toast */}
       {questionToast && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-emerald-50 border border-emerald-200 rounded-xl shadow-lg p-4 animate-in slide-in-from-bottom-4">
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/40 rounded-xl shadow-lg p-4 animate-in slide-in-from-bottom-4">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+            <div className="mt-0.5 h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
               <HelpCircle className="h-4 w-4" />
             </div>
             <div>
               <p className="text-sm font-semibold text-emerald-800">Question Submitted!</p>
-              <p className="text-xs text-emerald-600 mt-0.5">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
                 Your question will be answered shortly by our knowledge contributors.
                 You'll be notified when an approved answer is posted.
               </p>
             </div>
-            <button onClick={() => setQuestionToast(false)} className="text-emerald-400 hover:text-emerald-600 ml-1 shrink-0">
+            <button onClick={() => setQuestionToast(false)} className="text-emerald-400 hover:text-emerald-600 dark:text-emerald-400 ml-1 shrink-0">
               <X className="h-4 w-4" />
             </button>
           </div>

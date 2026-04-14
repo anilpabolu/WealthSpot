@@ -56,6 +56,10 @@ class UserRead(UserBase):
     referral_code: str | None = None
     wealth_pass_active: bool
     is_active: bool
+    roles: list[str] = []
+    primary_role: str = "investor"
+    builder_approved: bool = False
+    persona_selected_at: datetime | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -64,6 +68,59 @@ class UserRead(UserBase):
 class UserProfile(UserRead):
     """Extended profile for authenticated /me endpoint."""
     pass
+
+
+# ── Persona Selection ────────────────────────────────────────────────────────
+
+
+# Only the 4 personas visible on signup; hidden roles are assigned by super_admin only.
+VISIBLE_PERSONAS = {"investor", "builder", "admin", "super_admin"}
+
+
+class PersonaSelectionRequest(BaseModel):
+    """Payload for POST /auth/select-persona."""
+    roles: list[str] = Field(min_length=1, max_length=4)
+    primary_role: str
+
+    @field_validator("roles")
+    @classmethod
+    def validate_roles(cls, v: list[str]) -> list[str]:
+        invalid = set(v) - VISIBLE_PERSONAS
+        if invalid:
+            raise ValueError(f"Invalid personas: {invalid}")
+        return v
+
+    @field_validator("primary_role")
+    @classmethod
+    def validate_primary(cls, v: str, info) -> str:
+        if v not in VISIBLE_PERSONAS:
+            raise ValueError(f"Invalid primary persona: {v}")
+        return v
+
+
+class SwitchPersonaRequest(BaseModel):
+    """Payload for POST /auth/switch-persona."""
+    primary_role: str
+
+    @field_validator("primary_role")
+    @classmethod
+    def validate_primary(cls, v: str) -> str:
+        if v not in VISIBLE_PERSONAS:
+            raise ValueError(f"Invalid persona: {v}")
+        return v
+
+
+class AddPersonaRequest(BaseModel):
+    """Payload for POST /auth/add-persona."""
+    role: str
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        allowed = {"investor", "builder"}
+        if v not in allowed:
+            raise ValueError(f"Can only self-add: {allowed}")
+        return v
 
 
 # ── Profile Completion ───────────────────────────────────────────────────────

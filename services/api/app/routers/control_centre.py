@@ -2,6 +2,8 @@
 Command Control Centre router – super-admin only platform configuration.
 """
 
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any
 import uuid as _uuid
 
@@ -10,13 +12,15 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import require_super_admin
+from app.middleware.auth import get_current_user, require_super_admin
+from app.models.admin_invite import AdminInvite
 from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
 from app.models.opportunity import Opportunity, OpportunityStatus
 from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
 from app.models.platform_config import PlatformConfig
 from app.models.user import User, UserRole
 from app.models.role_group import RoleGroup, GroupMessage
+from app.schemas.admin_invite import AdminInviteCreate, AdminInviteRead
 from app.schemas.platform_config import ConfigCreate, ConfigRead, ConfigUpdate
 from app.schemas.user import UserRead
 
@@ -83,13 +87,14 @@ async def platform_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
 @router.get("/vault-config")
 async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
-    """Public endpoint: returns which vaults are enabled/disabled.
+    """Public endpoint: returns which vaults are enabled/disabled + video toggles.
 
-    Reads from PlatformConfig section='vaults'. Missing keys default to True (enabled).
+    Reads from PlatformConfig section='vaults' and section='content'.
+    Missing keys default to True (enabled).
     """
     result = await db.execute(
         select(PlatformConfig).where(
-            PlatformConfig.section == "vaults",
+            PlatformConfig.section.in_(["vaults", "content"]),
             PlatformConfig.is_active.is_(True),
         )
     )
@@ -107,6 +112,11 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
         "wealth_vault_enabled": True,  # always on — core product
         "opportunity_vault_enabled": _is_enabled("opportunity_vault_enabled"),
         "community_vault_enabled": _is_enabled("community_vault_enabled"),
+        # Video toggles (per-category)
+        "intro_videos_enabled": _is_enabled("intro_videos_enabled"),
+        "vault_videos_enabled": _is_enabled("vault_videos_enabled"),
+        "property_videos_enabled": _is_enabled("property_videos_enabled"),
+        "video_management_enabled": _is_enabled("video_management_enabled"),
     }
 
 
@@ -390,3 +400,98 @@ async def list_group_messages(
         }
         for m in messages
     ]
+
+
+# ── Admin Invites ────────────────────────────────────────────────────────────
+
+
+@router.post("/invite-admin", response_model=AdminInviteRead)
+async def invite_admin(
+    body: AdminInviteCreate,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_super_admin),
+) -> AdminInvite:
+    """Invite a new admin or super_admin by email. Generates a secure token."""
+    # Soft warning if already >= 3 super_admins
+    if body.role == "super_admin":
+        count = (await db.execute(
+            select(func.count(User.id)).where(
+                User.roles.contains('"super_admin"'),
+                User.is_active.is_(True),
+            )
+        )).scalar() or 0
+        if count >= 3:
+            pass  # soft warning — not blocking
+
+    # Check for existing pending invite
+    existing = await db.execute(
+        select(AdminInvite).where(
+            AdminInvite.email == body.email,
+            AdminInvite.status == "pending",
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Pending invite already exists for this email")
+
+    token = secrets.token_urlsafe(48)
+    invite = AdminInvite(
+        email=body.email,
+        role=body.role,
+        invited_by=admin.id,
+        token=token,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+    )
+    db.add(invite)
+    await db.flush()
+    await db.refresh(invite)
+    return invite
+
+
+@router.post("/accept-invite/{token}")
+async def accept_invite(
+    token: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Accept an admin invite. Adds the admin/super_admin role to the user."""
+    result = await db.execute(
+        select(AdminInvite).where(AdminInvite.token == token)
+    )
+    invite = result.scalar_one_or_none()
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    if invite.status != "pending":
+        raise HTTPException(status_code=400, detail=f"Invite is already {invite.status}")
+    if invite.expires_at < datetime.now(timezone.utc):
+        invite.status = "expired"
+        await db.flush()
+        raise HTTPException(status_code=400, detail="Invite has expired")
+    if invite.email != user.email:
+        raise HTTPException(status_code=403, detail="Invite was sent to a different email")
+
+    # Add role to user
+    current_roles = list(user.roles or [])
+    if invite.role not in current_roles:
+        current_roles.append(invite.role)
+        user.roles = current_roles
+    user.role = UserRole(invite.role)  # sync legacy column
+    user.primary_role = invite.role
+
+    invite.status = "accepted"
+    invite.accepted_at = datetime.now(timezone.utc)
+    await db.flush()
+    return {"status": "accepted", "role": invite.role}
+
+
+@router.get("/invites", response_model=list[AdminInviteRead])
+async def list_invites(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_super_admin),
+    status_filter: str | None = Query(None, alias="status"),
+) -> list[AdminInvite]:
+    """List all admin invites, optionally filtered by status."""
+    query = select(AdminInvite).order_by(AdminInvite.created_at.desc())
+    if status_filter:
+        query = query.where(AdminInvite.status == status_filter)
+    result = await db.execute(query)
+    return list(result.scalars().all())

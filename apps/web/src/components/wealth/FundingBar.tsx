@@ -40,20 +40,20 @@ export default function FundingBar({
             <span className="text-primary font-semibold text-sm">{percentStr} Funded</span>
           )}
           {showAmount && (
-            <span className="text-gray-500 font-mono text-xs">
+            <span className="text-theme-secondary font-mono text-xs">
               {formatINR(raised, 0)} of {formatINR(target, 0)}
             </span>
           )}
         </div>
       )}
-      <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-1 bg-[var(--bg-surface-hover)] rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
           style={{ width: percentStr }}
         />
       </div>
       {showLabels && (
-        <div className="flex items-center justify-between text-xs text-gray-400">
+        <div className="flex items-center justify-between text-xs text-theme-tertiary">
           <span>Raised</span>
           <span>Target</span>
         </div>

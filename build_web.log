@@ -4,9 +4,8 @@
 #1 DONE 0.0s
 
 #2 [internal] load build definition from Dockerfile
-#2 transferring dockerfile:
-#2 transferring dockerfile: 1.22kB 0.3s done
-#2 DONE 0.5s
+#2 transferring dockerfile: 1.22kB 0.0s done
+#2 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/node:20-alpine
 #3 ...
@@ -15,33 +14,71 @@
 #4 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/node:20-alpine
-#3 DONE 4.3s
+#3 DONE 2.1s
 
 #5 [internal] load .dockerignore
 #5 transferring context: 2B done
 #5 DONE 0.0s
 
 #6 [dev 1/7] FROM docker.io/library/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c
-#6 resolve docker.io/library/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c 0.1s done
-#6 DONE 0.1s
+#6 resolve docker.io/library/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c 0.0s done
+#6 DONE 0.0s
 
 #7 [internal] load build context
-#7 transferring context: 24B 15.9s
-#7 transferring context: 51.75kB 64.3s
-#7 transferring context: 77.75kB 70.2s
-#7 transferring context: 77.75kB 70.2s done
-#7 DONE 70.3s
+#7 transferring context: 515.90kB 3.7s done
+#7 DONE 3.7s
 
-#8 [dev 3/7] COPY package.json package-lock.json* ./
+#8 [dev 2/7] WORKDIR /app
 #8 CACHED
 
-#9 [dev 2/7] WORKDIR /app
+#9 [dev 3/7] COPY package.json package-lock.json* ./
 #9 CACHED
 
 #10 [dev 4/7] COPY packages/wealthspot-types ./packages/wealthspot-types
-#10 CACHED
+#10 DONE 0.3s
 
 #11 [dev 5/7] COPY apps/web ./apps/web
-#11 DONE 6.9s
+#11 DONE 0.4s
 
 #12 [dev 6/7] RUN npm install --legacy-peer-deps
+#12 13.42 npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+#12 20.19 
+#12 20.19 added 420 packages, and audited 431 packages in 19s
+#12 20.19 
+#12 20.19 74 packages are looking for funding
+#12 20.19   run `npm fund` for details
+#12 20.21 
+#12 20.21 7 vulnerabilities (5 moderate, 1 high, 1 critical)
+#12 20.21 
+#12 20.21 To address issues that do not require attention, run:
+#12 20.21   npm audit fix
+#12 20.21 
+#12 20.21 To address all issues (including breaking changes), run:
+#12 20.21   npm audit fix --force
+#12 20.21 
+#12 20.21 Run `npm audit` for details.
+#12 20.21 npm notice
+#12 20.21 npm notice New major version of npm available! 10.8.2 -> 11.12.1
+#12 20.21 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+#12 20.21 npm notice To update run: npm install -g npm@11.12.1
+#12 20.21 npm notice
+#12 DONE 20.4s
+
+#13 [dev 7/7] WORKDIR /app/apps/web
+#13 DONE 0.1s
+
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 9.7s done
+#14 exporting manifest sha256:9de20ce3cf024d74e45dc642eecf7d634c1f18aefa3a1848f38157b2f73705f7 done
+#14 exporting config sha256:f3ca96af365fb198c9a2c7d4e18eeacc164e08b16373fbd5c4b191311547c194 done
+#14 exporting attestation manifest sha256:821f538736bbd1d1a4679d77ba28cbf5895da22d68cd013380713e6adf88afe2 0.0s done
+#14 exporting manifest list sha256:00634081f485ca3992197b4cb3010364e6c1c7da7c4f02bfd83930d6b0814091 done
+#14 naming to docker.io/library/wealthspot-web:latest done
+#14 unpacking to docker.io/library/wealthspot-web:latest
+#14 unpacking to docker.io/library/wealthspot-web:latest 5.7s done
+#14 DONE 15.4s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image wealthspot-web Built 

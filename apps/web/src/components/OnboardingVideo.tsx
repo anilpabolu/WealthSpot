@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { SignUpButton } from '@clerk/react'
 import { ArrowRight, X, SkipForward } from 'lucide-react'
 import { usePublicVideo } from '@/hooks/useAppVideos'
+import { useContent } from '@/hooks/useSiteContent'
 
 /**
  * Full-page video overlay.
@@ -22,6 +23,14 @@ const FALLBACK_VIDEO = '/videos/how-it-works.mp4'
 export default function OnboardingVideo({ mode, onComplete, onClose }: OnboardingVideoProps) {
   const { data: managed } = usePublicVideo('home', 'how_it_works')
   const videoSrc = managed?.videoUrl ?? FALLBACK_VIDEO
+
+  // CMS content
+  const readyHeading = useContent('onboarding', 'ready_heading', "You're Ready!")
+  const readySubtitle = useContent('onboarding', 'ready_subtitle', 'Your journey to building wealth through premium real estate starts now.')
+  const readyCta = useContent('onboarding', 'ready_cta', 'Unlock My World of Opportunities')
+  const signupHeading = useContent('onboarding', 'signup_heading', 'Ready to Start Your Journey?')
+  const signupSubtitle = useContent('onboarding', 'signup_subtitle', 'Create your free account and unlock premium investment opportunities.')
+  const signupCta = useContent('onboarding', 'signup_cta', 'Sign Up Now')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const [ended, setEnded] = useState(false)
@@ -134,16 +143,16 @@ export default function OnboardingVideo({ mode, onComplete, onClose }: Onboardin
               </svg>
             </div>
             <h2 className="font-display text-3xl font-bold text-white">
-              You&apos;re Ready!
+              {readyHeading}
             </h2>
             <p className="text-white/60 max-w-md mx-auto">
-              Your journey to building wealth through premium real estate starts now.
+              {readySubtitle}
             </p>
             <button
               onClick={onComplete}
               className="btn-primary text-base px-8 py-3 inline-flex items-center gap-2 shadow-lg shadow-primary/30"
             >
-              Unlock My World of Opportunities
+              {readyCta}
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
@@ -161,16 +170,16 @@ export default function OnboardingVideo({ mode, onComplete, onClose }: Onboardin
               </svg>
             </div>
             <h2 className="font-display text-3xl font-bold text-white">
-              Ready to Start Your Journey?
+              {signupHeading}
             </h2>
             <p className="text-white/60 max-w-md mx-auto">
-              Create your free account and unlock premium investment opportunities.
+              {signupSubtitle}
             </p>
             <SignUpButton mode="modal" forceRedirectUrl="/vaults">
               <button
                 className="btn-primary text-base px-8 py-3 inline-flex items-center gap-2 shadow-lg shadow-primary/30"
               >
-                Sign Up Now
+                {signupCta}
                 <ArrowRight className="h-5 w-5" />
               </button>
             </SignUpButton>

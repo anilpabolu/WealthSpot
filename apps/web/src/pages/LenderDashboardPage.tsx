@@ -89,8 +89,8 @@ export default function LenderDashboardPage() {
         <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
           <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-gray-900">Next repayment on {formatDate(MOCK_SUMMARY.nextRepaymentDate)}</p>
-            <p className="text-xs text-gray-600 mt-0.5">₹12,50,000 expected from Skyline Towers</p>
+            <p className="text-sm font-semibold text-theme-primary">Next repayment on {formatDate(MOCK_SUMMARY.nextRepaymentDate)}</p>
+            <p className="text-xs text-theme-secondary mt-0.5">₹12,50,000 expected from Skyline Towers</p>
           </div>
         </div>
 
@@ -112,8 +112,8 @@ export default function LenderDashboardPage() {
                   header: 'Property / Builder',
                   render: (loan) => (
                     <div>
-                      <p className="font-medium text-gray-900">{loan.property}</p>
-                      <p className="text-xs text-gray-500">{loan.builder}</p>
+                      <p className="font-medium text-theme-primary">{loan.property}</p>
+                      <p className="text-xs text-theme-secondary">{loan.builder}</p>
                     </div>
                   ),
                 },
@@ -135,7 +135,7 @@ export default function LenderDashboardPage() {
                   key: 'maturity',
                   header: 'Maturity',
                   headerClassName: 'text-right',
-                  className: 'text-right text-gray-600',
+                  className: 'text-right text-theme-secondary',
                   render: (loan) => <>{formatDate(loan.maturity)}</>,
                 },
                 {
@@ -146,10 +146,10 @@ export default function LenderDashboardPage() {
                     const repaidPct = Math.round((loan.repaid / loan.amount) * 100)
                     return (
                       <div>
-                        <div className="h-1.5 bg-gray-100 rounded-full">
+                        <div className="h-1.5 bg-theme-surface-hover rounded-full">
                           <div className="h-full bg-success rounded-full" style={{ width: `${repaidPct}%` }} />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{repaidPct}% repaid</p>
+                        <p className="text-xs text-theme-secondary mt-1">{repaidPct}% repaid</p>
                       </div>
                     )
                   },
@@ -179,23 +179,23 @@ export default function LenderDashboardPage() {
               <div key={opp.id} className="card p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{opp.property}</h3>
-                    <p className="text-xs text-gray-500">{opp.city} · {opp.builder}</p>
+                    <h3 className="font-semibold text-theme-primary">{opp.property}</h3>
+                    <p className="text-xs text-theme-secondary">{opp.city} · {opp.builder}</p>
                   </div>
                   <span className="pill-upcoming">New</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div>
-                    <p className="text-xs text-gray-500">Amount</p>
-                    <p className="font-mono font-semibold text-gray-900">{formatINRCompact(opp.amount)}</p>
+                    <p className="text-xs text-theme-secondary">Amount</p>
+                    <p className="font-mono font-semibold text-theme-primary">{formatINRCompact(opp.amount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Returns</p>
+                    <p className="text-xs text-theme-secondary">Returns</p>
                     <p className="font-mono font-semibold text-primary">{formatPercent(opp.returnRate)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Tenure</p>
-                    <p className="font-semibold text-gray-900">{opp.tenure}</p>
+                    <p className="text-xs text-theme-secondary">Tenure</p>
+                    <p className="font-semibold text-theme-primary">{opp.tenure}</p>
                   </div>
                 </div>
                 <button className="btn-primary w-full text-sm">Express Interest</button>

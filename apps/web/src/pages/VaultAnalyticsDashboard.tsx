@@ -99,25 +99,25 @@ function KPICard({ label, value, sub, icon: Icon, trend, color = 'text-primary' 
   color?: string
 }) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 flex flex-col gap-1 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 p-5 flex flex-col gap-1 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-theme-secondary">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-gray-900">{value}</span>
+        <span className="text-2xl font-bold text-theme-primary">{value}</span>
         {trend === 'up' && <ArrowUpRight className="h-4 w-4 text-emerald-500" />}
         {trend === 'down' && <ArrowDownRight className="h-4 w-4 text-red-500" />}
       </div>
-      {sub && <span className="text-xs text-gray-400">{sub}</span>}
+      {sub && <span className="text-xs text-theme-tertiary">{sub}</span>}
     </div>
   )
 }
 
 function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 shadow-sm ${className}`}>
-      <h4 className="text-sm font-semibold text-gray-700 mb-4">{title}</h4>
+    <div className={`bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 p-5 shadow-sm ${className}`}>
+      <h4 className="text-sm font-semibold text-theme-primary mb-4">{title}</h4>
       {children}
     </div>
   )
@@ -138,13 +138,13 @@ function ChartTooltip({ active, payload, label, formatter }: {
   if (!active || !payload?.length) return null
   const fmt = formatter ?? ((v: number) => formatINR(v, 0))
   return (
-    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-lg text-xs">
-      <p className="font-medium text-gray-600 mb-1">{label}</p>
+    <div className="bg-[var(--bg-card)] backdrop-blur-sm border border-theme rounded-lg px-3 py-2 shadow-lg text-xs">
+      <p className="font-medium text-theme-secondary mb-1">{label}</p>
       {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">{fmt(p.value)}</span>
+          <span className="text-theme-secondary">{p.name}:</span>
+          <span className="font-semibold text-theme-primary">{fmt(p.value)}</span>
         </div>
       ))}
     </div>
@@ -183,9 +183,9 @@ function OverviewTab({ data }: { data: FullAnalyticsResponse }) {
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard label="Platform AUM" value={formatINRCompact(vs.platformAum)} sub="Assets Under Management" icon={IndianRupee} color="text-emerald-600" />
-        <KPICard label="Active Investors" value={inv.totalInvestors.toLocaleString()} sub={`${fmtPct(inv.kycCompletionRate)} KYC done`} icon={Users} color="text-violet-600" />
-        <KPICard label="Opportunities" value={vs.totalOpportunities.toLocaleString()} sub={`Across ${vs.vaults.length} vaults`} icon={Building2} color="text-amber-600" />
+        <KPICard label="Platform AUM" value={formatINRCompact(vs.platformAum)} sub="Assets Under Management" icon={IndianRupee} color="text-emerald-600 dark:text-emerald-400" />
+        <KPICard label="Active Investors" value={inv.totalInvestors.toLocaleString()} sub={`${fmtPct(inv.kycCompletionRate)} KYC done`} icon={Users} color="text-violet-600 dark:text-violet-400" />
+        <KPICard label="Opportunities" value={vs.totalOpportunities.toLocaleString()} sub={`Across ${vs.vaults.length} vaults`} icon={Building2} color="text-amber-600 dark:text-amber-400" />
         <KPICard label="Avg Deal Size" value={formatINRCompact(vs.avgDealSize)} sub="Per opportunity" icon={Target} color="text-sky-600" />
       </div>
 
@@ -274,12 +274,12 @@ function OverviewTab({ data }: { data: FullAnalyticsResponse }) {
         <ChartCard title="EOI Pipeline Conversion">
           <div className="flex items-center gap-6">
             <div className="flex-1">
-              <div className="text-3xl font-bold text-gray-900">{eoi.totalEois}</div>
-              <div className="text-sm text-gray-500">Total EOIs</div>
-              <div className="mt-3 text-3xl font-bold text-emerald-600">{fmtPct(eoi.conversionRate)}</div>
-              <div className="text-sm text-gray-500">Conversion Rate</div>
-              <div className="mt-3 text-lg font-semibold text-gray-700">{formatINRCompact(eoi.totalInterest)}</div>
-              <div className="text-sm text-gray-500">Total Interest Expressed</div>
+              <div className="text-3xl font-bold text-theme-primary">{eoi.totalEois}</div>
+              <div className="text-sm text-theme-secondary">Total EOIs</div>
+              <div className="mt-3 text-3xl font-bold text-emerald-600 dark:text-emerald-400">{fmtPct(eoi.conversionRate)}</div>
+              <div className="text-sm text-theme-secondary">Conversion Rate</div>
+              <div className="mt-3 text-lg font-semibold text-theme-primary">{formatINRCompact(eoi.totalInterest)}</div>
+              <div className="text-sm text-theme-secondary">Total Interest Expressed</div>
             </div>
             <div className="w-40">
               <ResponsiveContainer width="100%" height={200}>
@@ -334,10 +334,10 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
     <div className="space-y-6">
       {/* Vault Filter */}
       <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-gray-400" />
+        <Filter className="h-4 w-4 text-theme-tertiary" />
         <button
           onClick={() => setSelectedVault(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!selectedVault ? 'bg-primary/10 text-primary' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!selectedVault ? 'bg-primary/10 text-primary' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}
         >
           All Vaults
         </button>
@@ -345,7 +345,7 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
           <button
             key={v.vaultType}
             onClick={() => setSelectedVault(v.vaultType === selectedVault ? null : v.vaultType)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedVault === v.vaultType ? 'text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedVault === v.vaultType ? 'text-white' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}
             style={selectedVault === v.vaultType ? { background: VAULT_COLORS[v.vaultType] } : {}}
           >
             {VAULT_LABELS[v.vaultType] || v.vaultType}
@@ -356,44 +356,44 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
       {/* Vault KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredVaults.map(v => (
-          <div key={v.vaultType} className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-5 shadow-sm"
+          <div key={v.vaultType} className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-theme/60 p-5 shadow-sm"
                style={{ borderLeftWidth: 4, borderLeftColor: VAULT_COLORS[v.vaultType] }}>
             <div className="text-sm font-semibold mb-3" style={{ color: VAULT_COLORS[v.vaultType] }}>
               {VAULT_LABELS[v.vaultType] || v.vaultType}
             </div>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <div>
-                <div className="text-gray-400 text-xs">Opportunities</div>
-                <div className="font-semibold text-gray-900">{v.totalOpportunities}</div>
+                <div className="text-theme-tertiary text-xs">Opportunities</div>
+                <div className="font-semibold text-theme-primary">{v.totalOpportunities}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Investors</div>
-                <div className="font-semibold text-gray-900">{v.totalInvestors}</div>
+                <div className="text-theme-tertiary text-xs">Investors</div>
+                <div className="font-semibold text-theme-primary">{v.totalInvestors}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">AUM</div>
-                <div className="font-semibold text-gray-900">{formatINRCompact(v.totalRaisedAmount)}</div>
+                <div className="text-theme-tertiary text-xs">AUM</div>
+                <div className="font-semibold text-theme-primary">{formatINRCompact(v.totalRaisedAmount)}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Funding</div>
-                <div className="font-semibold text-gray-900">{fmtPct(v.fundingPct)}</div>
+                <div className="text-theme-tertiary text-xs">Funding</div>
+                <div className="font-semibold text-theme-primary">{fmtPct(v.fundingPct)}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Target IRR</div>
-                <div className="font-semibold text-gray-900">{fmtPct(v.avgTargetIrr)}</div>
+                <div className="text-theme-tertiary text-xs">Target IRR</div>
+                <div className="font-semibold text-theme-primary">{fmtPct(v.avgTargetIrr)}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Actual IRR</div>
-                <div className="font-semibold text-emerald-600">{fmtPct(v.avgActualIrr)}</div>
+                <div className="text-theme-tertiary text-xs">Actual IRR</div>
+                <div className="font-semibold text-emerald-600 dark:text-emerald-400">{fmtPct(v.avgActualIrr)}</div>
               </div>
             </div>
             {/* Mini progress bar */}
             <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-400 mb-1">
+              <div className="flex justify-between text-xs text-theme-tertiary mb-1">
                 <span>Raised: {formatINRCompact(v.totalRaisedAmount)}</span>
                 <span>Target: {formatINRCompact(v.totalTargetAmount)}</span>
               </div>
-              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-2 rounded-full bg-theme-surface-hover overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{ width: `${Math.min(Number(v.fundingPct), 100)}%`, background: VAULT_COLORS[v.vaultType] }}
@@ -446,25 +446,25 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="pb-2 font-medium text-gray-500">Opportunity</th>
-                  <th className="pb-2 font-medium text-gray-500">Vault</th>
-                  <th className="pb-2 font-medium text-gray-500">City</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Raised</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Target</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Funding</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">IRR</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Investors</th>
+                <tr className="border-b border-theme text-left">
+                  <th className="pb-2 font-medium text-theme-secondary">Opportunity</th>
+                  <th className="pb-2 font-medium text-theme-secondary">Vault</th>
+                  <th className="pb-2 font-medium text-theme-secondary">City</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Raised</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Target</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Funding</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">IRR</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Investors</th>
                 </tr>
               </thead>
               <tbody>
                 {top.opportunities
                   .filter(o => !selectedVault || o.vaultType === selectedVault)
                   .map(o => (
-                  <tr key={o.id} className="border-b border-gray-50 hover:bg-stone-50/50">
+                  <tr key={o.id} className="border-b border-theme hover:bg-theme-surface/50">
                     <td className="py-2.5">
-                      <div className="font-medium text-gray-900 truncate max-w-[200px]">{o.title}</div>
-                      {o.companyName && <div className="text-xs text-gray-400">{o.companyName}</div>}
+                      <div className="font-medium text-theme-primary truncate max-w-[200px]">{o.title}</div>
+                      {o.companyName && <div className="text-xs text-theme-tertiary">{o.companyName}</div>}
                     </td>
                     <td className="py-2.5">
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
@@ -472,16 +472,16 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
                         {o.vaultType}
                       </span>
                     </td>
-                    <td className="py-2.5 text-gray-600">{o.city || '—'}</td>
-                    <td className="py-2.5 text-right font-medium text-gray-900">{formatINRCompact(o.raisedAmount)}</td>
-                    <td className="py-2.5 text-right text-gray-500">{o.targetAmount ? formatINRCompact(o.targetAmount) : '—'}</td>
+                    <td className="py-2.5 text-theme-secondary">{o.city || '—'}</td>
+                    <td className="py-2.5 text-right font-medium text-theme-primary">{formatINRCompact(o.raisedAmount)}</td>
+                    <td className="py-2.5 text-right text-theme-secondary">{o.targetAmount ? formatINRCompact(o.targetAmount) : '—'}</td>
                     <td className="py-2.5 text-right">
-                      <span className={`font-medium ${Number(o.fundingPct) >= 75 ? 'text-emerald-600' : Number(o.fundingPct) >= 50 ? 'text-amber-600' : 'text-gray-600'}`}>
+                      <span className={`font-medium ${Number(o.fundingPct) >= 75 ? 'text-emerald-600 dark:text-emerald-400' : Number(o.fundingPct) >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-theme-secondary'}`}>
                         {fmtPct(o.fundingPct)}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right text-gray-600">{o.targetIrr ? fmtPct(o.targetIrr) : '—'}</td>
-                    <td className="py-2.5 text-right text-gray-600">{o.investorCount}</td>
+                    <td className="py-2.5 text-right text-theme-secondary">{o.targetIrr ? fmtPct(o.targetIrr) : '—'}</td>
+                    <td className="py-2.5 text-right text-theme-secondary">{o.investorCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -525,11 +525,11 @@ function InvestorTab({ data }: { data: FullAnalyticsResponse }) {
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <KPICard label="Total Users" value={inv.totalUsers.toLocaleString()} icon={Users} color="text-violet-600" />
-        <KPICard label="Investors" value={inv.totalInvestors.toLocaleString()} icon={TrendingUp} color="text-emerald-600" />
-        <KPICard label="Builders" value={inv.totalBuilders.toLocaleString()} icon={Building2} color="text-amber-600" />
+        <KPICard label="Total Users" value={inv.totalUsers.toLocaleString()} icon={Users} color="text-violet-600 dark:text-violet-400" />
+        <KPICard label="Investors" value={inv.totalInvestors.toLocaleString()} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" />
+        <KPICard label="Builders" value={inv.totalBuilders.toLocaleString()} icon={Building2} color="text-amber-600 dark:text-amber-400" />
         <KPICard label="KYC Rate" value={fmtPct(inv.kycCompletionRate)} icon={Percent} color="text-sky-600" />
-        <KPICard label="Avg Signups/mo" value={Number(inv.avgMonthlySignups).toFixed(0)} icon={Activity} color="text-pink-600" />
+        <KPICard label="Avg Signups/mo" value={Number(inv.avgMonthlySignups).toFixed(0)} icon={Activity} color="text-pink-600 dark:text-pink-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -557,10 +557,10 @@ function InvestorTab({ data }: { data: FullAnalyticsResponse }) {
             {kycData.map((stage) => (
               <div key={stage.stage}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium text-gray-700">{stage.stage}</span>
-                  <span className="text-gray-500">{stage.count.toLocaleString()} ({stage.pct}%)</span>
+                  <span className="font-medium text-theme-primary">{stage.stage}</span>
+                  <span className="text-theme-secondary">{stage.count.toLocaleString()} ({stage.pct}%)</span>
                 </div>
-                <div className="h-8 rounded-lg bg-gray-100 overflow-hidden relative">
+                <div className="h-8 rounded-lg bg-theme-surface-hover overflow-hidden relative">
                   <div
                     className="h-full rounded-lg transition-all flex items-center justify-end pr-2"
                     style={{ width: `${Math.max(stage.pct, 5)}%`, background: stage.fill }}
@@ -639,8 +639,8 @@ function GeographyTab({ data }: { data: FullAnalyticsResponse }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <KPICard label="Cities Covered" value={geo.totalCities.toString()} icon={MapPin} color="text-sky-600" />
-        <KPICard label="Top City" value={geo.topCity || '—'} icon={Building2} color="text-violet-600" />
-        <KPICard label="Total Deployed" value={formatINRCompact(cityData.reduce((s, c) => s + c.raised, 0))} icon={IndianRupee} color="text-emerald-600" />
+        <KPICard label="Top City" value={geo.topCity || '—'} icon={Building2} color="text-violet-600 dark:text-violet-400" />
+        <KPICard label="Total Deployed" value={formatINRCompact(cityData.reduce((s, c) => s + c.raised, 0))} icon={IndianRupee} color="text-emerald-600 dark:text-emerald-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -695,22 +695,22 @@ function GeographyTab({ data }: { data: FullAnalyticsResponse }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="pb-2 font-medium text-gray-500">City</th>
-                  <th className="pb-2 font-medium text-gray-500">State</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Opportunities</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Capital Raised</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Investors</th>
+                <tr className="border-b border-theme text-left">
+                  <th className="pb-2 font-medium text-theme-secondary">City</th>
+                  <th className="pb-2 font-medium text-theme-secondary">State</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Opportunities</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Capital Raised</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Investors</th>
                 </tr>
               </thead>
               <tbody>
                 {cityData.map(c => (
-                  <tr key={c.city} className="border-b border-gray-50 hover:bg-stone-50/50">
-                    <td className="py-2.5 font-medium text-gray-900">{c.city}</td>
-                    <td className="py-2.5 text-gray-600">{c.state}</td>
-                    <td className="py-2.5 text-right text-gray-900">{c.opportunities}</td>
-                    <td className="py-2.5 text-right font-medium text-gray-900">{formatINRCompact(c.raised)}</td>
-                    <td className="py-2.5 text-right text-gray-600">{c.investors}</td>
+                  <tr key={c.city} className="border-b border-theme hover:bg-theme-surface/50">
+                    <td className="py-2.5 font-medium text-theme-primary">{c.city}</td>
+                    <td className="py-2.5 text-theme-secondary">{c.state}</td>
+                    <td className="py-2.5 text-right text-theme-primary">{c.opportunities}</td>
+                    <td className="py-2.5 text-right font-medium text-theme-primary">{formatINRCompact(c.raised)}</td>
+                    <td className="py-2.5 text-right text-theme-secondary">{c.investors}</td>
                   </tr>
                 ))}
               </tbody>
@@ -776,12 +776,12 @@ function PipelineTab({ data }: { data: FullAnalyticsResponse }) {
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard label="Total EOIs" value={eoi.totalEois.toLocaleString()} icon={Layers} color="text-violet-600" />
-        <KPICard label="Interest Value" value={formatINRCompact(eoi.totalInterest)} icon={IndianRupee} color="text-emerald-600" />
+        <KPICard label="Total EOIs" value={eoi.totalEois.toLocaleString()} icon={Layers} color="text-violet-600 dark:text-violet-400" />
+        <KPICard label="Interest Value" value={formatINRCompact(eoi.totalInterest)} icon={IndianRupee} color="text-emerald-600 dark:text-emerald-400" />
         <KPICard label="Conversion Rate" value={fmtPct(eoi.conversionRate)} icon={TrendingUp} color="text-sky-600" />
         <KPICard label="Avg Interest" value={
           eoi.totalEois > 0 ? formatINRCompact(eoi.totalInterest / eoi.totalEois) : '—'
-        } icon={Target} color="text-amber-600" />
+        } icon={Target} color="text-amber-600 dark:text-amber-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -795,10 +795,10 @@ function PipelineTab({ data }: { data: FullAnalyticsResponse }) {
                 return (
                   <div key={stage.stage}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium text-gray-700">{stage.stage}</span>
-                      <span className="text-gray-500">{stage.count}</span>
+                      <span className="font-medium text-theme-primary">{stage.stage}</span>
+                      <span className="text-theme-secondary">{stage.count}</span>
                     </div>
-                    <div className="h-7 rounded-md bg-gray-100 overflow-hidden">
+                    <div className="h-7 rounded-md bg-theme-surface-hover overflow-hidden">
                       <div
                         className="h-full rounded-md transition-all flex items-center pl-2"
                         style={{ width: `${Math.max(widthPct, 3)}%`, background: stage.fill }}
@@ -894,9 +894,9 @@ function RevenueTab({ data }: { data: FullAnalyticsResponse }) {
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <KPICard label="Total Transaction Volume" value={formatINRCompact(rev.totalRevenue)} icon={IndianRupee} color="text-emerald-600" />
-        <KPICard label="Transaction Types" value={Object.keys(rev.byType).length.toString()} icon={BarChart3} color="text-violet-600" />
-        <KPICard label="Monthly Entries" value={rev.monthly.length.toString()} icon={Activity} color="text-amber-600" />
+        <KPICard label="Total Transaction Volume" value={formatINRCompact(rev.totalRevenue)} icon={IndianRupee} color="text-emerald-600 dark:text-emerald-400" />
+        <KPICard label="Transaction Types" value={Object.keys(rev.byType).length.toString()} icon={BarChart3} color="text-violet-600 dark:text-violet-400" />
+        <KPICard label="Monthly Entries" value={rev.monthly.length.toString()} icon={Activity} color="text-amber-600 dark:text-amber-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -968,25 +968,25 @@ function RevenueTab({ data }: { data: FullAnalyticsResponse }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="pb-2 font-medium text-gray-500">Month</th>
-                  <th className="pb-2 font-medium text-gray-500">Type</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Count</th>
-                  <th className="pb-2 font-medium text-gray-500 text-right">Amount</th>
+                <tr className="border-b border-theme text-left">
+                  <th className="pb-2 font-medium text-theme-secondary">Month</th>
+                  <th className="pb-2 font-medium text-theme-secondary">Type</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Count</th>
+                  <th className="pb-2 font-medium text-theme-secondary text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {rev.monthly.map((t, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-stone-50/50">
-                    <td className="py-2 text-gray-900">{t.month}</td>
+                  <tr key={i} className="border-b border-theme hover:bg-theme-surface/50">
+                    <td className="py-2 text-theme-primary">{t.month}</td>
                     <td className="py-2">
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
                             style={{ background: TXN_COLORS[t.txnType] || '#6b7280' }}>
                         {TXN_LABELS[t.txnType] || t.txnType}
                       </span>
                     </td>
-                    <td className="py-2 text-right text-gray-600">{t.txnCount}</td>
-                    <td className="py-2 text-right font-medium text-gray-900">{formatINR(t.totalAmount, 0)}</td>
+                    <td className="py-2 text-right text-theme-secondary">{t.txnCount}</td>
+                    <td className="py-2 text-right font-medium text-theme-primary">{formatINR(t.totalAmount, 0)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1018,7 +1018,7 @@ export default function VaultAnalyticsDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-3 text-gray-500 text-sm">Loading analytics…</span>
+        <span className="ml-3 text-theme-secondary text-sm">Loading analytics…</span>
       </div>
     )
   }
@@ -1026,9 +1026,9 @@ export default function VaultAnalyticsDashboard() {
   if (error || !data) {
     return (
       <div className="text-center py-20">
-        <PieChartIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500 text-sm">Failed to load analytics data</p>
-        <p className="text-xs text-gray-400 mt-1">Please try again later</p>
+        <PieChartIcon className="h-12 w-12 text-theme-tertiary mx-auto mb-3" />
+        <p className="text-theme-secondary text-sm">Failed to load analytics data</p>
+        <p className="text-xs text-theme-tertiary mt-1">Please try again later</p>
       </div>
     )
   }
@@ -1038,8 +1038,8 @@ export default function VaultAnalyticsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-xl font-bold text-gray-900">Vault Analytics</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Real-time platform metrics across all vaults</p>
+          <h2 className="font-display text-xl font-bold text-theme-primary">Vault Analytics</h2>
+          <p className="text-sm text-theme-secondary mt-0.5">Real-time platform metrics across all vaults</p>
         </div>
         <button
           onClick={() => refreshMutation.mutate()}
@@ -1052,7 +1052,7 @@ export default function VaultAnalyticsDashboard() {
       </div>
 
       {/* Sub-Tab Navigation */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-gray-200">
+      <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-theme">
         {SUB_TABS.map((tab) => {
           const Icon = tab.icon
           const active = activeTab === tab.id
@@ -1063,7 +1063,7 @@ export default function VaultAnalyticsDashboard() {
               className={`flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-b-2 ${
                 active
                   ? 'border-primary text-primary bg-primary/5'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-stone-50'
+                  : 'border-transparent text-theme-secondary hover:text-theme-primary hover:bg-theme-surface'
               }`}
             >
               <Icon className="h-4 w-4" />

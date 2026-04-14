@@ -38,7 +38,7 @@ const VAULT_THEMES = {
     name: 'Wealth Vault',
     gradient: 'from-slate-900 via-indigo-950 to-slate-900',
     bgGradient: 'from-[#F5F0E1] via-[#FAF6ED] to-[#F5F0E1]',
-    cardBg: 'bg-white/90 backdrop-blur-xl',
+    cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
     accent: 'text-[#1B2A4A]',
     accentHex: '#1B2A4A',
     accentBg: 'bg-[#1B2A4A]',
@@ -56,7 +56,7 @@ const VAULT_THEMES = {
     name: 'Opportunity Vault',
     gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
     bgGradient: 'from-[#FFF0F0] via-[#FFF5F5] to-[#FFF0F0]',
-    cardBg: 'bg-white/90 backdrop-blur-xl',
+    cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
     accent: 'text-[#FF6B6B]',
     accentHex: '#FF6B6B',
     accentBg: 'bg-[#FF6B6B]',
@@ -74,7 +74,7 @@ const VAULT_THEMES = {
     name: 'Community Vault',
     gradient: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
     bgGradient: 'from-[#FFFBEB] via-[#FFFDF5] to-[#FFFBEB]',
-    cardBg: 'bg-white/90 backdrop-blur-xl',
+    cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
     accent: 'text-[#065F46]',
     accentHex: '#065F46',
     accentBg: 'bg-[#065F46]',
@@ -155,7 +155,7 @@ function ChoiceCard({
         ${
           selected
             ? `${theme.selectedBorder} ${theme.selectedBg} shadow-lg scale-[1.02]`
-            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+            : 'border-theme bg-[var(--bg-surface)] hover:border-theme hover:shadow-md'
         }
       `}
       style={{ animationDelay: `${index * 80}ms` }}
@@ -167,7 +167,7 @@ function ChoiceCard({
         </span>
 
         {/* Label */}
-        <span className={`font-body text-base font-medium ${selected ? theme.accent : 'text-gray-800'}`}>
+        <span className={`font-body text-base font-medium ${selected ? theme.accent : 'text-theme-primary'}`}>
           {option.label}
         </span>
 
@@ -205,7 +205,7 @@ function MultiChoiceCard({
         ${
           selected
             ? `${theme.selectedBorder} ${theme.selectedBg} shadow-md`
-            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+            : 'border-theme bg-[var(--bg-surface)] hover:border-theme hover:shadow-sm'
         }
       `}
       style={{ animationDelay: `${index * 60}ms` }}
@@ -214,7 +214,7 @@ function MultiChoiceCard({
         <span className="text-2xl group-hover:animate-bounce-gentle">
           {option.emoji || '•'}
         </span>
-        <span className={`text-xs font-semibold ${selected ? theme.accent : 'text-gray-700'}`}>
+        <span className={`text-xs font-semibold ${selected ? theme.accent : 'text-theme-primary'}`}>
           {option.label}
         </span>
         {selected && (
@@ -244,7 +244,7 @@ function SliderInput({
 }) {
   return (
     <div className="space-y-6 w-full max-w-md mx-auto">
-      <div className="flex justify-between text-sm font-medium text-gray-500">
+      <div className="flex justify-between text-sm font-medium text-theme-secondary">
         <span>{options.minLabel}</span>
         <span>{options.maxLabel}</span>
       </div>
@@ -264,7 +264,7 @@ function SliderInput({
       />
       <div className="text-center">
         <span className={`text-4xl font-hero font-bold ${theme.accent}`}>{value}</span>
-        <span className="text-gray-400 text-sm ml-1">/ {options.max}</span>
+        <span className="text-theme-tertiary text-sm ml-1">/ {options.max}</span>
       </div>
     </div>
   )
@@ -276,7 +276,7 @@ function SliderInput({
 
 function FunFact({ text }: { text: string }) {
   return (
-    <div className="animate-fade-up bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3 max-w-lg mx-auto">
+    <div className="animate-fade-up bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40 rounded-xl px-4 py-3 flex items-start gap-3 max-w-lg mx-auto">
       <span className="text-xl shrink-0">💡</span>
       <p className="text-sm text-amber-800 leading-relaxed font-body">{text}</p>
     </div>
@@ -306,13 +306,13 @@ function ProgressHeader({
     <div className="space-y-3">
       {/* Bar */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex-1 h-2 bg-[var(--bg-surface-hover)] rounded-full overflow-hidden">
           <div
             className={`h-full ${theme.progressBar} rounded-full transition-all duration-500 ease-out`}
             style={{ width: `${pct}%` }}
           />
         </div>
-        <span className="text-xs font-mono font-bold text-gray-400">
+        <span className="text-xs font-mono font-bold text-theme-tertiary">
           {current + 1}/{total}
         </span>
       </div>
@@ -321,7 +321,7 @@ function ProgressHeader({
       {dimInfo && (
         <div className="flex items-center gap-2 animate-fade-up">
           <dimInfo.icon className={`h-4 w-4 ${dimInfo.color}`} />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-theme-secondary uppercase tracking-wider">
             Measuring: {dimInfo.label}
           </span>
         </div>
@@ -537,12 +537,12 @@ export default function VaultProfilingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-stone-50">
+      <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4 animate-pulse">
             <span className="text-6xl">{theme.illustration}</span>
-            <p className="text-gray-500 font-body">Loading your profiling journey...</p>
+            <p className="text-theme-secondary font-body">Loading your profiling journey...</p>
           </div>
         </div>
       </div>
@@ -556,7 +556,7 @@ export default function VaultProfilingPage() {
     const archDesc = progress?.personality?.archetypeDescription
 
     return (
-      <div className="min-h-screen flex flex-col bg-stone-50">
+      <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
         <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
           <div className="mx-auto max-w-2xl px-6 py-12 space-y-8">
@@ -565,24 +565,24 @@ export default function VaultProfilingPage() {
               <span className="text-7xl animate-float inline-block">{theme.emoji}</span>
               {archLabel ? (
                 <>
-                  <p className="text-sm font-bold uppercase tracking-widest text-gray-400">You are</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-theme-tertiary">You are</p>
                   <h1 className="font-hero text-4xl sm:text-5xl font-bold animate-personality-reveal">
                     <span className="bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(135deg, ${theme.accentHex}, ${theme.accentHex}88)` }}>
                       {archLabel}
                     </span>
                   </h1>
                   {archDesc && (
-                    <p className="text-gray-500 max-w-md mx-auto text-lg font-body leading-relaxed">
+                    <p className="text-theme-secondary max-w-md mx-auto text-lg font-body leading-relaxed">
                       {archDesc}
                     </p>
                   )}
                 </>
               ) : (
                 <>
-                  <h1 className="font-hero text-3xl font-bold text-gray-900">
+                  <h1 className="font-hero text-3xl font-bold text-theme-primary">
                     Your {theme.name} DNA
                   </h1>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <p className="text-theme-secondary max-w-md mx-auto">
                     Here's what your answers reveal about your investment personality.
                     This helps us match you with the perfect opportunities!
                   </p>
@@ -592,7 +592,7 @@ export default function VaultProfilingPage() {
 
             {/* Radar Chart */}
             {resultDimensions && (
-              <div className="bg-white rounded-4xl shadow-vault-card p-8 animate-scale-in border border-gray-100">
+              <div className="bg-[var(--bg-surface)] rounded-4xl shadow-vault-card p-8 animate-scale-in border border-theme">
                 <PersonalityRadar
                   dimensions={resultDimensions}
                   radarFill={theme.radarFill}
@@ -610,14 +610,14 @@ export default function VaultProfilingPage() {
                   return (
                     <div
                       key={key}
-                      className="bg-white rounded-2xl p-4 text-center shadow-sm animate-fade-up border border-gray-100 hover:shadow-md transition-shadow"
+                      className="bg-[var(--bg-surface)] rounded-2xl p-4 text-center shadow-sm animate-fade-up border border-theme hover:shadow-md transition-shadow"
                       style={{ animationDelay: `${i * 100}ms` }}
                     >
                       <Icon className={`h-5 w-5 mx-auto mb-2 ${info.color}`} />
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <p className="text-[10px] font-bold text-theme-tertiary uppercase tracking-wider">
                         {info.label}
                       </p>
-                      <p className="text-2xl font-hero font-bold text-gray-900 mt-1">{value}</p>
+                      <p className="text-2xl font-hero font-bold text-theme-primary mt-1">{value}</p>
                     </div>
                   )
                 })}
@@ -638,7 +638,7 @@ export default function VaultProfilingPage() {
                   setCurrentIdx(0)
                   setAnswers({})
                 }}
-                className="px-6 py-3.5 rounded-2xl border-2 border-gray-300 text-gray-600 font-semibold hover:bg-stone-50 transition-colors"
+                className="px-6 py-3.5 rounded-2xl border-2 border-theme text-theme-secondary font-semibold hover:bg-theme-surface transition-colors"
               >
                 Retake Quiz
               </button>
@@ -653,20 +653,20 @@ export default function VaultProfilingPage() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-stone-50">
+      <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <span className="text-6xl">🚧</span>
-            <h2 className="font-display text-xl font-bold text-gray-800">
+            <h2 className="font-display text-xl font-bold text-theme-primary">
               Profiling Coming Soon
             </h2>
-            <p className="text-gray-500 max-w-sm">
+            <p className="text-theme-secondary max-w-sm">
               We're crafting the perfect questions for {theme.name}. Check back soon!
             </p>
             <button
               onClick={() => navigate('/vaults')}
-              className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-colors"
+              className="px-6 py-2.5 rounded-xl bg-[var(--bg-surface-hover)] text-theme-primary font-semibold hover:bg-[var(--bg-surface-hover)] transition-colors"
             >
               Back to Vaults
             </button>
@@ -684,7 +684,7 @@ export default function VaultProfilingPage() {
   const illustration = q.illustration ? ILLUSTRATION_MAP[q.illustration] || '✨' : '✨'
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-theme-surface">
       <Navbar />
       <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
         <div className="mx-auto max-w-2xl px-6 py-8 space-y-8">
@@ -699,7 +699,7 @@ export default function VaultProfilingPage() {
           {/* Question Card */}
           <div
             key={q.id}
-            className={`bg-white/95 backdrop-blur-xl rounded-4xl shadow-vault-card p-8 space-y-8 animate-slide-in-right border-l-4 ${theme.selectedBorder}`}
+            className={`bg-[var(--bg-card)] backdrop-blur-xl rounded-4xl shadow-vault-card p-8 space-y-8 animate-slide-in-right border-l-4 ${theme.selectedBorder}`}
           >
             {/* Illustration & Category */}
             <div className="flex items-center gap-4">
@@ -708,7 +708,7 @@ export default function VaultProfilingPage() {
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.accent} opacity-60`}>
                   {q.category}
                 </span>
-                <h2 className="font-hero text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+                <h2 className="font-hero text-xl sm:text-2xl font-bold text-theme-primary leading-tight">
                   {q.questionText}
                 </h2>
               </div>
@@ -757,7 +757,7 @@ export default function VaultProfilingPage() {
 
               {q.questionType === 'text' && (
                 <textarea
-                  className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none font-body text-sm"
+                  className="w-full p-4 border-2 border-theme rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none font-body text-sm"
                   rows={4}
                   placeholder="Share your thoughts..."
                   value={(currentAnswer as string) ?? ''}
@@ -775,7 +775,7 @@ export default function VaultProfilingPage() {
             <button
               onClick={goPrev}
               disabled={currentIdx === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-500 disabled:opacity-30 hover:bg-white/50 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-theme-secondary disabled:opacity-30 hover:bg-white/50 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               Back

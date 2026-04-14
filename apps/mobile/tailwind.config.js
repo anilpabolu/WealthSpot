@@ -15,7 +15,7 @@ module.exports = {
         },
         secondary: '#FF6B35',
         accent: '#22C55E',
-        surface: '#F8F9FA',
+        surface: '#F5F0FF',
         // ── Vault Theme Palettes (distinct identity per vault) ───
         vault: {
           wealth: {

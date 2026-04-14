@@ -59,7 +59,7 @@ export function MiniDonut({
         </text>
       </svg>
       {showLabel && label && (
-        <span className="text-[10px] text-gray-400 font-medium text-center leading-tight">{label}</span>
+        <span className="text-[10px] text-theme-tertiary font-medium text-center leading-tight">{label}</span>
       )}
     </div>
   );

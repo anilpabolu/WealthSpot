@@ -34,7 +34,7 @@ export default function KycGate({
             <path d="M13 20L18 25L27 16" />
           </svg>
         </div>
-        <p className="text-sm text-gray-400 font-body animate-pulse">Verifying your identity…</p>
+        <p className="text-sm text-theme-tertiary font-body animate-pulse">Verifying your identity…</p>
       </div>
     )
   }
@@ -47,13 +47,13 @@ export default function KycGate({
     return (
       fallback ?? (
         <div className="max-w-md mx-auto text-center py-16 px-4">
-          <div className="mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+          <div className="mx-auto h-16 w-16 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mb-4">
             <ShieldAlert className="h-8 w-8 text-danger" />
           </div>
-          <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
+          <h2 className="font-display text-xl font-bold text-theme-primary mb-2">
             KYC Verification Failed
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-theme-secondary mb-6">
             Your identity verification was rejected. Please contact support or re-submit
             your documents for review.
           </p>
@@ -73,21 +73,21 @@ export default function KycGate({
     return (
       fallback ?? (
         <div className="max-w-md mx-auto text-center py-16 px-4">
-          <div className="mx-auto h-16 w-16 rounded-full bg-amber-50 flex items-center justify-center mb-4">
+          <div className="mx-auto h-16 w-16 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-4">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-warning to-amber-500 flex items-center justify-center animate-pulse">
               <svg viewBox="0 0 40 40" className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth="3">
                 <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
               </svg>
             </div>
           </div>
-          <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
+          <h2 className="font-display text-xl font-bold text-theme-primary mb-2">
             KYC Under Review
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-theme-secondary mb-6">
             Your documents are being verified. This usually takes 24-48 hours.
             We'll notify you once approved.
           </p>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-theme-tertiary">
             Submitted documents are encrypted and processed securely.
           </div>
         </div>
@@ -107,10 +107,10 @@ export default function KycGate({
         <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
           <ShieldAlert className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
+        <h2 className="font-display text-xl font-bold text-theme-primary mb-2">
           Complete Your KYC
         </h2>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-theme-secondary mb-6">
           Before you can invest, we need to verify your identity as per SEBI regulations.
           This is a one-time process and takes about 5 minutes.
         </p>

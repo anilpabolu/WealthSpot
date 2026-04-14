@@ -755,16 +755,16 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-display text-lg font-bold text-gray-900">Share this Opportunity</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100" aria-label="Close">
-            <X className="h-5 w-5 text-gray-400" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+          <h3 className="font-display text-lg font-bold text-theme-primary">Share this Opportunity</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--bg-surface-hover)]" aria-label="Close">
+            <X className="h-5 w-5 text-theme-tertiary" />
           </button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
           {/* Property preview */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-theme-surface">
             {(opportunity.media?.[0]?.url || opportunity.coverImage) ? (
               <img
                 src={opportunity.media?.[0]?.url || opportunity.coverImage || ''}
@@ -772,22 +772,22 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
                 className="h-14 w-14 rounded-lg object-cover"
               />
             ) : (
-              <div className="h-14 w-14 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400">🏠</div>
+              <div className="h-14 w-14 rounded-lg bg-[var(--bg-surface-hover)] flex items-center justify-center text-theme-tertiary">🏠</div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{opportunity.title}</p>
-              {opportunity.city && <p className="text-xs text-gray-500">{opportunity.city}</p>}
+              <p className="text-sm font-semibold text-theme-primary truncate">{opportunity.title}</p>
+              {opportunity.city && <p className="text-xs text-theme-secondary">{opportunity.city}</p>}
             </div>
           </div>
 
           {/* Copy link */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Share Link (with your referral)</label>
+            <label className="text-xs font-semibold text-theme-secondary uppercase tracking-wider">Share Link (with your referral)</label>
             <div className="mt-1.5 flex items-center gap-2">
               <input
                 readOnly
                 value={shareUrl}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 font-mono truncate"
+                className="flex-1 bg-theme-surface border border-theme rounded-lg px-3 py-2 text-sm text-theme-primary font-mono truncate"
               />
               <button
                 onClick={handleCopy}
@@ -797,18 +797,18 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
-            {copied && <p className="text-xs text-emerald-600 mt-1">Link copied!</p>}
+            {copied && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Link copied!</p>}
           </div>
 
           {/* Your referral code */}
           <div className="bg-primary/5 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-500 mb-1">Your Property Referral Code</p>
+            <p className="text-xs text-theme-secondary mb-1">Your Property Referral Code</p>
             <p className="font-mono font-bold text-lg text-primary tracking-widest">{referralCode}</p>
           </div>
 
           {/* Social share buttons */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Share on Social Media</p>
+            <p className="text-xs font-semibold text-theme-secondary uppercase tracking-wider mb-3">Share on Social Media</p>
             <div className="grid grid-cols-4 gap-3">
               <button
                 onClick={shareWhatsApp}
@@ -819,38 +819,38 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
               </button>
               <button
                 onClick={shareLinkedIn}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 transition-colors"
               >
-                <Linkedin className="h-6 w-6 text-blue-600" />
-                <span className="text-[10px] font-medium text-blue-700">LinkedIn</span>
+                <Linkedin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <span className="text-[10px] font-medium text-blue-700 dark:text-blue-300">LinkedIn</span>
               </button>
               <button
                 onClick={shareFacebook}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 transition-colors"
               >
-                <Facebook className="h-6 w-6 text-indigo-600" />
-                <span className="text-[10px] font-medium text-indigo-700">Facebook</span>
+                <Facebook className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-[10px] font-medium text-indigo-700 dark:text-indigo-300">Facebook</span>
               </button>
               <button
                 onClick={shareInstagram}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-pink-50 dark:bg-pink-900/30 hover:bg-pink-100 transition-colors"
               >
-                <Instagram className="h-6 w-6 text-pink-600" />
-                <span className="text-[10px] font-medium text-pink-700">Instagram</span>
+                <Instagram className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                <span className="text-[10px] font-medium text-pink-700 dark:text-pink-300">Instagram</span>
               </button>
             </div>
           </div>
 
           {/* Download postcard */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Download Postcard</p>
+            <p className="text-xs font-semibold text-theme-secondary uppercase tracking-wider mb-2">Download Postcard</p>
             <div className="flex gap-2 mb-3">
               <button
                 onClick={() => setFormat('portrait')}
                 className={`flex-1 text-center py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
                   format === 'portrait'
                     ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
+                    : 'bg-theme-surface text-theme-secondary border-theme hover:border-theme'
                 }`}
               >
                 Portrait
@@ -861,7 +861,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
                 className={`flex-1 text-center py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
                   format === 'landscape'
                     ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
+                    : 'bg-theme-surface text-theme-secondary border-theme hover:border-theme'
                 }`}
               >
                 Landscape
@@ -878,7 +878,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
             </button>
           </div>
 
-          <p className="text-center text-[11px] text-gray-400">
+          <p className="text-center text-[11px] text-theme-tertiary">
             When someone signs up using your referral code and makes their first investment, you earn a referral bonus!
           </p>
         </div>

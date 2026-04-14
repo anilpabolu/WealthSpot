@@ -19,7 +19,7 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
 
   return (
     <div className="relative">
-      <label className="block text-sm font-medium text-gray-700 mb-1">Company / Builder</label>
+      <label className="block text-sm font-medium text-theme-primary mb-1">Company / Builder</label>
 
       {/* Selected display */}
       {selected ? (
@@ -27,16 +27,16 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
           {selected.logoUrl ? (
             <img src={selected.logoUrl} alt="" className="h-8 w-8 rounded-lg object-cover" />
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-gray-200 flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-gray-500" />
+            <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-hover)] flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-theme-secondary" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1">
+            <p className="text-sm font-medium text-theme-primary truncate flex items-center gap-1">
               {selected.companyName}
               {selected.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary" />}
             </p>
-            <p className="text-xs text-gray-500">{selected.city || 'No location'}</p>
+            <p className="text-xs text-theme-secondary">{selected.city || 'No location'}</p>
           </div>
           <button
             type="button"
@@ -44,7 +44,7 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
               onChange(undefined)
               setOpen(true)
             }}
-            className="text-xs text-gray-500 hover:text-primary"
+            className="text-xs text-theme-secondary hover:text-primary"
           >
             Change
           </button>
@@ -53,24 +53,24 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 text-left transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border-2 border-dashed border-theme hover:border-gray-400 text-left transition-all"
         >
-          <Building2 className="h-5 w-5 text-gray-400" />
-          <span className="text-sm text-gray-500">Select or onboard a company</span>
+          <Building2 className="h-5 w-5 text-theme-tertiary" />
+          <span className="text-sm text-theme-secondary">Select or onboard a company</span>
         </button>
       )}
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-gray-200 max-h-72 overflow-hidden">
-          <div className="p-2 border-b border-gray-100">
+        <div className="absolute z-50 mt-1 w-full bg-[var(--bg-surface)] rounded-xl shadow-xl border border-theme max-h-72 overflow-hidden">
+          <div className="p-2 border-b border-theme">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
               <input
                 autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-theme focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 placeholder="Search companies..."
               />
             </div>
@@ -78,7 +78,7 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
 
           <div className="max-h-48 overflow-y-auto">
             {companies.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-4">No companies found</p>
+              <p className="text-sm text-theme-tertiary text-center py-4">No companies found</p>
             )}
             {companies.map((c) => (
               <button
@@ -89,21 +89,21 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
                   setOpen(false)
                   setSearch('')
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-theme-surface text-left transition-colors"
               >
                 {c.logoUrl ? (
                   <img src={c.logoUrl} alt="" className="h-8 w-8 rounded-lg object-cover" />
                 ) : (
-                  <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Building2 className="h-4 w-4 text-gray-400" />
+                  <div className="h-8 w-8 rounded-lg bg-theme-surface-hover flex items-center justify-center">
+                    <Building2 className="h-4 w-4 text-theme-tertiary" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1">
+                  <p className="text-sm font-medium text-theme-primary truncate flex items-center gap-1">
                     {c.companyName}
                     {c.verified && <BadgeCheck className="h-3.5 w-3.5 text-primary" />}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-theme-secondary">
                     {c.city || 'N/A'} · {c.projectsCompleted} projects
                   </p>
                 </div>
@@ -112,7 +112,7 @@ export default function CompanySelector({ value, onChange, onRequestOnboard, vau
           </div>
 
           {/* Onboard new */}
-          <div className="border-t border-gray-100 p-2">
+          <div className="border-t border-theme p-2">
             <button
               type="button"
               onClick={() => {

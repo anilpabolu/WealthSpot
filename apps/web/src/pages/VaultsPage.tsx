@@ -27,6 +27,7 @@ import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/u
 import { usePublicVideos } from '@/hooks/useAppVideos'
 import { Badge } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { useContent } from '@/hooks/useSiteContent'
 import { getVaultComingSoonText } from '@/components/VaultComingSoonOverlay'
 
 /* Map vault/pillar IDs → app_videos section_tag */
@@ -61,7 +62,7 @@ const VAULTS = [
     infoBody: 'A premium gateway to curated real estate opportunities positioned around intrinsic value, timing, and long-term appreciation potential.',
     infoItalic: 'Designed for investors who believe disciplined entry can shape exceptional outcomes.',
     risk: 'Moderate',
-    riskColor: 'text-amber-700 bg-amber-50',
+    riskColor: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30',
     href: '/marketplace?vault=wealth',
     cta: 'Explore Properties',
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
@@ -81,7 +82,7 @@ const VAULTS = [
     infoBody: 'A future-focused layer for those who contribute more than money alone.',
     infoItalic: 'It is being designed for participants who bring expertise, time, strategic guidance, or influential networks into emerging opportunities.',
     risk: 'High',
-    riskColor: 'text-red-600 bg-red-50',
+    riskColor: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
     href: '/marketplace?vault=opportunity',
     cta: 'Discover Startups',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
@@ -101,7 +102,7 @@ const VAULTS = [
     infoBody: 'A trusted environment where co-investors, co-partners, and execution-led collaborators can align around opportunity.',
     infoItalic: 'It exists to help serious people find one another, structure participation intelligently, and move from interest to closure with confidence.',
     risk: 'Low–Moderate',
-    riskColor: 'text-emerald-700 bg-emerald-50',
+    riskColor: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30',
     href: '/marketplace?vault=community',
     cta: 'Explore Communities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
@@ -130,7 +131,7 @@ const PILLARS = [
     subtitle: 'Hours that create value',
     icon: Clock,
     color: 'from-amber-100 to-amber-50',
-    iconColor: 'text-amber-600',
+    iconColor: 'text-amber-600 dark:text-amber-400',
     description:
       'Contribute your time and effort to community projects. Mentor founders, manage on-ground execution, or volunteer expertise — earn equity for your hours.',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
@@ -141,7 +142,7 @@ const PILLARS = [
     subtitle: 'Connections that catalyse',
     icon: Network,
     color: 'from-violet-100 to-violet-50',
-    iconColor: 'text-violet-600',
+    iconColor: 'text-violet-600 dark:text-violet-400',
     description:
       'Open doors with your relationships. Introduce startups to customers, connect projects to suppliers, or bring in co-investors — your network is your investment.',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
@@ -152,7 +153,7 @@ const PILLARS = [
     subtitle: 'Knowledge that empowers',
     icon: GraduationCap,
     color: 'from-emerald-100 to-emerald-50',
-    iconColor: 'text-emerald-600',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
     description:
       'Share domain expertise, conduct workshops, or provide strategic advisory. Help ventures succeed through the power of what you know.',
     videoSrc: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
@@ -264,7 +265,7 @@ function VaultInfoTooltip({ body, italic, visible, onClose }: { body: string; it
 function VaultCard({
   vault,
   stats,
-  opportunities,
+  opportunities: _opportunities,
   profilingPct,
   archetype,
   comingSoon,
@@ -278,7 +279,7 @@ function VaultCard({
   profilingPct: number
   archetype?: string | null
   comingSoon: boolean
-  onPlayVideo: () => void
+  onPlayVideo?: () => void
   onComingSoon: () => void
   onCommunityExplore?: () => void
 }) {
@@ -333,6 +334,7 @@ function VaultCard({
             </button>
             <VaultInfoTooltip body={vault.infoBody} italic={vault.infoItalic} visible={showInfo} onClose={hideInfo} />
           </div>
+          {onPlayVideo && (
           <button
             onClick={onPlayVideo}
             className="relative shrink-0 group/tip"
@@ -343,6 +345,7 @@ function VaultCard({
               Watch Intro
             </span>
           </button>
+          )}
         </div>
       </div>
 
@@ -489,7 +492,7 @@ function VaultCard({
 /*  Pillar Card                                                        */
 /* ------------------------------------------------------------------ */
 
-function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number]; onPlayVideo: () => void }) {
+function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number]; onPlayVideo?: () => void }) {
   const Icon = pillar.icon
 
   return (
@@ -503,6 +506,7 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
           <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
             <Icon className="h-6 w-6 text-[#D4AF37]" />
           </div>
+          {onPlayVideo && (
           <button
             onClick={onPlayVideo}
             className="relative group/tip shrink-0"
@@ -513,6 +517,7 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
               Learn more
             </span>
           </button>
+          )}
         </div>
         <h4 className="font-display text-base font-bold text-white mb-0.5">{pillar.title}</h4>
         <p className="text-xs font-medium text-[#D4AF37]/60 mb-2">{pillar.subtitle}</p>
@@ -534,7 +539,15 @@ export default function VaultsPage() {
   const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
   const userRole = useUserStore((s) => s.user?.role)
   const navigate = useNavigate()
-  const { isVaultEnabled } = useVaultConfig()
+  const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
+
+  // CMS content
+  const heroBadge = useContent('vaults', 'hero_badge', 'Three Vaults. Infinite Possibilities.')
+  const heroTitle = useContent('vaults', 'hero_title', 'Pick Your Arena')
+  const heroSubtitle = useContent('vaults', 'hero_subtitle', 'Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.')
+  const pillarsLabel = useContent('vaults', 'pillars_label', 'The Four Pillars')
+  const pillarsHeading = useContent('vaults', 'pillars_heading', 'Every Investor Has Something Unique to Offer')
+  const pillarsSubtitle = useContent('vaults', 'pillars_subtitle', "At WealthSpot, investing isn't just about money. We recognise four types of investors — each contributing a different kind of capital to create outsized value together.")
 
   // Fetch profiling progress per vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
@@ -584,7 +597,7 @@ export default function VaultsPage() {
 
   return (
     <>
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-theme-surface">
       {/* Shared Navbar */}
       <Navbar />
 
@@ -599,20 +612,20 @@ export default function VaultsPage() {
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
           <div className="animate-fade-up">
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-6">
-              Three Vaults. Infinite Possibilities.
+              {heroBadge}
             </span>
             <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-5 tracking-tight leading-[1.1]">
-              Pick Your Arena
+              {heroTitle}
             </h1>
             <p className="text-white/60 max-w-2xl text-lg leading-relaxed font-body">
-              Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.
+              {heroSubtitle}
             </p>
           </div>
         </div>
       </section>
 
       {/* Vaults Grid */}
-      <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+      <section className="py-16 lg:py-20 content-section-bg relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
@@ -630,7 +643,7 @@ export default function VaultsPage() {
                   profilingPct={profilingMap[vault.id] ?? 0}
                   archetype={archetypeMap[vault.id]}
                   comingSoon={comingSoon}
-                  onPlayVideo={() => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })}
+                  onPlayVideo={vaultVideosEnabled ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) }) : undefined}
                   onComingSoon={() => showComingSoon(vault.id)}
                   onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
                 />
@@ -642,18 +655,18 @@ export default function VaultsPage() {
 
       {/* 4 Investor Pillars — super_admin only */}
       {userRole === 'super_admin' && (
-      <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+      <section className="py-16 lg:py-20 content-section-bg relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
         </div>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
           <div className="text-center mb-10 relative z-10">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37]">The Four Pillars</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mt-2">
-              Every Investor Has Something Unique to Offer
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] dark:text-[#D4AF37]">{pillarsLabel}</span>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-theme-primary mt-2">
+              {pillarsHeading}
             </h2>
-            <p className="text-white/50 mt-2 max-w-2xl mx-auto">
-              At WealthSpot, investing isn't just about money. We recognise four types of investors — each contributing a different kind of capital to create outsized value together.
+            <p className="text-theme-secondary mt-2 max-w-2xl mx-auto">
+              {pillarsSubtitle}
             </p>
           </div>
 
@@ -662,7 +675,7 @@ export default function VaultsPage() {
               <PillarCard
                 key={pillar.title}
                 pillar={pillar}
-                onPlayVideo={() => setActivePillarVideo({ title: pillar.title, videoSrc: resolveVideo(PILLAR_VIDEO_TAGS[pillar.title], pillar.videoSrc) })}
+                onPlayVideo={vaultVideosEnabled ? () => setActivePillarVideo({ title: pillar.title, videoSrc: resolveVideo(PILLAR_VIDEO_TAGS[pillar.title], pillar.videoSrc) }) : undefined}
               />
             ))}
           </div>
@@ -672,7 +685,7 @@ export default function VaultsPage() {
     </div>
 
       {/* Vault intro video popup */}
-      {activeVideo && (
+      {vaultVideosEnabled && activeVideo && (
         <VaultVideoPopup
           title={activeVideo.title}
           videoSrc={activeVideo.videoSrc}
@@ -681,7 +694,7 @@ export default function VaultsPage() {
       )}
 
       {/* Pillar explainer video popup */}
-      {activePillarVideo && (
+      {vaultVideosEnabled && activePillarVideo && (
         <VaultVideoPopup
           title={activePillarVideo.title}
           videoSrc={activePillarVideo.videoSrc}

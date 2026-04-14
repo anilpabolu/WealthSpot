@@ -18,13 +18,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={className}>
         {label && (
-          <label htmlFor={id} className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+          <label htmlFor={id} className="block text-xs font-semibold text-theme-secondary uppercase tracking-wider mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-tertiary pointer-events-none">
               {icon}
             </span>
           )}
@@ -34,20 +34,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
             className={`
               w-full ${py} ${icon ? 'pl-10' : 'px-3'} ${rightIcon ? 'pr-10' : 'pr-3'} ${textSz}
-              bg-white border rounded-xl
+              bg-[var(--bg-surface)] border rounded-xl
               transition-all duration-150
-              placeholder:text-gray-300
-              hover:border-gray-300
+              placeholder:text-theme-tertiary
+              hover:border-theme
               focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-theme-surface
               ${error
                 ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
-                : 'border-gray-200'
+                : 'border-theme'
               }
             `}
           />
           {rightIcon && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-tertiary">
               {rightIcon}
             </span>
           )}

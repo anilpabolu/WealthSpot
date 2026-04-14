@@ -21,10 +21,11 @@ export default function RootLayout() {
           headerStyle: { backgroundColor: '#FFFFFF' },
           headerTintColor: '#5B4FCF',
           headerTitleStyle: { fontWeight: '700' },
-          contentStyle: { backgroundColor: '#F8F9FA' },
+          contentStyle: { backgroundColor: '#F5F0FF' },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="select-persona" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="property/[slug]" options={{ title: 'Property Details' }} />
         <Stack.Screen name="invest/[id]" options={{ title: 'Invest', presentation: 'modal' }} />
         <Stack.Screen name="kyc" options={{ title: 'KYC Verification' }} />

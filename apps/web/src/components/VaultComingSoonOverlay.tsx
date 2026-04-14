@@ -40,13 +40,13 @@ export function VaultComingSoonCard({ vaultId }: { vaultId: string }) {
   const text = getVaultComingSoonText(vaultId)
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl backdrop-blur-md bg-white/40 border border-white/30 px-6 text-center transition-all">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl backdrop-blur-md bg-[var(--bg-card)] border border-[var(--bg-card-border)] px-6 text-center transition-all">
       <div className="relative">
-        <Lock className="h-7 w-7 text-gray-500 animate-pulse" />
+        <Lock className="h-7 w-7 text-theme-secondary animate-pulse" />
         <Sparkles className="h-3.5 w-3.5 text-amber-400 absolute -top-1 -right-2" />
       </div>
-      <p className="text-sm font-bold text-gray-800 whitespace-pre-line leading-snug">{text.headline}</p>
-      <p className="text-xs text-gray-500 max-w-[16rem] leading-relaxed">{text.subtext}</p>
+      <p className="text-sm font-bold text-theme-primary whitespace-pre-line leading-snug">{text.headline}</p>
+      <p className="text-xs text-theme-secondary max-w-[16rem] leading-relaxed">{text.subtext}</p>
     </div>
   )
 }
@@ -89,11 +89,11 @@ export function VaultComingSoonPortfolioCard({
       </div>
       <div className="px-5 py-6 flex flex-col items-center gap-2 text-center relative">
         {/* Glassmorphism hover overlay */}
-        <div className="absolute inset-0 backdrop-blur-[2px] bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center px-4 z-10">
-          <p className="text-xs font-semibold text-gray-700 leading-relaxed">{text.subtext}</p>
+        <div className="absolute inset-0 backdrop-blur-[2px] bg-[var(--bg-card)] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center px-4 z-10">
+          <p className="text-xs font-semibold text-theme-primary leading-relaxed">{text.subtext}</p>
         </div>
         <span className="text-2xl">{text.emoji}</span>
-        <p className="text-sm font-semibold text-gray-700">{text.portfolioText}</p>
+        <p className="text-sm font-semibold text-theme-primary">{text.portfolioText}</p>
       </div>
     </div>
   )
@@ -118,11 +118,11 @@ export function VaultComingSoonBanner({
       <div className="relative mb-4">
         <span className="text-5xl">{text.emoji}</span>
         <div className="absolute -bottom-1 -right-1">
-          <Lock className="h-5 w-5 text-gray-400" />
+          <Lock className="h-5 w-5 text-theme-tertiary" />
         </div>
       </div>
-      <h2 className="font-display text-2xl font-bold text-gray-900 mb-2 whitespace-pre-line">{text.headline}</h2>
-      <p className="text-sm text-gray-500 max-w-md mb-6">{text.subtext}</p>
+      <h2 className="font-display text-2xl font-bold text-theme-primary mb-2 whitespace-pre-line">{text.headline}</h2>
+      <p className="text-sm text-theme-secondary max-w-md mb-6">{text.subtext}</p>
       <button
         onClick={onExploreOther}
         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors"

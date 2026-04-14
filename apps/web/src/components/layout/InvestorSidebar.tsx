@@ -42,16 +42,16 @@ export default function InvestorSidebar() {
   })
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white/60 backdrop-blur-xl border-r border-gray-200/50 h-[calc(100vh-64px)] sticky top-16">
+    <aside className="hidden lg:flex flex-col w-64 backdrop-blur-xl border-r h-[calc(100vh-64px)] sticky top-16 transition-colors duration-300" style={{ background: 'var(--bg-sidebar)', borderColor: 'var(--bg-sidebar-border)' }}>
       {/* Investor badge */}
-      <div className="p-4 border-b border-gray-100/60">
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <PieChart className="h-5 w-5 text-primary" />
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-[#D4AF37]/10 dark:bg-[#D4AF37]/15">
+            <PieChart className="h-5 w-5 text-theme-accent" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Investor Portal</p>
-            <p className="text-xs text-gray-500">Manage your investments</p>
+            <p className="text-sm font-semibold text-theme-primary">Investor Portal</p>
+            <p className="text-xs text-theme-secondary">Manage your investments</p>
           </div>
         </div>
       </div>
@@ -71,11 +71,11 @@ export default function InvestorSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900',
+                  ? 'bg-[var(--text-accent)]/10 text-theme-accent shadow-sm'
+                  : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary',
               )}
             >
-              <item.icon className={cn('h-5 w-5 transition-colors', isActive ? 'text-primary' : 'text-gray-400')} />
+              <item.icon className={cn('h-5 w-5 transition-colors', isActive ? 'text-theme-accent' : 'text-theme-tertiary')} />
               {item.label}
             </NavLink>
           )
@@ -83,12 +83,12 @@ export default function InvestorSidebar() {
       </nav>
 
       {/* Bottom nav */}
-      <div className="p-3 border-t border-gray-100/60 space-y-1">
+      <div className="p-3 border-t space-y-1" style={{ borderColor: 'var(--border-default)' }}>
         {INVESTOR_BOTTOM.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-100/60 hover:text-gray-700 transition-all duration-200"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary transition-all duration-200"
           >
             <item.icon className="h-4 w-4" />
             {item.label}

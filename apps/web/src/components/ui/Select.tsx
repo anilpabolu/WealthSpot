@@ -73,38 +73,38 @@ export function Select({
         onClick={() => { setOpen(!open); setSearch(''); }}
         className={`
           w-full flex items-center justify-between gap-2 ${py} px-3 ${textSize}
-          bg-white border border-gray-200 rounded-xl
+          bg-[var(--bg-surface)] border border-theme rounded-xl
           transition-all duration-150
-          hover:border-gray-300
+          hover:border-theme
           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
           disabled:opacity-50 disabled:cursor-not-allowed
           ${open ? 'ring-2 ring-primary/30 border-primary' : ''}
         `}
       >
-        <span className={selected ? 'text-gray-900 truncate' : 'text-gray-400 truncate'}>
+        <span className={selected ? 'text-theme-primary truncate' : 'text-theme-tertiary truncate'}>
           {selected ? selected.label : placeholder}
         </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-theme-tertiary shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-200/80 rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute z-50 mt-1.5 w-full bg-[var(--bg-surface)] border border-theme/80 rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
           {searchable && (
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
-              <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-theme">
+              <Search className="h-3.5 w-3.5 text-theme-tertiary shrink-0" />
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search…"
-                className="w-full text-sm bg-transparent outline-none placeholder:text-gray-300"
+                className="w-full text-sm bg-transparent outline-none placeholder:text-theme-tertiary"
               />
             </div>
           )}
           <ul ref={listRef} className="max-h-56 overflow-y-auto py-1 scroll-thin">
             {filtered.length === 0 ? (
-              <li className="px-3 py-2 text-xs text-gray-400 text-center">No results</li>
+              <li className="px-3 py-2 text-xs text-theme-tertiary text-center">No results</li>
             ) : (
               filtered.map((opt) => (
                 <li key={opt.value}>
@@ -116,10 +116,10 @@ export function Select({
                       w-full flex items-center gap-2 px-3 py-2 text-sm text-left
                       transition-colors duration-100
                       ${opt.disabled
-                        ? 'text-gray-400 cursor-not-allowed opacity-60'
+                        ? 'text-theme-tertiary cursor-not-allowed opacity-60'
                         : opt.value === value
                           ? 'bg-primary/5 text-primary font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          : 'text-theme-primary hover:bg-theme-surface'
                       }
                     `}
                   >

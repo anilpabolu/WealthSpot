@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home, Sparkles } from 'lucide-react'
+import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home, Sparkles, Sun, Moon } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -10,6 +10,7 @@ import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
+import { useThemeStore } from '@/stores/theme.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 import { useOverallProgress } from '@/hooks/useProfiling'
 
@@ -31,9 +32,12 @@ export default function Navbar(_props?: NavbarProps) {
   const [showVideo, setShowVideo] = useState(false)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
+  const userRoles = useUserStore((s) => s.user?.roles ?? [])
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const { data: completion } = useProfileCompletionStatus()
   const { data: overall } = useOverallProgress()
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
 
   const approvalRoles = ['admin', 'approver', 'super_admin']
   const extraLinks = [
@@ -86,8 +90,22 @@ export default function Navbar(_props?: NavbarProps) {
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-white/[0.06] border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4 text-[#D4AF37]" />
+              ) : (
+                <Moon className="h-4 w-4 text-indigo-400" />
+              )}
+            </button>
             {/* Clerk auth: signed-in → Create Opp + UserButton, signed-out → Sign In / Sign Up */}
             <Show when="signed-in">
+              {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
               <button
                 onClick={() => setShowCreateOpp(true)}
                 className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-xs font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.45)] hover:brightness-110 transition-all"
@@ -95,6 +113,7 @@ export default function Navbar(_props?: NavbarProps) {
                 <Plus className="h-3.5 w-3.5" />
                 Create Opportunity
               </button>
+              )}
               <ProfileIndicator size="sm" />
             </Show>
             <Show when="signed-out">
@@ -142,9 +161,26 @@ export default function Navbar(_props?: NavbarProps) {
                   {link.label}
                 </Link>
               ))}
+              {/* Theme toggle in mobile signed-in */}
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors mt-2 border-t border-white/10 pt-3"
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4 text-[#D4AF37]" /> : <Moon className="h-4 w-4 text-indigo-400" />}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </button>
             </Show>
             <Show when="signed-out">
-              <div className="pt-3 border-t border-white/10 flex gap-2">
+              <div className="pt-3 border-t border-white/10 space-y-2">
+                {/* Theme toggle in mobile */}
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4 text-[#D4AF37]" /> : <Moon className="h-4 w-4 text-indigo-400" />}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </button>
+                <div className="flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button
                     className="text-white/70 hover:text-white text-sm font-semibold flex-1 text-center px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -159,6 +195,7 @@ export default function Navbar(_props?: NavbarProps) {
                 >
                   Get Access
                 </button>
+                </div>
               </div>
             </Show>
           </div>
@@ -178,7 +215,7 @@ export default function Navbar(_props?: NavbarProps) {
             </div>
             <button
               onClick={() => navigate('/profile/complete')}
-              className="shrink-0 px-4 py-1.5 bg-white text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-50 transition shadow-sm"
+              className="shrink-0 px-4 py-1.5 bg-white text-orange-600 dark:text-orange-400 text-xs font-bold rounded-lg hover:bg-orange-50 dark:bg-orange-900/30 transition shadow-sm"
             >
               Complete Now
             </button>
@@ -198,7 +235,7 @@ export default function Navbar(_props?: NavbarProps) {
             </div>
             <button
               onClick={() => navigate('/vaults')}
-              className="shrink-0 px-4 py-1.5 bg-white text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-50 transition shadow-sm"
+              className="shrink-0 px-4 py-1.5 bg-white text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-lg hover:bg-indigo-50 dark:bg-indigo-900/30 transition shadow-sm"
             >
               Profile Vaults
             </button>

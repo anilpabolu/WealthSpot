@@ -30,6 +30,10 @@ interface MeResponse {
   phone: string | null
   avatarUrl: string | null
   role: UserProfile['role']
+  roles: string[]
+  primaryRole: string
+  builderApproved: boolean
+  personaSelectedAt: string | null
   kycStatus: string
   referralCode: string | null
   wealthPassActive: boolean
@@ -118,6 +122,10 @@ export function useBackendSync() {
         phone: profile.phone ?? '',
         avatarUrl: profile.avatarUrl ?? undefined,
         role: profile.role,
+        roles: profile.roles ?? [],
+        primaryRole: profile.primaryRole ?? profile.role,
+        builderApproved: profile.builderApproved ?? false,
+        personaSelectedAt: profile.personaSelectedAt ?? null,
         kycStatus: profile.kycStatus,
         referralCode: profile.referralCode ?? '',
         wealthPassActive: profile.wealthPassActive,
@@ -167,6 +175,10 @@ export function useBackendSync() {
             phone: profile.phone ?? '',
             avatarUrl: profile.avatarUrl ?? undefined,
             role: profile.role,
+            roles: profile.roles ?? [],
+            primaryRole: profile.primaryRole ?? profile.role,
+            builderApproved: profile.builderApproved ?? false,
+            personaSelectedAt: profile.personaSelectedAt ?? null,
             kycStatus: profile.kycStatus,
             referralCode: profile.referralCode ?? '',
             wealthPassActive: profile.wealthPassActive,

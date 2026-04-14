@@ -28,21 +28,21 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 text-gray-300" role="contentinfo">
+    <footer className="bg-slate-950 text-theme-tertiary" role="contentinfo">
       {/* Gradient accent stripe */}
-      <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main footer */}
         <div className="py-12 grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <Shield className="h-7 w-7 text-indigo-400" />
+              <Shield className="h-7 w-7 text-[#D4AF37]" />
               <span className="font-display text-lg font-bold text-white">
-                Wealth<span className="text-indigo-400">Spot</span>
+                Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
             </Link>
-            <p className="text-sm leading-relaxed text-gray-400 mb-4">
+            <p className="text-sm leading-relaxed text-theme-tertiary mb-4">
               India’s trusted fractional real estate investment platform.
               Build generational wealth, one fraction at a time.
             </p>
@@ -73,7 +73,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <Link
                       to={link.href}
-                      className="text-sm text-gray-400 hover:text-primary transition-colors"
+                      className="text-sm text-theme-tertiary hover:text-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -89,7 +89,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-gray-500 text-center sm:text-left">
+          <div className="text-xs text-theme-secondary text-center sm:text-left">
             <p>© {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.</p>
           </div>
 
@@ -112,8 +112,8 @@ export default function Footer() {
 
         {/* Risk Disclaimer */}
         <div className="py-4 border-t border-white/5">
-          <p className="text-[11px] leading-relaxed text-gray-600 text-center">
-            <strong className="text-gray-500">Risk Disclaimer:</strong> Investments in fractional real estate 
+          <p className="text-[11px] leading-relaxed text-theme-secondary text-center">
+            <strong className="text-theme-secondary">Risk Disclaimer:</strong> Investments in fractional real estate 
             are subject to market risks. Past performance does not guarantee future returns. 
             The projected IRR is an estimate and actual returns may vary. Please read all related documents 
             carefully before investing. WealthSpot is a technology platform and does not provide financial advice.

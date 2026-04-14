@@ -20,6 +20,9 @@ export {
   VaultType,
   OpportunityStatus,
   CommunitySubtype,
+  PersonaType,
+  FeatureKey,
+  InviteStatus,
 } from "./enums";
 
 // Entity models
@@ -76,6 +79,13 @@ export type {
   MatchBreakdown,
   MatchedUser,
   ProfilingProgress,
+  PersonaSelectionRequest,
+  VaultFeatureFlag,
+  VaultFeatureFlagUpdate,
+  VaultFeatureMatrixUpdate,
+  MyFeatureFlags,
+  AdminInvite,
+  AdminInviteCreate,
 } from "./models";
 
 // API response types

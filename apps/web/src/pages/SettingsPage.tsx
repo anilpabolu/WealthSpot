@@ -98,7 +98,7 @@ export default function SettingsPage() {
                         'w-full flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200',
                         activeTab === tab.id
                           ? 'bg-primary/5 text-primary font-semibold border-l-4 border-primary'
-                          : 'text-gray-600 hover:bg-stone-50'
+                          : 'text-theme-secondary hover:bg-theme-surface'
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -106,7 +106,7 @@ export default function SettingsPage() {
                     </button>
                   )
                 })}
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100">
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition border-t border-theme">
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </button>
@@ -160,27 +160,27 @@ function ProfileTab() {
           </button>
         </div>
         <div>
-          <p className="font-semibold text-gray-900">{isLoading ? 'Loading…' : displayName}</p>
-          <p className="text-sm text-gray-500">{displayEmail}</p>
+          <p className="font-semibold text-theme-primary">{isLoading ? 'Loading…' : displayName}</p>
+          <p className="text-sm text-theme-secondary">{displayEmail}</p>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input type="text" defaultValue={displayName} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+          <label className="block text-sm font-medium text-theme-primary mb-1">Full Name</label>
+          <input type="text" defaultValue={displayName} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" defaultValue={displayEmail} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-stone-50 text-gray-500 cursor-not-allowed outline-none" />
+          <label className="block text-sm font-medium text-theme-primary mb-1">Email</label>
+          <input type="email" defaultValue={displayEmail} readOnly className="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-surface text-theme-secondary cursor-not-allowed outline-none" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-          <input type="tel" defaultValue={displayPhone} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+          <label className="block text-sm font-medium text-theme-primary mb-1">Phone</label>
+          <input type="tel" defaultValue={displayPhone} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-          <input type="text" defaultValue={profile?.role ?? '—'} readOnly className="w-full px-3 py-2 text-sm border border-gray-100 rounded-lg bg-stone-50 text-gray-500 cursor-not-allowed outline-none capitalize" />
+          <label className="block text-sm font-medium text-theme-primary mb-1">Role</label>
+          <input type="text" defaultValue={profile?.role ?? '—'} readOnly className="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-surface text-theme-secondary cursor-not-allowed outline-none capitalize" />
         </div>
       </div>
 
@@ -213,14 +213,14 @@ function NotificationsTab() {
     <div className="card p-6">
       <h2 className="section-title text-lg mb-6">Notification Preferences</h2>
       {isLoading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-theme-tertiary">Loading…</p>
       ) : (
         <div className="space-y-4">
           {NOTIFICATION_SETTINGS.map((s) => (
             <div key={s.key} className="flex items-center justify-between py-2">
               <div>
-                <p className="text-sm font-medium text-gray-900">{s.label}</p>
-                <p className="text-xs text-gray-500">{s.desc}</p>
+                <p className="text-sm font-medium text-theme-primary">{s.label}</p>
+                <p className="text-xs text-theme-secondary">{s.desc}</p>
               </div>
               <Toggle
                   checked={prefs?.[s.key] ?? false}
@@ -242,11 +242,11 @@ function SecurityTab() {
         <div className="space-y-3 max-w-sm">
           {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
             <div key={label}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+              <label className="block text-sm font-medium text-theme-primary mb-1">{label}</label>
               <input
                 type="password"
                 placeholder="••••••••"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
               />
             </div>
           ))}
@@ -256,7 +256,7 @@ function SecurityTab() {
 
       <div className="card p-6">
         <h2 className="section-title text-lg mb-2">Two-Factor Authentication</h2>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-theme-secondary mb-4">
           Add an extra layer of security to your account.
         </p>
         <button className="btn-ghost text-sm flex items-center gap-2">
@@ -302,40 +302,40 @@ function BankTab() {
       </div>
 
       {/* Security reassurance */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 mb-6">
-        <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-        <p className="text-xs text-gray-600">
+      <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/40 rounded-2xl p-4 flex items-start gap-3 mb-6">
+        <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <p className="text-xs text-theme-secondary">
           <strong>100% Secure.</strong> All bank details are encrypted end-to-end using AES-256 military-grade
           encryption. Your account numbers are never stored in plain text. Only you can see your full details.
         </p>
       </div>
 
       {showForm && (
-        <div className="border border-gray-200 rounded-xl p-4 mb-6 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">Add New Bank Account</h3>
+        <div className="border border-theme rounded-xl p-4 mb-6 space-y-3">
+          <h3 className="text-sm font-semibold text-theme-primary">Add New Bank Account</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Account Holder Name</label>
-              <input value={form.accountHolderName} onChange={(e) => setForm({ ...form, accountHolderName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Full name as per bank" />
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Account Holder Name</label>
+              <input value={form.accountHolderName} onChange={(e) => setForm({ ...form, accountHolderName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Full name as per bank" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Account Number</label>
-              <input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, '') })} className="w-full px-3 py-2 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Enter account number" maxLength={18} />
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Account Number</label>
+              <input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, '') })} className="w-full px-3 py-2 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Enter account number" maxLength={18} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">IFSC Code</label>
-              <input value={form.ifscCode} onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })} className="w-full px-3 py-2 text-sm font-mono uppercase border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC0001234" maxLength={11} />
+              <label className="block text-xs font-medium text-theme-secondary mb-1">IFSC Code</label>
+              <input value={form.ifscCode} onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })} className="w-full px-3 py-2 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC0001234" maxLength={11} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Bank Name</label>
-              <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC Bank" />
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Bank Name</label>
+              <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC Bank" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Branch Name (Optional)</label>
-              <input value={form.branchName} onChange={(e) => setForm({ ...form, branchName: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Branch name" />
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Branch Name (Optional)</label>
+              <input value={form.branchName} onChange={(e) => setForm({ ...form, branchName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Branch name" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Account Type</label>
+              <label className="block text-xs font-medium text-theme-secondary mb-1">Account Type</label>
               <Select value={form.accountType ?? 'savings'} onChange={(v) => setForm({ ...form, accountType: v })} options={[
                 { value: 'savings', label: 'Savings' },
                 { value: 'current', label: 'Current' },
@@ -351,23 +351,23 @@ function BankTab() {
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+      {isLoading && <p className="text-sm text-theme-tertiary">Loading…</p>}
       {!isLoading && (!banks || banks.length === 0) && !showForm && (
         <EmptyState icon={CreditCard} title="No Bank Accounts" message="Add one to receive payouts." />
       )}
       {!isLoading && banks && banks.length > 0 && (
         <div className="space-y-3">
           {banks.map((bank) => (
-            <div key={bank.id} className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-blue-600" />
+            <div key={bank.id} className="border border-theme rounded-xl p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-sm">{bank.bankName}</p>
-                <p className="text-xs text-gray-500">
+                <p className="font-semibold text-theme-primary text-sm">{bank.bankName}</p>
+                <p className="text-xs text-theme-secondary">
                   A/C: {bank.accountNumberMasked} | IFSC: {bank.ifscCode}
                 </p>
-                <p className="text-xs text-gray-400">{bank.accountHolderName} · {bank.accountType}</p>
+                <p className="text-xs text-theme-tertiary">{bank.accountHolderName} · {bank.accountType}</p>
               </div>
               <div className="flex items-center gap-2">
                 {bank.isVerified && (
@@ -375,7 +375,7 @@ function BankTab() {
                 )}
                 <button
                   onClick={() => { if (confirm('Delete this bank account?')) deleteBank.mutate(bank.id) }}
-                  className="p-2 text-gray-400 hover:text-red-500 transition"
+                  className="p-2 text-theme-tertiary hover:text-red-500 transition"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -390,11 +390,11 @@ function BankTab() {
 }
 
 const KYC_STATUS_MAP: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
-  not_started: { label: 'Not Started', color: 'text-gray-600', bg: 'bg-stone-50', border: 'border-gray-200', desc: 'Please complete KYC to start investing.' },
-  in_progress: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', desc: 'Your KYC submission is being processed.' },
-  under_review: { label: 'Under Review', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', desc: 'Our team is reviewing your documents.' },
-  approved: { label: 'Approved', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Your identity has been verified successfully.' },
-  rejected: { label: 'Rejected', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', desc: 'Your KYC was rejected. Please re-submit.' },
+  not_started: { label: 'Not Started', color: 'text-theme-secondary', bg: 'bg-theme-surface', border: 'border-theme', desc: 'Please complete KYC to start investing.' },
+  in_progress: { label: 'In Progress', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-700/40', desc: 'Your KYC submission is being processed.' },
+  under_review: { label: 'Under Review', color: 'text-blue-700 dark:text-blue-300', bg: 'bg-blue-50 dark:bg-blue-900/30', border: 'border-blue-200 dark:border-blue-700/40', desc: 'Our team is reviewing your documents.' },
+  approved: { label: 'Approved', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-700/40', desc: 'Your identity has been verified successfully.' },
+  rejected: { label: 'Rejected', color: 'text-red-700 dark:text-red-300', bg: 'bg-red-50 dark:bg-red-900/30', border: 'border-red-200 dark:border-red-700/40', desc: 'Your KYC was rejected. Please re-submit.' },
 }
 
 function KycTab() {
@@ -412,7 +412,7 @@ function KycTab() {
       <div className="card p-6">
         <h2 className="section-title text-lg mb-4">KYC Verification</h2>
         {isLoading ? (
-          <p className="text-sm text-gray-400">Loading…</p>
+          <p className="text-sm text-theme-tertiary">Loading…</p>
         ) : meta ? (
           <>
             <div className={`flex items-center gap-4 p-4 ${meta.bg} border ${meta.border} rounded-xl mb-6`}>
@@ -444,28 +444,28 @@ function KycTab() {
           <h3 className="section-title text-lg mb-4">Submitted Details</h3>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
             <div>
-              <dt className="text-gray-500">Full Name</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.fullName}</dd>
+              <dt className="text-theme-secondary">Full Name</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.fullName}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">PAN Number</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.panNumberMasked ?? '—'}</dd>
+              <dt className="text-theme-secondary">PAN Number</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.panNumberMasked ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Date of Birth</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.dateOfBirth ?? '—'}</dd>
+              <dt className="text-theme-secondary">Date of Birth</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.dateOfBirth ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">City</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.city ?? '—'}</dd>
+              <dt className="text-theme-secondary">City</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.city ?? '—'}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-gray-500">Address</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.address ?? '—'}</dd>
+              <dt className="text-theme-secondary">Address</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.address ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Pincode</dt>
-              <dd className="font-medium text-gray-900 mt-0.5">{kycDetails.pincode ?? '—'}</dd>
+              <dt className="text-theme-secondary">Pincode</dt>
+              <dd className="font-medium text-theme-primary mt-0.5">{kycDetails.pincode ?? '—'}</dd>
             </div>
           </dl>
         </div>
@@ -512,16 +512,16 @@ function KycStepIndicator({ currentStep }: { currentStep: number }) {
                 ? 'bg-emerald-500 text-white'
                 : currentStep === step.num
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-400',
+                  : 'bg-theme-surface-hover text-theme-tertiary',
             )}
           >
             {currentStep > step.num ? <CheckCircle2 className="h-4 w-4" /> : step.num}
           </div>
-          <span className={cn('text-sm font-medium hidden sm:block', currentStep >= step.num ? 'text-gray-900' : 'text-gray-400')}>
+          <span className={cn('text-sm font-medium hidden sm:block', currentStep >= step.num ? 'text-theme-primary' : 'text-theme-tertiary')}>
             {step.label}
           </span>
           {i < KYC_STEPS.length - 1 && (
-            <div className={cn('w-8 h-0.5 mx-2', currentStep > step.num ? 'bg-emerald-500' : 'bg-gray-200')} />
+            <div className={cn('w-8 h-0.5 mx-2', currentStep > step.num ? 'bg-emerald-500' : 'bg-[var(--bg-surface-hover)]')} />
           )}
         </div>
       ))}
@@ -544,11 +544,11 @@ function KycFileUpload({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium text-gray-700 mb-1 block">{label}</label>
+      <label className="text-sm font-medium text-theme-primary mb-1 block">{label}</label>
       <div
         className={cn(
           'border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer',
-          file ? 'border-emerald-400 bg-green-50' : 'border-gray-200 hover:border-primary/30',
+          file ? 'border-emerald-400 bg-green-50' : 'border-theme hover:border-primary/30',
         )}
         onClick={() => {
           const input = document.createElement('input')
@@ -564,13 +564,13 @@ function KycFileUpload({
         {file ? (
           <div className="flex items-center justify-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            <span className="text-sm font-medium text-emerald-600">{file.name}</span>
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{file.name}</span>
           </div>
         ) : (
           <>
-            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 font-medium">{description}</p>
-            <p className="text-xs text-gray-400 mt-1">Max 5 MB · JPG, PNG, or PDF</p>
+            <Upload className="h-8 w-8 text-theme-tertiary mx-auto mb-2" />
+            <p className="text-sm text-theme-secondary font-medium">{description}</p>
+            <p className="text-xs text-theme-tertiary mt-1">Max 5 MB · JPG, PNG, or PDF</p>
           </>
         )}
       </div>
@@ -634,11 +634,11 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
   if (step === 4) {
     return (
       <div className="card p-8 text-center">
-        <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+        <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
           <CheckCircle2 className="h-8 w-8 text-emerald-500" />
         </div>
         <h2 className="section-title text-xl mb-2">KYC Submitted Successfully!</h2>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-theme-secondary mb-6">
           Your documents are being reviewed. This usually takes 24-48 hours.
           We'll notify you via email and SMS once approved.
         </p>
@@ -657,40 +657,40 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
       {/* Step 1: Personal Details */}
       {step === 1 && (
         <div className="space-y-5">
-          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
             Personal Details
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Full Name (as per PAN)</label>
-              <input {...register('fullName')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="Enter your full name" />
+              <label className="text-sm font-medium text-theme-primary mb-1 block">Full Name (as per PAN)</label>
+              <input {...register('fullName')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="Enter your full name" />
               {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">PAN Number</label>
-              <input {...register('panNumber')} className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="ABCDE1234F" maxLength={10} />
+              <label className="text-sm font-medium text-theme-primary mb-1 block">PAN Number</label>
+              <input {...register('panNumber')} className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="ABCDE1234F" maxLength={10} />
               {errors.panNumber && <p className="text-xs text-red-500 mt-1">{errors.panNumber.message}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Date of Birth</label>
-              <input type="date" {...register('dateOfBirth')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+              <label className="text-sm font-medium text-theme-primary mb-1 block">Date of Birth</label>
+              <input type="date" {...register('dateOfBirth')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
               {errors.dateOfBirth && <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Full Address</label>
-              <textarea {...register('address')} rows={2} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" placeholder="House no., Street, Area" />
+              <label className="text-sm font-medium text-theme-primary mb-1 block">Full Address</label>
+              <textarea {...register('address')} rows={2} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" placeholder="House no., Street, Area" />
               {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">City</label>
-                <input {...register('city')} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="City" />
+                <label className="text-sm font-medium text-theme-primary mb-1 block">City</label>
+                <input {...register('city')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="City" />
                 {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Pincode</label>
-                <input {...register('pincode')} className="w-full px-3 py-2.5 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="560001" maxLength={6} />
+                <label className="text-sm font-medium text-theme-primary mb-1 block">Pincode</label>
+                <input {...register('pincode')} className="w-full px-3 py-2.5 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="560001" maxLength={6} />
                 {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode.message}</p>}
               </div>
             </div>
@@ -705,7 +705,7 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
       {/* Step 2: Document Upload */}
       {step === 2 && (
         <div className="space-y-5">
-          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             Document Upload
           </h3>
@@ -713,9 +713,9 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
             <KycFileUpload label="PAN Card" description="Upload a clear photo of your PAN card" file={panFile} onFileChange={setPanFile} accept="image/*,.pdf" />
             <KycFileUpload label="Aadhaar Card" description="Upload front side of your Aadhaar card" file={aadhaarFile} onFileChange={setAadhaarFile} accept="image/*,.pdf" />
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-            <Lock className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-600">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700/40 rounded-lg p-3 flex items-start gap-2">
+            <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-theme-secondary">
               <strong>Your data is safe.</strong> All documents are encrypted end-to-end using AES-256
               encryption and stored in a secure vault.
             </p>
@@ -734,11 +734,11 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
       {/* Step 3: Selfie Verification */}
       {step === 3 && (
         <div className="space-y-5">
-          <h3 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary" />
             Selfie Verification
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-theme-secondary">
             Take a clear selfie to match with your PAN card photo. Ensure good lighting and your face is clearly visible.
           </p>
           <KycFileUpload label="Selfie Photo" description="Upload a clear selfie or take one with your camera" file={selfieFile} onFileChange={setSelfieFile} accept="image/*" />
@@ -767,11 +767,11 @@ function DocumentsTab() {
   return (
     <div className="card p-6">
       <h2 className="section-title text-lg mb-6">Uploaded Documents</h2>
-      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+      {isLoading && <p className="text-sm text-theme-tertiary">Loading…</p>}
       {!isLoading && (!docs || docs.length === 0) && (
         <div className="text-center py-8">
-          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">No documents uploaded yet.</p>
+          <FileText className="h-12 w-12 text-theme-tertiary mx-auto mb-3" />
+          <p className="text-sm text-theme-tertiary">No documents uploaded yet.</p>
         </div>
       )}
       {!isLoading && docs && docs.length > 0 && (
@@ -781,13 +781,13 @@ function DocumentsTab() {
             const isVerified = vs === 'approved' || vs === 'verified'
             const isPending = vs === 'pending'
             return (
-              <div key={doc.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
-                <div className="w-10 h-10 bg-stone-50 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-gray-400" />
+              <div key={doc.id} className="flex items-center gap-4 p-3 border border-theme rounded-lg">
+                <div className="w-10 h-10 bg-theme-surface rounded-lg flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-theme-tertiary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm capitalize">{doc.documentType.replace(/_/g, ' ')}</p>
-                  <p className="text-xs text-gray-400 truncate">
+                  <p className="font-medium text-theme-primary text-sm capitalize">{doc.documentType.replace(/_/g, ' ')}</p>
+                  <p className="text-xs text-theme-tertiary truncate">
                     {doc.originalFilename || 'Document'} · {doc.fileSizeBytes ? `${(doc.fileSizeBytes / 1024).toFixed(0)} KB` : ''} · Uploaded {new Date(doc.createdAt).toLocaleDateString()}
                   </p>
                   {doc.rejectionReason && (
@@ -803,7 +803,7 @@ function DocumentsTab() {
                       href={doc.downloadUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-gray-400 hover:text-primary transition"
+                      className="p-1.5 text-theme-tertiary hover:text-primary transition"
                       title="Download"
                     >
                       <Download className="h-4 w-4" />
@@ -812,7 +812,7 @@ function DocumentsTab() {
                   {!isVerified && (
                     <button
                       onClick={() => { if (confirm('Delete this document?')) deleteDoc.mutate(doc.id) }}
-                      className="p-1.5 text-gray-400 hover:text-red-500 transition"
+                      className="p-1.5 text-theme-tertiary hover:text-red-500 transition"
                       title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -851,15 +851,15 @@ function ReferralsTab() {
       <div className="card p-6">
         <h2 className="section-title text-lg mb-4 flex items-center gap-2"><Gift className="h-5 w-5 text-primary" /> Your Referral Code</h2>
         {statsLoading ? (
-          <p className="text-sm text-gray-400">Loading…</p>
+          <p className="text-sm text-theme-tertiary">Loading…</p>
         ) : (
           <>
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 font-mono text-2xl font-bold text-primary tracking-widest bg-primary/5 px-5 py-3 rounded-xl text-center">
                 {code}
               </div>
-              <button onClick={handleCopy} className="p-3 rounded-xl border border-gray-200 hover:bg-stone-50 transition-colors">
-                {copied ? <CheckCheck className="h-5 w-5 text-emerald-600" /> : <Copy className="h-5 w-5 text-gray-500" />}
+              <button onClick={handleCopy} className="p-3 rounded-xl border border-theme hover:bg-theme-surface transition-colors">
+                {copied ? <CheckCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-5 w-5 text-theme-secondary" />}
               </button>
             </div>
 
@@ -870,15 +870,15 @@ function ReferralsTab() {
                 { label: 'Successful', value: stats?.successfulReferrals ?? 0 },
                 { label: 'Rewards', value: `₹${((stats?.totalRewards ?? 0) / 100).toLocaleString()}` },
               ].map((m) => (
-                <div key={m.label} className="text-center bg-stone-50 rounded-xl py-3 px-2">
-                  <p className="font-bold text-gray-900 text-lg">{m.value}</p>
-                  <p className="text-xs text-gray-400">{m.label}</p>
+                <div key={m.label} className="text-center bg-theme-surface rounded-xl py-3 px-2">
+                  <p className="font-bold text-theme-primary text-lg">{m.value}</p>
+                  <p className="text-xs text-theme-tertiary">{m.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Share buttons */}
-            <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Share via</p>
+            <p className="text-xs text-theme-secondary mb-2 font-medium uppercase tracking-wide">Share via</p>
             <div className="flex flex-wrap gap-2">
               <a
                 href={`https://wa.me/?text=${shareText}`}
@@ -904,7 +904,7 @@ function ReferralsTab() {
               >
                 X / Twitter
               </a>
-              <button onClick={handleCopy} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition">
+              <button onClick={handleCopy} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-theme-surface-hover text-theme-primary text-sm font-semibold hover:bg-[var(--bg-surface-hover)] transition">
                 {copied ? 'Copied!' : 'Copy Link'}
               </button>
             </div>
@@ -915,27 +915,27 @@ function ReferralsTab() {
       {/* History */}
       <div className="card p-6">
         <h2 className="section-title text-lg mb-4">Referral History</h2>
-        {histLoading && <p className="text-sm text-gray-400">Loading…</p>}
+        {histLoading && <p className="text-sm text-theme-tertiary">Loading…</p>}
         {!histLoading && (!history || history.length === 0) && (
-          <p className="text-sm text-gray-400">No referrals yet. Share your code to get started!</p>
+          <p className="text-sm text-theme-tertiary">No referrals yet. Share your code to get started!</p>
         )}
         {!histLoading && history && history.length > 0 && (
           <div className="space-y-3">
             {history.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg">
+              <div key={item.id} className="flex items-center gap-4 p-3 border border-theme rounded-lg">
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
                   {(item.refereeName[0] ?? '?').toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm truncate">{item.refereeName}</p>
-                  <p className="text-xs text-gray-400 truncate">{item.refereeEmail}</p>
+                  <p className="font-medium text-theme-primary text-sm truncate">{item.refereeName}</p>
+                  <p className="text-xs text-theme-tertiary truncate">{item.refereeEmail}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', item.status === 'invested' ? 'text-emerald-700 bg-emerald-50' : 'text-blue-700 bg-blue-50')}>
+                  <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', item.status === 'invested' ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30' : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30')}>
                     {item.status === 'invested' ? 'Invested' : 'Signed Up'}
                   </span>
                   {item.rewardAmount > 0 && (
-                    <p className="text-xs text-gray-400 mt-0.5">+₹{(item.rewardAmount / 100).toLocaleString()}</p>
+                    <p className="text-xs text-theme-tertiary mt-0.5">+₹{(item.rewardAmount / 100).toLocaleString()}</p>
                   )}
                 </div>
               </div>

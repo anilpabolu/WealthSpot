@@ -55,35 +55,35 @@ function QuestionCard({ question }: { question: CommunityPostSummary }) {
   }
 
   return (
-    <article className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+    <article className="bg-[var(--bg-surface)] border border-theme rounded-xl p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-4">
         {/* Upvote column */}
         <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
-          <ThumbsUp className="h-4 w-4 text-gray-300" />
-          <span className="text-sm font-bold text-gray-500">{question.upvotes}</span>
+          <ThumbsUp className="h-4 w-4 text-theme-tertiary" />
+          <span className="text-sm font-bold text-theme-secondary">{question.upvotes}</span>
         </div>
 
         <div className="flex-1 min-w-0">
           {/* Badge */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
               <HelpCircle className="h-3 w-3" />
               Question
             </span>
-            <span className="text-[10px] text-gray-400 flex items-center gap-1">
+            <span className="text-[10px] text-theme-tertiary flex items-center gap-1">
               <MessageSquare className="h-3 w-3" />
               {question.replyCount} answers
             </span>
           </div>
 
-          <h3 className="font-semibold text-gray-900 leading-snug">{question.title}</h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{question.bodyPreview}</p>
+          <h3 className="font-semibold text-theme-primary leading-snug">{question.title}</h3>
+          <p className="text-sm text-theme-secondary mt-1 line-clamp-2">{question.bodyPreview}</p>
 
           {/* Tags */}
           {question.tags && question.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {question.tags.map((tag) => (
-                <span key={tag} className="text-[10px] font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                <span key={tag} className="text-[10px] font-medium bg-theme-surface-hover text-theme-secondary px-2 py-0.5 rounded-full">
                   #{tag}
                 </span>
               ))}
@@ -91,7 +91,7 @@ function QuestionCard({ question }: { question: CommunityPostSummary }) {
           )}
 
           {/* Author & time */}
-          <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+          <div className="flex items-center gap-4 mt-3 text-xs text-theme-tertiary">
             <span className="flex items-center gap-1">
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                 {question.author?.fullName?.charAt(0) ?? '?'}
@@ -106,12 +106,12 @@ function QuestionCard({ question }: { question: CommunityPostSummary }) {
 
           {/* Answer form */}
           {submitted ? (
-            <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-              <div className="flex items-center gap-2 text-sm text-emerald-700">
+            <div className="mt-4 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100">
+              <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="font-medium">Answer submitted for review!</span>
               </div>
-              <p className="text-xs text-emerald-600 mt-1">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                 Your answer will be visible once approved by an admin.
               </p>
             </div>
@@ -122,7 +122,7 @@ function QuestionCard({ question }: { question: CommunityPostSummary }) {
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Write your answer to this question..."
                 rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
+                className="w-full border border-theme rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
               />
               <div className="flex justify-end mt-2">
                 <button
@@ -200,7 +200,7 @@ export default function AnswerQuestionsPage() {
             )}
 
             {data && data.totalPages > 1 && (
-              <p className="text-center text-xs text-gray-400 mt-6">
+              <p className="text-center text-xs text-theme-tertiary mt-6">
                 Showing page 1 of {data.totalPages} &middot; {data.total} questions
               </p>
             )}

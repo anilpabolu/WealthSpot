@@ -210,6 +210,18 @@ async def review_approval(
                 if post:
                     post.reply_count += 1
 
+        # Sync builder approval — activate builder persona
+        if approval.resource_type == "builder_approval" and approval.resource_id:
+            from app.models.user import User as UserModel
+            builder_result = await db.execute(
+                select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
+            )
+            builder_user = builder_result.scalar_one_or_none()
+            if builder_user:
+                builder_user.builder_approved = True
+                builder_user.builder_approved_at = now
+                builder_user.builder_approved_by = reviewer.id
+
         await create_notification(
             db,
             user_id=approval.requester_id,

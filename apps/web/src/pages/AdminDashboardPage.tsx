@@ -83,15 +83,15 @@ export default function AdminDashboardPage() {
                 to={alert.action}
                 className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${
                   alert.type === 'warning'
-                    ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
-                    : 'bg-blue-50 border-blue-200 hover:border-blue-300'
+                    ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700/40 hover:border-amber-300'
+                    : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700/40 hover:border-blue-300'
                 }`}
               >
                 <AlertTriangle className={`h-5 w-5 shrink-0 mt-0.5 ${
                   alert.type === 'warning' ? 'text-warning' : 'text-info'
                 }`} />
-                <span className="text-sm text-gray-700 flex-1">{alert.text}</span>
-                <ArrowRight className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-sm text-theme-primary flex-1">{alert.text}</span>
+                <ArrowRight className="h-4 w-4 text-theme-tertiary shrink-0" />
               </Link>
             ))}
           </div>
@@ -100,34 +100,34 @@ export default function AdminDashboardPage() {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Quick Actions */}
           <div className="card p-6">
-            <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-3">
-              <Link to="/portal/admin/kyc" className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors">
+              <Link to="/portal/admin/kyc" className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/30 rounded-xl hover:bg-amber-100 transition-colors">
                 <FileCheck className="h-6 w-6 text-warning" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">KYC Queue</p>
-                  <p className="text-xs text-gray-500">{MOCK_ADMIN.pendingKyc} pending</p>
+                  <p className="text-sm font-semibold text-theme-primary">KYC Queue</p>
+                  <p className="text-xs text-theme-secondary">{MOCK_ADMIN.pendingKyc} pending</p>
                 </div>
               </Link>
               <Link to="/portal/admin/properties" className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors">
                 <Building2 className="h-6 w-6 text-primary" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Properties</p>
-                  <p className="text-xs text-gray-500">{MOCK_ADMIN.pendingApprovals} to approve</p>
+                  <p className="text-sm font-semibold text-theme-primary">Properties</p>
+                  <p className="text-xs text-theme-secondary">{MOCK_ADMIN.pendingApprovals} to approve</p>
                 </div>
               </Link>
-              <Link to="/portal/admin/users" className="flex items-center gap-3 p-4 bg-stone-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <Users className="h-6 w-6 text-gray-500" />
+              <Link to="/portal/admin/users" className="flex items-center gap-3 p-4 bg-theme-surface rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
+                <Users className="h-6 w-6 text-theme-secondary" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">User Mgmt</p>
-                  <p className="text-xs text-gray-500">{MOCK_ADMIN.totalUsers} users</p>
+                  <p className="text-sm font-semibold text-theme-primary">User Mgmt</p>
+                  <p className="text-xs text-theme-secondary">{MOCK_ADMIN.totalUsers} users</p>
                 </div>
               </Link>
-              <Link to="/portal/admin/analytics" className="flex items-center gap-3 p-4 bg-stone-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <TrendingUp className="h-6 w-6 text-gray-500" />
+              <Link to="/portal/admin/analytics" className="flex items-center gap-3 p-4 bg-theme-surface rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
+                <TrendingUp className="h-6 w-6 text-theme-secondary" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Analytics</p>
-                  <p className="text-xs text-gray-500">Revenue: {formatINRCompact(MOCK_ADMIN.revenue)}</p>
+                  <p className="text-sm font-semibold text-theme-primary">Analytics</p>
+                  <p className="text-xs text-theme-secondary">Revenue: {formatINRCompact(MOCK_ADMIN.revenue)}</p>
                 </div>
               </Link>
             </div>
@@ -143,11 +143,11 @@ export default function AdminDashboardPage() {
             </div>
             <div className="space-y-3">
               {MOCK_RECENT.map((activity, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 bg-stone-50 rounded-2xl">
+                <div key={i} className="flex items-start gap-3 p-3 bg-theme-surface rounded-2xl">
                   <div className="h-2 w-2 bg-primary rounded-full mt-1.5 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700">{activity.text}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                    <p className="text-sm text-theme-primary">{activity.text}</p>
+                    <p className="text-xs text-theme-tertiary mt-0.5 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {activity.time}
                     </p>
@@ -162,21 +162,21 @@ export default function AdminDashboardPage() {
         <div className="card p-6">
           <h2 className="section-title text-lg mb-4">Revenue Overview</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-stone-50 rounded-2xl">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Platform Fees</p>
-              <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(4500000)}</p>
+            <div className="p-4 bg-theme-surface rounded-2xl">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">Platform Fees</p>
+              <p className="font-mono text-lg font-bold text-theme-primary mt-1">{formatINRCompact(4500000)}</p>
             </div>
-            <div className="p-4 bg-stone-50 rounded-2xl">
-              <p className="text-xs text-gray-500 uppercase font-semibold">WealthPass</p>
-              <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(890000)}</p>
+            <div className="p-4 bg-theme-surface rounded-2xl">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">WealthPass</p>
+              <p className="font-mono text-lg font-bold text-theme-primary mt-1">{formatINRCompact(890000)}</p>
             </div>
-            <div className="p-4 bg-stone-50 rounded-2xl">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Builder Fees</p>
-              <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(650000)}</p>
+            <div className="p-4 bg-theme-surface rounded-2xl">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">Builder Fees</p>
+              <p className="font-mono text-lg font-bold text-theme-primary mt-1">{formatINRCompact(650000)}</p>
             </div>
-            <div className="p-4 bg-stone-50 rounded-2xl">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Other</p>
-              <p className="font-mono text-lg font-bold text-gray-900 mt-1">{formatINRCompact(260000)}</p>
+            <div className="p-4 bg-theme-surface rounded-2xl">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">Other</p>
+              <p className="font-mono text-lg font-bold text-theme-primary mt-1">{formatINRCompact(260000)}</p>
             </div>
           </div>
         </div>

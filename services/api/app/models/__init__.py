@@ -34,6 +34,8 @@ from app.models.opportunity_like import OpportunityLike, UserActivity  # noqa: F
 from app.models.property_referral import PropertyReferralCode  # noqa: F401
 from app.models.app_video import AppVideo  # noqa: F401
 from app.models.eoi_stage_history import EoiStageHistory  # noqa: F401
+from app.models.vault_feature_flag import VaultFeatureFlag  # noqa: F401
+from app.models.admin_invite import AdminInvite  # noqa: F401
 from app.models.profiling import (  # noqa: F401
     VaultProfileQuestion, UserProfileAnswer,
     OpportunityCustomQuestion, OpportunityApplicationAnswer,

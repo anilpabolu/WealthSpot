@@ -93,46 +93,46 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
       <div className="modal-panel max-w-lg relative">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
-          <h2 className="font-display text-lg font-bold text-gray-900">
+        <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+          <h2 className="font-display text-lg font-bold text-theme-primary">
             {step === 'form' ? 'Express Your Interest' : 'Thank You!'}
           </h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100" aria-label="Close">
-            <X className="h-5 w-5 text-gray-400" />
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--bg-surface-hover)]" aria-label="Close">
+            <X className="h-5 w-5 text-theme-tertiary" />
           </button>
         </div>
 
         {step === 'form' && (
           <div className="p-6 space-y-5">
-            <p className="text-sm text-gray-500">
-              Interested in <span className="font-semibold text-gray-800">{opportunityTitle}</span>? Fill in the details below to express your interest. Your contact details will not be shared.
+            <p className="text-sm text-theme-secondary">
+              Interested in <span className="font-semibold text-theme-primary">{opportunityTitle}</span>? Fill in the details below to express your interest. Your contact details will not be shared.
             </p>
 
             {/* Investment Amount */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Investment Amount (₹)</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount (₹)</label>
               <input
                 type="number"
                 value={investmentAmount}
                 onChange={(e) => setInvestmentAmount(Math.max(0, Number(e.target.value)))}
                 min={0}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary font-mono"
+                className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary font-mono"
                 placeholder="Enter amount"
               />
             </div>
 
             {/* Timeline */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Investment Timeline</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Timeline</label>
               <Select value={timeline} onChange={setTimeline} placeholder="Select timeline" options={TIMELINE_OPTIONS} />
             </div>
 
             {/* Funding Source */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Funding Source</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Funding Source</label>
               <div className="flex flex-wrap gap-2">
                 {FUNDING_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setFundingSource(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${fundingSource === o.value ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  <button key={o.value} onClick={() => setFundingSource(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${fundingSource === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}
@@ -141,10 +141,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
             {/* Purpose */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Purpose</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Purpose</label>
               <div className="flex flex-wrap gap-2">
                 {PURPOSE_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPurpose(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${purpose === o.value ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  <button key={o.value} onClick={() => setPurpose(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${purpose === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}
@@ -153,10 +153,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
             {/* Preferred Contact */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Preferred Contact Method</label>
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Preferred Contact Method</label>
               <div className="flex flex-wrap gap-2">
                 {CONTACT_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPreferredContact(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${preferredContact === o.value ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  <button key={o.value} onClick={() => setPreferredContact(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${preferredContact === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}
@@ -165,18 +165,18 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
             {/* Best time */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Best Time to Contact</label>
-              <input type="text" value={bestTime} onChange={(e) => setBestTime(e.target.value)} placeholder="e.g. Weekdays 10am-6pm" className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Best Time to Contact</label>
+              <input type="text" value={bestTime} onChange={(e) => setBestTime(e.target.value)} placeholder="e.g. Weekdays 10am-6pm" className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
             </div>
 
             {/* Builder custom questions */}
             {builderQuestions.length > 0 && (
               <div className="border-t pt-5">
-                <p className="text-xs font-semibold text-gray-600 uppercase mb-3">Additional Questions from Builder</p>
+                <p className="text-xs font-semibold text-theme-secondary uppercase mb-3">Additional Questions from Builder</p>
                 <div className="space-y-4">
                   {builderQuestions.map((q: BuilderQuestion) => (
                     <div key={q.id}>
-                      <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      <label className="text-sm font-medium text-theme-primary mb-1 block">
                         {q.questionText} {q.isRequired && <span className="text-red-500">*</span>}
                       </label>
                       {q.questionType === 'select' && q.options?.choices ? (
@@ -189,7 +189,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                       ) : q.questionType === 'boolean' ? (
                         <div className="flex gap-4">
                           {['Yes', 'No'].map(v => (
-                            <button key={v} onClick={() => setCustomAnswers(prev => ({ ...prev, [q.id]: v }))} className={`px-4 py-2 rounded-lg text-sm font-medium ${customAnswers[q.id] === v ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{v}</button>
+                            <button key={v} onClick={() => setCustomAnswers(prev => ({ ...prev, [q.id]: v }))} className={`px-4 py-2 rounded-lg text-sm font-medium ${customAnswers[q.id] === v ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>{v}</button>
                           ))}
                         </div>
                       ) : (
@@ -197,7 +197,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                           type={q.questionType === 'number' ? 'number' : 'text'}
                           value={customAnswers[q.id] ?? ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                          className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                           placeholder="Your answer..."
                         />
                       )}
@@ -209,8 +209,8 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
             {/* Additional Notes */}
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Additional Notes</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Any questions or comments..." className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" />
+              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Additional Notes</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Any questions or comments..." className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" />
             </div>
 
             {/* Consent */}
@@ -227,7 +227,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             </button>
 
             {submitEOI.isError && (
-              <p className="text-sm text-red-600 text-center">Something went wrong. Please try again.</p>
+              <p className="text-sm text-red-600 dark:text-red-400 text-center">Something went wrong. Please try again.</p>
             )}
           </div>
         )}
@@ -238,8 +238,8 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h3 className="font-display text-xl font-bold text-gray-900 mb-2">Interest Submitted!</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-display text-xl font-bold text-theme-primary mb-2">Interest Submitted!</h3>
+              <p className="text-sm text-theme-secondary">
                 Thank you for expressing interest in <span className="font-semibold">{opportunityTitle}</span>.
                 The builder will be notified and may reach out to you through the platform.
               </p>

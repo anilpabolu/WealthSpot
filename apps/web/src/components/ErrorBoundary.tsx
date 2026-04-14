@@ -43,16 +43,16 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-theme-surface px-4">
           <div className="text-center max-w-md">
-            <div className="mx-auto mb-6 h-20 w-20 rounded-2xl bg-red-50 flex items-center justify-center">
+            <div className="mx-auto mb-6 h-20 w-20 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
               <span className="text-4xl">⚠️</span>
             </div>
 
-            <h1 className="text-gray-900 font-display font-bold text-2xl mb-2">
+            <h1 className="text-theme-primary font-display font-bold text-2xl mb-2">
               Something went wrong
             </h1>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-theme-secondary text-sm mb-6">
               An unexpected error occurred. Our team has been notified. 
               Please try refreshing the page.
             </p>
@@ -75,7 +75,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleGoHome}
-                className="flex items-center gap-2 bg-white text-gray-700 px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                className="flex items-center gap-2 bg-[var(--bg-surface)] text-theme-primary px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-theme-surface transition-colors border border-theme"
               >
                 <Home className="h-4 w-4" />
                 Go Home

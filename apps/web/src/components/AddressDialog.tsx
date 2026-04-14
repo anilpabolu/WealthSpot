@@ -66,7 +66,7 @@ export default function AddressDialog({ value, onChange }: Props) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-theme-primary mb-1">
         Property Address
       </label>
 
@@ -79,21 +79,21 @@ export default function AddressDialog({ value, onChange }: Props) {
         }}
         className={`
           w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed text-left transition-all
-          ${hasAddress ? 'border-primary/30 bg-primary/5' : 'border-gray-300 hover:border-gray-400'}
+          ${hasAddress ? 'border-primary/30 bg-primary/5' : 'border-theme hover:border-gray-400'}
         `}
       >
-        <MapPin className={`h-5 w-5 shrink-0 ${hasAddress ? 'text-primary' : 'text-gray-400'}`} />
+        <MapPin className={`h-5 w-5 shrink-0 ${hasAddress ? 'text-primary' : 'text-theme-tertiary'}`} />
         {hasAddress ? (
           <div className="text-sm">
-            <p className="text-gray-900 font-medium">
+            <p className="text-theme-primary font-medium">
               {[value.addressLine1, value.locality, value.city].filter(Boolean).join(', ')}
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-theme-secondary text-xs">
               {[value.district, value.state, value.pincode].filter(Boolean).join(' · ')}
             </p>
           </div>
         ) : (
-          <span className="text-sm text-gray-500">Add complete address with pincode auto-fill</span>
+          <span className="text-sm text-theme-secondary">Add complete address with pincode auto-fill</span>
         )}
       </button>
 
@@ -101,23 +101,23 @@ export default function AddressDialog({ value, onChange }: Props) {
       {open && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50" onClick={() => setOpen(false)}>
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto"
+            className="bg-[var(--bg-surface)] rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b px-5 py-3 flex items-center justify-between rounded-t-2xl">
-              <h3 className="font-display font-bold text-gray-900">📍 Property Address</h3>
-              <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-700 text-lg">✕</button>
+            <div className="sticky top-0 bg-[var(--bg-surface)] border-b px-5 py-3 flex items-center justify-between rounded-t-2xl">
+              <h3 className="font-display font-bold text-theme-primary">📍 Property Address</h3>
+              <button type="button" onClick={() => setOpen(false)} className="text-theme-tertiary hover:text-theme-primary text-lg">✕</button>
             </div>
 
             <div className="p-5 space-y-4">
               {/* Pincode — hero input */}
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                <label className="block text-sm font-medium text-theme-primary mb-1">Pincode *</label>
                 <div className="relative">
                   <input
                     value={local.pincode}
                     onChange={(e) => handleField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10"
+                    className="w-full rounded-lg border border-theme px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10"
                     placeholder="Enter 6-digit pincode"
                     maxLength={6}
                     inputMode="numeric"
@@ -127,51 +127,51 @@ export default function AddressDialog({ value, onChange }: Props) {
                   )}
                 </div>
                 {pincodeResults && pincodeResults.length > 0 && pincodeResults[0] && (
-                  <p className="text-xs text-emerald-600 mt-1">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                     ✓ {pincodeResults[0].officeName} — {pincodeResults[0].district}, {pincodeResults[0].state}
                   </p>
                 )}
                 {local.pincode.length === 6 && pincodeResults && pincodeResults.length === 0 && !isFetching && (
-                  <p className="text-xs text-amber-600 mt-1">⚠ Not found — enter details manually</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠ Not found — enter details manually</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                <label className="block text-sm font-medium text-theme-primary mb-1">Address Line 1 *</label>
                 <input
                   value={local.addressLine1}
                   onChange={(e) => handleField('addressLine1', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   placeholder="Plot/Survey no., Building name, Street"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                <label className="block text-sm font-medium text-theme-primary mb-1">Address Line 2</label>
                 <input
                   value={local.addressLine2}
                   onChange={(e) => handleField('addressLine2', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   placeholder="Floor, Wing, Sector"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">Landmark</label>
                   <input
                     value={local.landmark}
                     onChange={(e) => handleField('landmark', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     placeholder="Near ..."
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Locality / Area</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">Locality / Area</label>
                   <input
                     value={local.locality}
                     onChange={(e) => handleField('locality', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     placeholder="e.g. Whitefield"
                   />
                 </div>
@@ -179,7 +179,7 @@ export default function AddressDialog({ value, onChange }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
                   <Select
                     value={local.city}
                     onChange={(v) => handleField('city', v)}
@@ -192,11 +192,11 @@ export default function AddressDialog({ value, onChange }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">District</label>
                   <input
                     value={local.district}
                     onChange={(e) => handleField('district', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     placeholder="Auto-filled from pincode"
                   />
                 </div>
@@ -204,20 +204,20 @@ export default function AddressDialog({ value, onChange }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">State</label>
                   <input
                     value={local.state}
                     onChange={(e) => handleField('state', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     placeholder="Auto-filled from pincode"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">Country</label>
                   <input
                     value={local.country}
                     readOnly
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500"
+                    className="w-full rounded-lg border border-theme bg-theme-surface px-3 py-2 text-sm text-theme-secondary"
                   />
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function AddressDialog({ value, onChange }: Props) {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  className="px-4 py-2 text-sm text-theme-secondary hover:text-theme-primary"
                 >
                   Cancel
                 </button>

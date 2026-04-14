@@ -15,6 +15,10 @@ interface MeResponse {
   fullName: string
   phone: string
   role: UserRole
+  roles: string[]
+  primaryRole: string
+  builderApproved: boolean
+  personaSelectedAt: string | null
   kycStatus: string
   avatarUrl: string | null
   referralCode: string | null
@@ -45,6 +49,10 @@ export function useAuth() {
         name: user.fullName ?? '',
         phone: user.phone ?? '',
         role: user.role,
+        roles: user.roles ?? [user.role],
+        primaryRole: user.primaryRole ?? user.role,
+        builderApproved: user.builderApproved ?? false,
+        personaSelectedAt: user.personaSelectedAt ?? null,
         kycStatus: user.kycStatus,
         avatarUrl: user.avatarUrl ?? undefined,
         referralCode: user.referralCode ?? '',

@@ -11,6 +11,7 @@ import { formatINR } from '@/lib/formatters'
 import { Badge } from '@/components/ui'
 import { useProperty } from '@/hooks/useProperties'
 import { useLikeStatus, useToggleLike, useTrackShare } from '@/hooks/useOpportunityActions'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 const { width } = Dimensions.get('window')
 
@@ -20,6 +21,7 @@ export default function PropertyDetailScreen() {
   const [activeImage, setActiveImage] = useState(0)
   const [showCompanySheet, setShowCompanySheet] = useState(false)
   const [showVideoModal, setShowVideoModal] = useState(false)
+  const { propertyVideosEnabled } = useVaultConfig()
 
   // Like / Share
   const { data: likeData } = useLikeStatus(property?.id ?? '')
@@ -89,7 +91,7 @@ export default function PropertyDetailScreen() {
         </View>
 
         {/* Watch Video button */}
-        {property.videoUrl ? (
+        {propertyVideosEnabled && property.videoUrl ? (
           <View className="px-4 mt-2">
             <Pressable
               onPress={() => setShowVideoModal(true)}
@@ -262,6 +264,7 @@ export default function PropertyDetailScreen() {
       </View>
 
       {/* Video Player Modal */}
+      {propertyVideosEnabled && (
       <Modal
         visible={showVideoModal}
         animationType="fade"
@@ -289,6 +292,7 @@ export default function PropertyDetailScreen() {
           </View>
         </View>
       </Modal>
+      )}
 
       {/* Company Info Bottom Sheet */}
       <Modal

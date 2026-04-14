@@ -151,3 +151,32 @@ export enum CommunitySubtype {
   CO_INVESTOR = "co_investor",
   CO_PARTNER = "co_partner",
 }
+
+/** Persona types visible at signup */
+export enum PersonaType {
+  INVESTOR = "investor",
+  BUILDER = "builder",
+  ADMIN = "admin",
+  SUPER_ADMIN = "super_admin",
+}
+
+/** Feature keys for vault-feature matrix */
+export enum FeatureKey {
+  VIEW_OPPORTUNITIES = "view_opportunities",
+  EXPRESS_INTEREST = "express_interest",
+  INVEST = "invest",
+  CREATE_OPPORTUNITIES = "create_opportunities",
+  COMMUNITY_POSTS = "community_posts",
+  PROFILING = "profiling",
+  REFERRALS = "referrals",
+  ANALYTICS = "analytics",
+  KYC_VERIFICATION = "kyc_verification",
+  BUILDER_QUESTIONS = "builder_questions",
+}
+
+/** Admin invite statuses */
+export enum InviteStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  EXPIRED = "expired",
+}

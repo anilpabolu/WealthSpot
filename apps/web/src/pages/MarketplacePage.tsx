@@ -6,6 +6,7 @@ import { useProperties, usePropertyAutocomplete, type Property, type SearchSugge
 import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -45,7 +46,7 @@ function FilterSidebar() {
     <div className="space-y-6">
       {/* City */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">City</label>
+        <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">City</label>
         <Select
           value={filters.city}
           onChange={(v) => setFilter('city', v)}
@@ -58,7 +59,7 @@ function FilterSidebar() {
 
       {/* Asset Type */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Asset Type</label>
+        <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Asset Type</label>
         <Select
           value={filters.assetType}
           onChange={(v) => setFilter('assetType', v)}
@@ -71,7 +72,7 @@ function FilterSidebar() {
 
       {/* Status */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Status</label>
+        <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Status</label>
         <div className="flex flex-wrap gap-2">
           {(['', 'upcoming', 'funding', 'funded'] as const).map((s) => (
             <button
@@ -80,7 +81,7 @@ function FilterSidebar() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 filters.status === s
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
               {s === '' ? 'All' : s === 'upcoming' ? 'Upcoming' : s === 'funding' ? 'Funding' : 'Fully Funded'}
@@ -91,7 +92,7 @@ function FilterSidebar() {
 
       {/* Sort */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Sort By</label>
+        <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Sort By</label>
         <Select
           value={filters.sortBy}
           onChange={(v) => setFilter('sortBy', v as typeof filters.sortBy)}
@@ -118,7 +119,7 @@ function FilterSidebar() {
       {/* Desktop sidebar */}
       <aside className="hidden lg:block w-64 shrink-0">
         <div className="card p-5 sticky top-20">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="font-semibold text-theme-primary mb-4 flex items-center gap-2">
             <SlidersHorizontal className="h-4 w-4" />
             Filters
           </h3>
@@ -139,13 +140,13 @@ function FilterSidebar() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-white p-6 overflow-y-auto">
+          <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-[var(--bg-surface)] p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <h3 className="font-semibold text-theme-primary flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />
                 Filters
               </h3>
-              <button onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-gray-100">
+              <button onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-[var(--bg-surface-hover)]">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -238,7 +239,7 @@ function SearchBar() {
 
   return (
     <div ref={wrapperRef} className="relative mb-6">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-theme-tertiary z-10" />
       <input
         type="search"
         value={inputValue}
@@ -252,12 +253,12 @@ function SearchBar() {
           if (e.key === 'Escape') setShowDropdown(false)
         }}
         placeholder="Search by property name, city, area, builder, or referrer..."
-        className="w-full pl-11 pr-10 py-3 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+        className="w-full pl-11 pr-10 py-3 text-sm bg-[var(--bg-surface)] border border-theme rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
       />
       {inputValue && (
         <button
           onClick={() => { setInputValue(''); handleSearch(''); setDebouncedQuery('') }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-tertiary hover:text-theme-secondary"
           aria-label="Clear search"
         >
           <X className="h-4 w-4" />
@@ -266,18 +267,18 @@ function SearchBar() {
 
       {/* Autocomplete dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-theme rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
           {suggestions.map((s, i) => {
             const Icon = SUGGESTION_ICONS[s.type]
             return (
               <button
                 key={`${s.type}-${s.text}-${i}`}
                 onClick={() => handleSuggestionClick(s)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-stone-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-theme-surface transition-colors first:rounded-t-xl last:rounded-b-xl"
               >
-                <Icon className="h-4 w-4 text-gray-400 shrink-0" />
-                <span className="text-sm text-gray-900 flex-1 truncate">{s.text}</span>
-                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold shrink-0">
+                <Icon className="h-4 w-4 text-theme-tertiary shrink-0" />
+                <span className="text-sm text-theme-primary flex-1 truncate">{s.text}</span>
+                <span className="text-[10px] uppercase tracking-wider text-theme-tertiary font-semibold shrink-0">
                   {SUGGESTION_LABELS[s.type]}
                 </span>
               </button>
@@ -299,13 +300,13 @@ const VAULT_META: Record<string, { label: string; description: string; color: st
   opportunity: {
     label: 'Opportunity Vault',
     description: 'High-potential startup investments from vetted founders across industries.',
-    color: 'bg-violet-50 border-violet-200 text-violet-700',
+    color: 'bg-violet-50 dark:bg-violet-900/30 border-violet-200 dark:border-violet-700/40 text-violet-700 dark:text-violet-300',
     Icon: Rocket,
   },
   community: {
     label: 'Community Vault',
     description: 'Community-driven opportunities — sports complexes, co-working spaces, and local businesses.',
-    color: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    color: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300',
     Icon: Users,
   },
 }
@@ -319,6 +320,13 @@ export default function MarketplacePage() {
   const userRole = useUserStore((s) => s.user?.role)
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const [toast, setToast] = useState<string | null>(null)
+
+  // CMS content
+  const heroBadge = useContent('marketplace', 'hero_badge', 'Marketplace')
+  const heroTitle = useContent('marketplace', 'hero_title', 'Property Marketplace')
+  const heroSubtitle = useContent('marketplace', 'hero_subtitle', "Discover RERA-verified investment opportunities across India's top cities.")
+  const emptyTitle = useContent('marketplace', 'empty_title', 'Nothing here yet \u{1F3D7}\uFE0F')
+  const emptyMessage = useContent('marketplace', 'empty_message', 'Tweak those filters — your next opportunity could be one click away.')
 
   useEffect(() => {
     if (!toast) return
@@ -380,9 +388,9 @@ export default function MarketplacePage() {
       {/* Hero */}
       <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">Marketplace</span>
-          <h1 className="page-hero-title">Property Marketplace</h1>
-          <p className="page-hero-subtitle">Discover RERA-verified investment opportunities across India's top cities.</p>
+          <span className="page-hero-badge">{heroBadge}</span>
+          <h1 className="page-hero-title">{heroTitle}</h1>
+          <p className="page-hero-subtitle">{heroSubtitle}</p>
         </div>
       </div>
 
@@ -414,7 +422,7 @@ export default function MarketplacePage() {
         {/* Community subtype filter chips */}
         {vaultParam === 'community' && (
           <div className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-1">Type:</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-theme-tertiary mr-1">Type:</span>
             {([['', 'All'], ['co_investor', 'Co-Investor'], ['co_partner', 'Co-Partner']] as const).map(([val, label]) => (
               <button
                 key={val}
@@ -422,7 +430,7 @@ export default function MarketplacePage() {
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                   communityFilter === val
                     ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 {label}
@@ -440,14 +448,14 @@ export default function MarketplacePage() {
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-theme-secondary">
                 {isLoading ? 'Loading...' : `${totalItems} ${totalItems === 1 ? 'property' : 'properties'} found`}
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-gray-100'
+                    viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-theme-tertiary hover:bg-[var(--bg-surface-hover)]'
                   }`}
                   aria-label="Grid view"
                 >
@@ -456,7 +464,7 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'list' ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-gray-100'
+                    viewMode === 'list' ? 'bg-primary/10 text-primary' : 'text-theme-tertiary hover:bg-[var(--bg-surface-hover)]'
                   }`}
                   aria-label="List view"
                 >
@@ -487,13 +495,13 @@ export default function MarketplacePage() {
                         <div
                           key={`opp-${opp.id}`}
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
-                          className="rounded-xl border border-gray-200/60 bg-white/80 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-gray-300/60 transition-all cursor-pointer group"
+                          className="rounded-xl border border-theme/60 bg-[var(--bg-card)] backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-theme/60 transition-all cursor-pointer group"
                         >
-                          <div className="aspect-video relative overflow-hidden bg-gray-100">
+                          <div className="aspect-video relative overflow-hidden bg-theme-surface-hover">
                             {coverUrl ? (
                               <img src={coverUrl} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <div className="w-full h-full flex items-center justify-center text-theme-tertiary">
                                 <Building2 className="h-10 w-10" />
                               </div>
                             )}
@@ -507,9 +515,9 @@ export default function MarketplacePage() {
                             </span>
                           </div>
                           <div className="p-4 space-y-2">
-                            <h4 className="font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">{opp.title}</h4>
+                            <h4 className="font-semibold text-theme-primary truncate group-hover:text-primary transition-colors">{opp.title}</h4>
                             {opp.city && (
-                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                              <p className="text-xs text-theme-secondary flex items-center gap-1">
                                 <MapPin className="h-3.5 w-3.5" /> {opp.city}{opp.state ? `, ${opp.state}` : ''}
                               </p>
                             )}
@@ -521,11 +529,11 @@ export default function MarketplacePage() {
                                 <span className="font-mono font-semibold text-primary">{opp.targetIrr}% IRR</span>
                               )}
                               {opp.minInvestment != null && (
-                                <span className="font-mono text-gray-600">{formatINR(opp.minInvestment)} min</span>
+                                <span className="font-mono text-theme-secondary">{formatINR(opp.minInvestment)} min</span>
                               )}
                             </div>
                             {opp.company && (
-                              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                              <div className="pt-2 border-t border-theme flex items-center justify-between text-xs text-theme-secondary">
                                 <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {opp.company.companyName}</span>
                                 <span className="inline-flex items-center gap-1 text-primary font-medium">
                                   <HandCoins className="h-3.5 w-3.5" /> Explore
@@ -568,9 +576,9 @@ export default function MarketplacePage() {
             {/* Empty state */}
             {!isLoading && properties.length === 0 && opportunities.length === 0 && (
               <div className="text-center py-20">
-                <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-1">Nothing here yet 🏗️</h3>
-                <p className="text-sm text-gray-500">Tweak those filters — your next opportunity could be one click away.</p>
+                <Search className="h-12 w-12 text-theme-tertiary mx-auto mb-4" />
+                <h3 className="font-semibold text-theme-primary mb-1">{emptyTitle}</h3>
+                <p className="text-sm text-theme-secondary">{emptyMessage}</p>
               </div>
             )}
 
@@ -580,7 +588,7 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => setPage(filters.page - 1)}
                   disabled={filters.page <= 1}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm rounded-lg border border-theme hover:bg-theme-surface disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -593,7 +601,7 @@ export default function MarketplacePage() {
                       className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                         filters.page === page
                           ? 'bg-primary text-white'
-                          : 'border border-gray-200 hover:bg-stone-50'
+                          : 'border border-theme hover:bg-theme-surface'
                       }`}
                     >
                       {page}
@@ -603,7 +611,7 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => setPage(filters.page + 1)}
                   disabled={filters.page >= totalPages}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm rounded-lg border border-theme hover:bg-theme-surface disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -616,7 +624,7 @@ export default function MarketplacePage() {
 
       {/* Error toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 shadow-lg text-sm text-red-700 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700/40 shadow-lg text-sm text-red-700 dark:text-red-300 animate-fade-in">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {toast}
           <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-red-100 rounded">

@@ -104,12 +104,14 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('ws_refresh_token')
 
         if (!refreshToken) {
-          // No refresh token — log diagnostic, clear stale session
+          // No refresh token — log diagnostic but do NOT logout.
+          // Let useBackendSync handle re-authentication naturally;
+          // calling logout() here causes a destructive race condition
+          // that clears tokens mid-sync and breaks subsequent requests.
           if (reqId && _activeTraces.has(reqId)) {
             _activeTraces.get(reqId)!.done(401, false, '"No refresh token available"')
             _activeTraces.delete(reqId)
           }
-          useUserStore.getState().logout()
           return Promise.reject(error)
         }
 

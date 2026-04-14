@@ -37,8 +37,8 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
 
   if (!images.length) {
     return (
-      <div className="aspect-video bg-gray-100 rounded-xl flex items-center justify-center">
-        <Building2 className="h-16 w-16 text-gray-300" />
+      <div className="aspect-video bg-theme-surface-hover rounded-xl flex items-center justify-center">
+        <Building2 className="h-16 w-16 text-theme-tertiary" />
       </div>
     )
   }
@@ -62,20 +62,20 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
           src={images[activeIdx]}
           alt={`${title} - Image ${activeIdx + 1}`}
           className="w-full h-full object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-gray-100'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-gray-100'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }}
+          onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-theme-surface-hover'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }}
         />
         {images.length > 1 && (
           <>
             <button
               onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
@@ -87,7 +87,7 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
                   key={i}
                   onClick={() => { setActiveIdx(i); startAutoPlay() }}
                   className={`h-2 rounded-full transition-all ${
-                    i === activeIdx ? 'w-5 bg-white' : 'w-2 bg-white/60'
+                    i === activeIdx ? 'w-5 bg-[var(--bg-surface)]' : 'w-2 bg-[var(--bg-card)]'
                   }`}
                   aria-label={`Go to image ${i + 1}`}
                 />
@@ -122,7 +122,7 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
                 i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'
               }`}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-gray-200'); }} />
+              <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-[var(--bg-surface-hover)]'); }} />
             </button>
           ))}
         </div>
@@ -168,7 +168,7 @@ function InvestmentPanel({
       <div className="flex items-center justify-between mb-4">
         <StatusBadge status={status as StatusType} />
         {daysLeft > 0 && (
-          <span className="text-xs text-gray-500 flex items-center gap-1">
+          <span className="text-xs text-theme-secondary flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
             {daysLeft} days left
           </span>
@@ -177,38 +177,38 @@ function InvestmentPanel({
 
       <FundingBar raised={raised} target={target} showLabels showPercent showAmount />
 
-      <div className="mt-3 mb-4 text-xs text-gray-500 flex items-center gap-1">
+      <div className="mt-3 mb-4 text-xs text-theme-secondary flex items-center gap-1">
         <Users className="h-3.5 w-3.5" />
         {investorCount} investors
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-stone-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 uppercase font-semibold">Target IRR</p>
+        <div className="bg-theme-surface rounded-lg p-3">
+          <p className="text-xs text-theme-secondary uppercase font-semibold">Target IRR</p>
           <IrrBadge value={irr} className="mt-1" />
         </div>
-        <div className="bg-stone-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 uppercase font-semibold">Min. Invest</p>
-          <p className="font-mono font-bold text-lg text-gray-900 mt-1">{formatINRCompact(minInvestment)}</p>
+        <div className="bg-theme-surface rounded-lg p-3">
+          <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
+          <p className="font-mono font-bold text-lg text-theme-primary mt-1">{formatINRCompact(minInvestment)}</p>
         </div>
       </div>
 
       {isLive && (
         <>
           <div className="mb-4">
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Investment Amount</label>
+            <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-mono text-sm">₹</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-tertiary font-mono text-sm">₹</span>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Math.max(minInvestment, Number(e.target.value)))}
                 min={minInvestment}
                 step={unitPrice}
-                className="w-full pl-8 pr-4 py-2.5 font-mono text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="w-full pl-8 pr-4 py-2.5 font-mono text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">{units} units × {formatINR(unitPrice)}/unit</p>
+            <p className="text-xs text-theme-tertiary mt-1">{units} units × {formatINR(unitPrice)}/unit</p>
           </div>
 
           <button
@@ -233,7 +233,7 @@ function InvestmentPanel({
           </button>
 
           {!kycApproved && (
-            <p className="text-center text-xs text-amber-600 mt-2">
+            <p className="text-center text-xs text-amber-600 dark:text-amber-400 mt-2">
               KYC verification required before investing.{' '}
               <Link to="/settings?tab=kyc" className="underline font-semibold">Complete KYC</Link>
             </p>
@@ -247,7 +247,7 @@ function InvestmentPanel({
         </button>
       )}
 
-      <p className="text-center text-[11px] text-gray-400 mt-3">
+      <p className="text-center text-[11px] text-theme-tertiary mt-3">
         By investing, you agree to our <Link to="/legal/terms" className="underline">Terms</Link> and{' '}
         <Link to="/legal/risk-disclosure" className="underline">Risk Disclosure</Link>
       </p>
@@ -298,10 +298,10 @@ export default function PropertyDetailPage() {
       <div className="page-section">
         <div className="page-section-container">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-theme-secondary mb-6">
           <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-gray-900 truncate">{property.title}</span>
+          <span className="text-theme-primary truncate">{property.title}</span>
         </nav>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -314,18 +314,18 @@ export default function PropertyDetailPage() {
             <div>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="font-display text-2xl lg:text-3xl font-bold text-gray-900">{property.title}</h1>
-                  <p className="text-gray-500 flex items-center gap-1 mt-1">
+                  <h1 className="font-display text-2xl lg:text-3xl font-bold text-theme-primary">{property.title}</h1>
+                  <p className="text-theme-secondary flex items-center gap-1 mt-1">
                     <MapPin className="h-4 w-4" />
                     {property.micromarket}, {property.city}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50" aria-label="Save property">
-                    <Heart className="h-5 w-5 text-gray-400" />
+                  <button className="p-2 rounded-lg border border-theme hover:bg-theme-surface" aria-label="Save property">
+                    <Heart className="h-5 w-5 text-theme-tertiary" />
                   </button>
-                  <button className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50" aria-label="Share property">
-                    <Share2 className="h-5 w-5 text-gray-400" />
+                  <button className="p-2 rounded-lg border border-theme hover:bg-theme-surface" aria-label="Share property">
+                    <Share2 className="h-5 w-5 text-theme-tertiary" />
                   </button>
                 </div>
               </div>
@@ -344,17 +344,17 @@ export default function PropertyDetailPage() {
 
             {/* Referrer Info */}
             {property.referrerName && (
-              <div className="card p-6 border-l-4 border-l-amber-400 bg-amber-50/50">
+              <div className="card p-6 border-l-4 border-l-amber-400 bg-amber-50 dark:bg-amber-900/30/50">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-                      <User2 className="h-5 w-5 text-amber-600" />
+                      <User2 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase font-semibold">Referred By</p>
-                      <p className="font-semibold text-gray-900">{property.referrerName}</p>
+                      <p className="text-xs text-theme-secondary uppercase font-semibold">Referred By</p>
+                      <p className="font-semibold text-theme-primary">{property.referrerName}</p>
                       {property.referrerPhone && (
-                        <p className="text-sm text-gray-500">{property.referrerPhone}</p>
+                        <p className="text-sm text-theme-secondary">{property.referrerPhone}</p>
                       )}
                     </div>
                   </div>
@@ -381,31 +381,31 @@ export default function PropertyDetailPage() {
 
             {/* Location Details */}
             <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
                 Location Details
               </h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {property.address && (
-                  <div className="p-3 bg-stone-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-0.5">Address</p>
-                    <p className="text-sm font-medium text-gray-900">{property.address}</p>
+                  <div className="p-3 bg-theme-surface rounded-lg">
+                    <p className="text-xs text-theme-secondary mb-0.5">Address</p>
+                    <p className="text-sm font-medium text-theme-primary">{property.address}</p>
                   </div>
                 )}
                 {property.micromarket && (
-                  <div className="p-3 bg-stone-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-0.5">Area / Locality</p>
-                    <p className="text-sm font-medium text-gray-900">{property.micromarket}</p>
+                  <div className="p-3 bg-theme-surface rounded-lg">
+                    <p className="text-xs text-theme-secondary mb-0.5">Area / Locality</p>
+                    <p className="text-sm font-medium text-theme-primary">{property.micromarket}</p>
                   </div>
                 )}
-                <div className="p-3 bg-stone-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-0.5">City</p>
-                  <p className="text-sm font-medium text-gray-900">{property.city}</p>
+                <div className="p-3 bg-theme-surface rounded-lg">
+                  <p className="text-xs text-theme-secondary mb-0.5">City</p>
+                  <p className="text-sm font-medium text-theme-primary">{property.city}</p>
                 </div>
                 {property.reraNumber && (
-                  <div className="p-3 bg-stone-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-0.5">RERA ID</p>
-                    <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                  <div className="p-3 bg-theme-surface rounded-lg">
+                    <p className="text-xs text-theme-secondary mb-0.5">RERA ID</p>
+                    <p className="text-sm font-medium text-theme-primary flex items-center gap-1">
                       <Shield className="h-3.5 w-3.5 text-green-500" />
                       {property.reraNumber}
                     </p>
@@ -416,22 +416,22 @@ export default function PropertyDetailPage() {
 
             {/* Description */}
             <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 mb-3">About this Property</h2>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{property.description}</p>
+              <h2 className="font-display text-lg font-bold text-theme-primary mb-3">About this Property</h2>
+              <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{property.description}</p>
             </div>
 
             {/* Property Highlights */}
             {property.highlights?.length > 0 && (
               <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                   <Star className="h-5 w-5 text-amber-500" />
                   Property Highlights
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {property.highlights.map((h, i) => (
-                    <div key={i} className="flex items-start gap-2 p-3 bg-amber-50/50 rounded-lg">
+                    <div key={i} className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/30/50 rounded-lg">
                       <CheckCircle2 className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                      <span className="text-sm text-gray-700">{h}</span>
+                      <span className="text-sm text-theme-primary">{h}</span>
                     </div>
                   ))}
                 </div>
@@ -441,44 +441,44 @@ export default function PropertyDetailPage() {
             {/* USP */}
             {property.usp && (
               <div className="card p-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-2 flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
                   Unique Selling Point
                 </h2>
-                <p className="text-sm text-gray-700 leading-relaxed">{property.usp}</p>
+                <p className="text-sm text-theme-primary leading-relaxed">{property.usp}</p>
               </div>
             )}
 
             {/* Key Details */}
             <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Key Details</h2>
+              <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Key Details</h2>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                  <Building2 className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                  <Building2 className="h-5 w-5 text-theme-tertiary" />
                   <div>
-                    <p className="text-xs text-gray-500">Asset Type</p>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">{property.assetType}</p>
+                    <p className="text-xs text-theme-secondary">Asset Type</p>
+                    <p className="text-sm font-semibold text-theme-primary capitalize">{property.assetType}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
                   <span className="text-lg">₹</span>
                   <div>
-                    <p className="text-xs text-gray-500">Unit Price</p>
-                    <p className="text-sm font-mono font-semibold text-gray-900">{formatINR(property.unitPrice)}</p>
+                    <p className="text-xs text-theme-secondary">Unit Price</p>
+                    <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(property.unitPrice)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                  <Users className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                  <Users className="h-5 w-5 text-theme-tertiary" />
                   <div>
-                    <p className="text-xs text-gray-500">Total Units</p>
-                    <p className="text-sm font-semibold text-gray-900">{property.totalUnits} ({property.soldUnits} sold)</p>
+                    <p className="text-xs text-theme-secondary">Total Units</p>
+                    <p className="text-sm font-semibold text-theme-primary">{property.totalUnits} ({property.soldUnits} sold)</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                  <Calendar className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                  <Calendar className="h-5 w-5 text-theme-tertiary" />
                   <div>
-                    <p className="text-xs text-gray-500">Expected Completion</p>
-                    <p className="text-sm font-semibold text-gray-900">{'TBD'}</p>
+                    <p className="text-xs text-theme-secondary">Expected Completion</p>
+                    <p className="text-sm font-semibold text-theme-primary">{'TBD'}</p>
                   </div>
                 </div>
               </div>
@@ -486,18 +486,18 @@ export default function PropertyDetailPage() {
 
             {/* Builder Info */}
             <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Developer</h2>
+              <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Developer</h2>
               <div className="flex items-center gap-4">
                 {property.builderLogo ? (
-                  <img src={property.builderLogo} alt={property.builderName} className="h-12 w-12 rounded-lg object-contain border border-gray-200" />
+                  <img src={property.builderLogo} alt={property.builderName} className="h-12 w-12 rounded-lg object-contain border border-theme" />
                 ) : (
-                  <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-gray-400" />
+                  <div className="h-12 w-12 rounded-lg bg-theme-surface-hover flex items-center justify-center">
+                    <Building2 className="h-6 w-6 text-theme-tertiary" />
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-900">{property.builderName}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="font-semibold text-theme-primary">{property.builderName}</p>
+                  <p className="text-xs text-theme-secondary flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                     Verified Developer
                   </p>
@@ -517,7 +517,7 @@ export default function PropertyDetailPage() {
             {/* Documents */}
             {property.documents?.length > 0 && (
               <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Documents</h2>
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Documents</h2>
                 <div className="space-y-2">
                   {property.documents.map((doc, i) => (
                     <a
@@ -525,14 +525,14 @@ export default function PropertyDetailPage() {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors"
                     >
                       <FileText className="h-5 w-5 text-primary" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{doc.name}</p>
-                        <p className="text-xs text-gray-500 uppercase">{doc.type}</p>
+                        <p className="text-sm font-medium text-theme-primary">{doc.name}</p>
+                        <p className="text-xs text-theme-secondary uppercase">{doc.type}</p>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <ArrowRight className="h-4 w-4 text-theme-tertiary" />
                     </a>
                   ))}
                 </div>
@@ -542,10 +542,10 @@ export default function PropertyDetailPage() {
             {/* Amenities */}
             {property.amenities?.length > 0 && (
               <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Amenities</h2>
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Amenities</h2>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((a) => (
-                    <span key={a} className="px-3 py-1.5 bg-stone-50 text-gray-700 text-sm rounded-lg">
+                    <span key={a} className="px-3 py-1.5 bg-theme-surface text-theme-primary text-sm rounded-lg">
                       {a}
                     </span>
                   ))}
@@ -576,7 +576,7 @@ export default function PropertyDetailPage() {
       {/* Toast notification */}
       {toast && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-xl border shadow-lg text-sm animate-fade-in ${
-          toast.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
+          toast.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-300'
         }`}>
           {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
           {toast.message}

@@ -44,7 +44,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 ? 'bg-success text-white'
                 : currentStep === step.num
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-400'
+                  : 'bg-theme-surface-hover text-theme-tertiary'
             )}
           >
             {currentStep > step.num ? (
@@ -56,7 +56,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
           <span
             className={cn(
               'text-sm font-medium hidden sm:block',
-              currentStep >= step.num ? 'text-gray-900' : 'text-gray-400'
+              currentStep >= step.num ? 'text-theme-primary' : 'text-theme-tertiary'
             )}
           >
             {step.label}
@@ -64,7 +64,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
           {i < STEPS.length - 1 && (
             <div className={cn(
               'w-8 h-0.5 mx-2',
-              currentStep > step.num ? 'bg-success' : 'bg-gray-200'
+              currentStep > step.num ? 'bg-success' : 'bg-[var(--bg-surface-hover)]'
             )} />
           )}
         </div>
@@ -163,20 +163,20 @@ export default function KycIdentityPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Full Name (as per PAN)</label>
+                <label className="text-sm font-medium text-theme-primary mb-1 block">Full Name (as per PAN)</label>
                 <input
                   {...register('fullName')}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                   placeholder="Enter your full name"
                 />
                 {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">PAN Number</label>
+                <label className="text-sm font-medium text-theme-primary mb-1 block">PAN Number</label>
                 <input
                   {...register('panNumber')}
-                  className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                   placeholder="ABCDE1234F"
                   maxLength={10}
                 />
@@ -184,21 +184,21 @@ export default function KycIdentityPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Date of Birth</label>
+                <label className="text-sm font-medium text-theme-primary mb-1 block">Date of Birth</label>
                 <input
                   type="date"
                   {...register('dateOfBirth')}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 {errors.dateOfBirth && <p className="text-xs text-danger mt-1">{errors.dateOfBirth.message}</p>}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Full Address</label>
+                <label className="text-sm font-medium text-theme-primary mb-1 block">Full Address</label>
                 <textarea
                   {...register('address')}
                   rows={2}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+                  className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
                   placeholder="House no., Street, Area"
                 />
                 {errors.address && <p className="text-xs text-danger mt-1">{errors.address.message}</p>}
@@ -206,19 +206,19 @@ export default function KycIdentityPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">City</label>
+                  <label className="text-sm font-medium text-theme-primary mb-1 block">City</label>
                   <input
                     {...register('city')}
-                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                    className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     placeholder="City"
                   />
                   {errors.city && <p className="text-xs text-danger mt-1">{errors.city.message}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Pincode</label>
+                  <label className="text-sm font-medium text-theme-primary mb-1 block">Pincode</label>
                   <input
                     {...register('pincode')}
-                    className="w-full px-3 py-2.5 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                    className="w-full px-3 py-2.5 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     placeholder="560001"
                     maxLength={6}
                   />
@@ -237,7 +237,7 @@ export default function KycIdentityPage() {
         {/* Step 2: Document Upload */}
         {step === 2 && (
           <div className="card p-6 space-y-5">
-            <h2 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
               Document Upload
             </h2>
@@ -260,9 +260,9 @@ export default function KycIdentityPage() {
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700/40 rounded-lg p-3 flex items-start gap-2">
               <Lock className="h-4 w-4 text-info shrink-0 mt-0.5" />
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-theme-secondary">
                 <strong>Your data is safe.</strong> All documents are encrypted end-to-end using AES-256 
                 encryption and stored in a secure vault. We comply with DPDP Act 2023 and RERA guidelines 
                 for data protection. Your information is never shared with third parties.
@@ -289,12 +289,12 @@ export default function KycIdentityPage() {
         {/* Step 3: Selfie */}
         {step === 3 && (
           <div className="card p-6 space-y-5">
-            <h2 className="font-display text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
               <Camera className="h-5 w-5 text-primary" />
               Selfie Verification
             </h2>
 
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-theme-secondary">
               Take a clear selfie to match with your PAN card photo. Ensure good lighting 
               and your face is clearly visible.
             </p>
@@ -341,10 +341,10 @@ export default function KycIdentityPage() {
             <div className="mx-auto h-16 w-16 rounded-full bg-success/10 flex items-center justify-center mb-4">
               <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
-            <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
+            <h2 className="font-display text-xl font-bold text-theme-primary mb-2">
               KYC Submitted Successfully!
             </h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-theme-secondary mb-6">
               Your documents are being reviewed. This usually takes 24-48 hours.
               We'll notify you via email and SMS once approved.
             </p>
@@ -375,11 +375,11 @@ function FileUploadBox({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium text-gray-700 mb-1 block">{label}</label>
+      <label className="text-sm font-medium text-theme-primary mb-1 block">{label}</label>
       <div
         className={cn(
           'border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer',
-          file ? 'border-success bg-green-50' : 'border-gray-200 hover:border-primary/30'
+          file ? 'border-success bg-green-50' : 'border-theme hover:border-primary/30'
         )}
         onClick={() => {
           const input = document.createElement('input')
@@ -399,9 +399,9 @@ function FileUploadBox({
           </div>
         ) : (
           <>
-            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 font-medium">{description}</p>
-            <p className="text-xs text-gray-400 mt-1">Max 5 MB · JPG, PNG, or PDF</p>
+            <Upload className="h-8 w-8 text-theme-tertiary mx-auto mb-2" />
+            <p className="text-sm text-theme-secondary font-medium">{description}</p>
+            <p className="text-xs text-theme-tertiary mt-1">Max 5 MB · JPG, PNG, or PDF</p>
           </>
         )}
       </div>

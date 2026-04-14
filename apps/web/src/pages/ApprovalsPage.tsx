@@ -62,19 +62,19 @@ const PRIORITIES = [
 ]
 
 const STATUS_BADGE: Record<string, { icon: typeof Clock; className: string }> = {
-  pending: { icon: Clock, className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  in_review: { icon: Search, className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  approved: { icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  rejected: { icon: XCircle, className: 'bg-red-50 text-red-700 border-red-200' },
-  auto_approved: { icon: CheckCircle2, className: 'bg-teal-50 text-teal-700 border-teal-200' },
-  cancelled: { icon: AlertCircle, className: 'bg-stone-50 text-gray-500 border-gray-200' },
+  pending: { icon: Clock, className: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700/40' },
+  in_review: { icon: Search, className: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700/40' },
+  approved: { icon: CheckCircle2, className: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700/40' },
+  rejected: { icon: XCircle, className: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700/40' },
+  auto_approved: { icon: CheckCircle2, className: 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-700/40' },
+  cancelled: { icon: AlertCircle, className: 'bg-theme-surface text-theme-secondary border-theme' },
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  normal: 'bg-gray-100 text-gray-600',
-  low: 'bg-stone-50 text-gray-400',
+  urgent: 'bg-red-100 text-red-700 dark:text-red-300',
+  high: 'bg-orange-100 text-orange-700 dark:text-orange-300',
+  normal: 'bg-theme-surface-hover text-theme-secondary',
+  low: 'bg-theme-surface text-theme-tertiary',
 }
 
 /* ------------------------------------------------------------------ */
@@ -127,20 +127,20 @@ function ReviewModal({
     <div className="modal-overlay z-[9999]" onClick={onClose}>
       <div className="modal-panel max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-bold text-gray-900">
+          <h3 className="font-display text-lg font-bold text-theme-primary">
             {action === 'approve' ? 'Approve Request' : 'Reject Request'}
           </h3>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
-            <X className="h-5 w-5 text-gray-400" />
+          <button onClick={onClose} className="p-1 hover:bg-[var(--bg-surface-hover)] rounded-lg">
+            <X className="h-5 w-5 text-theme-tertiary" />
           </button>
         </div>
 
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-theme-secondary mb-3">
           <strong>{approval.title}</strong> — from {approval.requester?.fullName ?? 'Unknown'}
         </p>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-theme-primary mb-1">
             {action === 'reject' ? 'Rejection Reason *' : 'Note (optional)'}
           </label>
           <textarea
@@ -148,13 +148,13 @@ function ReviewModal({
             required={action === 'reject'}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
             placeholder={action === 'reject' ? 'Why is this being rejected?' : 'Add a note...'}
           />
         </div>
 
         <div className="flex gap-3 mt-4">
-          <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50">
+          <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-theme-secondary border border-theme rounded-lg hover:bg-theme-surface">
             Cancel
           </button>
           <button
@@ -173,8 +173,8 @@ function ReviewModal({
         {toast && (
           <div className={`mt-4 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
             toast.type === 'success'
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/40'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40'
           }`}>
             {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
             {toast.message}
@@ -190,15 +190,15 @@ function ReviewModal({
 /* ------------------------------------------------------------------ */
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', border: 'border-amber-200' },
-  in_review: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500', border: 'border-blue-200' },
-  approved: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', border: 'border-emerald-200' },
-  rejected: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', border: 'border-red-200' },
-  auto_approved: { bg: 'bg-teal-50', text: 'text-teal-700', dot: 'bg-teal-500', border: 'border-teal-200' },
-  cancelled: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400', border: 'border-gray-200' },
+  pending: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', dot: 'bg-amber-500', border: 'border-amber-200 dark:border-amber-700/40' },
+  in_review: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500', border: 'border-blue-200 dark:border-blue-700/40' },
+  approved: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500', border: 'border-emerald-200 dark:border-emerald-700/40' },
+  rejected: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300', dot: 'bg-red-500', border: 'border-red-200 dark:border-red-700/40' },
+  auto_approved: { bg: 'bg-teal-50 dark:bg-teal-900/30', text: 'text-teal-700 dark:text-teal-300', dot: 'bg-teal-500', border: 'border-teal-200 dark:border-teal-700/40' },
+  cancelled: { bg: 'bg-theme-surface-hover', text: 'text-theme-secondary', dot: 'bg-[var(--text-tertiary)]', border: 'border-theme' },
 }
 
-const DEFAULT_COL_COLOR = { bg: 'bg-stone-50', text: 'text-gray-600', dot: 'bg-gray-400', border: 'border-gray-200' }
+const DEFAULT_COL_COLOR = { bg: 'bg-theme-surface', text: 'text-theme-secondary', dot: 'bg-[var(--text-tertiary)]', border: 'border-theme' }
 
 const BOARD_COLUMNS = STATUSES
   .filter((s) => s.value !== '')
@@ -275,51 +275,51 @@ function EditOpportunityPanel({
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
         <Pencil className="h-4 w-4 text-primary" />
-        <h4 className="text-sm font-bold text-gray-900">Edit Opportunity Before Approving</h4>
+        <h4 className="text-sm font-bold text-theme-primary">Edit Opportunity Before Approving</h4>
       </div>
 
       {/* Common fields */}
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Title *</label>
+        <label className="block text-xs font-medium text-theme-secondary mb-1">Title *</label>
         <input
           value={form.title}
           onChange={(e) => handleChange('title', e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Tagline</label>
+        <label className="block text-xs font-medium text-theme-secondary mb-1">Tagline</label>
         <input
           value={form.tagline}
           onChange={(e) => handleChange('tagline', e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+        <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
         <textarea
           rows={3}
           value={form.description}
           onChange={(e) => handleChange('description', e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">City</label>
           <input
             value={form.city}
             onChange={(e) => handleChange('city', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">State</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">State</label>
           <input
             value={form.state}
             onChange={(e) => handleChange('state', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
       </div>
@@ -327,31 +327,31 @@ function EditOpportunityPanel({
       {/* Financials */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Target Amount</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Target Amount</label>
           <input
             type="number"
             value={form.targetAmount}
             onChange={(e) => handleChange('targetAmount', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Min Investment</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Min Investment</label>
           <input
             type="number"
             value={form.minInvestment}
             onChange={(e) => handleChange('minInvestment', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Target IRR (%)</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Target IRR (%)</label>
           <input
             type="number"
             step="0.01"
             value={form.targetIrr}
             onChange={(e) => handleChange('targetIrr', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
       </div>
@@ -360,27 +360,27 @@ function EditOpportunityPanel({
       {vt === 'opportunity' && (
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Industry</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Industry</label>
             <input
               value={form.industry}
               onChange={(e) => handleChange('industry', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Stage</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Stage</label>
             <input
               value={form.stage}
               onChange={(e) => handleChange('stage', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Founder</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Founder</label>
             <input
               value={form.founderName}
               onChange={(e) => handleChange('founderName', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
         </div>
@@ -388,19 +388,19 @@ function EditOpportunityPanel({
       {vt === 'community' && (
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Community Type</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Community Type</label>
             <input
               value={form.communityType}
               onChange={(e) => handleChange('communityType', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Collaboration Type</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Collaboration Type</label>
             <input
               value={form.collaborationType}
               onChange={(e) => handleChange('collaborationType', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
         </div>
@@ -410,7 +410,7 @@ function EditOpportunityPanel({
       <div className="flex gap-3 pt-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50"
+          className="flex-1 px-4 py-2 text-sm font-medium text-theme-secondary border border-theme rounded-lg hover:bg-theme-surface"
         >
           Cancel
         </button>
@@ -505,30 +505,30 @@ function EditCompanyPanel({
     onSaved()
   }
 
-  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
+  const inputClass = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
         <Pencil className="h-4 w-4 text-primary" />
-        <h4 className="text-sm font-bold text-gray-900">Edit Company Before Approving</h4>
+        <h4 className="text-sm font-bold text-theme-primary">Edit Company Before Approving</h4>
       </div>
 
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Company Name *</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Company Name *</label>
           <input value={form.companyName} onChange={(e) => handleChange('companyName', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Brand Name</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Brand Name</label>
           <input value={form.brandName} onChange={(e) => handleChange('brandName', e.target.value)} className={inputClass} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Entity Type</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Entity Type</label>
           <Select value={form.entityType} onChange={(v) => handleChange('entityType', v)} options={[
             { value: 'private_limited', label: 'Private Limited' },
             { value: 'public_limited', label: 'Public Limited' },
@@ -538,7 +538,7 @@ function EditCompanyPanel({
           ]} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">CIN</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">CIN</label>
           <input value={form.cin} onChange={(e) => handleChange('cin', e.target.value)} className={inputClass} />
         </div>
       </div>
@@ -546,40 +546,40 @@ function EditCompanyPanel({
       {/* Legal */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">GSTIN</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">GSTIN</label>
           <input value={form.gstin} onChange={(e) => handleChange('gstin', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">PAN</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">PAN</label>
           <input value={form.pan} onChange={(e) => handleChange('pan', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">RERA Number</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">RERA Number</label>
           <input value={form.reraNumber} onChange={(e) => handleChange('reraNumber', e.target.value)} className={inputClass} />
         </div>
       </div>
 
       {/* Contact */}
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Website</label>
+        <label className="block text-xs font-medium text-theme-secondary mb-1">Website</label>
         <input value={form.website} onChange={(e) => handleChange('website', e.target.value)} className={inputClass} />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+        <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
         <textarea rows={2} value={form.description} onChange={(e) => handleChange('description', e.target.value)} className={`${inputClass} resize-none`} />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Name</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Name</label>
           <input value={form.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Email</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Email</label>
           <input value={form.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Contact Phone</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Phone</label>
           <input value={form.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} className={inputClass} />
         </div>
       </div>
@@ -587,29 +587,29 @@ function EditCompanyPanel({
       {/* Address */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Address Line 1</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Address Line 1</label>
           <input value={form.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Address Line 2</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Address Line 2</label>
           <input value={form.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} className={inputClass} />
         </div>
       </div>
       <div className="grid grid-cols-4 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">City</label>
           <input value={form.city} onChange={(e) => handleChange('city', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">State</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">State</label>
           <input value={form.state} onChange={(e) => handleChange('state', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Pincode</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Pincode</label>
           <input value={form.pincode} onChange={(e) => handleChange('pincode', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Country</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Country</label>
           <input value={form.country} onChange={(e) => handleChange('country', e.target.value)} className={inputClass} />
         </div>
       </div>
@@ -617,22 +617,22 @@ function EditCompanyPanel({
       {/* Track Record */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Years in Business</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Years in Business</label>
           <input type="number" value={form.yearsInBusiness} onChange={(e) => handleChange('yearsInBusiness', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Projects Completed</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Projects Completed</label>
           <input type="number" value={form.projectsCompleted} onChange={(e) => handleChange('projectsCompleted', e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Total Area Developed</label>
+          <label className="block text-xs font-medium text-theme-secondary mb-1">Total Area Developed</label>
           <input value={form.totalAreaDeveloped} onChange={(e) => handleChange('totalAreaDeveloped', e.target.value)} className={inputClass} />
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-stone-50">
+        <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-theme-secondary border border-theme rounded-lg hover:bg-theme-surface">
           Cancel
         </button>
         <button
@@ -666,16 +666,16 @@ function LifecycleControls({ opportunity }: { opportunity: OpportunityItem }) {
   const currentStatus = (opportunity.status ?? '').toLowerCase()
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 space-y-3">
-      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Deal Lifecycle</p>
+    <div className="rounded-lg border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/30 px-4 py-3 space-y-3">
+      <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Deal Lifecycle</p>
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[160px]">
-          <label className="block text-xs text-amber-600 mb-1">Closing Date</label>
+          <label className="block text-xs text-amber-600 dark:text-amber-400 mb-1">Closing Date</label>
           <input
             type="date"
             value={closingDate ? closingDate.slice(0, 10) : ''}
             onChange={(e) => setClosingDate(e.target.value)}
-            className="w-full rounded-lg border border-amber-300 px-3 py-1.5 text-sm focus:border-primary outline-none bg-white"
+            className="w-full rounded-lg border border-amber-300 px-3 py-1.5 text-sm focus:border-primary outline-none bg-[var(--bg-surface)]"
           />
         </div>
         <button
@@ -763,9 +763,9 @@ function DetailPopup({ approval, onClose, onReview }: {
         <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
           {/* Title */}
           <div>
-            <h3 className="font-display text-lg font-bold text-gray-900">{approval.title}</h3>
+            <h3 className="font-display text-lg font-bold text-theme-primary">{approval.title}</h3>
             {approval.description && (
-              <p className="text-sm text-gray-500 mt-1 leading-relaxed">{approval.description}</p>
+              <p className="text-sm text-theme-secondary mt-1 leading-relaxed">{approval.description}</p>
             )}
           </div>
 
@@ -798,7 +798,7 @@ function DetailPopup({ approval, onClose, onReview }: {
 
           {/* Reviewer info */}
           {approval.reviewer && (
-            <div className="flex items-center gap-3 rounded-lg bg-stone-50 px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg bg-theme-surface px-4 py-3">
               {approval.reviewer.avatarUrl ? (
                 <img src={approval.reviewer.avatarUrl} className="h-8 w-8 rounded-full" alt="" />
               ) : (
@@ -807,30 +807,30 @@ function DetailPopup({ approval, onClose, onReview }: {
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-gray-900">{approval.reviewer.fullName}</p>
-                <p className="text-xs text-gray-400">Reviewer</p>
+                <p className="text-sm font-medium text-theme-primary">{approval.reviewer.fullName}</p>
+                <p className="text-xs text-theme-tertiary">Reviewer</p>
               </div>
             </div>
           )}
 
           {/* Review note */}
           {approval.reviewNote && (
-            <div className="rounded-lg border border-gray-200 px-4 py-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Review Note</p>
-              <p className="text-sm text-gray-700">{approval.reviewNote}</p>
+            <div className="rounded-lg border border-theme px-4 py-3">
+              <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider mb-1">Review Note</p>
+              <p className="text-sm text-theme-primary">{approval.reviewNote}</p>
             </div>
           )}
 
           {/* Payload preview */}
           {approval.payload && Object.keys(approval.payload).length > 0 && (
-            <div className="rounded-lg border border-gray-200 px-4 py-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Request Data</p>
+            <div className="rounded-lg border border-theme px-4 py-3">
+              <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider mb-2">Request Data</p>
               <div className="space-y-1">
                 {Object.entries(approval.payload).slice(0, 8).map(([k, v]) => (
                   <div key={k} className="flex items-center gap-2 text-xs">
-                    <span className="text-gray-400 font-mono w-32 shrink-0 truncate">{k}</span>
-                    <ArrowRight className="h-3 w-3 text-gray-300 shrink-0" />
-                    <span className="text-gray-700 truncate">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>
+                    <span className="text-theme-tertiary font-mono w-32 shrink-0 truncate">{k}</span>
+                    <ArrowRight className="h-3 w-3 text-theme-tertiary shrink-0" />
+                    <span className="text-theme-primary truncate">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>
                   </div>
                 ))}
               </div>
@@ -850,7 +850,7 @@ function DetailPopup({ approval, onClose, onReview }: {
                 onCancel={() => setEditMode(false)}
               />
             ) : (
-              <p className="text-sm text-gray-400 text-center py-4">Could not load opportunity details.</p>
+              <p className="text-sm text-theme-tertiary text-center py-4">Could not load opportunity details.</p>
             )
           )}
 
@@ -867,7 +867,7 @@ function DetailPopup({ approval, onClose, onReview }: {
                 onCancel={() => setEditMode(false)}
               />
             ) : (
-              <p className="text-sm text-gray-400 text-center py-4">Could not load company details.</p>
+              <p className="text-sm text-theme-tertiary text-center py-4">Could not load company details.</p>
             )
           )}
 
@@ -880,8 +880,8 @@ function DetailPopup({ approval, onClose, onReview }: {
           {toast && (
             <div className={`rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
               toast.type === 'success'
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-red-50 text-red-700 border border-red-200'
+                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/40'
+                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40'
             }`}>
               {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
               {toast.message}
@@ -931,13 +931,13 @@ function InfoBlock({ icon: Icon, label, value, valueClass }: {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-400" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
+        <Icon className="h-3.5 w-3.5 text-theme-tertiary" />
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-theme-tertiary">{label}</span>
       </div>
       {valueClass ? (
         <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${valueClass}`}>{value}</span>
       ) : (
-        <p className="text-sm font-medium text-gray-900">{value}</p>
+        <p className="text-sm font-medium text-theme-primary">{value}</p>
       )}
     </div>
   )
@@ -983,7 +983,7 @@ function KanbanBoard({
         return (
           <div
             key={col.status}
-            className={`shrink-0 w-72 rounded-xl border ${colColor.border} bg-white/70 backdrop-blur-xl flex flex-col max-h-[calc(100vh-260px)]`}
+            className={`shrink-0 w-72 rounded-xl border ${colColor.border} bg-[var(--bg-card)] backdrop-blur-xl flex flex-col max-h-[calc(100vh-260px)]`}
           >
             {/* Column header */}
             <div className={`px-4 py-3 rounded-t-xl ${colColor.bg} border-b ${colColor.border}`}>
@@ -992,7 +992,7 @@ function KanbanBoard({
                   <span className={`h-2.5 w-2.5 rounded-full ${colColor.dot}`} />
                   <h3 className={`text-sm font-bold ${colColor.text}`}>{col.label}</h3>
                 </div>
-                <span className={`text-xs font-bold ${colColor.text} bg-white/60 px-2 py-0.5 rounded-full`}>
+                <span className={`text-xs font-bold ${colColor.text} bg-[var(--bg-card)] px-2 py-0.5 rounded-full`}>
                   {cards.length}
                 </span>
               </div>
@@ -1001,21 +1001,21 @@ function KanbanBoard({
             {/* Cards */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
               {cards.length === 0 ? (
-                <p className="text-xs text-gray-300 text-center py-6">No items</p>
+                <p className="text-xs text-theme-tertiary text-center py-6">No items</p>
               ) : (
                 cards.map((a) => (
                   <button
                     key={a.id}
                     onClick={() => onSelectApproval(a)}
-                    className="w-full text-left bg-white/80 rounded-xl border border-gray-200/60 p-3 hover:shadow-md hover:border-gray-300/60 transition-all cursor-pointer group"
+                    className="w-full text-left bg-[var(--bg-card)] rounded-xl border border-theme/60 p-3 hover:shadow-md hover:border-theme/60 transition-all cursor-pointer group"
                   >
                     {/* Title */}
-                    <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+                    <p className="text-sm font-semibold text-theme-primary truncate group-hover:text-primary transition-colors">
                       {a.title}
                     </p>
 
                     {/* Category badge */}
-                    <span className="inline-block text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded mt-1.5">
+                    <span className="inline-block text-[10px] font-medium text-theme-secondary bg-theme-surface-hover px-1.5 py-0.5 rounded mt-1.5">
                       {CATEGORIES.find((c) => c.value === a.category)?.label ?? a.category}
                     </span>
 
@@ -1029,7 +1029,7 @@ function KanbanBoard({
                             {(a.requester?.fullName ?? '?')[0]}
                           </div>
                         )}
-                        <span className="text-[11px] text-gray-400 truncate max-w-[100px]">
+                        <span className="text-[11px] text-theme-tertiary truncate max-w-[100px]">
                           {a.requester?.fullName ?? 'Unknown'}
                         </span>
                       </div>
@@ -1074,7 +1074,7 @@ export default function ApprovalsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-screen bg-theme-surface">
         {/* Shared Navbar */}
         <Navbar />
 
@@ -1088,20 +1088,20 @@ export default function ApprovalsPage() {
         </section>
 
         {/* Sub-header with view toggle */}
-        <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="sticky top-16 z-40 bg-[var(--bg-card)] backdrop-blur-md border-b border-theme">
           <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 flex h-12 items-center justify-between">
-            <span className="text-sm font-semibold text-gray-600">Approvals</span>
-            <div className="flex items-center rounded-lg border border-gray-200 bg-white p-0.5">
+            <span className="text-sm font-semibold text-theme-secondary">Approvals</span>
+            <div className="flex items-center rounded-lg border border-theme bg-[var(--bg-surface)] p-0.5">
               <button
                 onClick={() => setView('board')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'board' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'board' ? 'bg-primary text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
               >
                 <LayoutGrid className="h-3.5 w-3.5 inline mr-1" />
                 Board
               </button>
               <button
                 onClick={() => setView('table')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'table' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'table' ? 'bg-primary text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
               >
                 <List className="h-3.5 w-3.5 inline mr-1" />
                 Table
@@ -1141,11 +1141,11 @@ export default function ApprovalsPage() {
               </div>
 
               {/* Table */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200/60 overflow-hidden shadow-sm">
+              <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl border border-theme/60 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="bg-stone-50 border-b border-gray-200">
+                      <tr className="bg-theme-surface border-b border-theme">
                         {[
                           { key: 'title', label: 'Title' },
                           { key: 'category', label: 'Category' },
@@ -1156,7 +1156,7 @@ export default function ApprovalsPage() {
                         ].map((col) => (
                           <th
                             key={col.key}
-                            className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 select-none"
+                            className="px-4 py-3 text-left text-xs font-semibold text-theme-secondary uppercase tracking-wider cursor-pointer hover:text-theme-primary select-none"
                             onClick={() => toggleSort(col.key)}
                           >
                             <span className="inline-flex items-center gap-1">
@@ -1165,12 +1165,12 @@ export default function ApprovalsPage() {
                             </span>
                           </th>
                         ))}
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-theme-secondary uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-theme">
                       {isLoading ? (
                         <tr>
                           <td colSpan={7} className="px-4 py-12 text-center">
@@ -1187,17 +1187,17 @@ export default function ApprovalsPage() {
                         approvals.map((a) => (
                           <tr
                             key={a.id}
-                            className="hover:bg-stone-50/50 transition-colors cursor-pointer"
+                            className="hover:bg-theme-surface/50 transition-colors cursor-pointer"
                             onClick={() => setDetailApproval(a)}
                           >
                             <td className="px-4 py-3">
-                              <p className="font-medium text-gray-900 truncate max-w-[200px]">{a.title}</p>
+                              <p className="font-medium text-theme-primary truncate max-w-[200px]">{a.title}</p>
                               {a.description && (
-                                <p className="text-xs text-gray-400 truncate max-w-[200px]">{a.description}</p>
+                                <p className="text-xs text-theme-tertiary truncate max-w-[200px]">{a.description}</p>
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                              <span className="text-xs font-medium text-theme-secondary bg-theme-surface-hover px-2 py-0.5 rounded">
                                 {CATEGORIES.find((c) => c.value === a.category)?.label ?? a.category}
                               </span>
                             </td>
@@ -1210,7 +1210,7 @@ export default function ApprovalsPage() {
                                     {(a.requester?.fullName ?? '?')[0]}
                                   </div>
                                 )}
-                                <span className="text-sm text-gray-700">{a.requester?.fullName ?? 'Unknown'}</span>
+                                <span className="text-sm text-theme-primary">{a.requester?.fullName ?? 'Unknown'}</span>
                               </div>
                             </td>
                             <td className="px-4 py-3">
@@ -1221,7 +1221,7 @@ export default function ApprovalsPage() {
                             <td className="px-4 py-3">
                               <StatusBadge status={a.status} />
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                            <td className="px-4 py-3 text-xs text-theme-tertiary whitespace-nowrap">
                               {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </td>
                             <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -1229,13 +1229,13 @@ export default function ApprovalsPage() {
                                 <div className="flex items-center justify-end gap-2">
                                   <button
                                     onClick={() => setReviewAction({ approval: a, action: 'approve' })}
-                                    className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                                    className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/40 hover:bg-emerald-100 transition-colors"
                                   >
                                     Approve
                                   </button>
                                   <button
                                     onClick={() => setReviewAction({ approval: a, action: 'reject' })}
-                                    className="px-3 py-1 text-xs font-semibold rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors"
+                                    className="px-3 py-1 text-xs font-semibold rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40 hover:bg-red-100 transition-colors"
                                   >
                                     Reject
                                   </button>
@@ -1251,22 +1251,22 @@ export default function ApprovalsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-                    <p className="text-xs text-gray-400">
+                  <div className="flex items-center justify-between border-t border-theme px-4 py-3">
+                    <p className="text-xs text-theme-tertiary">
                       Page {filters.page} of {totalPages} · {data?.total ?? 0} total
                     </p>
                     <div className="flex items-center gap-2">
                       <button
                         disabled={filters.page <= 1}
                         onClick={() => setFilter('page', filters.page - 1)}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-30"
+                        className="p-1.5 rounded-lg border border-theme hover:bg-theme-surface disabled:opacity-30"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </button>
                       <button
                         disabled={filters.page >= totalPages}
                         onClick={() => setFilter('page', filters.page + 1)}
-                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-stone-50 disabled:opacity-30"
+                        className="p-1.5 rounded-lg border border-theme hover:bg-theme-surface disabled:opacity-30"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </button>

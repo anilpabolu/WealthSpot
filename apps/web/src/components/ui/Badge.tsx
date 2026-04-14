@@ -5,19 +5,19 @@ type BadgeVariant =
   | 'live' | 'pending' | 'funded' | 'closed' | 'rejected' | 'draft';
 
 const VARIANT_MAP: Record<BadgeVariant, string> = {
-  success:  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  warning:  'bg-amber-50 text-amber-700 border-amber-200',
-  danger:   'bg-red-50 text-red-600 border-red-200',
-  info:     'bg-blue-50 text-blue-700 border-blue-200',
-  purple:   'bg-purple-50 text-purple-700 border-purple-200',
-  teal:     'bg-teal-50 text-teal-700 border-teal-200',
-  neutral:  'bg-gray-100 text-gray-600 border-gray-200',
-  live:     'bg-emerald-50 text-emerald-700 border-emerald-200',
-  pending:  'bg-amber-50 text-amber-700 border-amber-200',
-  funded:   'bg-purple-50 text-purple-700 border-purple-200',
-  closed:   'bg-gray-100 text-gray-500 border-gray-200',
-  rejected: 'bg-red-50 text-red-600 border-red-200',
-  draft:    'bg-gray-100 text-gray-500 border-gray-200',
+  success:  'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700/40',
+  warning:  'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700/40',
+  danger:   'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700/40',
+  info:     'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700/40',
+  purple:   'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700/40',
+  teal:     'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-700/40',
+  neutral:  'bg-theme-surface-hover text-theme-secondary border-theme',
+  live:     'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700/40',
+  pending:  'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700/40',
+  funded:   'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700/40',
+  closed:   'bg-theme-surface-hover text-theme-secondary border-theme',
+  rejected: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700/40',
+  draft:    'bg-theme-surface-hover text-theme-secondary border-theme',
 };
 
 interface BadgeProps {

@@ -61,9 +61,9 @@ export default function MediaUploadZone({ images, onChange, maxImages = 10, maxV
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-theme-primary">
         Media Gallery{' '}
-        <span className="text-gray-400 font-normal">
+        <span className="text-theme-tertiary font-normal">
           ({imageCount}/{maxImages} images, {videoCount}/{maxVideos} video)
         </span>
       </label>
@@ -78,18 +78,18 @@ export default function MediaUploadZone({ images, onChange, maxImages = 10, maxV
         onDrop={handleDrop}
         className={`
           rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer
-          ${dragOver ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-gray-300 hover:border-gray-400'}
+          ${dragOver ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-theme hover:border-gray-400'}
         `}
         onClick={() => document.getElementById('media-file-input')?.click()}
       >
-        <div className="flex items-center justify-center gap-4 text-gray-400">
+        <div className="flex items-center justify-center gap-4 text-theme-tertiary">
           <ImagePlus className="h-8 w-8" />
           <Video className="h-8 w-8" />
         </div>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-theme-secondary mt-2">
           Drag & drop images or video here, or <span className="text-primary font-medium">browse</span>
         </p>
-        <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP, GIF, MP4, WebM • Max 10 MB per image, 100 MB per video</p>
+        <p className="text-xs text-theme-tertiary mt-1">JPG, PNG, WebP, GIF, MP4, WebM • Max 10 MB per image, 100 MB per video</p>
         <input
           id="media-file-input"
           type="file"
@@ -106,7 +106,7 @@ export default function MediaUploadZone({ images, onChange, maxImages = 10, maxV
           {images.map((item, idx) => (
             <div
               key={idx}
-              className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square bg-gray-50"
+              className="relative group rounded-lg overflow-hidden border border-theme aspect-square bg-theme-surface"
             >
               {item.type === 'image' ? (
                 <img src={item.preview} alt="" className="w-full h-full object-cover" />

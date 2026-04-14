@@ -6,15 +6,16 @@ import logging
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.core.logging_config import setup_logging
 from app.middleware.metrics import MetricsMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_id import RequestIdMiddleware, RequestIdFilter
-from app.routers import admin, analytics, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points, profile, kyc, bank_details, eoi, portfolio, app_videos, profiling, site_content
+from app.routers import admin, analytics, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points, profile, kyc, bank_details, eoi, portfolio, app_videos, profiling, site_content, vault_features
 
 # Import all models so SQLAlchemy resolves relationship() string references
 import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
@@ -113,6 +114,19 @@ app.include_router(app_videos.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(profiling.router, prefix=API_PREFIX)
 app.include_router(site_content.router, prefix=API_PREFIX)
+app.include_router(vault_features.router, prefix=API_PREFIX)
+
+
+# ── Global exception handler ─────────────────────────────────────────────────
+
+_logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Return a proper JSON 500 instead of killing the connection."""
+    _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 # ── Health ───────────────────────────────────────────────────────────────────

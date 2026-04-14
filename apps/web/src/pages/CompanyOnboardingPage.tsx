@@ -63,8 +63,8 @@ export default function CompanyOnboardingPage() {
     }
   }
 
-  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
+  const inputClass = 'w-full rounded-lg border border-theme px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
+  const labelClass = 'block text-sm font-medium text-theme-primary mb-1'
 
   return (
     <MainLayout>
@@ -81,7 +81,7 @@ export default function CompanyOnboardingPage() {
         <div className="page-section-container max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6"
+          className="flex items-center gap-1 text-sm text-theme-secondary hover:text-theme-primary mb-6"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
@@ -191,7 +191,7 @@ export default function CompanyOnboardingPage() {
                       inputMode="numeric"
                     />
                     {pincodeData && pincodeData.length > 0 && pincodeData[0] && (
-                      <p className="text-xs text-emerald-600 mt-0.5">✓ {pincodeData[0].officeName}</p>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ {pincodeData[0].officeName}</p>
                     )}
                   </div>
                   <div>
@@ -238,7 +238,7 @@ export default function CompanyOnboardingPage() {
               </button>
 
               {createMutation.isError && (
-                <p className="text-sm text-red-600 text-center">Registration failed. Please check your details and try again.</p>
+                <p className="text-sm text-red-600 dark:text-red-400 text-center">Registration failed. Please check your details and try again.</p>
               )}
             </form>
           </>
@@ -247,8 +247,8 @@ export default function CompanyOnboardingPage() {
         {step === 'success' && (
           <div className="text-center py-16">
             <CheckCircle2 className="h-20 w-20 text-emerald-500 mx-auto mb-6" />
-            <h2 className="font-display text-2xl font-bold text-gray-900 mb-2">You're In! 🎉</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto mb-8">
+            <h2 className="font-display text-2xl font-bold text-theme-primary mb-2">You're In! 🎉</h2>
+            <p className="text-sm text-theme-secondary max-w-md mx-auto mb-8">
               Your company profile is with the gatekeepers now. Once they give the green signal, you can start launching opportunities like a pro.
             </p>
             <div className="flex gap-3 justify-center">
@@ -260,7 +260,7 @@ export default function CompanyOnboardingPage() {
               </button>
               <button
                 onClick={() => { setStep('form'); setForm(INITIAL) }}
-                className="px-6 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-stone-50"
+                className="px-6 py-2.5 rounded-lg border border-theme text-sm font-medium text-theme-primary hover:bg-theme-surface"
               >
                 Register Another
               </button>

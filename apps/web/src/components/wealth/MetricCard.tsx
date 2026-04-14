@@ -43,7 +43,7 @@ export default function MetricCard({
             <p
               className={cn(
                 'text-xs font-semibold flex items-center gap-1',
-                deltaPositive ? 'text-emerald-600' : 'text-red-500'
+                deltaPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
               )}
             >
               <span>{deltaPositive ? '↗' : '↘'}</span>

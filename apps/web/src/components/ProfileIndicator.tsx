@@ -10,6 +10,7 @@ import {
   LogOut, ChevronRight, Sparkles,
 } from 'lucide-react'
 import VaultPickerModal from '@/components/VaultPickerModal'
+import PersonaSwitcher from '@/components/PersonaSwitcher'
 
 interface ProfileIndicatorProps {
   size?: 'sm' | 'md'
@@ -70,7 +71,7 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
       onClick={() => setOpen((v) => !v)}
       className={cn(
         'rounded-full overflow-hidden border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50',
-        open ? 'border-primary ring-2 ring-primary/30' : 'border-gray-200 hover:border-primary/50',
+        open ? 'border-primary ring-2 ring-primary/30' : 'border-theme hover:border-primary/50',
         avatarSize,
       )}
       aria-label="Open profile menu"
@@ -87,9 +88,9 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   )
 
   const Dropdown = open && (
-    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+    <div className="absolute right-0 top-full mt-2 w-72 bg-[var(--bg-surface)] rounded-xl shadow-xl border border-theme py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
       {/* User info header */}
-      <div className="px-4 py-3 border-b border-gray-100">
+      <div className="px-4 py-3 border-b border-theme">
         <div className="flex items-center gap-3">
           {avatarUrl ? (
             <img src={avatarUrl} alt={displayName} className="h-10 w-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
@@ -99,16 +100,16 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-            <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
+            <p className="text-sm font-semibold text-theme-primary truncate">{displayName}</p>
+            <p className="text-xs text-theme-secondary truncate">{displayEmail}</p>
           </div>
         </div>
         {!isComplete && !isLoading && (
           <div className="mt-2">
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-amber-600 font-medium">{pct}% Profile Complete</span>
+              <span className="text-amber-600 dark:text-amber-400 font-medium">{pct}% Profile Complete</span>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-theme-surface-hover rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all"
                 style={{ width: `${pct}%` }}
@@ -117,6 +118,9 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
           </div>
         )}
       </div>
+
+      {/* Persona switcher */}
+      <PersonaSwitcher />
 
       {/* Navigation links */}
       <div className="py-1">
@@ -127,28 +131,28 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
               key={link.href}
               to={link.href}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-theme-surface hover:text-primary transition-colors"
             >
-              <Icon className="h-4 w-4 text-gray-400" />
+              <Icon className="h-4 w-4 text-theme-tertiary" />
               <span className="flex-1">{link.label}</span>
-              <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
+              <ChevronRight className="h-3.5 w-3.5 text-theme-tertiary" />
             </Link>
           )
         })}
       </div>
 
       {/* Bottom actions */}
-      <div className="border-t border-gray-100 py-1">
+      <div className="border-t border-theme py-1">
         <button
           onClick={() => { setOpen(false); openUserProfile() }}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-secondary hover:bg-theme-surface transition-colors"
         >
-          <Settings className="h-4 w-4 text-gray-400" />
+          <Settings className="h-4 w-4 text-theme-tertiary" />
           <span>Manage Account</span>
         </button>
         <button
           onClick={() => { setOpen(false); signOut() }}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/30 transition-colors"
         >
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>

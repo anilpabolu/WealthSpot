@@ -16,10 +16,11 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import { useMyMatchScore, useProfilingProgress } from '@/hooks/useProfiling'
-import { MatchScoreFull, ProfilePrompt } from '@/components/profiling/MatchScoreBadge'
+import { ProfilePrompt } from '@/components/profiling/MatchScoreBadge'
 import { EmptyState } from '@/components/ui'
-import { OpportunityMatchesPanel } from '@/components/profiling'
+import { OpportunityMatchesPanel, InvestorSuitabilityPanel } from '@/components/profiling'
 import { useUserStore } from '@/stores/user.store'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
@@ -62,10 +63,10 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
       <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" onClick={onClose} />
       <div className="modal-panel max-w-lg relative">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
-          <h2 className="font-display text-lg font-bold text-gray-900">Developer / Company</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
-            <X className="h-5 w-5 text-gray-400" />
+        <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+          <h2 className="font-display text-lg font-bold text-theme-primary">Developer / Company</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors" aria-label="Close">
+            <X className="h-5 w-5 text-theme-tertiary" />
           </button>
         </div>
 
@@ -73,19 +74,19 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
           {/* Company identity */}
           <div className="flex items-center gap-4">
             {company.logoUrl ? (
-              <img src={company.logoUrl} alt={company.companyName} className="h-16 w-16 rounded-xl object-contain border border-gray-200" />
+              <img src={company.logoUrl} alt={company.companyName} className="h-16 w-16 rounded-xl object-contain border border-theme" />
             ) : (
-              <div className="h-16 w-16 rounded-xl bg-gray-100 flex items-center justify-center">
-                <Building2 className="h-8 w-8 text-gray-400" />
+              <div className="h-16 w-16 rounded-xl bg-theme-surface-hover flex items-center justify-center">
+                <Building2 className="h-8 w-8 text-theme-tertiary" />
               </div>
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-xl font-bold text-gray-900 truncate">{company.companyName}</h3>
+                <h3 className="font-display text-xl font-bold text-theme-primary truncate">{company.companyName}</h3>
                 {company.verified && <BadgeCheck className="h-5 w-5 text-primary shrink-0" />}
               </div>
-              {company.brandName && <p className="text-sm text-gray-500">{company.brandName}</p>}
-              {entityLabel && <p className="text-xs text-gray-400 mt-0.5">{entityLabel}</p>}
+              {company.brandName && <p className="text-sm text-theme-secondary">{company.brandName}</p>}
+              {entityLabel && <p className="text-xs text-theme-tertiary mt-0.5">{entityLabel}</p>}
             </div>
           </div>
 
@@ -97,8 +98,8 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
                 return (
                   <div key={s.label} className="bg-primary/5 rounded-xl p-4 text-center">
                     <Icon className="h-5 w-5 text-primary mx-auto mb-1.5" />
-                    <p className="font-mono text-lg font-bold text-gray-900">{s.value}</p>
-                    <p className="text-[11px] text-gray-500 font-medium mt-0.5">{s.label}</p>
+                    <p className="font-mono text-lg font-bold text-theme-primary">{s.value}</p>
+                    <p className="text-[11px] text-theme-secondary font-medium mt-0.5">{s.label}</p>
                   </div>
                 )
               })}
@@ -108,36 +109,36 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
           {/* Description */}
           {company.description && (
             <div>
-              <h4 className="text-xs font-semibold text-gray-600 uppercase mb-2">About</h4>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{company.description}</p>
+              <h4 className="text-xs font-semibold text-theme-secondary uppercase mb-2">About</h4>
+              <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{company.description}</p>
             </div>
           )}
 
           {/* Details list */}
           <div className="space-y-3">
             {company.reraNumber && (
-              <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
-                <Shield className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">RERA Registration</p>
-                  <p className="text-sm font-semibold text-gray-900">{company.reraNumber}</p>
+                  <p className="text-xs text-theme-secondary">RERA Registration</p>
+                  <p className="text-sm font-semibold text-theme-primary">{company.reraNumber}</p>
                 </div>
               </div>
             )}
             {(company.city || company.state) && (
-              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                <MapPin className="h-5 w-5 text-theme-tertiary shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Headquartered In</p>
-                  <p className="text-sm font-semibold text-gray-900">{[company.city, company.state].filter(Boolean).join(', ')}</p>
+                  <p className="text-xs text-theme-secondary">Headquartered In</p>
+                  <p className="text-sm font-semibold text-theme-primary">{[company.city, company.state].filter(Boolean).join(', ')}</p>
                 </div>
               </div>
             )}
             {company.website && (
-              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                <Globe className="h-5 w-5 text-gray-400 shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                <Globe className="h-5 w-5 text-theme-tertiary shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Website</p>
+                  <p className="text-xs text-theme-secondary">Website</p>
                   <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary hover:underline">{company.website.replace(/^https?:\/\//, '')}</a>
                 </div>
               </div>
@@ -169,7 +170,7 @@ function getLifecycleRibbon(opp: { status: string; closingDate: string | null; r
   return null
 }
 
-function OpportunityGallery({ images, title, videoUrl }: { images: string[]; title: string; videoUrl?: string }) {
+function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: { images: string[]; title: string; videoUrl?: string; propertyVideosEnabled: boolean }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [showVideoPlayer, setShowVideoPlayer] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
@@ -190,8 +191,8 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
 
   if (!images.length) {
     return (
-      <div className="aspect-video bg-gray-100 rounded-xl flex items-center justify-center">
-        <Building2 className="h-16 w-16 text-gray-300" />
+      <div className="aspect-video bg-theme-surface-hover rounded-xl flex items-center justify-center">
+        <Building2 className="h-16 w-16 text-theme-tertiary" />
       </div>
     )
   }
@@ -211,24 +212,24 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
             }
           }}
         >
-          <img src={images[activeIdx]} alt={`${title} - ${activeIdx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-gray-100'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-gray-100'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }} />
+          <img src={images[activeIdx]} alt={`${title} - ${activeIdx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-theme-surface-hover'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }} />
           {images.length > 1 && (
             <>
-              <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow" aria-label="Previous image">
+              <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow" aria-label="Previous image">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <button onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow" aria-label="Next image">
+              <button onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow" aria-label="Next image">
                 <ChevronRight className="h-5 w-5" />
               </button>
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {images.map((_, i) => (
-                  <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`h-2 rounded-full transition-all ${i === activeIdx ? 'w-5 bg-white' : 'w-2 bg-white/60'}`} aria-label={`Go to image ${i + 1}`} />
+                  <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`h-2 rounded-full transition-all ${i === activeIdx ? 'w-5 bg-[var(--bg-surface)]' : 'w-2 bg-[var(--bg-card)]'}`} aria-label={`Go to image ${i + 1}`} />
                 ))}
               </div>
             </>
           )}
           <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md">{activeIdx + 1} / {images.length}</span>
-          {videoUrl?.trim() && (
+          {propertyVideosEnabled && videoUrl?.trim() && (
             <button
               onClick={() => setShowVideoPlayer(true)}
               className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
@@ -241,7 +242,7 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
           <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((img, i) => (
               <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 ring-2 transition-all ${i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-gray-200'); }} />
+                <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-[var(--bg-surface-hover)]'); }} />
               </button>
           ))}
         </div>
@@ -249,7 +250,7 @@ function OpportunityGallery({ images, title, videoUrl }: { images: string[]; tit
       </div>
 
       {/* Video Player Modal */}
-      {showVideoPlayer && videoUrl?.trim() && (
+      {propertyVideosEnabled && showVideoPlayer && videoUrl?.trim() && (
         <div className="modal-overlay p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVideoPlayer(false)} />
           <div className="relative bg-black rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden">
@@ -297,7 +298,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
         <div className="flex items-center justify-between mb-4">
           <StatusBadge status={opportunity.status as StatusType} />
           {daysLeft > 0 && (
-            <span className="text-xs text-gray-500 flex items-center gap-1">
+            <span className="text-xs text-theme-secondary flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" /> {daysLeft} days left
             </span>
           )}
@@ -307,21 +308,21 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           <FundingBar raised={opportunity.raisedAmount} target={opportunity.targetAmount} showLabels showPercent showAmount />
         )}
 
-        <div className="mt-3 mb-4 text-xs text-gray-500 flex items-center gap-1">
+        <div className="mt-3 mb-4 text-xs text-theme-secondary flex items-center gap-1">
           <Users className="h-3.5 w-3.5" /> {opportunity.investorCount} investors
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           {opportunity.targetIrr != null && (
-            <div className="bg-stone-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Target IRR</p>
+            <div className="bg-theme-surface rounded-lg p-3">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">Target IRR</p>
               <IrrBadge value={opportunity.targetIrr} className="mt-1" />
             </div>
           )}
           {opportunity.minInvestment != null && (
-            <div className="bg-stone-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Min. Invest</p>
-              <p className="font-mono font-bold text-lg text-gray-900 mt-1">{formatINRCompact(opportunity.minInvestment)}</p>
+            <div className="bg-theme-surface rounded-lg p-3">
+              <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
+              <p className="font-mono font-bold text-lg text-theme-primary mt-1">{formatINRCompact(opportunity.minInvestment)}</p>
             </div>
           )}
         </div>
@@ -336,12 +337,12 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
             Express Interest
           </button>
         ) : (
-          <button disabled className="w-full text-base py-3 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed font-semibold">
+          <button disabled className="w-full text-base py-3 bg-[var(--bg-surface-hover)] text-theme-secondary rounded-lg cursor-not-allowed font-semibold">
             Opportunity Closed
           </button>
         )}
 
-        <p className="text-center text-[11px] text-gray-400 mt-3">
+        <p className="text-center text-[11px] text-theme-tertiary mt-3">
           By expressing interest, you agree to our <Link to="/legal/terms" className="underline">Terms</Link>.
           Your contact details will not be shared.
         </p>
@@ -361,24 +362,39 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
 
 /* ── Match Score Section — shows score or profile prompt ─────────────── */
 
-function MatchScoreSection({ opportunityId, vaultType, creatorId }: { opportunityId: string; vaultType: string; creatorId: string }) {
+function MatchScoreSection({ opportunityId, vaultType, creatorId, opportunityCity, opportunityIndustry, opportunityStage, minInvestment }: {
+  opportunityId: string; vaultType: string; creatorId: string;
+  opportunityCity?: string | null; opportunityIndustry?: string | null;
+  opportunityStage?: string | null; minInvestment?: number | null;
+}) {
   const { data: matchScore, isLoading: matchLoading } = useMyMatchScore(opportunityId)
   const { data: progress } = useProfilingProgress(vaultType)
   const userId = useUserStore((s) => s.user?.id)
+  const userRole = useUserStore((s) => s.user?.role)
   const isCreator = userId === creatorId
+  const isAdminOrBuilder = userRole === 'admin' || userRole === 'super_admin' || userRole === 'builder'
 
   if (matchLoading) {
-    return <div className="card p-6 animate-pulse"><div className="h-20 bg-gray-100 rounded-xl" /></div>
+    return <div className="card p-6 animate-pulse"><div className="h-20 bg-theme-surface-hover rounded-xl" /></div>
   }
 
-  // If this is the creator, show matched investors panel
-  if (isCreator) {
-    return <OpportunityMatchesPanel opportunityId={opportunityId} />
+  // Admin / Builder / Creator → show matched investors panel
+  if (isCreator || isAdminOrBuilder) {
+    return <OpportunityMatchesPanel opportunityId={opportunityId} vaultType={vaultType} />
   }
 
-  // If user has a match score computed, show it
+  // Normal user with computed match score → show suitability analysis
   if (matchScore) {
-    return <MatchScoreFull score={matchScore} />
+    return (
+      <InvestorSuitabilityPanel
+        score={matchScore}
+        vaultType={vaultType}
+        opportunityCity={opportunityCity}
+        opportunityIndustry={opportunityIndustry}
+        opportunityStage={opportunityStage}
+        minInvestment={minInvestment}
+      />
+    )
   }
 
   // If profile not completed, show prompt
@@ -389,7 +405,7 @@ function MatchScoreSection({ opportunityId, vaultType, creatorId }: { opportunit
   // Profile done but no score yet — could be pending computation
   return (
     <div className="card p-5 text-center">
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-theme-secondary">
         Your match score is being computed...
       </p>
     </div>
@@ -400,6 +416,7 @@ export default function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { data: opp, isLoading } = useOpportunityBySlug(slug ?? '')
+  const { propertyVideosEnabled } = useVaultConfig()
   const [showShareModal, setShowShareModal] = useState(false)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
 
@@ -464,10 +481,10 @@ export default function OpportunityDetailPage() {
       <div className="page-section">
         <div className="page-section-container">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-theme-secondary mb-6">
           <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-gray-900 truncate">{opp.title}</span>
+          <span className="text-theme-primary truncate">{opp.title}</span>
         </nav>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -480,17 +497,17 @@ export default function OpportunityDetailPage() {
                   {ribbon.label}
                 </div>
               )}
-              <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} />
+              <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} propertyVideosEnabled={propertyVideosEnabled} />
             </div>
 
             {/* Title / Location */}
             <div>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="font-display text-2xl lg:text-3xl font-bold text-gray-900">{opp.title}</h1>
-                  {opp.tagline && <p className="text-gray-500 mt-1 text-sm">{opp.tagline}</p>}
+                  <h1 className="font-display text-2xl lg:text-3xl font-bold text-theme-primary">{opp.title}</h1>
+                  {opp.tagline && <p className="text-theme-secondary mt-1 text-sm">{opp.tagline}</p>}
                   {opp.city && (
-                    <p className="text-gray-500 flex items-center gap-1 mt-1">
+                    <p className="text-theme-secondary flex items-center gap-1 mt-1">
                       <MapPin className="h-4 w-4" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
                     </p>
                   )}
@@ -498,17 +515,17 @@ export default function OpportunityDetailPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={handleLike}
-                    className={`p-2 rounded-lg border transition-colors ${likeData?.liked ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:bg-stone-50'}`}
+                    className={`p-2 rounded-lg border transition-colors ${likeData?.liked ? 'border-red-200 dark:border-red-700/40 bg-red-50 dark:bg-red-900/30' : 'border-theme hover:bg-theme-surface'}`}
                     aria-label={likeData?.liked ? 'Unlike' : 'Save'}
                   >
-                    <Heart className={`h-5 w-5 ${likeData?.liked ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                    <Heart className={`h-5 w-5 ${likeData?.liked ? 'text-red-500 fill-red-500' : 'text-theme-tertiary'}`} />
                   </button>
                   <button
                     onClick={handleShare}
-                    className="p-2 rounded-lg border border-gray-200 hover:bg-stone-50"
+                    className="p-2 rounded-lg border border-theme hover:bg-theme-surface"
                     aria-label="Share"
                   >
-                    <Share2 className="h-5 w-5 text-gray-400" />
+                    <Share2 className="h-5 w-5 text-theme-tertiary" />
                   </button>
                 </div>
               </div>
@@ -516,56 +533,56 @@ export default function OpportunityDetailPage() {
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mt-3">
                 <span className="px-3 py-1 bg-primary/5 text-primary text-xs font-medium rounded-full capitalize">{opp.vaultType} vault</span>
-                {opp.industry && <span className="px-3 py-1 bg-violet-50 text-violet-700 text-xs font-medium rounded-full">{opp.industry}</span>}
-                {opp.stage && <span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full capitalize">{opp.stage}</span>}
+                {opp.industry && <span className="px-3 py-1 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs font-medium rounded-full">{opp.industry}</span>}
+                {opp.stage && <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium rounded-full capitalize">{opp.stage}</span>}
               </div>
             </div>
 
             {/* Description */}
             {opp.description && (
               <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-3">About this Opportunity</h2>
-                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{opp.description}</p>
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-3">About this Opportunity</h2>
+                <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{opp.description}</p>
               </div>
             )}
 
             {/* Key Details */}
             <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Key Details</h2>
+              <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Key Details</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {opp.targetAmount != null && (
-                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
                     <span className="text-lg">₹</span>
                     <div>
-                      <p className="text-xs text-gray-500">Target Amount</p>
-                      <p className="text-sm font-mono font-semibold text-gray-900">{formatINR(opp.targetAmount)}</p>
+                      <p className="text-xs text-theme-secondary">Target Amount</p>
+                      <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(opp.targetAmount)}</p>
                     </div>
                   </div>
                 )}
                 {opp.minInvestment != null && (
-                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
                     <span className="text-lg">₹</span>
                     <div>
-                      <p className="text-xs text-gray-500">Min. Investment</p>
-                      <p className="text-sm font-mono font-semibold text-gray-900">{formatINR(opp.minInvestment)}</p>
+                      <p className="text-xs text-theme-secondary">Min. Investment</p>
+                      <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(opp.minInvestment)}</p>
                     </div>
                   </div>
                 )}
                 {opp.investorCount > 0 && (
-                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                    <Users className="h-5 w-5 text-gray-400" />
+                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                    <Users className="h-5 w-5 text-theme-tertiary" />
                     <div>
-                      <p className="text-xs text-gray-500">Investors</p>
-                      <p className="text-sm font-semibold text-gray-900">{opp.investorCount}</p>
+                      <p className="text-xs text-theme-secondary">Investors</p>
+                      <p className="text-sm font-semibold text-theme-primary">{opp.investorCount}</p>
                     </div>
                   </div>
                 )}
                 {opp.closingDate && (
-                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                    <Calendar className="h-5 w-5 text-theme-tertiary" />
                     <div>
-                      <p className="text-xs text-gray-500">Closing Date</p>
-                      <p className="text-sm font-semibold text-gray-900">{new Date(opp.closingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="text-xs text-theme-secondary">Closing Date</p>
+                      <p className="text-sm font-semibold text-theme-primary">{new Date(opp.closingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
                   </div>
                 )}
@@ -575,32 +592,32 @@ export default function OpportunityDetailPage() {
             {/* Location */}
             {(opp.address || opp.addressLine1 || opp.city) && (
               <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-primary" /> Location Details
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {opp.addressLine1 && (
-                    <div className="p-3 bg-stone-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-0.5">Address</p>
-                      <p className="text-sm font-medium text-gray-900">{opp.addressLine1}{opp.addressLine2 ? `, ${opp.addressLine2}` : ''}</p>
+                    <div className="p-3 bg-theme-surface rounded-lg">
+                      <p className="text-xs text-theme-secondary mb-0.5">Address</p>
+                      <p className="text-sm font-medium text-theme-primary">{opp.addressLine1}{opp.addressLine2 ? `, ${opp.addressLine2}` : ''}</p>
                     </div>
                   )}
                   {opp.locality && (
-                    <div className="p-3 bg-stone-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-0.5">Area</p>
-                      <p className="text-sm font-medium text-gray-900">{opp.locality}</p>
+                    <div className="p-3 bg-theme-surface rounded-lg">
+                      <p className="text-xs text-theme-secondary mb-0.5">Area</p>
+                      <p className="text-sm font-medium text-theme-primary">{opp.locality}</p>
                     </div>
                   )}
                   {opp.city && (
-                    <div className="p-3 bg-stone-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-0.5">City</p>
-                      <p className="text-sm font-medium text-gray-900">{opp.city}</p>
+                    <div className="p-3 bg-theme-surface rounded-lg">
+                      <p className="text-xs text-theme-secondary mb-0.5">City</p>
+                      <p className="text-sm font-medium text-theme-primary">{opp.city}</p>
                     </div>
                   )}
                   {opp.pincode && (
-                    <div className="p-3 bg-stone-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-0.5">Pincode</p>
-                      <p className="text-sm font-medium text-gray-900">{opp.pincode}</p>
+                    <div className="p-3 bg-theme-surface rounded-lg">
+                      <p className="text-xs text-theme-secondary mb-0.5">Pincode</p>
+                      <p className="text-sm font-medium text-theme-primary">{opp.pincode}</p>
                     </div>
                   )}
                 </div>
@@ -614,33 +631,33 @@ export default function OpportunityDetailPage() {
                 onClick={() => setShowCompanyModal(true)}
                 className="card p-6 w-full text-left cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all group"
               >
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-4">Developer / Company</h2>
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Developer / Company</h2>
                 <div className="flex items-center gap-4">
                   {opp.company.logoUrl ? (
-                    <img src={opp.company.logoUrl} alt={opp.company.companyName} className="h-12 w-12 rounded-lg object-contain border border-gray-200" />
+                    <img src={opp.company.logoUrl} alt={opp.company.companyName} className="h-12 w-12 rounded-lg object-contain border border-theme" />
                   ) : (
-                    <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-gray-400" />
+                    <div className="h-12 w-12 rounded-lg bg-theme-surface-hover flex items-center justify-center">
+                      <Building2 className="h-6 w-6 text-theme-tertiary" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{opp.company.companyName}</p>
-                    {opp.company.brandName && <p className="text-xs text-gray-500">{opp.company.brandName}</p>}
+                    <p className="font-semibold text-theme-primary group-hover:text-primary transition-colors">{opp.company.companyName}</p>
+                    {opp.company.brandName && <p className="text-xs text-theme-secondary">{opp.company.brandName}</p>}
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-primary transition-colors shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-theme-tertiary group-hover:text-primary transition-colors shrink-0" />
                 </div>
               </button>
             )}
 
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
-              <div className="card p-6 bg-gradient-to-r from-violet-50 to-violet-100/50 border-violet-200">
-                <h2 className="font-display text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <div className="card p-6 bg-gradient-to-r from-violet-50 to-violet-100/50 border-violet-200 dark:border-violet-700/40">
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-2 flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-violet-500" /> Founder
                 </h2>
-                <p className="text-sm font-medium text-gray-900">{opp.founderName}</p>
+                <p className="text-sm font-medium text-theme-primary">{opp.founderName}</p>
                 {opp.pitchDeckUrl && (
-                  <a href={opp.pitchDeckUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm text-violet-600 font-semibold hover:underline">
+                  <a href={opp.pitchDeckUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm text-violet-600 dark:text-violet-400 font-semibold hover:underline">
                     View Pitch Deck <ChevronRight className="h-4 w-4" />
                   </a>
                 )}
@@ -663,7 +680,15 @@ export default function OpportunityDetailPage() {
             }} />
 
             {/* Match Score or Profile Prompt */}
-            <MatchScoreSection opportunityId={opp.id} vaultType={opp.vaultType} creatorId={opp.creatorId} />
+            <MatchScoreSection
+              opportunityId={opp.id}
+              vaultType={opp.vaultType}
+              creatorId={opp.creatorId}
+              opportunityCity={opp.city}
+              opportunityIndustry={opp.industry}
+              opportunityStage={opp.stage}
+              minInvestment={opp.minInvestment}
+            />
           </div>
         </div>
         </div>
