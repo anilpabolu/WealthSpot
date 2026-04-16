@@ -9,6 +9,7 @@ interface VaultConfigResponse {
   vaultVideosEnabled: boolean
   propertyVideosEnabled: boolean
   videoManagementEnabled: boolean
+  reraDisplayEnabled: boolean
 }
 
 /**
@@ -38,6 +39,7 @@ export function useVaultConfig() {
     vaultVideosEnabled: config?.vaultVideosEnabled ?? true,
     propertyVideosEnabled: config?.propertyVideosEnabled ?? true,
     videoManagementEnabled: config?.videoManagementEnabled ?? true,
+    reraDisplayEnabled: config?.reraDisplayEnabled ?? true,
     isVaultEnabled: (vaultId: string): boolean => {
       if (vaultId === 'wealth') return true
       if (vaultId === 'opportunity') return config?.opportunityVaultEnabled ?? false

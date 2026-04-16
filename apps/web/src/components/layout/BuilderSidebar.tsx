@@ -7,7 +7,6 @@ import {
   Users,
   FileText,
   BarChart3,
-  MessageSquare,
   Settings,
   HelpCircle,
 } from 'lucide-react'
@@ -19,12 +18,11 @@ const BUILDER_NAV = [
   { label: 'Investors', href: '/portal/builder/investors', icon: Users },
   { label: 'Documents', href: '/portal/builder/documents', icon: FileText },
   { label: 'Analytics', href: '/portal/builder/analytics', icon: BarChart3 },
-  { label: 'Messages', href: '/portal/builder/messages', icon: MessageSquare },
 ]
 
 const BUILDER_BOTTOM = [
   { label: 'Settings', href: '/portal/builder/settings', icon: Settings },
-  { label: 'Help', href: '/help', icon: HelpCircle },
+  { label: 'Help', href: '/portal/builder/help', icon: HelpCircle },
 ]
 
 export default function BuilderSidebar() {

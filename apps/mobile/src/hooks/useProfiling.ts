@@ -131,6 +131,21 @@ export interface ProfilingProgress {
   personality: PersonalityDimension | null
 }
 
+export interface VaultProgressDetail {
+  total: number
+  answered: number
+  pct: number
+  isComplete: boolean
+  archetype: string | null
+}
+
+export interface OverallProgress {
+  profilePct: number
+  vaults: Record<string, VaultProgressDetail>
+  overallPct: number
+  isFullyProfiled: boolean
+}
+
 // ── Vault Profile Questions ─────────────────────────────────────────────────
 
 export function useVaultQuestions(vaultType: string) {
@@ -181,6 +196,16 @@ export function useProfilingProgress(vaultType: string) {
     queryKey: ['profiling', 'progress', vaultType],
     queryFn: () => apiGet<ProfilingProgress>(`/profiling/progress/${vaultType}`),
     enabled: !!vaultType,
+  })
+}
+
+// ── Overall Progress (all vaults) ───────────────────────────────────────────
+
+export function useOverallProgress() {
+  return useQuery({
+    queryKey: ['profiling', 'overall-progress'],
+    queryFn: () => apiGet<OverallProgress>('/profiling/overall-progress'),
+    staleTime: 30_000,
   })
 }
 

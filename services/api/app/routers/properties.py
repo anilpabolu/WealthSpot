@@ -287,8 +287,90 @@ async def get_my_builder_profile(
         select(Builder).where(Builder.user_id == user.id)
     )
     builder = result.scalar_one_or_none()
+
+    # Return empty profile for users without a Builder row (instead of 404)
     if not builder:
-        raise HTTPException(status_code=404, detail="Builder profile not found")
+        from datetime import datetime, timezone
+        return BuilderProfileResponse(
+            id=user.id,
+            company_name="",
+            verified=False,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            properties=[],
+        )
+
+    props_q = (
+        select(Property)
+        .where(Property.builder_id == builder.id, Property.status != PropertyStatus.ARCHIVED)
+        .order_by(Property.created_at.desc())
+    )
+    props = (await db.execute(props_q)).scalars().all()
+
+    return BuilderProfileResponse(
+        id=builder.id,
+        company_name=builder.company_name,
+        rera_number=builder.rera_number,
+        cin=builder.cin,
+        gstin=builder.gstin,
+        website=builder.website,
+        logo_url=builder.logo_url,
+        description=builder.description,
+        verified=builder.verified,
+        phone=builder.phone,
+        email=builder.email,
+        address=builder.address,
+        city=builder.city,
+        experience_years=builder.experience_years,
+        projects_completed=builder.projects_completed,
+        total_sqft_delivered=builder.total_sqft_delivered,
+        about=builder.about,
+        created_at=builder.created_at.isoformat(),
+        properties=[PropertyListItem.model_validate(p) for p in props],
+    )
+
+
+class BuilderProfileUpdate(BaseModel):
+    company_name: str | None = None
+    rera_number: str | None = None
+    cin: str | None = None
+    gstin: str | None = None
+    website: str | None = None
+    description: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    city: str | None = None
+    experience_years: int | None = None
+    projects_completed: int | None = None
+    total_sqft_delivered: int | None = None
+    about: str | None = None
+
+
+@router.patch("/builders/me", response_model=BuilderProfileResponse)
+async def update_my_builder_profile(
+    payload: BuilderProfileUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> BuilderProfileResponse:
+    """Update current user's builder profile – creates the Builder row if it doesn't exist."""
+    result = await db.execute(select(Builder).where(Builder.user_id == user.id))
+    builder = result.scalar_one_or_none()
+
+    if not builder:
+        # Auto-create a builder row for this user
+        builder = Builder(
+            user_id=user.id,
+            company_name=payload.company_name or "",
+        )
+        db.add(builder)
+        await db.flush()
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(builder, key, value)
+
+    await db.commit()
+    await db.refresh(builder)
 
     props_q = (
         select(Property)

@@ -292,3 +292,121 @@ async def list_opportunity_media(
         }
         for m in media_list
     ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Document Upload (PDF, DOC, XLS for opportunities)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ALLOWED_DOCUMENT_TYPES = {
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+MAX_DOCUMENT_SIZE = 25 * 1024 * 1024  # 25 MB
+
+
+@router.post("/opportunity/{opportunity_id}/document")
+async def upload_opportunity_documents(
+    opportunity_id: str,
+    files: list[UploadFile] = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[dict]:
+    """Upload legal documents (PDF, DOC, XLS) to an opportunity. Creator only."""
+    opp = await db.get(Opportunity, uuid.UUID(opportunity_id))
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    if opp.creator_id != user.id:
+        raise HTTPException(status_code=403, detail="Not your opportunity")
+
+    results = []
+    for idx, f in enumerate(files):
+        content_type = f.content_type or "application/octet-stream"
+
+        if content_type not in ALLOWED_DOCUMENT_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported document type: {content_type}. Allowed: PDF, DOC, DOCX, XLS, XLSX",
+            )
+
+        content = await f.read()
+        if len(content) > MAX_DOCUMENT_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large: {f.filename} exceeds 25 MB",
+            )
+
+        file_obj = io.BytesIO(content)
+        s3_key = await upload_opportunity_media(
+            file=file_obj,
+            filename=f.filename or "document",
+            opportunity_id=opportunity_id,
+            media_type="document",
+            content_type=content_type,
+        )
+        url = get_public_url(s3_key)
+
+        media = OpportunityMedia(
+            opportunity_id=uuid.UUID(opportunity_id),
+            media_type="document",
+            s3_key=s3_key,
+            url=url,
+            filename=f.filename,
+            size_bytes=len(content),
+            content_type=content_type,
+            sort_order=idx,
+            is_cover=False,
+        )
+        db.add(media)
+        await db.flush()
+        await db.refresh(media)
+
+        results.append({
+            "id": str(media.id),
+            "media_type": media.media_type,
+            "url": media.url,
+            "filename": media.filename,
+            "size_bytes": media.size_bytes,
+            "content_type": media.content_type,
+        })
+
+    await db.commit()
+    return results
+
+
+@router.get("/opportunity/{opportunity_id}/media")
+async def list_my_opportunity_media(
+    opportunity_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[dict]:
+    """List all media/documents for an opportunity. Creator or admin only."""
+    opp = await db.get(Opportunity, uuid.UUID(opportunity_id))
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    if opp.creator_id != user.id and user.role not in ("admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Not authorised")
+
+    stmt = (
+        select(OpportunityMedia)
+        .where(OpportunityMedia.opportunity_id == uuid.UUID(opportunity_id))
+        .order_by(OpportunityMedia.sort_order)
+    )
+    media_list = (await db.execute(stmt)).scalars().all()
+    return [
+        {
+            "id": str(m.id),
+            "media_type": m.media_type,
+            "url": m.url,
+            "filename": m.filename,
+            "size_bytes": m.size_bytes,
+            "content_type": m.content_type,
+            "is_cover": m.is_cover,
+            "sort_order": m.sort_order,
+            "created_at": m.created_at.isoformat() if m.created_at else None,
+        }
+        for m in media_list
+    ]

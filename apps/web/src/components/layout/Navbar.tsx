@@ -49,7 +49,14 @@ export default function Navbar(_props?: NavbarProps) {
     if (!('roles' in link) || !link.roles) return true
     const allowed = link.roles as readonly string[]
     // Check primary role AND multi-role array
-    return (userRole && allowed.includes(userRole)) || userRoles.some((r) => allowed.includes(r))
+    const roleMatch = (userRole && allowed.includes(userRole)) || userRoles.some((r) => allowed.includes(r))
+    if (!roleMatch) return false
+    // Portfolio: investors must have completed at least one vault DNA
+    if (link.href === '/portfolio' && userRole === 'investor') {
+      const hasAnyDna = overall ? Object.values(overall.vaults).some((v) => v.isComplete) : false
+      if (!hasAnyDna) return false
+    }
+    return true
   })
   const allNavLinks = [...filteredAuthLinks, ...extraLinks]
 

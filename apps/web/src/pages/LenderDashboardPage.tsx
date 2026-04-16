@@ -1,52 +1,23 @@
 import { PortalLayout } from '@/components/layout'
 import MetricCard from '@/components/wealth/MetricCard'
-import { formatINRCompact, formatPercent, formatDate } from '@/lib/formatters'
+import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { Link } from 'react-router-dom'
 import {
   Banknote, TrendingUp, Clock, CheckCircle2, ArrowRight,
-  Calendar,
+  Loader2,
 } from 'lucide-react'
 import { DataTable, Badge, type Column } from '@/components/ui'
-
-const MOCK_SUMMARY = {
-  totalLent: 25000000,
-  activeLoans: 5,
-  avgReturn: 12.5,
-  pendingRepayments: 3,
-  totalReturned: 3200000,
-  nextRepaymentDate: '2026-04-15',
-}
-
-const MOCK_LOANS = [
-  {
-    id: '1', property: 'Skyline Towers', builder: 'ABC Developers', amount: 5000000,
-    returnRate: 13.0, disbursed: '2025-11-01', maturity: '2026-11-01', status: 'active',
-    repaid: 1250000,
-  },
-  {
-    id: '2', property: 'Harbour Point', builder: 'XYZ Builders', amount: 8000000,
-    returnRate: 12.0, disbursed: '2025-09-15', maturity: '2026-09-15', status: 'active',
-    repaid: 4000000,
-  },
-  {
-    id: '3', property: 'Green Valley', builder: 'PQR Group', amount: 3000000,
-    returnRate: 14.0, disbursed: '2025-06-01', maturity: '2026-06-01', status: 'active',
-    repaid: 2250000,
-  },
-]
-
-const MOCK_OPPORTUNITIES = [
-  {
-    id: 'a', property: 'Lakeside Villas', city: 'Chennai', amount: 10000000,
-    returnRate: 13.5, tenure: '12 months', builder: 'RST Infra',
-  },
-  {
-    id: 'b', property: 'Metro Hub', city: 'Hyderabad', amount: 7000000,
-    returnRate: 11.8, tenure: '9 months', builder: 'EFG Developers',
-  },
-]
+import { useLenderDashboard, useLenderLoans, type LoanItem } from '@/hooks/useLender'
+import { useOpportunities } from '@/hooks/useOpportunities'
 
 export default function LenderDashboardPage() {
+  const { data: summary, isLoading: summaryLoading } = useLenderDashboard()
+  const { data: loansData, isLoading: loansLoading } = useLenderLoans({ status: 'active' })
+  const { data: oppsData } = useOpportunities({ status: 'funding' })
+
+  const loans = loansData?.items ?? []
+  const opportunities = oppsData?.items ?? []
+
   return (
     <PortalLayout variant="lender">
       {/* Hero */}
@@ -62,37 +33,34 @@ export default function LenderDashboardPage() {
         <div className="page-section-container space-y-6">
 
         {/* Metrics */}
+        {summaryLoading ? (
+          <div className="flex items-center justify-center py-10 text-theme-secondary">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading…
+          </div>
+        ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             label="Total Lent"
-            value={formatINRCompact(MOCK_SUMMARY.totalLent)}
+            value={formatINRCompact(summary?.totalLent ?? 0)}
             icon={<Banknote className="h-5 w-5 text-primary" />}
           />
           <MetricCard
             label="Active Loans"
-            value={String(MOCK_SUMMARY.activeLoans)}
+            value={String(summary?.activeLoans ?? 0)}
             icon={<CheckCircle2 className="h-5 w-5 text-success" />}
           />
           <MetricCard
-            label="Avg. Return"
-            value={formatPercent(MOCK_SUMMARY.avgReturn)}
+            label="Interest Earned"
+            value={formatINRCompact(summary?.totalInterestEarned ?? 0)}
             icon={<TrendingUp className="h-5 w-5 text-primary" />}
           />
           <MetricCard
-            label="Pending Repayments"
-            value={String(MOCK_SUMMARY.pendingRepayments)}
+            label="Upcoming Payments"
+            value={String(summary?.upcomingPayments ?? 0)}
             icon={<Clock className="h-5 w-5 text-warning" />}
           />
         </div>
-
-        {/* Upcoming repayment alert */}
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
-          <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-theme-primary">Next repayment on {formatDate(MOCK_SUMMARY.nextRepaymentDate)}</p>
-            <p className="text-xs text-theme-secondary mt-0.5">₹12,50,000 expected from Skyline Towers</p>
-          </div>
-        </div>
+        )}
 
         {/* Active Loans */}
         <div className="card overflow-hidden">
@@ -103,47 +71,53 @@ export default function LenderDashboardPage() {
             </Link>
           </div>
           <div className="p-4 pt-0">
+            {loansLoading ? (
+              <div className="flex items-center justify-center py-10 text-theme-secondary">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading loans…
+              </div>
+            ) : (
             <DataTable
-              data={MOCK_LOANS}
+              data={loans}
               keyExtractor={(loan) => loan.id}
+              emptyMessage="No active loans"
               columns={[
                 {
                   key: 'property',
-                  header: 'Property / Builder',
+                  header: 'Property',
                   render: (loan) => (
                     <div>
-                      <p className="font-medium text-theme-primary">{loan.property}</p>
-                      <p className="text-xs text-theme-secondary">{loan.builder}</p>
+                      <p className="font-medium text-theme-primary">{loan.propertyTitle ?? '—'}</p>
+                      <p className="text-xs text-theme-secondary">{loan.propertyCity ?? ''}</p>
                     </div>
                   ),
                 },
                 {
                   key: 'amount',
-                  header: 'Amount',
+                  header: 'Principal',
                   headerClassName: 'text-right',
                   className: 'text-right font-mono',
-                  render: (loan) => <>{formatINRCompact(loan.amount)}</>,
+                  render: (loan) => <>{formatINRCompact(loan.principal / 100)}</>,
                 },
                 {
                   key: 'return',
-                  header: 'Return',
+                  header: 'Rate',
                   headerClassName: 'text-right',
                   className: 'text-right font-mono font-semibold text-primary',
-                  render: (loan) => <>{formatPercent(loan.returnRate)}</>,
+                  render: (loan) => <>{formatPercent(loan.interestRate)}</>,
                 },
                 {
-                  key: 'maturity',
-                  header: 'Maturity',
+                  key: 'tenure',
+                  header: 'Tenure',
                   headerClassName: 'text-right',
                   className: 'text-right text-theme-secondary',
-                  render: (loan) => <>{formatDate(loan.maturity)}</>,
+                  render: (loan) => <>{loan.tenureMonths} mo</>,
                 },
                 {
                   key: 'repaid',
                   header: 'Repaid',
                   className: 'min-w-[120px]',
                   render: (loan) => {
-                    const repaidPct = Math.round((loan.repaid / loan.amount) * 100)
+                    const repaidPct = loan.principal > 0 ? Math.round((loan.amountRepaid / loan.principal) * 100) : 0
                     return (
                       <div>
                         <div className="h-1.5 bg-theme-surface-hover rounded-full">
@@ -161,8 +135,9 @@ export default function LenderDashboardPage() {
                   className: 'text-center',
                   render: (loan) => <Badge variant={loan.status === 'active' ? 'success' : 'neutral'} size="sm">{loan.status}</Badge>,
                 },
-              ] as Column<typeof MOCK_LOANS[number]>[]}
+              ] as Column<LoanItem>[]}
             />
+            )}
           </div>
         </div>
 
@@ -174,34 +149,40 @@ export default function LenderDashboardPage() {
               View All <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
+          {opportunities.length === 0 ? (
+            <p className="text-sm text-theme-secondary py-6 text-center">No funding opportunities right now.</p>
+          ) : (
           <div className="grid sm:grid-cols-2 gap-4">
-            {MOCK_OPPORTUNITIES.map((opp) => (
+            {opportunities.map((opp) => (
               <div key={opp.id} className="card p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-theme-primary">{opp.property}</h3>
-                    <p className="text-xs text-theme-secondary">{opp.city} · {opp.builder}</p>
+                    <h3 className="font-semibold text-theme-primary">{opp.title}</h3>
+                    <p className="text-xs text-theme-secondary">{opp.city}{opp.state ? `, ${opp.state}` : ''}</p>
                   </div>
                   <span className="pill-upcoming">New</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div>
-                    <p className="text-xs text-theme-secondary">Amount</p>
-                    <p className="font-mono font-semibold text-theme-primary">{formatINRCompact(opp.amount)}</p>
+                    <p className="text-xs text-theme-secondary">Target</p>
+                    <p className="font-mono font-semibold text-theme-primary">{formatINRCompact(opp.targetAmount ?? 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-theme-secondary">Returns</p>
-                    <p className="font-mono font-semibold text-primary">{formatPercent(opp.returnRate)}</p>
+                    <p className="text-xs text-theme-secondary">IRR</p>
+                    <p className="font-mono font-semibold text-primary">{formatPercent(opp.targetIrr ?? 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-theme-secondary">Tenure</p>
-                    <p className="font-semibold text-theme-primary">{opp.tenure}</p>
+                    <p className="text-xs text-theme-secondary">Min Invest</p>
+                    <p className="font-semibold text-theme-primary">{formatINRCompact(opp.minInvestment ?? 0)}</p>
                   </div>
                 </div>
-                <button className="btn-primary w-full text-sm">Express Interest</button>
+                <Link to={`/opportunities/${opp.slug}`} className="btn-primary w-full text-sm text-center block">
+                  View Details
+                </Link>
               </div>
             ))}
           </div>
+          )}
         </div>
         </div>
       </div>

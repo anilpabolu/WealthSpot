@@ -117,6 +117,8 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
         "vault_videos_enabled": _is_enabled("vault_videos_enabled"),
         "property_videos_enabled": _is_enabled("property_videos_enabled"),
         "video_management_enabled": _is_enabled("video_management_enabled"),
+        # Content display toggles
+        "rera_display_enabled": _is_enabled("rera_display_enabled"),
     }
 
 
@@ -124,9 +126,9 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
 
 # Default metrics per vault (used when no DB config exists yet)
 _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
-    "wealth": ["total_invested", "investor_count", "properties_listed"],
-    "opportunity": ["total_invested", "investor_count", "startups_listed"],
-    "community": ["total_invested", "investor_count", "projects_launched", "co_investors"],
+    "wealth": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "properties_listed"],
+    "opportunity": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "startups_listed"],
+    "community": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "projects_launched", "co_investors"],
 }
 
 

@@ -4,11 +4,11 @@
 #1 DONE 0.0s
 
 #2 [internal] load build definition from Dockerfile
-#2 transferring dockerfile: 1.66kB done
-#2 DONE 0.0s
+#2 transferring dockerfile: 1.66kB 0.0s done
+#2 DONE 0.1s
 
 #3 [internal] load metadata for docker.io/library/python:3.12-slim
-#3 DONE 0.0s
+#3 DONE 0.5s
 
 #4 [internal] load .dockerignore
 #4 transferring context: 245B done
@@ -19,8 +19,8 @@
 #5 DONE 0.0s
 
 #6 [internal] load build context
-#6 transferring context: 19.52kB 0.0s done
-#6 DONE 0.0s
+#6 transferring context: 130.56kB 0.0s done
+#6 DONE 0.1s
 
 #7 [development 2/7] WORKDIR /app
 #7 CACHED
@@ -35,144 +35,144 @@
 #10 DONE 0.1s
 
 #11 [development 6/7] RUN uv pip install --system --no-cache ".[dev]"
-#11 0.545 Using Python 3.12.13 environment at: /usr/local
-#11 3.313 Resolved 94 packages in 2.76s
-#11 3.320    Building wealthspot-api @ file:///app
-#11 3.368 Downloading botocore (14.2MiB)
-#11 3.368 Downloading ruff (10.7MiB)
-#11 3.457 Downloading pygments (1.2MiB)
-#11 3.559 Downloading cryptography (4.3MiB)
-#11 3.559 Downloading sqlalchemy (3.2MiB)
-#11 3.560 Downloading stripe (2.0MiB)
-#11 3.561 Downloading pydantic-core (2.0MiB)
-#11 3.561 Downloading asyncpg (3.4MiB)
-#11 3.563 Downloading faker (1.9MiB)
-#11 3.563 Downloading mypy (14.0MiB)
-#11 3.563 Downloading uvloop (4.2MiB)
-#11 9.810       Built wealthspot-api @ file:///app
-#11 11.88  Downloaded pygments
-#11 15.98  Downloaded faker
-#11 16.39  Downloaded stripe
-#11 16.45  Downloaded pydantic-core
-#11 19.33  Downloaded sqlalchemy
-#11 19.69  Downloaded asyncpg
-#11 20.62  Downloaded uvloop
-#11 20.78  Downloaded cryptography
-#11 30.04  Downloaded ruff
-#11 32.19  Downloaded mypy
-#11 32.22  Downloaded botocore
-#11 32.22 Prepared 94 packages in 28.90s
-#11 32.51 Installed 94 packages in 289ms
-#11 32.51  + aiosqlite==0.22.1
-#11 32.51  + alembic==1.18.4
-#11 32.51  + amqp==5.3.1
-#11 32.51  + annotated-doc==0.0.4
-#11 32.51  + annotated-types==0.7.0
-#11 32.51  + anyio==4.13.0
-#11 32.51  + asyncpg==0.31.0
-#11 32.51  + bcrypt==5.0.0
-#11 32.51  + billiard==4.2.4
-#11 32.51  + boto3==1.42.89
-#11 32.51  + botocore==1.42.89
-#11 32.51  + celery==5.6.3
-#11 32.51  + certifi==2026.2.25
-#11 32.51  + cffi==2.0.0
-#11 32.51  + charset-normalizer==3.4.7
-#11 32.51  + click==8.3.2
-#11 32.51  + click-didyoumean==0.3.1
-#11 32.51  + click-plugins==1.1.1.2
-#11 32.51  + click-repl==0.3.0
-#11 32.51  + coverage==7.13.5
-#11 32.51  + cryptography==46.0.7
-#11 32.51  + dnspython==2.8.0
-#11 32.51  + ecdsa==0.19.2
-#11 32.51  + email-validator==2.3.0
-#11 32.51  + faker==40.13.0
-#11 32.51  + fastapi==0.135.3
-#11 32.51  + fastapi-cli==0.0.24
-#11 32.51  + fastapi-cloud-cli==0.16.1
-#11 32.51  + fastar==0.11.0
-#11 32.51  + greenlet==3.4.0
-#11 32.51  + h11==0.16.0
-#11 32.51  + httpcore==1.0.9
-#11 32.51  + httptools==0.7.1
-#11 32.51  + httpx==0.28.1
-#11 32.51  + idna==3.11
-#11 32.51  + iniconfig==2.3.0
-#11 32.51  + jinja2==3.1.6
-#11 32.51  + jmespath==1.1.0
-#11 32.51  + kombu==5.6.2
-#11 32.51  + librt==0.9.0
-#11 32.51  + mako==1.3.10
-#11 32.51  + markdown-it-py==4.0.0
-#11 32.51  + markupsafe==3.0.3
-#11 32.51  + mdurl==0.1.2
-#11 32.51  + mypy==1.20.1
-#11 32.51  + mypy-extensions==1.1.0
-#11 32.51  + packaging==26.0
-#11 32.51  + passlib==1.7.4
-#11 32.51  + pathspec==1.0.4
-#11 32.51  + pluggy==1.6.0
-#11 32.51  + prompt-toolkit==3.0.52
-#11 32.51  + pyasn1==0.6.3
-#11 32.51  + pycparser==3.0
-#11 32.51  + pydantic==2.13.0
-#11 32.51  + pydantic-core==2.46.0
-#11 32.51  + pydantic-extra-types==2.11.1
-#11 32.51  + pydantic-settings==2.13.1
-#11 32.51  + pygments==2.20.0
-#11 32.51  + pytest==9.0.3
-#11 32.51  + pytest-asyncio==1.3.0
-#11 32.51  + pytest-cov==7.1.0
-#11 32.51  + python-dateutil==2.9.0.post0
-#11 32.51  + python-dotenv==1.2.2
-#11 32.51  + python-jose==3.5.0
-#11 32.51  + python-multipart==0.0.26
-#11 32.51  + pyyaml==6.0.3
-#11 32.51  + razorpay==2.0.1
-#11 32.51  + redis==7.4.0
-#11 32.51  + requests==2.33.1
-#11 32.51  + rich==15.0.0
-#11 32.51  + rich-toolkit==0.19.7
-#11 32.51  + rignore==0.7.6
-#11 32.51  + rsa==4.9.1
-#11 32.51  + ruff==0.15.10
-#11 32.51  + s3transfer==0.16.0
-#11 32.51  + sentry-sdk==2.58.0
-#11 32.51  + shellingham==1.5.4
-#11 32.51  + six==1.17.0
-#11 32.51  + sqlalchemy==2.0.49
-#11 32.51  + starlette==1.0.0
-#11 32.51  + stripe==15.0.1
-#11 32.51  + typer==0.24.1
-#11 32.51  + typing-extensions==4.15.0
-#11 32.51  + typing-inspection==0.4.2
-#11 32.51  + tzdata==2026.1
-#11 32.51  + tzlocal==5.3.1
-#11 32.51  + urllib3==2.6.3
-#11 32.51  + uvicorn==0.44.0
-#11 32.51  + uvloop==0.22.1
-#11 32.51  + vine==5.1.0
-#11 32.51  + watchfiles==1.1.1
-#11 32.51  + wcwidth==0.6.0
-#11 32.51  + wealthspot-api==0.1.0 (from file:///app)
-#11 32.51  + websockets==16.0
-#11 DONE 33.1s
+#11 0.789 Using Python 3.12.13 environment at: /usr/local
+#11 5.223 Resolved 94 packages in 4.41s
+#11 5.228    Building wealthspot-api @ file:///app
+#11 5.283 Downloading pygments (1.2MiB)
+#11 5.349 Downloading cryptography (4.3MiB)
+#11 5.349 Downloading pydantic-core (2.0MiB)
+#11 5.350 Downloading sqlalchemy (3.2MiB)
+#11 5.351 Downloading uvloop (4.2MiB)
+#11 5.351 Downloading faker (1.9MiB)
+#11 5.351 Downloading botocore (14.2MiB)
+#11 5.355 Downloading stripe (2.0MiB)
+#11 5.355 Downloading ruff (10.7MiB)
+#11 5.356 Downloading mypy (14.0MiB)
+#11 5.357 Downloading asyncpg (3.4MiB)
+#11 10.67       Built wealthspot-api @ file:///app
+#11 12.90  Downloaded pygments
+#11 16.36  Downloaded faker
+#11 16.61  Downloaded pydantic-core
+#11 16.75  Downloaded stripe
+#11 19.14  Downloaded sqlalchemy
+#11 19.36  Downloaded asyncpg
+#11 20.39  Downloaded uvloop
+#11 20.52  Downloaded cryptography
+#11 27.20  Downloaded ruff
+#11 28.90  Downloaded botocore
+#11 28.97  Downloaded mypy
+#11 28.97 Prepared 94 packages in 23.74s
+#11 29.15 Installed 94 packages in 184ms
+#11 29.15  + aiosqlite==0.22.1
+#11 29.15  + alembic==1.18.4
+#11 29.15  + amqp==5.3.1
+#11 29.15  + annotated-doc==0.0.4
+#11 29.15  + annotated-types==0.7.0
+#11 29.15  + anyio==4.13.0
+#11 29.15  + asyncpg==0.31.0
+#11 29.15  + bcrypt==5.0.0
+#11 29.15  + billiard==4.2.4
+#11 29.15  + boto3==1.42.89
+#11 29.15  + botocore==1.42.89
+#11 29.15  + celery==5.6.3
+#11 29.15  + certifi==2026.2.25
+#11 29.15  + cffi==2.0.0
+#11 29.15  + charset-normalizer==3.4.7
+#11 29.15  + click==8.3.2
+#11 29.15  + click-didyoumean==0.3.1
+#11 29.15  + click-plugins==1.1.1.2
+#11 29.15  + click-repl==0.3.0
+#11 29.15  + coverage==7.13.5
+#11 29.15  + cryptography==46.0.7
+#11 29.15  + dnspython==2.8.0
+#11 29.15  + ecdsa==0.19.2
+#11 29.15  + email-validator==2.3.0
+#11 29.15  + faker==40.13.0
+#11 29.15  + fastapi==0.135.3
+#11 29.15  + fastapi-cli==0.0.24
+#11 29.15  + fastapi-cloud-cli==0.17.0
+#11 29.15  + fastar==0.11.0
+#11 29.15  + greenlet==3.4.0
+#11 29.15  + h11==0.16.0
+#11 29.15  + httpcore==1.0.9
+#11 29.15  + httptools==0.7.1
+#11 29.15  + httpx==0.28.1
+#11 29.15  + idna==3.11
+#11 29.15  + iniconfig==2.3.0
+#11 29.15  + jinja2==3.1.6
+#11 29.15  + jmespath==1.1.0
+#11 29.15  + kombu==5.6.2
+#11 29.15  + librt==0.9.0
+#11 29.15  + mako==1.3.11
+#11 29.15  + markdown-it-py==4.0.0
+#11 29.15  + markupsafe==3.0.3
+#11 29.15  + mdurl==0.1.2
+#11 29.15  + mypy==1.20.1
+#11 29.15  + mypy-extensions==1.1.0
+#11 29.15  + packaging==26.1
+#11 29.15  + passlib==1.7.4
+#11 29.15  + pathspec==1.0.4
+#11 29.15  + pluggy==1.6.0
+#11 29.15  + prompt-toolkit==3.0.52
+#11 29.15  + pyasn1==0.6.3
+#11 29.15  + pycparser==3.0
+#11 29.15  + pydantic==2.13.1
+#11 29.15  + pydantic-core==2.46.1
+#11 29.15  + pydantic-extra-types==2.11.1
+#11 29.15  + pydantic-settings==2.13.1
+#11 29.15  + pygments==2.20.0
+#11 29.15  + pytest==9.0.3
+#11 29.15  + pytest-asyncio==1.3.0
+#11 29.15  + pytest-cov==7.1.0
+#11 29.15  + python-dateutil==2.9.0.post0
+#11 29.15  + python-dotenv==1.2.2
+#11 29.16  + python-jose==3.5.0
+#11 29.16  + python-multipart==0.0.26
+#11 29.16  + pyyaml==6.0.3
+#11 29.16  + razorpay==2.0.1
+#11 29.16  + redis==7.4.0
+#11 29.16  + requests==2.33.1
+#11 29.16  + rich==15.0.0
+#11 29.16  + rich-toolkit==0.19.7
+#11 29.16  + rignore==0.7.6
+#11 29.16  + rsa==4.9.1
+#11 29.16  + ruff==0.15.10
+#11 29.16  + s3transfer==0.16.0
+#11 29.16  + sentry-sdk==2.58.0
+#11 29.16  + shellingham==1.5.4
+#11 29.16  + six==1.17.0
+#11 29.16  + sqlalchemy==2.0.49
+#11 29.16  + starlette==1.0.0
+#11 29.16  + stripe==15.0.1
+#11 29.16  + typer==0.24.1
+#11 29.16  + typing-extensions==4.15.0
+#11 29.16  + typing-inspection==0.4.2
+#11 29.16  + tzdata==2026.1
+#11 29.16  + tzlocal==5.3.1
+#11 29.16  + urllib3==2.6.3
+#11 29.16  + uvicorn==0.44.0
+#11 29.16  + uvloop==0.22.1
+#11 29.16  + vine==5.1.0
+#11 29.16  + watchfiles==1.1.1
+#11 29.16  + wcwidth==0.6.0
+#11 29.16  + wealthspot-api==0.1.0 (from file:///app)
+#11 29.16  + websockets==16.0
+#11 DONE 29.8s
 
 #12 [development 7/7] RUN chmod +x entrypoint.sh
-#12 DONE 0.5s
+#12 DONE 0.4s
 
 #13 exporting to image
 #13 exporting layers
-#13 exporting layers 10.0s done
-#13 exporting manifest sha256:56a8f09dad05c01f556e3f45225edf784abd2d6c6173ff2adecc70580cab165a done
-#13 exporting config sha256:87b715f889221f61c2faf46538f615302b22fe7288554b822866f55a996c4ee3 0.0s done
-#13 exporting attestation manifest sha256:67e3e77701e1485e2977ba7f5a60efdd3395f8f844542fa590448ae5853095f1 0.0s done
-#13 exporting manifest list sha256:01828532a06970928c28afe822b82527b54ae60c82d15cf77b7f77936c01e340 0.0s done
+#13 exporting layers 10.6s done
+#13 exporting manifest sha256:3e0810b5b63dc927c89ad7e3a5cab2f5a8fd320edb1c5abcd30529b96ec912c6 done
+#13 exporting config sha256:f9a42f70b6b24a05e762d4a7b3c222afd983b9df635bd839b85d12a7d2be1e5a done
+#13 exporting attestation manifest sha256:8da51700ed09ab75add17643d8e76255e9cb46c8b5a2691b3c87362a35e9379e 0.0s done
+#13 exporting manifest list sha256:9262d917c97aaef8b83937d3a0881941cf5d42407f84f8d71f46441f287ae354 done
 #13 naming to docker.io/library/wealthspot-api:latest done
 #13 unpacking to docker.io/library/wealthspot-api:latest
-#13 unpacking to docker.io/library/wealthspot-api:latest 3.2s done
-#13 DONE 13.4s
+#13 unpacking to docker.io/library/wealthspot-api:latest 3.8s done
+#13 DONE 14.5s
 
 #14 resolving provenance for metadata file
 #14 DONE 0.0s

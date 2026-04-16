@@ -18,7 +18,7 @@ from app.core.logging_config import setup_logging
 from app.middleware.metrics import MetricsMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_id import RequestIdMiddleware, RequestIdFilter
-from app.routers import admin, analytics, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points, profile, kyc, bank_details, eoi, portfolio, app_videos, profiling, site_content, vault_features
+from app.routers import admin, analytics, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points, profile, kyc, bank_details, eoi, portfolio, app_videos, profiling, site_content, vault_features, builder_updates, appreciation
 
 # Import all models so SQLAlchemy resolves relationship() string references
 import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
@@ -118,6 +118,8 @@ app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(profiling.router, prefix=API_PREFIX)
 app.include_router(site_content.router, prefix=API_PREFIX)
 app.include_router(vault_features.router, prefix=API_PREFIX)
+app.include_router(builder_updates.router, prefix=API_PREFIX)
+app.include_router(appreciation.router, prefix=API_PREFIX)
 
 
 # ── Global exception handler ─────────────────────────────────────────────────

@@ -3,39 +3,18 @@ import StatusBadge from '@/components/wealth/StatusBadge'
 import FundingBar from '@/components/wealth/FundingBar'
 import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { Link } from 'react-router-dom'
-import { PlusCircle, Building2, Search, Eye, Edit, Trash2 } from 'lucide-react'
+import { PlusCircle, Building2, Search, Eye, Edit, Trash2, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { DataTable, Select, type Column } from '@/components/ui'
 import { useContent } from '@/hooks/useSiteContent'
-
-const MOCK_LISTINGS = [
-  {
-    id: '1', title: 'Skyline Towers', city: 'Bengaluru', micromarket: 'Whitefield',
-    assetType: 'Residential', status: 'live' as const, irr: 14.5, minInvest: 50000,
-    raised: 32000000, target: 50000000, investors: 128, image: '',
-  },
-  {
-    id: '2', title: 'Green Valley Residences', city: 'Pune', micromarket: 'Hinjewadi',
-    assetType: 'Residential', status: 'upcoming' as const, irr: 12.0, minInvest: 25000,
-    raised: 0, target: 30000000, investors: 0, image: '',
-  },
-  {
-    id: '3', title: 'Harbour Point Office', city: 'Mumbai', micromarket: 'BKC',
-    assetType: 'Commercial', status: 'funded' as const, irr: 16.2, minInvest: 100000,
-    raised: 75000000, target: 75000000, investors: 184, image: '',
-  },
-  {
-    id: '4', title: 'Warehouse Hub', city: 'Hyderabad', micromarket: 'Shamshabad',
-    assetType: 'Warehouse', status: 'live' as const, irr: 11.8, minInvest: 75000,
-    raised: 18000000, target: 40000000, investors: 67, image: '',
-  },
-]
+import { useBuilderListings, type BuilderListing } from '@/hooks/useBuilderListings'
 
 export default function BuilderListingsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const { listings, isLoading } = useBuilderListings()
 
-  const filtered = MOCK_LISTINGS.filter((l) => {
+  const filtered = listings.filter((l) => {
     if (search && !l.title.toLowerCase().includes(search.toLowerCase())) return false
     if (statusFilter && l.status !== statusFilter) return false
     return true
@@ -82,6 +61,11 @@ export default function BuilderListingsPage() {
         </div>
 
         {/* Table */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20 text-theme-secondary">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading listings…
+          </div>
+        ) : (
         <DataTable
           data={filtered}
           keyExtractor={(l) => l.id}
@@ -155,8 +139,9 @@ export default function BuilderListingsPage() {
                 </div>
               ),
             },
-          ] as Column<typeof filtered[number]>[]}
+          ] as Column<BuilderListing>[]}
         />
+        )}
       </div>
     </PortalLayout>
   )

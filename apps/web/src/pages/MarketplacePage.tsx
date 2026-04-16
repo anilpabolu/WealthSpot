@@ -74,7 +74,7 @@ function FilterSidebar() {
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Status</label>
         <div className="flex flex-wrap gap-2">
-          {(['', 'upcoming', 'funding', 'funded'] as const).map((s) => (
+          {(['', 'active', 'funding', 'funded'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilter('status', s)}
@@ -84,7 +84,7 @@ function FilterSidebar() {
                   : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
-              {s === '' ? 'All' : s === 'upcoming' ? 'Upcoming' : s === 'funding' ? 'Funding' : 'Fully Funded'}
+              {s === '' ? 'All' : s === 'active' ? 'Active' : s === 'funding' ? 'Funding' : 'Fully Funded'}
             </button>
           ))}
         </div>
@@ -238,8 +238,10 @@ export default function MarketplacePage() {
   // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
   const { data: oppsData } = useOpportunities(
     vaultParam
-      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }) }
-      : undefined
+      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }), city: filters.city || undefined, status: filters.status || undefined }
+      : filters.city || filters.status
+        ? { city: filters.city || undefined, status: filters.status || undefined }
+        : undefined
   )
   const opportunities = oppsData?.items ?? []
 

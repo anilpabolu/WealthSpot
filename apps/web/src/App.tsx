@@ -17,6 +17,14 @@ const InvestorDashboard = lazy(() => import('@/pages/InvestorDashboardPage'))
 const InvestorPortfolio = lazy(() => import('@/pages/InvestorPortfolioPage'))
 const BuilderDashboard = lazy(() => import('@/pages/BuilderDashboardPage'))
 const BuilderListings = lazy(() => import('@/pages/BuilderListingsPage'))
+const BuilderListingNew = lazy(() => import('@/pages/BuilderListingNewPage'))
+const BuilderListingDetail = lazy(() => import('@/pages/BuilderListingDetailPage'))
+const BuilderListingEdit = lazy(() => import('@/pages/BuilderListingEditPage'))
+const BuilderInvestors = lazy(() => import('@/pages/BuilderInvestorsPage'))
+const BuilderDocuments = lazy(() => import('@/pages/BuilderDocumentsPage'))
+const BuilderAnalytics = lazy(() => import('@/pages/BuilderAnalyticsPage'))
+const BuilderSettings = lazy(() => import('@/pages/BuilderSettingsPage'))
+const BuilderHelp = lazy(() => import('@/pages/BuilderHelpPage'))
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboardPage'))
 const AdminUsers = lazy(() => import('@/pages/AdminUsersPage'))
 const LenderDashboard = lazy(() => import('@/pages/LenderDashboardPage'))
@@ -171,6 +179,14 @@ export default function App() {
           {/* Builder portal */}
           <Route path="/portal/builder" element={<ProtectedRoute><BuilderDashboard /></ProtectedRoute>} />
           <Route path="/portal/builder/listings" element={<ProtectedRoute><BuilderListings /></ProtectedRoute>} />
+          <Route path="/portal/builder/listings/new" element={<ProtectedRoute><BuilderListingNew /></ProtectedRoute>} />
+          <Route path="/portal/builder/listings/:id" element={<ProtectedRoute><BuilderListingDetail /></ProtectedRoute>} />
+          <Route path="/portal/builder/listings/:id/edit" element={<ProtectedRoute><BuilderListingEdit /></ProtectedRoute>} />
+          <Route path="/portal/builder/investors" element={<ProtectedRoute><BuilderInvestors /></ProtectedRoute>} />
+          <Route path="/portal/builder/documents" element={<ProtectedRoute><BuilderDocuments /></ProtectedRoute>} />
+          <Route path="/portal/builder/analytics" element={<ProtectedRoute><BuilderAnalytics /></ProtectedRoute>} />
+          <Route path="/portal/builder/settings" element={<ProtectedRoute><BuilderSettings /></ProtectedRoute>} />
+          <Route path="/portal/builder/help" element={<ProtectedRoute><BuilderHelp /></ProtectedRoute>} />
 
           {/* Admin portal */}
           <Route path="/portal/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

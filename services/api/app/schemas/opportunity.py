@@ -96,6 +96,8 @@ class OpportunityRead(BaseModel):
     collaboration_type: str | None = None
     community_subtype: str | None = None
     community_details: dict | None = None
+    project_phase: str | None = None
+    current_valuation: float | None = None
     cover_image: str | None = None
     video_url: str | None = None
     gallery: list[str] | None = None
@@ -153,6 +155,7 @@ class OpportunityCreateRequest(BaseModel):
     collaboration_type: str | None = None
     community_subtype: str | None = None
     community_details: dict | None = None
+    project_phase: str | None = None
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -187,8 +190,11 @@ class OpportunityUpdateRequest(BaseModel):
     community_subtype: str | None = None
     community_details: dict | None = None
     # Lifecycle
+    project_phase: str | None = None
     closing_date: datetime | None = None
     status: str | None = None
+    # Investment management (admin only)
+    cancel_investments: bool = False
 
 
 class VaultStatsResponse(BaseModel):
@@ -199,3 +205,63 @@ class VaultStatsResponse(BaseModel):
     opportunity_count: int
     expected_irr: float | None = None
     actual_irr: float | None = None
+    explorer_count: int = 0
+    dna_investor_count: int = 0
+
+
+# ── Builder investor / analytics schemas ────────────────────────────────────
+
+
+class BuilderInvestorItem(BaseModel):
+    investor_id: uuid.UUID
+    investor_name: str
+    investor_email: str
+    investor_avatar: str | None = None
+    opportunity_id: uuid.UUID
+    opportunity_title: str
+    opportunity_slug: str
+    amount: float
+    invested_at: datetime
+    status: str
+
+
+class BuilderInvestorsResponse(BaseModel):
+    investors: list[BuilderInvestorItem]
+    total_investors: int
+    total_invested: float
+
+
+class BuilderOpportunityBreakdown(BaseModel):
+    id: uuid.UUID
+    title: str
+    slug: str
+    status: str
+    vault_type: str
+    city: str | None = None
+    raised_amount: float = 0
+    target_amount: float = 0
+    investor_count: int = 0
+    funding_pct: float = 0
+    created_at: datetime
+
+
+class BuilderMonthlyTrend(BaseModel):
+    month: str
+    amount: float
+    count: int
+
+
+class BuilderCityDistribution(BaseModel):
+    city: str
+    count: int
+    total_raised: float
+
+
+class BuilderAnalyticsResponse(BaseModel):
+    total_raised: float
+    total_target: float
+    investor_count: int
+    opportunity_count: int
+    opportunities: list[BuilderOpportunityBreakdown]
+    monthly_trends: list[BuilderMonthlyTrend]
+    city_distribution: list[BuilderCityDistribution]

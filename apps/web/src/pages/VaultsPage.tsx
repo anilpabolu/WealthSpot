@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer'
 import { useProfilingProgress, useOverallProgress } from '@/hooks/useProfiling'
 import {
   Building2,
+  Compass,
   Rocket,
   Users,
   TrendingUp,
@@ -246,7 +247,7 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
 type MetricDef = {
   label: string
   icon: LucideIcon
-  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number } | undefined, vaultId: string) => string
+  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number } | undefined, vaultId: string) => string
 }
 
 export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
@@ -343,13 +344,23 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
     icon: MapPin,
     resolve: () => '—',
   },
+  explorer_count: {
+    label: 'Explorers',
+    icon: Compass,
+    resolve: (s) => (s ? s.explorerCount.toLocaleString('en-IN') : '—'),
+  },
+  dna_investor_count: {
+    label: 'DNA Investors',
+    icon: UserCheck,
+    resolve: (s) => (s ? s.dnaInvestorCount.toLocaleString('en-IN') : '—'),
+  },
 }
 
 /* All available metric keys per vault (for admin UI) */
 export const ALL_VAULT_METRICS: Record<string, string[]> = {
-  wealth: ['total_invested', 'investor_count', 'properties_listed', 'avg_occupancy', 'avg_rental_yield'],
-  opportunity: ['total_invested', 'investor_count', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
-  community: ['total_invested', 'investor_count', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
+  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'properties_listed', 'avg_occupancy', 'avg_rental_yield'],
+  opportunity: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
+  community: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
 }
 
 function VaultCard({
@@ -365,7 +376,7 @@ function VaultCard({
   onCommunityExplore,
 }: {
   vault: (typeof VAULTS)[number]
-  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number }
+  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number }
   opportunities: OpportunityItem[]
   profilingPct: number
   archetype?: string | null

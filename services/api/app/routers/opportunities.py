@@ -16,6 +16,7 @@ from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
 from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
 from app.models.opportunity_like import OpportunityLike, UserActivity
+from app.models.profiling import UserProfileAnswer, VaultProfileQuestion
 from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
 from app.schemas.opportunity import (
@@ -42,16 +43,28 @@ def _slugify(text: str) -> str:
 @router.get("", response_model=PaginatedOpportunities)
 async def list_opportunities(
     db: AsyncSession = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
     vault_type: VaultType | None = Query(None),
     status: OpportunityStatus | None = Query(None),
     city: str | None = Query(None),
     community_subtype: str | None = Query(None, description="Filter community opportunities: co_investor or co_partner"),
+    creator_id: str | None = Query(None, description="Filter by creator. Use 'me' for current user."),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> PaginatedOpportunities:
     """List opportunities (public / marketplace-facing)."""
     query = select(Opportunity)
     count_query = select(func.count(Opportunity.id))
+
+    # Resolve 'me' to current user's ID
+    resolved_creator_id: _uuid.UUID | None = None
+    if creator_id:
+        if creator_id == "me":
+            if not user:
+                raise HTTPException(status_code=401, detail="Authentication required for creator_id=me")
+            resolved_creator_id = user.id
+        else:
+            resolved_creator_id = _uuid.UUID(creator_id)
 
     # Hide archived opportunities unless explicitly requested
     if status != OpportunityStatus.ARCHIVED:
@@ -70,6 +83,9 @@ async def list_opportunities(
     if community_subtype:
         query = query.where(Opportunity.community_subtype == community_subtype)
         count_query = count_query.where(Opportunity.community_subtype == community_subtype)
+    if resolved_creator_id:
+        query = query.where(Opportunity.creator_id == resolved_creator_id)
+        count_query = count_query.where(Opportunity.creator_id == resolved_creator_id)
 
     total = (await db.execute(count_query)).scalar() or 0
     total_pages = max(1, math.ceil(total / page_size))
@@ -77,7 +93,35 @@ async def list_opportunities(
     query = query.order_by(Opportunity.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(query)
-    items = [OpportunityRead.model_validate(r) for r in result.scalars().all()]
+    opps = result.scalars().all()
+
+    # Compute live investor_count and raised_amount from OpportunityInvestment
+    opp_ids = [o.id for o in opps]
+    live_stats: dict[_uuid.UUID, tuple[int, float]] = {}
+    if opp_ids:
+        stats_q = (
+            select(
+                OpportunityInvestment.opportunity_id,
+                func.count(func.distinct(OpportunityInvestment.user_id)).label("inv_count"),
+                func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("raised"),
+            )
+            .where(
+                OpportunityInvestment.opportunity_id.in_(opp_ids),
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+            )
+            .group_by(OpportunityInvestment.opportunity_id)
+        )
+        stats_result = await db.execute(stats_q)
+        for row in stats_result.all():
+            live_stats[row.opportunity_id] = (int(row.inv_count), float(row.raised))
+
+    items = []
+    for o in opps:
+        read = OpportunityRead.model_validate(o)
+        inv_count, raised = live_stats.get(o.id, (0, 0.0))
+        read.investor_count = inv_count
+        read.raised_amount = raised
+        items.append(read)
 
     return PaginatedOpportunities(
         items=items,
@@ -111,12 +155,13 @@ def _compute_irr(investments: list, total_invested: float) -> float | None:
 async def vault_stats(
     db: AsyncSession = Depends(get_db),
 ) -> list[VaultStatsResponse]:
-    """Return aggregated stats per vault (total invested, investor count, IRR)."""
+    """Return aggregated stats per vault (total invested, investor count, IRR, explorer count)."""
     active_statuses = [
         OpportunityStatus.APPROVED,
         OpportunityStatus.ACTIVE,
         OpportunityStatus.FUNDING,
         OpportunityStatus.FUNDED,
+        OpportunityStatus.CLOSED,
     ]
 
     # Single aggregation query for counts + investment stats per vault type
@@ -169,6 +214,40 @@ async def vault_stats(
         total = float(agg_row.total_invested) if agg_row else 0.0
         actual_irr_map[vt] = _compute_irr(inv_by_vault[vt], total) if total > 0 else None
 
+    # Total active questions per vault type
+    q_count_q = (
+        select(
+            VaultProfileQuestion.vault_type,
+            func.count(VaultProfileQuestion.id).label("total_q"),
+        )
+        .where(VaultProfileQuestion.is_active.is_(True))
+        .group_by(VaultProfileQuestion.vault_type)
+    )
+    q_count_result = await db.execute(q_count_q)
+    total_q_map = {row.vault_type: int(row.total_q) for row in q_count_result.fetchall()}
+
+    # Per-user answer counts grouped by vault type
+    user_answer_q = (
+        select(
+            UserProfileAnswer.vault_type,
+            UserProfileAnswer.user_id,
+            func.count(UserProfileAnswer.id).label("answered"),
+        )
+        .group_by(UserProfileAnswer.vault_type, UserProfileAnswer.user_id)
+    )
+    user_answer_result = await db.execute(user_answer_q)
+
+    # Split into explorers (started but not completed) and dna_investors (completed)
+    explorer_map: dict[str, int] = {}
+    dna_investor_map: dict[str, int] = {}
+    for row in user_answer_result.fetchall():
+        vt_str = row.vault_type
+        total_q = total_q_map.get(vt_str, 0)
+        if total_q > 0 and int(row.answered) >= total_q:
+            dna_investor_map[vt_str] = dna_investor_map.get(vt_str, 0) + 1
+        else:
+            explorer_map[vt_str] = explorer_map.get(vt_str, 0) + 1
+
     results = []
     for vt in VaultType:
         agg_row = agg_rows.get(vt)
@@ -179,9 +258,216 @@ async def vault_stats(
             opportunity_count=int(agg_row.opp_count) if agg_row else 0,
             expected_irr=round(float(irr_map[vt]), 2) if vt in irr_map and irr_map[vt] else None,
             actual_irr=actual_irr_map.get(vt),
+            explorer_count=explorer_map.get(vt.value, 0),
+            dna_investor_count=dna_investor_map.get(vt.value, 0),
         ))
 
     return results
+
+
+# ── Builder-scoped endpoints ────────────────────────────────────────────────
+
+
+@router.get("/builder/investors")
+async def builder_investors(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Return all investors across the current user's opportunities."""
+    from app.schemas.opportunity import BuilderInvestorItem, BuilderInvestorsResponse
+
+    # Get all opportunity IDs owned by this user
+    opp_q = select(Opportunity.id).where(Opportunity.creator_id == user.id)
+    opp_result = await db.execute(opp_q)
+    opp_ids = [row[0] for row in opp_result.all()]
+
+    if not opp_ids:
+        return BuilderInvestorsResponse(
+            investors=[], total_investors=0, total_invested=0
+        ).model_dump()
+
+    # Join investments + users + opportunities
+    stmt = (
+        select(
+            OpportunityInvestment.user_id,
+            OpportunityInvestment.amount,
+            OpportunityInvestment.invested_at,
+            OpportunityInvestment.status,
+            OpportunityInvestment.opportunity_id,
+            Opportunity.title,
+            Opportunity.slug,
+            User.full_name,
+            User.email,
+            User.avatar_url,
+        )
+        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
+        .join(User, User.id == OpportunityInvestment.user_id)
+        .where(
+            OpportunityInvestment.opportunity_id.in_(opp_ids),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .order_by(OpportunityInvestment.invested_at.desc())
+    )
+    rows = (await db.execute(stmt)).all()
+
+    investors = []
+    unique_investors: set[_uuid.UUID] = set()
+    total_invested = 0.0
+
+    for row in rows:
+        unique_investors.add(row.user_id)
+        total_invested += float(row.amount)
+        investors.append(BuilderInvestorItem(
+            investor_id=row.user_id,
+            investor_name=row.full_name or "Unknown",
+            investor_email=row.email,
+            investor_avatar=row.avatar_url,
+            opportunity_id=row.opportunity_id,
+            opportunity_title=row.title,
+            opportunity_slug=row.slug,
+            amount=float(row.amount),
+            invested_at=row.invested_at,
+            status=row.status.value if hasattr(row.status, 'value') else str(row.status),
+        ))
+
+    return BuilderInvestorsResponse(
+        investors=investors,
+        total_investors=len(unique_investors),
+        total_invested=total_invested,
+    ).model_dump()
+
+
+@router.get("/builder/analytics")
+async def builder_analytics(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Builder-scoped analytics for the current user's opportunities."""
+    from app.schemas.opportunity import (
+        BuilderAnalyticsResponse,
+        BuilderOpportunityBreakdown,
+        BuilderMonthlyTrend,
+        BuilderCityDistribution,
+    )
+
+    # Fetch all opportunities by this creator
+    opp_q = (
+        select(Opportunity)
+        .where(
+            Opportunity.creator_id == user.id,
+            Opportunity.status != OpportunityStatus.ARCHIVED,
+        )
+        .order_by(Opportunity.created_at.desc())
+    )
+    opps = (await db.execute(opp_q)).scalars().all()
+
+    if not opps:
+        return BuilderAnalyticsResponse(
+            total_raised=0, total_target=0, investor_count=0, opportunity_count=0,
+            opportunities=[], monthly_trends=[], city_distribution=[],
+        ).model_dump()
+
+    opp_ids = [o.id for o in opps]
+
+    # Aggregate investment stats per opportunity
+    stats_q = (
+        select(
+            OpportunityInvestment.opportunity_id,
+            func.count(func.distinct(OpportunityInvestment.user_id)).label("inv_count"),
+            func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("raised"),
+        )
+        .where(
+            OpportunityInvestment.opportunity_id.in_(opp_ids),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .group_by(OpportunityInvestment.opportunity_id)
+    )
+    stats_result = await db.execute(stats_q)
+    stats_map = {row.opportunity_id: (int(row.inv_count), float(row.raised)) for row in stats_result.all()}
+
+    total_raised = 0.0
+    total_target = 0.0
+    all_investor_ids: set[_uuid.UUID] = set()
+    opp_breakdowns = []
+
+    for opp in opps:
+        inv_count, raised = stats_map.get(opp.id, (0, 0.0))
+        target = float(opp.target_amount or 0)
+        total_raised += raised
+        total_target += target
+        funding_pct = (raised / target * 100) if target > 0 else 0
+
+        opp_breakdowns.append(BuilderOpportunityBreakdown(
+            id=opp.id,
+            title=opp.title,
+            slug=opp.slug,
+            status=opp.status.value if hasattr(opp.status, 'value') else str(opp.status),
+            vault_type=opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type),
+            city=opp.city,
+            raised_amount=raised,
+            target_amount=target,
+            investor_count=inv_count,
+            funding_pct=round(funding_pct, 1),
+            created_at=opp.created_at,
+        ))
+
+    # Unique investor count across all opps
+    if opp_ids:
+        unique_inv_q = (
+            select(func.count(func.distinct(OpportunityInvestment.user_id)))
+            .where(
+                OpportunityInvestment.opportunity_id.in_(opp_ids),
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+            )
+        )
+        unique_count = (await db.execute(unique_inv_q)).scalar() or 0
+    else:
+        unique_count = 0
+
+    # Monthly investment trends (last 12 months)
+    monthly_q = (
+        select(
+            func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM').label("month"),
+            func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("amount"),
+            func.count(OpportunityInvestment.id).label("count"),
+        )
+        .where(
+            OpportunityInvestment.opportunity_id.in_(opp_ids),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .group_by(func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM'))
+        .order_by(func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM'))
+    )
+    monthly_result = await db.execute(monthly_q)
+    monthly_trends = [
+        BuilderMonthlyTrend(month=row.month, amount=float(row.amount), count=int(row.count))
+        for row in monthly_result.all()
+    ]
+
+    # City distribution
+    city_map: dict[str, dict] = {}
+    for opp in opps:
+        city = opp.city or "Unknown"
+        inv_count, raised = stats_map.get(opp.id, (0, 0.0))
+        if city not in city_map:
+            city_map[city] = {"count": 0, "total_raised": 0.0}
+        city_map[city]["count"] += 1
+        city_map[city]["total_raised"] += raised
+
+    city_distribution = [
+        BuilderCityDistribution(city=city, count=data["count"], total_raised=data["total_raised"])
+        for city, data in sorted(city_map.items(), key=lambda x: x[1]["total_raised"], reverse=True)
+    ]
+
+    return BuilderAnalyticsResponse(
+        total_raised=total_raised,
+        total_target=total_target,
+        investor_count=unique_count,
+        opportunity_count=len(opps),
+        opportunities=opp_breakdowns,
+        monthly_trends=monthly_trends,
+        city_distribution=city_distribution,
+    ).model_dump()
 
 
 @router.get("/by-slug/{slug}", response_model=OpportunityRead)
@@ -376,8 +662,42 @@ async def update_opportunity(
     if is_creator and opp.status not in (OpportunityStatus.DRAFT, OpportunityStatus.PENDING_APPROVAL):
         raise HTTPException(status_code=400, detail="Cannot edit opportunity in current status")
 
-    # Apply partial update
+    # Detect backward status transition and handle investment cancellation
+    STATUS_ORDER = [
+        OpportunityStatus.DRAFT,
+        OpportunityStatus.PENDING_APPROVAL,
+        OpportunityStatus.APPROVED,
+        OpportunityStatus.ACTIVE,
+        OpportunityStatus.FUNDING,
+        OpportunityStatus.FUNDED,
+        OpportunityStatus.CLOSED,
+    ]
+
     update_data = body.model_dump(exclude_unset=True)
+    cancel_investments = update_data.pop("cancel_investments", False)
+    new_status_str = update_data.get("status")
+
+    if new_status_str and cancel_investments and is_approver:
+        try:
+            new_status = OpportunityStatus(new_status_str)
+        except ValueError:
+            new_status = None
+        if new_status:
+            old_idx = STATUS_ORDER.index(opp.status) if opp.status in STATUS_ORDER else -1
+            new_idx = STATUS_ORDER.index(new_status) if new_status in STATUS_ORDER else -1
+            if old_idx > new_idx >= 0:
+                # Backward transition — cancel confirmed investments
+                from sqlalchemy import update as sql_update
+                await db.execute(
+                    sql_update(OpportunityInvestment)
+                    .where(
+                        OpportunityInvestment.opportunity_id == opp.id,
+                        OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+                    )
+                    .values(status=OppInvestmentStatus.CANCELLED)
+                )
+
+    # Apply partial update
     for field_name, value in update_data.items():
         if field_name == "company_id" and value:
             setattr(opp, field_name, _uuid.UUID(value))

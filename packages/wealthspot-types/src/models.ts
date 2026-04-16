@@ -465,6 +465,8 @@ export interface VaultStats {
   opportunity_count: number;
   expected_irr: number | null;
   actual_irr: number | null;
+  explorer_count: number;
+  dna_investor_count: number;
 }
 
 export interface OpportunityCreate {

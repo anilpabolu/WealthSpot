@@ -6,21 +6,23 @@ import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useOpportunityBySlug } from '@/hooks/useOpportunities'
 import { useLikeStatus, useToggleLike, useTrackShare, usePropertyReferralCode } from '@/hooks/useOpportunityActions'
 import ShareModal from '@/components/share/ShareModal'
-import { formatINR, formatINRCompact, daysRemaining } from '@/lib/formatters'
+import { formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
   MapPin, Calendar, Users, Building2,
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Shield, Ruler, FolderKanban, BadgeCheck,
+  TrendingUp,
 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
-import { useMyMatchScore, useProfilingProgress } from '@/hooks/useProfiling'
-import { ProfilePrompt } from '@/components/profiling/MatchScoreBadge'
 import { EmptyState } from '@/components/ui'
-import { OpportunityMatchesPanel, InvestorSuitabilityPanel } from '@/components/profiling'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import { useProfilingProgress } from '@/hooks/useProfiling'
+import ProfilingGateModal from '@/components/profiling/ProfilingGateModal'
+import { useAppreciationHistory } from '@/hooks/useAppreciation'
 
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
@@ -360,65 +362,27 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
   )
 }
 
-/* ── Match Score Section — shows score or profile prompt ─────────────── */
-
-function MatchScoreSection({ opportunityId, vaultType, creatorId, opportunityCity, opportunityIndustry, opportunityStage, minInvestment }: {
-  opportunityId: string; vaultType: string; creatorId: string;
-  opportunityCity?: string | null; opportunityIndustry?: string | null;
-  opportunityStage?: string | null; minInvestment?: number | null;
-}) {
-  const { data: matchScore, isLoading: matchLoading } = useMyMatchScore(opportunityId)
-  const { data: progress } = useProfilingProgress(vaultType)
-  const userId = useUserStore((s) => s.user?.id)
-  const userRole = useUserStore((s) => s.user?.role)
-  const isCreator = userId === creatorId
-  const isAdminOrBuilder = userRole === 'admin' || userRole === 'super_admin' || userRole === 'builder'
-
-  if (matchLoading) {
-    return <div className="card p-6 animate-pulse"><div className="h-20 bg-theme-surface-hover rounded-xl" /></div>
-  }
-
-  // Admin / Builder / Creator → show matched investors panel
-  if (isCreator || isAdminOrBuilder) {
-    return <OpportunityMatchesPanel opportunityId={opportunityId} vaultType={vaultType} />
-  }
-
-  // Normal user with computed match score → show suitability analysis
-  if (matchScore) {
-    return (
-      <InvestorSuitabilityPanel
-        score={matchScore}
-        vaultType={vaultType}
-        opportunityCity={opportunityCity}
-        opportunityIndustry={opportunityIndustry}
-        opportunityStage={opportunityStage}
-        minInvestment={minInvestment}
-      />
-    )
-  }
-
-  // If profile not completed, show prompt
-  if (!progress || progress.completionPct < 100) {
-    return <ProfilePrompt vaultType={vaultType} />
-  }
-
-  // Profile done but no score yet — could be pending computation
-  return (
-    <div className="card p-5 text-center">
-      <p className="text-sm text-theme-secondary">
-        Your match score is being computed...
-      </p>
-    </div>
-  )
-}
-
 export default function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { data: opp, isLoading } = useOpportunityBySlug(slug ?? '')
-  const { propertyVideosEnabled } = useVaultConfig()
+  const { propertyVideosEnabled, reraDisplayEnabled } = useVaultConfig()
   const [showShareModal, setShowShareModal] = useState(false)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
+  const [showProfilingGate, setShowProfilingGate] = useState(false)
+
+  // Auth / role
+  const userRole = useUserStore((s) => s.user?.role)
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const isInvestorRole = userRole === 'investor'
+
+  // Vault-specific DNA profiling progress (for gating)
+  const { data: profilingProgress } = useProfilingProgress(opp?.vaultType ?? '')
+  const dnaComplete = profilingProgress?.isComplete ?? false
+  // Gate: investor who hasn't completed this vault's DNA
+  const needsProfilingGate = isAuthenticated && isInvestorRole && !dnaComplete
+
+  const { data: appreciationHistory } = useAppreciationHistory(opp?.id ?? '')
 
   // Like state
   const { data: likeData } = useLikeStatus(opp?.id ?? '')
@@ -436,6 +400,11 @@ export default function OpportunityDetailPage() {
     trackShare.mutate(opp.id)
     setShowShareModal(true)
   }
+
+  // Auto-trigger profiling gate for investors without vault DNA (must be before early returns)
+  useEffect(() => {
+    if (needsProfilingGate && opp) setShowProfilingGate(true)
+  }, [needsProfilingGate, opp])
 
   if (isLoading) {
     return (
@@ -465,6 +434,7 @@ export default function OpportunityDetailPage() {
 
   // Build gallery: prefer media with isCover, then gallery array, then coverImage
   const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage
+
   const galleryImages = opp.media?.length
     ? opp.media.map(m => m.url)
     : (coverUrl ? [coverUrl] : [])
@@ -546,48 +516,96 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
-            {/* Key Details */}
-            <div className="card p-6">
-              <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Key Details</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {opp.targetAmount != null && (
-                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
-                    <span className="text-lg">₹</span>
+            {/* Vault-Specific Project Details */}
+            {(() => {
+              const details: Array<{ label: string; value: string; icon: typeof Calendar }> = []
+              // Project phase (any vault — shows current construction/progress phase)
+              if (opp.projectPhase)
+                details.push({ label: 'Current Phase', value: opp.projectPhase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
+              // Wealth vault: RERA (conditionally shown via vault config)
+              if (reraDisplayEnabled && opp.company && (opp.company as CompanyData).reraNumber)
+                details.push({ label: 'RERA Number', value: (opp.company as CompanyData).reraNumber!, icon: Shield })
+              // Wealth vault: Entity Type
+              if (opp.company && (opp.company as CompanyData).entityType)
+                details.push({ label: 'Entity Type', value: (opp.company as CompanyData).entityType!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: Building2 })
+              // Opportunity vault: Stage & Industry
+              if (opp.stage)
+                details.push({ label: 'Stage', value: opp.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
+              if (opp.industry)
+                details.push({ label: 'Sector / Industry', value: opp.industry, icon: Globe })
+              // Community vault: Community Type & Collaboration
+              if (opp.communityType)
+                details.push({ label: 'Community Type', value: opp.communityType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: Users })
+              if (opp.collaborationType)
+                details.push({ label: 'Collaboration', value: opp.collaborationType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: HandCoins })
+              // Launch date (any vault)
+              if (opp.launchDate)
+                details.push({ label: 'Launch Date', value: new Date(opp.launchDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), icon: Calendar })
+
+              if (details.length === 0) return null
+              return (
+                <div className="card p-6">
+                  <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Project Details</h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {details.map(d => {
+                      const Icon = d.icon
+                      return (
+                        <div key={d.label} className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                          <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
+                          <div>
+                            <p className="text-xs text-theme-secondary">{d.label}</p>
+                            <p className="text-sm font-semibold text-theme-primary">{d.value}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Valuation / Appreciation Card */}
+            {opp.currentValuation && opp.raisedAmount > 0 && (() => {
+              const appAmt = opp.currentValuation - opp.raisedAmount
+              const appPct = (appAmt / opp.raisedAmount) * 100
+              return (
+                <div className="card p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-700/40">
+                  <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-emerald-500" /> Valuation
+                  </h2>
+                  <div className="grid grid-cols-3 gap-4 mb-3">
                     <div>
-                      <p className="text-xs text-theme-secondary">Target Amount</p>
-                      <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(opp.targetAmount)}</p>
+                      <p className="text-xs text-theme-secondary">Invested</p>
+                      <p className="text-sm font-bold text-theme-primary">{formatINRCompact(opp.raisedAmount)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-theme-secondary">Current Value</p>
+                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatINRCompact(opp.currentValuation)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-theme-secondary">Appreciation</p>
+                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{appPct.toFixed(1)}%</p>
                     </div>
                   </div>
-                )}
-                {opp.minInvestment != null && (
-                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
-                    <span className="text-lg">₹</span>
-                    <div>
-                      <p className="text-xs text-theme-secondary">Min. Investment</p>
-                      <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(opp.minInvestment)}</p>
+                  {/* Recent appreciation events */}
+                  {appreciationHistory && appreciationHistory.length > 0 && (
+                    <div className="border-t border-emerald-200 dark:border-emerald-700/40 pt-3 mt-1">
+                      <p className="text-xs font-medium text-theme-secondary mb-2">Recent Updates</p>
+                      <div className="space-y-1.5">
+                        {appreciationHistory.slice(0, 3).map((evt) => (
+                          <div key={evt.id} className="flex items-center justify-between text-xs">
+                            <span className="text-emerald-700 dark:text-emerald-300 font-medium">
+                              {evt.mode === 'percentage' ? `+${evt.inputValue}%` : `+${formatINRCompact(evt.inputValue)}`}
+                            </span>
+                            <span className="text-theme-tertiary">{new Date(evt.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {opp.investorCount > 0 && (
-                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
-                    <Users className="h-5 w-5 text-theme-tertiary" />
-                    <div>
-                      <p className="text-xs text-theme-secondary">Investors</p>
-                      <p className="text-sm font-semibold text-theme-primary">{opp.investorCount}</p>
-                    </div>
-                  </div>
-                )}
-                {opp.closingDate && (
-                  <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
-                    <Calendar className="h-5 w-5 text-theme-tertiary" />
-                    <div>
-                      <p className="text-xs text-theme-secondary">Closing Date</p>
-                      <p className="text-sm font-semibold text-theme-primary">{new Date(opp.closingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Location */}
             {(opp.address || opp.addressLine1 || opp.city) && (
@@ -665,30 +683,24 @@ export default function OpportunityDetailPage() {
             )}
           </div>
 
-          {/* Right — Interest Panel + Match Score */}
-          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
-            <InterestPanel opportunity={{
-              id: opp.id,
-              title: opp.title,
-              status: opp.status,
-              raisedAmount: opp.raisedAmount,
-              targetAmount: opp.targetAmount,
-              minInvestment: opp.minInvestment,
-              investorCount: opp.investorCount,
-              targetIrr: opp.targetIrr,
-              closingDate: opp.closingDate,
-            }} />
+          {/* Right — Interest Panel + Builder Updates */}
+          <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
+            <div className="mb-6">
+              <InterestPanel opportunity={{
+                id: opp.id,
+                title: opp.title,
+                status: opp.status,
+                raisedAmount: opp.raisedAmount,
+                targetAmount: opp.targetAmount,
+                minInvestment: opp.minInvestment,
+                investorCount: opp.investorCount,
+                targetIrr: opp.targetIrr,
+                closingDate: opp.closingDate,
+              }} />
+            </div>
 
-            {/* Match Score or Profile Prompt */}
-            <MatchScoreSection
-              opportunityId={opp.id}
-              vaultType={opp.vaultType}
-              creatorId={opp.creatorId}
-              opportunityCity={opp.city}
-              opportunityIndustry={opp.industry}
-              opportunityStage={opp.stage}
-              minInvestment={opp.minInvestment}
-            />
+            {/* Builder Updates — separate section */}
+            <BuilderUpdatesPanel opportunityId={opp.id} />
           </div>
         </div>
         </div>
@@ -730,6 +742,15 @@ export default function OpportunityDetailPage() {
         <CompanyInfoModal
           company={opp.company}
           onClose={() => setShowCompanyModal(false)}
+        />
+      )}
+
+      {/* Profiling gate modal for explorers */}
+      {showProfilingGate && opp && (
+        <ProfilingGateModal
+          vaultType={opp.vaultType}
+          onClose={() => setShowProfilingGate(false)}
+          onComplete={() => setShowProfilingGate(false)}
         />
       )}
     </MainLayout>

@@ -41,3 +41,5 @@ from app.models.profiling import (  # noqa: F401
     OpportunityCustomQuestion, OpportunityApplicationAnswer,
     ProfileMatchScore, PersonalityDimension,
 )
+from app.models.builder_update import BuilderUpdate, BuilderUpdateAttachment  # noqa: F401
+from app.models.appreciation_event import AppreciationEvent  # noqa: F401

@@ -56,6 +56,8 @@ export interface OpportunityItem {
   collaborationType: string | null
   communitySubtype: string | null
   communityDetails: Record<string, unknown> | null
+  projectPhase: string | null
+  currentValuation: number | null
   coverImage: string | null
   videoUrl: string | null
   companyId: string | null
@@ -83,6 +85,8 @@ export interface VaultStats {
   opportunityCount: number
   expectedIrr: number | null
   actualIrr: number | null
+  explorerCount: number
+  dnaInvestorCount: number
 }
 
 export interface OpportunityCreatePayload {
@@ -118,9 +122,13 @@ export interface OpportunityCreatePayload {
   communityDetails?: Record<string, unknown>
 }
 
-export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload>
+export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {
+  status?: string
+  closingDate?: string
+  cancelInvestments?: boolean
+}
 
-export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number; communitySubtype?: string }) {
+export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number; communitySubtype?: string; city?: string }) {
   return useQuery({
     queryKey: ['opportunities', params],
     queryFn: () =>
@@ -129,6 +137,7 @@ export function useOpportunities(params?: { vaultType?: string; status?: string;
           ...(params?.vaultType && { vault_type: params.vaultType }),
           ...(params?.status && { status: params.status }),
           ...(params?.communitySubtype && { community_subtype: params.communitySubtype }),
+          ...(params?.city && { city: params.city }),
           page: params?.page ?? 1,
         },
       }),
@@ -220,6 +229,9 @@ export function useUpdateOpportunity() {
         ...(data.collaborationType !== undefined && { collaboration_type: data.collaborationType }),
         ...(data.communitySubtype !== undefined && { community_subtype: data.communitySubtype }),
         ...(data.communityDetails !== undefined && { community_details: data.communityDetails }),
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.closingDate !== undefined && { closing_date: data.closingDate }),
+        ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })

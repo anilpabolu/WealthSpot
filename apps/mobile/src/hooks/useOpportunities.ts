@@ -67,6 +67,7 @@ export interface OpportunityItem {
   communityType: string | null
   collaborationType: string | null
   coverImage: string | null
+  currentValuation: number | null
   videoUrl: string | null
   companyId: string | null
   investorCount: number

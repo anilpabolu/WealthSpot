@@ -19,6 +19,7 @@ from app.models.eoi_stage_history import EoiStageHistory
 from app.models.expression_of_interest import EOIStatus, ExpressionOfInterest
 from app.models.notification import NotificationType
 from app.models.opportunity import Opportunity
+from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
 from app.models.user import User, UserRole
 from app.schemas.eoi import (
     BuilderQuestionCreate,
@@ -350,12 +351,43 @@ async def admin_update_eoi_status(
     if not eoi:
         raise HTTPException(status_code=404, detail="EOI not found")
 
+    old_status = eoi.status
     eoi.status = EOIStatus(new_status)
     db.add(EoiStageHistory(
         eoi_id=eoi.id,
         status=new_status,
         changed_by=user.id,
     ))
+
+    # When deal is completed, create OpportunityInvestment + update opportunity stats
+    if new_status == "deal_completed" and old_status != EOIStatus.DEAL_COMPLETED:
+        amount = eoi.investment_amount
+        if amount and amount > 0:
+            # Prevent duplicate investment records
+            existing = await db.execute(
+                select(OpportunityInvestment).where(
+                    OpportunityInvestment.opportunity_id == eoi.opportunity_id,
+                    OpportunityInvestment.user_id == eoi.user_id,
+                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+                )
+            )
+            if not existing.scalar_one_or_none():
+                db.add(OpportunityInvestment(
+                    opportunity_id=eoi.opportunity_id,
+                    user_id=eoi.user_id,
+                    amount=amount,
+                    units=eoi.num_units or 1,
+                    status=OppInvestmentStatus.CONFIRMED,
+                ))
+                # Update opportunity raised_amount and investor_count
+                opp_result = await db.execute(
+                    select(Opportunity).where(Opportunity.id == eoi.opportunity_id)
+                )
+                opp = opp_result.scalar_one_or_none()
+                if opp:
+                    opp.raised_amount = (opp.raised_amount or 0) + amount
+                    opp.investor_count = (opp.investor_count or 0) + 1
+
     await db.flush()
     await db.refresh(eoi)
     return EOIRead.model_validate(eoi)

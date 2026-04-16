@@ -3,8 +3,9 @@ import { useState } from 'react'
 import { Select, DataTable, Badge, type Column } from '@/components/ui'
 import {
   Users, Shield, Search, MoreHorizontal,
-  CheckCircle, XCircle, Clock, Eye, Ban, UserPlus,
+  CheckCircle, XCircle, Clock, Eye, Ban, UserPlus, Loader2,
 } from 'lucide-react'
+import { useControlUsers } from '@/hooks/useControlCentre'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -13,25 +14,13 @@ type KycStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'UNDER_REVIEW' | 'APPROVED' | '
 
 interface AdminUser {
   id: string
-  full_name: string
+  fullName: string
   email: string
-  role: UserRole
-  kyc_status: KycStatus
-  is_active: boolean
-  created_at: string
-  investment_count?: number
+  role: string
+  kycStatus: string
+  isActive: boolean
+  createdAt: string
 }
-
-// ── Mock Data ─────────────────────────────────────────────────────────────
-
-const MOCK_USERS: AdminUser[] = [
-  { id: '1', full_name: 'Anita Verma', email: 'anita@email.com', role: 'investor', kyc_status: 'APPROVED', is_active: true, created_at: '2025-01-15', investment_count: 3 },
-  { id: '2', full_name: 'Vikram Singh', email: 'vikram@email.com', role: 'investor', kyc_status: 'IN_PROGRESS', is_active: true, created_at: '2025-02-20', investment_count: 0 },
-  { id: '3', full_name: 'Rajesh Constructions', email: 'rajesh@builders.com', role: 'builder', kyc_status: 'APPROVED', is_active: true, created_at: '2024-12-01', investment_count: 0 },
-  { id: '4', full_name: 'Meena Capital LLC', email: 'meena@lenders.com', role: 'lender', kyc_status: 'APPROVED', is_active: true, created_at: '2025-03-10', investment_count: 0 },
-  { id: '5', full_name: 'Karan Patel', email: 'karan@email.com', role: 'investor', kyc_status: 'NOT_STARTED', is_active: false, created_at: '2025-05-01', investment_count: 0 },
-  { id: '6', full_name: 'Deepak Sharma', email: 'deepak@email.com', role: 'investor', kyc_status: 'UNDER_REVIEW', is_active: true, created_at: '2025-04-18', investment_count: 1 },
-]
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -57,10 +46,13 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<UserRole | ''>('')
   const [kycFilter, setKycFilter] = useState<KycStatus | ''>('')
 
-  const filtered = MOCK_USERS.filter((u) => {
-    if (search && !u.full_name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false
-    if (roleFilter && u.role !== roleFilter) return false
-    if (kycFilter && u.kyc_status !== kycFilter) return false
+  const { data: users = [], isLoading } = useControlUsers({
+    role: roleFilter || undefined,
+    search: search || undefined,
+  })
+
+  const filtered = users.filter((u) => {
+    if (kycFilter && u.kycStatus !== kycFilter) return false
     return true
   })
 
@@ -71,7 +63,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="section-title text-2xl">User Management</h1>
-            <p className="text-theme-secondary mt-1">{MOCK_USERS.length} registered users</p>
+            <p className="text-theme-secondary mt-1">{users.length} registered users</p>
           </div>
           <button className="btn-primary inline-flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -82,10 +74,10 @@ export default function AdminUsersPage() {
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Users', value: MOCK_USERS.length, icon: Users, color: 'text-primary' },
-            { label: 'Investors', value: MOCK_USERS.filter(u => u.role === 'investor').length, icon: Users, color: 'text-green-600' },
-            { label: 'KYC Pending', value: MOCK_USERS.filter(u => u.kyc_status === 'UNDER_REVIEW').length, icon: Shield, color: 'text-yellow-600' },
-            { label: 'Inactive', value: MOCK_USERS.filter(u => !u.is_active).length, icon: Ban, color: 'text-red-600 dark:text-red-400' },
+            { label: 'Total Users', value: users.length, icon: Users, color: 'text-primary' },
+            { label: 'Investors', value: users.filter(u => u.role === 'investor').length, icon: Users, color: 'text-green-600' },
+            { label: 'KYC Pending', value: users.filter(u => u.kycStatus === 'UNDER_REVIEW').length, icon: Shield, color: 'text-yellow-600' },
+            { label: 'Inactive', value: users.filter(u => !u.isActive).length, icon: Ban, color: 'text-red-600 dark:text-red-400' },
           ].map((stat) => (
             <div key={stat.label} className="stat-card">
               <div className="flex items-center justify-between">
@@ -137,6 +129,11 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Users Table */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20 text-theme-secondary">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading users…
+          </div>
+        ) : (
         <DataTable
           data={filtered}
           keyExtractor={(user) => user.id}
@@ -147,7 +144,7 @@ export default function AdminUsersPage() {
               header: 'User',
               render: (user) => (
                 <div>
-                  <p className="font-medium text-theme-primary">{user.full_name}</p>
+                  <p className="font-medium text-theme-primary">{user.fullName}</p>
                   <p className="text-xs text-theme-secondary">{user.email}</p>
                 </div>
               ),
@@ -156,7 +153,7 @@ export default function AdminUsersPage() {
               key: 'role',
               header: 'Role',
               render: (user) => (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge[user.role]}`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge[user.role as UserRole] ?? 'bg-theme-surface-hover text-theme-secondary'}`}>
                   {user.role}
                 </span>
               ),
@@ -165,10 +162,10 @@ export default function AdminUsersPage() {
               key: 'kyc',
               header: 'KYC Status',
               render: (user) => {
-                const kyc = kycBadge[user.kyc_status]
+                const kyc = kycBadge[user.kycStatus as KycStatus] ?? kycBadge.NOT_STARTED
                 const KycIcon = kyc.icon
                 return (
-                  <Badge variant={user.kyc_status === 'APPROVED' ? 'success' : user.kyc_status === 'REJECTED' ? 'danger' : user.kyc_status === 'UNDER_REVIEW' ? 'warning' : 'info'} icon={<KycIcon className="h-3 w-3" />}>
+                  <Badge variant={user.kycStatus === 'APPROVED' ? 'success' : user.kycStatus === 'REJECTED' ? 'danger' : user.kycStatus === 'UNDER_REVIEW' ? 'warning' : 'info'} icon={<KycIcon className="h-3 w-3" />}>
                     {kyc.text}
                   </Badge>
                 )
@@ -178,8 +175,8 @@ export default function AdminUsersPage() {
               key: 'status',
               header: 'Status',
               render: (user) => (
-                <Badge variant={user.is_active ? 'success' : 'danger'} dot>
-                  {user.is_active ? 'Active' : 'Inactive'}
+                <Badge variant={user.isActive ? 'success' : 'danger'} dot>
+                  {user.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               ),
             },
@@ -187,10 +184,10 @@ export default function AdminUsersPage() {
               key: 'joined',
               header: 'Joined',
               sortable: true,
-              sortValue: (user) => new Date(user.created_at).getTime(),
+              sortValue: (user) => new Date(user.createdAt).getTime(),
               render: (user) => (
                 <span className="text-theme-secondary">
-                  {new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               ),
             },
@@ -208,8 +205,9 @@ export default function AdminUsersPage() {
                 </div>
               ),
             },
-          ] as Column<typeof filtered[number]>[]}
+          ] as Column<AdminUser>[]}
         />
+        )}
       </div>
     </PortalLayout>
   )

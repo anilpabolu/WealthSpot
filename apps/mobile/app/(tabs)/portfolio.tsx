@@ -5,18 +5,42 @@
 
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { router } from 'expo-router'
 import { formatINR } from '@/lib/formatters'
 import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfolio'
 import { EmptyState } from '@/components/ui'
+import { useOverallProgress } from '@/hooks/useProfiling'
+import { useUserStore } from '@/stores/user.store'
 
 export default function PortfolioScreen() {
   const { data: summary, isLoading: summaryLoading } = usePortfolioSummary()
   const { data: holdings, isLoading: holdingsLoading } = usePortfolioProperties()
+  const user = useUserStore((s) => s.user)
+  const { data: overall, isLoading: progressLoading } = useOverallProgress()
 
-  if (summaryLoading) {
+  const isInvestor = user?.role === 'investor'
+  const hasAnyDna = overall
+    ? Object.values(overall.vaults).some((v) => v.isComplete)
+    : false
+
+  if (summaryLoading || progressLoading) {
     return (
       <View className="flex-1 bg-surface items-center justify-center">
         <ActivityIndicator size="large" color="#5B4FCF" />
+      </View>
+    )
+  }
+
+  if (isInvestor && !hasAnyDna) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center">
+        <EmptyState
+          icon="shield-checkmark-outline"
+          title="Complete Your DNA Profiling"
+          message="Finish at least one vault's DNA profiling to unlock your portfolio"
+          actionLabel="Go to Profiling"
+          onAction={() => router.push('/profiling')}
+        />
       </View>
     )
   }

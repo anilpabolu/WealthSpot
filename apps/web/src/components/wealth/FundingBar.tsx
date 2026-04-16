@@ -31,7 +31,8 @@ export default memo(function FundingBar({
   }
 
   const percent = target > 0 ? Math.min((raised / target) * 100, 100) : 0
-  const percentStr = `${percent.toFixed(0)}%`
+  const percentStr = percent > 0 && percent < 1 ? '<1%' : `${percent.toFixed(0)}%`
+  const barWidth = `${percent.toFixed(1)}%`
 
   return (
     <div className={cn('space-y-1', className)} role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Funding progress: ${percentStr}`}>
@@ -50,7 +51,7 @@ export default memo(function FundingBar({
       <div className="h-1 bg-[var(--bg-surface-hover)] rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-          style={{ width: percentStr }}
+          style={{ width: barWidth }}
         />
       </div>
       {showLabels && (

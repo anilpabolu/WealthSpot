@@ -5,13 +5,16 @@
 
 import { View, Text, ScrollView, Pressable, Image, Dimensions, ActivityIndicator, Modal, Share, Linking } from 'react-native'
 import { useLocalSearchParams, Link, router } from 'expo-router'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { Badge } from '@/components/ui'
 import { useProperty } from '@/hooks/useProperties'
 import { useLikeStatus, useToggleLike, useTrackShare } from '@/hooks/useOpportunityActions'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import { useProfilingProgress } from '@/hooks/useProfiling'
+import { useUserStore } from '@/stores/user.store'
 
 const { width } = Dimensions.get('window')
 
@@ -22,6 +25,17 @@ export default function PropertyDetailScreen() {
   const [showCompanySheet, setShowCompanySheet] = useState(false)
   const [showVideoModal, setShowVideoModal] = useState(false)
   const { propertyVideosEnabled } = useVaultConfig()
+
+  // Profiling gate
+  const user = useUserStore((s) => s.user)
+  const isInvestor = user?.role === 'investor'
+  const { data: profilingProgress } = useProfilingProgress(property?.vaultType ?? '')
+  const dnaComplete = profilingProgress?.isComplete ?? false
+  const [showProfilingGate, setShowProfilingGate] = useState(false)
+
+  useEffect(() => {
+    if (property && isInvestor && !dnaComplete) setShowProfilingGate(true)
+  }, [property, isInvestor, dnaComplete])
 
   // Like / Share
   const { data: likeData } = useLikeStatus(property?.id ?? '')
@@ -214,7 +228,7 @@ export default function PropertyDetailScreen() {
           {property.builder ? (
             <Pressable
               onPress={() => setShowCompanySheet(true)}
-              className="bg-white rounded-2xl p-4 mt-3 mb-24 shadow-sm"
+              className="bg-white rounded-2xl p-4 mt-3 shadow-sm"
             >
               <Text className="text-gray-900 font-bold text-base mb-3">Developer / Company</Text>
               <View className="flex-row items-center">
@@ -243,9 +257,12 @@ export default function PropertyDetailScreen() {
                 <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
               </View>
             </Pressable>
-          ) : (
-            <View className="mb-24" />
-          )}
+          ) : null}
+
+          {/* Builder Updates */}
+          <BuilderUpdatesPanel opportunityId={property.id} />
+
+          <View className="mb-24" />
         </View>
       </ScrollView>
 
@@ -411,6 +428,40 @@ export default function PropertyDetailScreen() {
                 <Text className="text-gray-700 font-semibold">Close</Text>
               </Pressable>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profiling Gate Modal */}
+      <Modal
+        visible={showProfilingGate}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowProfilingGate(false)}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-6">
+          <View className="bg-white rounded-3xl p-6 w-full max-w-sm items-center">
+            <View className="w-14 h-14 rounded-2xl bg-primary/10 items-center justify-center mb-4">
+              <Ionicons name="shield-checkmark-outline" size={28} color="#5B4FCF" />
+            </View>
+            <Text className="text-gray-900 font-bold text-lg text-center mb-2">
+              Complete Your DNA Profile
+            </Text>
+            <Text className="text-gray-500 text-sm text-center mb-6">
+              Answer a few questions about your investment preferences to unlock this opportunity.
+            </Text>
+            <Pressable
+              onPress={() => {
+                setShowProfilingGate(false)
+                router.push('/profiling')
+              }}
+              className="bg-primary w-full py-3.5 rounded-xl items-center mb-3"
+            >
+              <Text className="text-white font-bold text-sm">Start Profiling</Text>
+            </Pressable>
+            <Pressable onPress={() => setShowProfilingGate(false)}>
+              <Text className="text-gray-400 text-sm">Maybe Later</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>

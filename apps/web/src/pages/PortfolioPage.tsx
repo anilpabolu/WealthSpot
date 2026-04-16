@@ -16,6 +16,8 @@ import {
   type RecentTransaction,
 } from '@/hooks/usePortfolio'
 import { useUserActivities, type UserActivityItem } from '@/hooks/useOpportunityActions'
+import { useOverallProgress } from '@/hooks/useProfiling'
+import { useUserStore } from '@/stores/user.store'
 import {
   Building2,
   Rocket,
@@ -373,6 +375,30 @@ export default function PortfolioPage() {
   const { data: vaultData, isLoading: vaultLoading } = useVaultWisePortfolio()
   const { data: activities } = useUserActivities(10)
   const { isVaultEnabled } = useVaultConfig()
+
+  // Investor gate: must have completed at least one vault's DNA
+  const userRole = useUserStore((s) => s.user?.role)
+  const isInvestorRole = userRole === 'investor'
+  const { data: overallProgress, isLoading: progressLoading } = useOverallProgress()
+  const hasAnyDna = overallProgress ? Object.values(overallProgress.vaults).some((v) => v.isComplete) : false
+
+  if (isInvestorRole && !progressLoading && !hasAnyDna) {
+    return (
+      <div className="min-h-screen flex flex-col bg-theme-surface">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-8">
+          <EmptyState
+            icon={Wallet}
+            title="Complete Your Profile First"
+            message="You need to complete at least one vault's DNA profiling before accessing your portfolio."
+            actionLabel="Go to Profiling"
+            onAction={() => navigate('/profiling')}
+          />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   // CMS content
   const heroBadge = useContent('portfolio', 'hero_badge', 'Portfolio')

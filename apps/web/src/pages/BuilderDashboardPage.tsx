@@ -66,6 +66,22 @@ export default function BuilderDashboardPage() {
           </div>
         )}
 
+        {/* Profile completion prompt */}
+        {data?.builder && !data.builder.company_name && (
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-700/40 rounded-2xl p-6 flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-theme-primary">Complete your builder profile</p>
+                <p className="text-xs text-theme-secondary mt-0.5">Add your company details, RERA number, and contact info to unlock all builder features.</p>
+              </div>
+            </div>
+            <Link to="/portal/builder/settings" className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-sm whitespace-nowrap">
+              Complete Profile
+            </Link>
+          </div>
+        )}
+
         {stats && (
           <>
             {/* Metrics */}

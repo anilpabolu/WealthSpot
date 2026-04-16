@@ -43,6 +43,7 @@ interface ApiProperty {
   referrerPhone?: string
   referrerUserId?: string
   documents?: Record<string, unknown>
+  vaultType?: string
   builder?: {
     id: string
     companyName: string
@@ -102,6 +103,7 @@ export interface Property {
   areaSqft: number
   possessionDate: string
   documents: Array<{ name: string; url: string; type: string }>
+  vaultType: string
   createdAt: string
 }
 
@@ -143,6 +145,7 @@ function mapProperty(p: ApiProperty): Property {
     areaSqft: Number(p.areaSqft ?? 0),
     possessionDate: p.possessionDate ?? '',
     documents: [],
+    vaultType: p.vaultType ?? 'wealth',
     createdAt: p.createdAt,
   }
 }

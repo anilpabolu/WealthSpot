@@ -40,6 +40,17 @@ class OpportunityStatus(str, PyEnum):
     ARCHIVED = "archived"
 
 
+class ProjectPhase(str, PyEnum):
+    PLANNING = "planning"
+    LAND_ACQUISITION = "land_acquisition"
+    APPROVALS_IN_PROGRESS = "approvals_in_progress"
+    FOUNDATION = "foundation"
+    STRUCTURE = "structure"
+    FINISHING = "finishing"
+    POSSESSION_READY = "possession_ready"
+    COMPLETED = "completed"
+
+
 class Opportunity(Base):
     __tablename__ = "opportunities"
 
@@ -99,6 +110,10 @@ class Opportunity(Base):
     collaboration_type: Mapped[str | None] = mapped_column(String(100))  # time, network, expertise, capital
     community_subtype: Mapped[str | None] = mapped_column(String(20))  # co_investor, co_partner
     community_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # subtype-specific fields
+    # Project lifecycle phase
+    project_phase: Mapped[str | None] = mapped_column(String(50))
+    # Valuation (appreciation tracking)
+    current_valuation: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
     # Media
     cover_image: Mapped[str | None] = mapped_column(Text)
     video_url: Mapped[str | None] = mapped_column(Text)
@@ -133,6 +148,7 @@ class Opportunity(Base):
     investments = relationship("OpportunityInvestment", back_populates="opportunity", lazy="selectin")
     builder_questions = relationship("BuilderQuestion", lazy="selectin", order_by="BuilderQuestion.sort_order")
     comm_mappings = relationship("OpportunityCommMapping", lazy="selectin")
+    builder_updates = relationship("BuilderUpdate", back_populates="opportunity", lazy="selectin", order_by="BuilderUpdate.created_at.desc()")
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.slug} vault={self.vault_type} status={self.status}>"
