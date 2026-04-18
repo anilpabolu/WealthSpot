@@ -6,17 +6,17 @@ const FOOTER_LINKS = {
   Platform: [
     { label: 'How it Works', href: '/#how-it-works' },
     { label: 'For Builders', href: '/builders' },
-    { label: 'For Lenders', href: '/lenders' },
+    { label: 'FAQs', href: '/faqs' },
+    { label: 'Investment Guide', href: '/investment-guide' },
   ],
   Company: [
     { label: 'About Us', href: '/about' },
+    { label: 'Careers', href: '/careers' },
+    { label: 'Contact Us', href: '/contact' },
   ],
   Legal: [
     { label: 'Terms of Service', href: '/legal/terms' },
     { label: 'Privacy Policy', href: '/legal/privacy' },
-  ],
-  Resources: [
-    { label: 'Community', href: '/community' },
   ],
 }
 

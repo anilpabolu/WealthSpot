@@ -8,7 +8,7 @@ export interface MarketplaceFilters {
   minInvestment: [number, number]
   irrRange: [number, number]
   status: string
-  sortBy: 'irr_high' | 'irr_low' | 'newest' | 'funding' | 'price_low' | 'price_high'
+  sortBy: 'newest' | 'funding' | 'price_low' | 'price_high'
   page: number
   pageSize: number
 }

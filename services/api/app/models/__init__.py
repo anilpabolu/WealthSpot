@@ -43,3 +43,4 @@ from app.models.profiling import (  # noqa: F401
 )
 from app.models.builder_update import BuilderUpdate, BuilderUpdateAttachment  # noqa: F401
 from app.models.appreciation_event import AppreciationEvent  # noqa: F401
+from app.models.vault_explorer import VaultExplorer  # noqa: F401

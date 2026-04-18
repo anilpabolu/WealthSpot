@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Home, Sparkles, Sun, Moon } from 'lucide-react'
+import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Sun, Moon, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
+  useClerk,
 } from '@clerk/react'
 import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
@@ -13,9 +14,10 @@ import { useUserStore } from '@/stores/user.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 import { useOverallProgress } from '@/hooks/useProfiling'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
 
 const AUTH_NAV_LINKS = [
-  { label: 'Home', href: '/vaults', icon: Home },
+  { label: 'Vaults', href: '/vaults', icon: Vault },
   { label: 'Portfolio', href: '/portfolio', icon: PieChart, roles: ['investor', 'admin', 'super_admin'] },
   { label: 'My Listings', href: '/portal/builder/listings', icon: Sparkles, roles: ['builder', 'admin', 'super_admin'] },
   { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin', 'admin'] },
@@ -39,10 +41,18 @@ export default function Navbar(_props?: NavbarProps) {
   const { data: overall } = useOverallProgress()
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const clerk = useClerk()
+  const { introVideosEnabled } = useVaultConfig()
 
-  const approvalRoles = ['admin', 'approver', 'super_admin']
+  const handleGetAccess = () => {
+    if (introVideosEnabled) {
+      setShowVideo(true)
+    } else {
+      clerk.openSignUp({ forceRedirectUrl: '/vaults' })
+    }
+  }
+
   const extraLinks = [
-    ...(userRole && approvalRoles.includes(userRole) ? [{ label: 'Approvals', href: '/approvals' }] : []),
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {
@@ -51,11 +61,6 @@ export default function Navbar(_props?: NavbarProps) {
     // Check primary role AND multi-role array
     const roleMatch = (userRole && allowed.includes(userRole)) || userRoles.some((r) => allowed.includes(r))
     if (!roleMatch) return false
-    // Portfolio: investors must have completed at least one vault DNA
-    if (link.href === '/portfolio' && userRole === 'investor') {
-      const hasAnyDna = overall ? Object.values(overall.vaults).some((v) => v.isComplete) : false
-      if (!hasAnyDna) return false
-    }
     return true
   })
   const allNavLinks = [...filteredAuthLinks, ...extraLinks]
@@ -131,7 +136,7 @@ export default function Navbar(_props?: NavbarProps) {
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button className="btn-ghost text-sm">Sign In</button>
                 </SignInButton>
-                <button className="btn-primary text-sm" onClick={() => setShowVideo(true)}>Get Access to a Better Opportunity Environment</button>
+                <button className="btn-primary text-sm" onClick={handleGetAccess}>Get Access to a Better Opportunity Environment</button>
               </div>
             </Show>
 
@@ -154,7 +159,7 @@ export default function Navbar(_props?: NavbarProps) {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-white/10 animate-fade-up">
-          <div className="px-4 py-4 space-y-1">
+          <div className="px-4 py-4 space-y-2">
             <Show when="signed-in">
               {allNavLinks.map((link) => (
                 <Link
@@ -201,7 +206,7 @@ export default function Navbar(_props?: NavbarProps) {
                 </SignInButton>
                 <button
                   className="btn-primary text-sm flex-1 text-center"
-                  onClick={() => { setMobileOpen(false); setShowVideo(true) }}
+                  onClick={() => { setMobileOpen(false); handleGetAccess() }}
                 >
                   Get Access
                 </button>
@@ -215,40 +220,36 @@ export default function Navbar(_props?: NavbarProps) {
 
       {/* Profile completion banner — unmissable for incomplete profiles */}
       {isAuthenticated && completion && !completion.isComplete && location.pathname !== '/profile/complete' && (
-        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Zap className="h-4 w-4 shrink-0" />
-              <p className="text-sm font-semibold truncate">
-                Your profile is {completion.profileCompletionPct}% complete — finish it to unlock your referral code & premium features!
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/profile/complete')}
-              className="shrink-0 px-4 py-1.5 bg-white text-orange-600 dark:text-orange-400 text-xs font-bold rounded-lg hover:bg-orange-50 dark:bg-orange-900/30 transition shadow-sm"
-            >
-              Complete Now
-            </button>
+        <div
+          className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white cursor-pointer hover:opacity-95 transition-opacity"
+          onClick={() => navigate('/profile/complete')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/profile/complete') }}
+        >
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2">
+            <Zap className="h-4 w-4 shrink-0" />
+            <p className="text-sm font-semibold">
+              ⚡ Your investor profile is {completion.profileCompletionPct}% ready — complete it to unlock your full potential & start investing!
+            </p>
           </div>
         </div>
       )}
 
       {/* Vault profiling banner — softer prompt after profile is done */}
       {isAuthenticated && completion?.isComplete && overall && !overall.isFullyProfiled && location.pathname !== '/vaults' && (
-        <div className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Sparkles className="h-4 w-4 shrink-0" />
-              <p className="text-sm font-semibold truncate">
-                Discover your investor DNA — profile your vaults to get personalised matches!
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/vaults')}
-              className="shrink-0 px-4 py-1.5 bg-white text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-lg hover:bg-indigo-50 dark:bg-indigo-900/30 transition shadow-sm"
-            >
-              Profile Vaults
-            </button>
+        <div
+          className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white cursor-pointer hover:opacity-95 transition-opacity"
+          onClick={() => navigate('/vaults')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/vaults') }}
+        >
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <p className="text-sm font-semibold">
+              ✨ Discover your investor DNA — profile your vaults to get personalised matches!
+            </p>
           </div>
         </div>
       )}

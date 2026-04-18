@@ -32,19 +32,27 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.0",
-    "pytest-asyncio>=0.24.0",
-    "pytest-cov>=7.0.0",
-    "httpx>=0.28.0",
-    "faker>=40.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
-    "aiosqlite>=0.22.0",
 ]
 
 [tool.pytest.ini_options]
+# Tests moved to tests/api/ project
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = []
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/__pycache__/*", "*/migrations/*", "alembic/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__",
+]

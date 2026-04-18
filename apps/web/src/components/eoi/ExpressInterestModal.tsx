@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Toggle, Select } from '@/components/ui'
-import { X, CheckCircle2, Loader2, HandCoins, MessageSquare } from 'lucide-react'
-import { useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, type BuilderQuestion } from '@/hooks/useEOI'
+import { X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle } from 'lucide-react'
+import { useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, type BuilderQuestion } from '@/hooks/useEOI'
 
 const TIMELINE_OPTIONS = [
   { value: 'immediate', label: 'Immediate (within 2 weeks)' },
@@ -35,18 +35,28 @@ interface Props {
   onClose: () => void
 }
 
-type Step = 'form' | 'success'
+type Step = 'confirm' | 'form' | 'success'
 
 export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, onClose }: Props) {
+  const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
+  const hasExistingInvestment = (existingEOIs?.items?.length ?? 0) > 0
+
   const [step, setStep] = useState<Step>('form')
   const [eoiId, setEoiId] = useState<string | null>(null)
+
+  // Show confirmation step if user already has EOIs for this property
+  useEffect(() => {
+    if (!eoisLoading && hasExistingInvestment && step === 'form') {
+      setStep('confirm')
+    }
+  }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Platform questions state
   const [investmentAmount, setInvestmentAmount] = useState<number>(minInvestment)
   const [timeline, setTimeline] = useState('')
-  const [fundingSource, setFundingSource] = useState('')
-  const [purpose, setPurpose] = useState('')
-  const [preferredContact, setPreferredContact] = useState('')
+  const [fundingSource, setFundingSource] = useState<string[]>([])
+  const [purpose, setPurpose] = useState<string[]>([])
+  const [preferredContact, setPreferredContact] = useState<string[]>([])
   const [bestTime, setBestTime] = useState('')
   const [notes, setNotes] = useState('')
   const [communicationConsent, setCommunicationConsent] = useState(true)
@@ -70,9 +80,9 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
       opportunityId,
       investmentAmount: investmentAmount || undefined,
       investmentTimeline: timeline || undefined,
-      fundingSource: fundingSource || undefined,
-      purpose: purpose || undefined,
-      preferredContact: preferredContact || undefined,
+      fundingSource: fundingSource.length ? fundingSource.join(',') : undefined,
+      purpose: purpose.length ? purpose.join(',') : undefined,
+      preferredContact: preferredContact.length ? preferredContact.join(',') : undefined,
       bestTimeToContact: bestTime || undefined,
       communicationConsent,
       additionalNotes: notes || undefined,
@@ -95,12 +105,40 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
         {/* Header */}
         <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <h2 className="font-display text-lg font-bold text-theme-primary">
-            {step === 'form' ? 'Express Your Interest' : 'Thank You!'}
+            {step === 'confirm' ? 'Already Invested' : step === 'form' ? 'Express Your Interest' : 'Thank You!'}
           </h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--bg-surface-hover)]" aria-label="Close">
             <X className="h-5 w-5 text-theme-tertiary" />
           </button>
         </div>
+
+        {step === 'confirm' && (
+          <div className="p-6 text-center space-y-5">
+            <div className="mx-auto w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-display text-lg font-bold text-theme-primary mb-2">You've already invested in this property</h3>
+              <p className="text-sm text-theme-secondary">
+                You have {existingEOIs?.items?.length} existing expression{(existingEOIs?.items?.length ?? 0) > 1 ? 's' : ''} of interest for <span className="font-semibold text-theme-primary">{opportunityTitle}</span>. Would you like to invest again?
+              </p>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => setStep('form')}
+                className="btn-primary w-full py-3 text-base"
+              >
+                Yes, Invest Again
+              </button>
+              <button
+                onClick={onClose}
+                className="btn-secondary w-full py-3"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {step === 'form' && (
           <div className="p-6 space-y-5">
@@ -108,17 +146,13 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               Interested in <span className="font-semibold text-theme-primary">{opportunityTitle}</span>? Fill in the details below to express your interest. Your contact details will not be shared.
             </p>
 
-            {/* Investment Amount */}
+            {/* Investment Amount (fixed – min investment for the property) */}
             <div>
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount (₹)</label>
-              <input
-                type="number"
-                value={investmentAmount}
-                onChange={(e) => setInvestmentAmount(Math.max(0, Number(e.target.value)))}
-                min={0}
-                className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary font-mono"
-                placeholder="Enter amount"
-              />
+              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary cursor-not-allowed select-none">
+                {minInvestment.toLocaleString('en-IN')}
+              </div>
+              <p className="text-[11px] text-theme-tertiary mt-1">Minimum investment required for this property</p>
             </div>
 
             {/* Timeline */}
@@ -132,7 +166,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Funding Source</label>
               <div className="flex flex-wrap gap-2">
                 {FUNDING_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setFundingSource(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${fundingSource === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
+                  <button key={o.value} onClick={() => setFundingSource(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${fundingSource.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}
@@ -144,7 +178,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Purpose</label>
               <div className="flex flex-wrap gap-2">
                 {PURPOSE_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPurpose(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${purpose === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
+                  <button key={o.value} onClick={() => setPurpose(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${purpose.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}
@@ -156,7 +190,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Preferred Contact Method</label>
               <div className="flex flex-wrap gap-2">
                 {CONTACT_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPreferredContact(o.value)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${preferredContact === o.value ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
+                  <button key={o.value} onClick={() => setPreferredContact(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${preferredContact.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
                     {o.label}
                   </button>
                 ))}

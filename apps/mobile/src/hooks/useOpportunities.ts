@@ -182,6 +182,15 @@ export interface VaultStats {
   opportunityCount: number
   expectedIrr: number | null
   actualIrr: number | null
+  explorerCount: number
+  dnaInvestorCount: number
+  minInvestment: number | null
+  avgTicketSize: number | null
+  citiesCovered: number
+  sectorsCovered: number
+  coInvestorCount: number
+  coPartnerCount: number
+  platformUsersCount: number
 }
 
 export function useOpportunityBySlug(slug: string) {

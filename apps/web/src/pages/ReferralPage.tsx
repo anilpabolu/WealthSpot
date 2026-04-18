@@ -6,12 +6,6 @@ import { formatINR } from '@/lib/formatters'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 import { useContent } from '@/hooks/useSiteContent'
 
-const STEPS = [
-  { step: 1, title: 'Share Your Code', desc: 'Send your unique referral code to friends and family.' },
-  { step: 2, title: 'Friend Signs Up', desc: 'They create an account using your referral link.' },
-  { step: 3, title: 'Both Earn ₹250', desc: 'When they make their first investment, you both get rewarded.' },
-]
-
 export default function ReferralPage() {
   const [copied, setCopied] = useState(false)
   const { data: stats, isLoading: statsLoading } = useReferralStats()

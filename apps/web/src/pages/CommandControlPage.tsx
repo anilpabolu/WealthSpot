@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Toggle, Select, Badge } from '@/components/ui'
 import SectionErrorBoundary from '@/components/SectionErrorBoundary'
 import {
@@ -50,6 +51,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   TrendingUp,
+  Palette,
 } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
@@ -134,12 +136,14 @@ import {
   useAppreciationHistory,
   useCreateAppreciation,
 } from '@/hooks/useAppreciation'
+import ApprovalsPage from '@/pages/ApprovalsPage'
+import { applyThemePalette } from '@/lib/colorUtils'
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites' | 'vault-metrics' | 'deal-lifecycle' | 'builder-updates'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites' | 'vault-metrics' | 'deal-lifecycle' | 'builder-updates' | 'approvals'
 
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
@@ -150,6 +154,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'referral-tracking', label: 'Referral Tracking', icon: Gift, group: 'Users' },
   { id: 'eoi-pipeline', label: 'EOI Pipeline', icon: Kanban, group: 'Operations' },
   { id: 'deal-lifecycle', label: 'Deal Lifecycle', icon: Briefcase, group: 'Operations' },
+  { id: 'approvals', label: 'Approvals', icon: ClipboardCheck, group: 'Operations' },
   { id: 'builder-updates', label: 'Builder Updates', icon: Rocket, group: 'Operations' },
   { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle, group: 'Operations' },
   { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
@@ -411,6 +416,131 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Appearance Panel (light mode background color)                     */
+/* ------------------------------------------------------------------ */
+
+const LIGHT_MODE_BG_OPTIONS = [
+  { color: '#FDFBF5', label: 'Warm Cream' },
+  { color: '#F8F9FA', label: 'Cool White' },
+  { color: '#FFFFF0', label: 'Soft Ivory' },
+  { color: '#F0F4F0', label: 'Pale Sage' },
+  { color: '#F5F0FF', label: 'Light Lavender' },
+  { color: '#FFF0F0', label: 'Blush Pink' },
+  { color: '#F0F4FF', label: 'Pearl Blue' },
+  { color: '#F5F0E6', label: 'Sandy Beige' },
+  { color: '#F0FFF4', label: 'Mint Mist' },
+  { color: '#F2F3F5', label: 'Frosted Gray' },
+]
+
+function AppearancePanel() {
+  const { data: configs, isLoading } = useControlConfigs('appearance')
+  const createConfig = useCreateConfig()
+  const updateConfig = useUpdateConfig()
+  const queryClient = useQueryClient()
+
+  const currentCfg = configs?.find((c) => c.key === 'light_mode_bg_color')
+  const currentColor = (currentCfg?.value as string) || '#FDFBF5'
+
+  const [selected, setSelected] = useState<string>(currentColor)
+  const [dirty, setDirty] = useState(false)
+
+  useEffect(() => {
+    if (currentCfg) setSelected((currentCfg.value as string) || '#FDFBF5')
+  }, [currentCfg])
+
+  const handleSelect = (color: string) => {
+    setSelected(color)
+    setDirty(color !== currentColor)
+  }
+
+  const handleSaveApply = async () => {
+    if (currentCfg) {
+      await updateConfig.mutateAsync({ id: currentCfg.id, value: selected })
+    } else {
+      await createConfig.mutateAsync({
+        section: 'appearance',
+        key: 'light_mode_bg_color',
+        value: selected,
+        description: 'Light mode background color for the platform',
+      })
+    }
+    document.documentElement.style.setProperty('--bg-base', selected)
+    applyThemePalette(selected)
+    queryClient.invalidateQueries({ queryKey: ['control-configs', 'appearance'] })
+    setDirty(false)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-theme-tertiary" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Palette className="h-4 w-4 text-theme-tertiary" />
+        <p className="text-xs text-theme-secondary">
+          Choose a light mode background color. This applies platform-wide when light mode is active.
+        </p>
+      </div>
+
+      {/* Color swatches */}
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
+        {LIGHT_MODE_BG_OPTIONS.map((opt) => (
+          <button
+            key={opt.color}
+            onClick={() => handleSelect(opt.color)}
+            className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+              selected === opt.color
+                ? 'ring-2 ring-primary bg-primary/5 scale-105'
+                : 'hover:bg-[var(--bg-surface-hover)]'
+            }`}
+            title={opt.label}
+          >
+            <div
+              className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                selected === opt.color ? 'border-primary shadow-md' : 'border-theme'
+              }`}
+              style={{ backgroundColor: opt.color }}
+            />
+            <span className="text-[9px] font-medium text-theme-tertiary text-center leading-tight">
+              {opt.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Preview */}
+      <div className="flex items-center gap-4">
+        <div className="text-xs text-theme-secondary">Preview:</div>
+        <div
+          className="w-32 h-12 rounded-lg border border-theme shadow-sm"
+          style={{ backgroundColor: selected }}
+        />
+        <span className="text-xs font-mono text-theme-tertiary">{selected}</span>
+      </div>
+
+      {/* Save & Apply */}
+      <button
+        onClick={handleSaveApply}
+        disabled={!dirty || updateConfig.isPending || createConfig.isPending}
+        className="btn-primary inline-flex items-center gap-2 text-sm disabled:opacity-40"
+      >
+        {(updateConfig.isPending || createConfig.isPending) ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Check className="h-4 w-4" />
+        )}
+        Save & Apply
+      </button>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Admin Settings Tab (consolidated config sections)                  */
 /* ------------------------------------------------------------------ */
 
@@ -421,6 +551,7 @@ const ADMIN_SECTIONS = [
   { key: 'notifications', title: 'Notification Settings', description: 'Manage email, SMS, and in-app notification triggers and templates.', icon: Bell },
   { key: 'templates', title: 'Template Configuration', description: 'Configure document, email, and report templates used across the platform.', icon: FileSpreadsheet },
   { key: 'platform', title: 'Platform Settings', description: 'Core platform parameters — fees, limits, feature flags, and global defaults.', icon: Settings },
+  { key: 'appearance', title: 'Appearance & Theme', description: 'Configure light mode background color for the platform.', icon: Palette },
 ]
 
 const VAULT_TOGGLE_ITEMS = [
@@ -704,7 +835,7 @@ function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-theme px-5 py-5">
-                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : <ConfigTab section={sec.key} title={sec.title} />}
+                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>
@@ -3200,7 +3331,9 @@ function BuilderUpdatesTab() {
 /* ------------------------------------------------------------------ */
 
 export default function CommandControlPage() {
-  const [activeSection, setActiveSection] = useState<Section>('dashboard')
+  const [searchParams] = useSearchParams()
+  const initialSection = (searchParams.get('section') as Section) || 'dashboard'
+  const [activeSection, setActiveSection] = useState<Section>(initialSection)
   const { videoManagementEnabled } = useVaultConfig()
   const visibleSections = useMemo(
     () => videoManagementEnabled ? SECTIONS : SECTIONS.filter((s) => s.id !== 'content'),
@@ -3287,6 +3420,9 @@ export default function CommandControlPage() {
           <SectionErrorBoundary fallbackTitle="Users section failed to load">
             {activeSection === 'users' && <UsersTab />}
             {activeSection === 'admin-settings' && <AdminSettingsTab />}
+          </SectionErrorBoundary>
+          <SectionErrorBoundary fallbackTitle="Approvals failed to load">
+            {activeSection === 'approvals' && <ApprovalsPage embedded />}
           </SectionErrorBoundary>
           <SectionErrorBoundary fallbackTitle="Content section failed to load">
             {activeSection === 'content' && videoManagementEnabled && <VideoManagementTab />}

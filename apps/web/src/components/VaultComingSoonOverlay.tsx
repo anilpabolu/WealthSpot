@@ -40,7 +40,7 @@ export function VaultComingSoonCard({ vaultId }: { vaultId: string }) {
   const text = getVaultComingSoonText(vaultId)
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl backdrop-blur-md bg-[var(--bg-card)] border border-[var(--bg-card-border)] px-6 text-center transition-all">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl backdrop-blur-md bg-[var(--bg-card)] border border-[var(--frame-border)] px-6 text-center transition-all">
       <div className="relative">
         <Lock className="h-7 w-7 text-theme-secondary animate-pulse" />
         <Sparkles className="h-3.5 w-3.5 text-amber-400 absolute -top-1 -right-2" />

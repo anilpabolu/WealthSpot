@@ -209,6 +209,19 @@ export function useOverallProgress() {
   })
 }
 
+// ── Record Vault Explorer ────────────────────────────────────────────────────
+
+export function useRecordExplorer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vaultType: string) =>
+      apiPost<{ ok: boolean }>(`/profiling/explore/${vaultType}`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['vault-stats'] })
+    },
+  })
+}
+
 // ── Personality Dimensions ──────────────────────────────────────────────────
 
 export function useMyPersonality(vaultType: string) {

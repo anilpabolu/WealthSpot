@@ -141,7 +141,7 @@ function ChoiceCard({
         selected ? 'bg-white' : 'bg-white/60'
       }`}
       style={{
-        borderColor: selected ? accentColor : '#E5E7EB',
+        borderColor: selected ? accentColor : 'rgba(0, 0, 0, 0.15)',
         shadowColor: selected ? accentColor : 'transparent',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: selected ? 0.25 : 0,
@@ -191,7 +191,7 @@ function MultiChoiceCard({
         selected ? 'bg-white' : 'bg-white/50'
       }`}
       style={{
-        borderColor: selected ? accentColor : '#E5E7EB',
+        borderColor: selected ? accentColor : 'rgba(0, 0, 0, 0.15)',
         minWidth: (SCREEN_WIDTH - 56) / 3,
       }}
     >
@@ -277,7 +277,7 @@ function SliderInput({
 /*  Fun Fact Toast                                                             */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function FunFact({ text }: { text: string }) {
+function FunFact({ text, onDismiss }: { text: string; onDismiss?: () => void }) {
   return (
     <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex-row items-start gap-3 mt-4">
       <Text className="text-xl">💡</Text>
@@ -285,6 +285,11 @@ function FunFact({ text }: { text: string }) {
         <Text className="text-xs font-bold text-amber-700 mb-1">DID YOU KNOW?</Text>
         <Text className="text-sm text-amber-800 leading-5">{text}</Text>
       </View>
+      {onDismiss && (
+        <Pressable onPress={onDismiss} className="ml-1">
+          <Text className="text-amber-500 text-base font-bold">✕</Text>
+        </Pressable>
+      )}
     </View>
   )
 }
@@ -801,7 +806,7 @@ export default function VaultProfilingScreen() {
 
         {/* Fun Fact */}
         {showFunFact && currentQ.funFact && (
-          <FunFact text={currentQ.funFact} />
+          <FunFact text={currentQ.funFact} onDismiss={() => setShowFunFact(false)} />
         )}
       </ScrollView>
 

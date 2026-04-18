@@ -1,5 +1,5 @@
 import { MainLayout } from '@/components/layout'
-import { type StatusType } from '@/components/wealth/StatusBadge'
+import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import FundingBar from '@/components/wealth/FundingBar'
 import { useProperties, type Property } from '@/hooks/useProperties'
@@ -10,33 +10,12 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, Rocket, Users, MapPin, HandCoins, AlertCircle, Trash2 } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, HandCoins, AlertCircle, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
-
-/** Returns ribbon label + colour pair for an opportunity's lifecycle stage */
-function getOppRibbon(opp: OpportunityItem): { label: string; bg: string } | null {
-  const status = (opp.status ?? '').toLowerCase()
-  if (status === 'closed' || status === 'funded') return { label: 'FINISHED', bg: 'bg-red-600' }
-  if (status === 'closing_soon') return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
-  // If closing_date is within 7 days → closing soon
-  if (opp.closingDate) {
-    const daysLeft = Math.ceil((new Date(opp.closingDate).getTime() - Date.now()) / 86_400_000)
-    if (daysLeft <= 0) return { label: 'FINISHED', bg: 'bg-red-600' }
-    if (daysLeft <= 7) return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
-  }
-  // Funding > 90% → closing soon
-  if (opp.targetAmount && opp.raisedAmount && opp.raisedAmount / opp.targetAmount >= 0.9) {
-    return { label: 'CLOSING SOON', bg: 'bg-orange-500' }
-  }
-  if (['approved', 'active', 'funding'].includes(status)) return { label: 'LIVE', bg: 'bg-green-600' }
-  if (['draft', 'pending_approval'].includes(status)) return { label: 'UPCOMING', bg: 'bg-blue-600' }
-  if (status === 'rejected') return { label: 'REJECTED', bg: 'bg-stone-500' }
-  return null
-}
 
 function FilterSidebar() {
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
@@ -74,7 +53,7 @@ function FilterSidebar() {
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Status</label>
         <div className="flex flex-wrap gap-2">
-          {(['', 'active', 'funding', 'funded'] as const).map((s) => (
+          {(['', 'upcoming', 'live', 'fully_funded', 'deal_closed'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilter('status', s)}
@@ -84,7 +63,7 @@ function FilterSidebar() {
                   : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
-              {s === '' ? 'All' : s === 'active' ? 'Active' : s === 'funding' ? 'Funding' : 'Fully Funded'}
+              {s === '' ? 'All' : s === 'upcoming' ? 'Upcoming' : s === 'live' ? 'Live' : s === 'fully_funded' ? 'Fully Funded' : 'Deal Closed'}
             </button>
           ))}
         </div>
@@ -98,8 +77,6 @@ function FilterSidebar() {
           onChange={(v) => setFilter('sortBy', v as typeof filters.sortBy)}
           options={[
             { value: 'newest', label: 'Newest First' },
-            { value: 'irr_high', label: 'Highest IRR' },
-            { value: 'irr_low', label: 'Lowest IRR' },
             { value: 'funding', label: 'Most Funded' },
             { value: 'price_low', label: 'Lowest Price' },
             { value: 'price_high', label: 'Highest Price' },
@@ -166,32 +143,22 @@ function formatINR(num: number): string {
   return `₹${num.toLocaleString('en-IN')}`
 }
 
-const VAULT_META: Record<string, { label: string; description: string; color: string; Icon: React.ElementType }> = {
-  wealth: {
-    label: 'Wealth Vault',
-    description: 'Institutional-grade real estate — RERA-verified properties earning passive rental income.',
-    color: 'bg-primary/10 border-primary/30 text-primary',
-    Icon: Building2,
-  },
-  opportunity: {
-    label: 'Opportunity Vault',
-    description: 'High-potential startup investments from vetted founders across industries.',
-    color: 'bg-violet-50 dark:bg-violet-900/30 border-violet-200 dark:border-violet-700/40 text-violet-700 dark:text-violet-300',
-    Icon: Rocket,
-  },
-  community: {
-    label: 'Community Vault',
-    description: 'Community-driven opportunities — sports complexes, co-working spaces, and local businesses.',
-    color: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300',
-    Icon: Users,
-  },
-}
-
 export default function MarketplacePage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, viewMode, setViewMode, setPage, setFilter: _setFilter } = useMarketplaceStore()
-  const { data, isLoading } = useProperties(filters)
+
+  // Map display-level status filters to backend status values
+  const STATUS_MAP: Record<string, string> = {
+    upcoming: 'approved,pending_approval',
+    live: 'active,funding',
+    fully_funded: 'funded',
+    deal_closed: 'closed,exited',
+  }
+  const apiStatus = filters.status ? (STATUS_MAP[filters.status] ?? filters.status) : ''
+  const apiFilters = { ...filters, status: apiStatus }
+
+  const { data, isLoading } = useProperties(apiFilters)
   const queryClient = useQueryClient()
   const userRole = useUserStore((s) => s.user?.role)
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
@@ -231,16 +198,15 @@ export default function MarketplacePage() {
 
   const vaultParam = searchParams.get('vault') ?? ''
   const subtypeParam = searchParams.get('subtype') ?? ''
-  const vaultMeta = VAULT_META[vaultParam]
   const { isVaultEnabled } = useVaultConfig()
   const isVaultDisabled = vaultParam && !isVaultEnabled(vaultParam)
 
   // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
   const { data: oppsData } = useOpportunities(
     vaultParam
-      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }), city: filters.city || undefined, status: filters.status || undefined }
-      : filters.city || filters.status
-        ? { city: filters.city || undefined, status: filters.status || undefined }
+      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }), city: filters.city || undefined, status: apiStatus || undefined }
+      : filters.city || apiStatus
+        ? { city: filters.city || undefined, status: apiStatus || undefined }
         : undefined
   )
   const opportunities = oppsData?.items ?? []
@@ -356,8 +322,8 @@ export default function MarketplacePage() {
                   <>
                     {/* Opportunity tiles */}
                     {opportunities.map((opp) => {
-                      const ribbon = getOppRibbon(opp)
                       const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage
+                      const oppStatus = (opp.status ?? '').toLowerCase() as StatusType
                       return (
                         <div
                           key={`opp-${opp.id}`}
@@ -372,14 +338,11 @@ export default function MarketplacePage() {
                                 <Building2 className="h-10 w-10" />
                               </div>
                             )}
-                            {ribbon && (
-                              <span className={`absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white ${ribbon.bg} rounded-md`}>
-                                {ribbon.label}
+                            {oppStatus && (
+                              <span className="absolute top-3 left-3">
+                                <StatusBadge status={oppStatus} />
                               </span>
                             )}
-                            <span className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-md capitalize">
-                              {opp.vaultType} vault
-                            </span>
                             {isAdmin && (
                               <button
                                 className="absolute bottom-3 right-3 z-10 flex items-center justify-center h-7 w-7 rounded-full bg-red-600/90 hover:bg-red-700 text-white shadow-lg transition-colors"

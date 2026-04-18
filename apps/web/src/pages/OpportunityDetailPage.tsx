@@ -564,49 +564,6 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
-            {/* Valuation / Appreciation Card */}
-            {opp.currentValuation && opp.raisedAmount > 0 && (() => {
-              const appAmt = opp.currentValuation - opp.raisedAmount
-              const appPct = (appAmt / opp.raisedAmount) * 100
-              return (
-                <div className="card p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-700/40">
-                  <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-emerald-500" /> Valuation
-                  </h2>
-                  <div className="grid grid-cols-3 gap-4 mb-3">
-                    <div>
-                      <p className="text-xs text-theme-secondary">Invested</p>
-                      <p className="text-sm font-bold text-theme-primary">{formatINRCompact(opp.raisedAmount)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-theme-secondary">Current Value</p>
-                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatINRCompact(opp.currentValuation)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-theme-secondary">Appreciation</p>
-                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{appPct.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                  {/* Recent appreciation events */}
-                  {appreciationHistory && appreciationHistory.length > 0 && (
-                    <div className="border-t border-emerald-200 dark:border-emerald-700/40 pt-3 mt-1">
-                      <p className="text-xs font-medium text-theme-secondary mb-2">Recent Updates</p>
-                      <div className="space-y-1.5">
-                        {appreciationHistory.slice(0, 3).map((evt) => (
-                          <div key={evt.id} className="flex items-center justify-between text-xs">
-                            <span className="text-emerald-700 dark:text-emerald-300 font-medium">
-                              {evt.mode === 'percentage' ? `+${evt.inputValue}%` : `+${formatINRCompact(evt.inputValue)}`}
-                            </span>
-                            <span className="text-theme-tertiary">{new Date(evt.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-
             {/* Location */}
             {(opp.address || opp.addressLine1 || opp.city) && (
               <div className="card p-6">

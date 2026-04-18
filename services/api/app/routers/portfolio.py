@@ -39,6 +39,7 @@ async def portfolio_summary(
     user: User = Depends(get_current_user),
 ) -> PortfolioSummary:
     """Full portfolio summary with asset allocation and city distribution."""
+    # Query property-based investments (legacy)
     result = await db.execute(
         select(Investment).where(
             Investment.user_id == user.id,
@@ -47,7 +48,16 @@ async def portfolio_summary(
     )
     investments = list(result.scalars().all())
 
-    if not investments:
+    # Query opportunity-based investments
+    opp_result = await db.execute(
+        select(OpportunityInvestment).where(
+            OpportunityInvestment.user_id == user.id,
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+    )
+    opp_investments = list(opp_result.scalars().all())
+
+    if not investments and not opp_investments:
         return PortfolioSummary(
             total_invested=Decimal("0"),
             current_value=Decimal("0"),
@@ -57,30 +67,36 @@ async def portfolio_summary(
             city_distribution=[],
         )
 
-    # Batch-load property info
-    property_ids = {inv.property_id for inv in investments}
-    prop_result = await db.execute(
-        select(Property).where(Property.id.in_(property_ids))
-    )
-    props = {p.id: p for p in prop_result.scalars().all()}
-
     total_invested = Decimal("0")
     current_value = Decimal("0")
     by_asset: dict[str, Decimal] = defaultdict(Decimal)
     by_city: dict[str, tuple[int, Decimal]] = defaultdict(lambda: (0, Decimal("0")))
 
-    for inv in investments:
-        prop = props.get(inv.property_id)
-        total_invested += inv.amount
-        unit_val = prop.unit_price if prop else inv.unit_price
-        inv_value = inv.units * unit_val
-        current_value += inv_value
+    # Aggregate property-based investments
+    if investments:
+        property_ids = {inv.property_id for inv in investments}
+        prop_result = await db.execute(
+            select(Property).where(Property.id.in_(property_ids))
+        )
+        props = {p.id: p for p in prop_result.scalars().all()}
 
-        if prop:
-            asset_key = prop.asset_type.value if prop.asset_type else "Other"
-            by_asset[asset_key] += inv.amount
-            count, amt = by_city[prop.city]
-            by_city[prop.city] = (count + 1, amt + inv.amount)
+        for inv in investments:
+            prop = props.get(inv.property_id)
+            total_invested += inv.amount
+            unit_val = prop.unit_price if prop else inv.unit_price
+            inv_value = inv.units * unit_val
+            current_value += inv_value
+
+            if prop:
+                asset_key = prop.asset_type.value if prop.asset_type else "Other"
+                by_asset[asset_key] += inv.amount
+                count, amt = by_city[prop.city]
+                by_city[prop.city] = (count + 1, amt + inv.amount)
+
+    # Aggregate opportunity-based investments
+    for oi in opp_investments:
+        total_invested += oi.amount
+        current_value += oi.amount + (oi.returns_amount or Decimal("0"))
 
     monthly_income = total_invested * Decimal("0.006")
 
@@ -92,11 +108,14 @@ async def portfolio_summary(
         for inv in investments:
             inv_date = inv.created_at or datetime.now(timezone.utc)
             cashflows.append((inv_date, -float(inv.amount)))
+        for oi in opp_investments:
+            inv_date = oi.invested_at or oi.created_at or datetime.now(timezone.utc)
+            cashflows.append((inv_date, -float(oi.amount)))
         if cashflows:
             cashflows.append((datetime.now(timezone.utc), float(current_value)))
         xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else 0.0
         if xirr_value is not None:
-            cache_set(xirr_cache_key, xirr_value, ttl_seconds=300)
+            cache_set(xirr_cache_key, xirr_value, ttl_seconds=60)
 
     # Asset allocation
     asset_alloc = []

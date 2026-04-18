@@ -57,22 +57,6 @@ async def submit_eoi(
     if opp.status.value == "closed":
         raise HTTPException(status_code=400, detail="This opportunity is closed")
 
-    # Check for existing EOI (one per user per property)
-    existing_result = await db.execute(
-        select(ExpressionOfInterest).where(
-            ExpressionOfInterest.user_id == user.id,
-            ExpressionOfInterest.opportunity_id == opp.id,
-        )
-    )
-    existing_eoi = existing_result.scalar_one_or_none()
-
-    if existing_eoi:
-        # Update timestamp only – keep all other details as-is
-        existing_eoi.updated_at = datetime.now(timezone.utc)
-        await db.flush()
-        await db.refresh(existing_eoi)
-        return EOIRead.model_validate(existing_eoi)
-
     # Look up who referred this user (if anyone)
     ref_result = await db.execute(
         select(Referral.referrer_id)
@@ -359,34 +343,25 @@ async def admin_update_eoi_status(
         changed_by=user.id,
     ))
 
-    # When deal is completed, create OpportunityInvestment + update opportunity stats
-    if new_status == "deal_completed" and old_status != EOIStatus.DEAL_COMPLETED:
+    # When payment is done, create OpportunityInvestment + update opportunity stats
+    if new_status == "payment_done" and old_status != EOIStatus.PAYMENT_DONE:
         amount = eoi.investment_amount
         if amount and amount > 0:
-            # Prevent duplicate investment records
-            existing = await db.execute(
-                select(OpportunityInvestment).where(
-                    OpportunityInvestment.opportunity_id == eoi.opportunity_id,
-                    OpportunityInvestment.user_id == eoi.user_id,
-                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-                )
+            db.add(OpportunityInvestment(
+                opportunity_id=eoi.opportunity_id,
+                user_id=eoi.user_id,
+                amount=amount,
+                units=eoi.num_units or 1,
+                status=OppInvestmentStatus.CONFIRMED,
+            ))
+            # Update opportunity raised_amount and investor_count
+            opp_result = await db.execute(
+                select(Opportunity).where(Opportunity.id == eoi.opportunity_id)
             )
-            if not existing.scalar_one_or_none():
-                db.add(OpportunityInvestment(
-                    opportunity_id=eoi.opportunity_id,
-                    user_id=eoi.user_id,
-                    amount=amount,
-                    units=eoi.num_units or 1,
-                    status=OppInvestmentStatus.CONFIRMED,
-                ))
-                # Update opportunity raised_amount and investor_count
-                opp_result = await db.execute(
-                    select(Opportunity).where(Opportunity.id == eoi.opportunity_id)
-                )
-                opp = opp_result.scalar_one_or_none()
-                if opp:
-                    opp.raised_amount = (opp.raised_amount or 0) + amount
-                    opp.investor_count = (opp.investor_count or 0) + 1
+            opp = opp_result.scalar_one_or_none()
+            if opp:
+                opp.raised_amount = (opp.raised_amount or 0) + amount
+                opp.investor_count = (opp.investor_count or 0) + 1
 
     await db.flush()
     await db.refresh(eoi)

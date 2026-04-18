@@ -136,6 +136,36 @@ services:
     environment:
       VITE_API_BASE_URL: http://localhost:8000/api/v1
 
+  # ── Test Runner (opt-in: docker compose --profile test up test-runner) ──
+  # Not started by default. Enable with: COMPOSE_PROFILES=test or --profile test
+  test-runner:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://wealthspot:wealthspot_dev@postgres:5432/wealthspot
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: test-secret-key-for-unit-tests
+      APP_ENV: testing
+      CORS_ORIGINS: "*"
+      CELERY_BROKER_URL: redis://redis:6379/1
+      ENCRYPTION_KEY: XdhWucM5GcQhgX7PZlpPriT9s8gkp7UvsD-xDbDVZD0=
+      VITE_API_BASE_URL: http://api:8000/api/v1
+    volumes:
+      - ./tests:/app/tests
+      - ./apps/web/src:/app/apps/web/src:ro
+      - ./apps/mobile/src:/app/apps/mobile/src:ro
+      - ./packages:/app/packages:ro
+      - ./services/api/app:/app/services/api/app:ro
+
 volumes:
   pgdata:
   minio_data:

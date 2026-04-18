@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Pencil,
   Save,
+  Undo2,
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -87,7 +88,7 @@ function StatusBadge({ status }: { status: string }) {
   const Icon = cfg.icon
   const label = STATUSES.find((s) => s.value === status)?.label ?? status
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.className}`}>
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${cfg.className}`}>
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -656,19 +657,36 @@ function EditCompanyPanel({
 function LifecycleControls({ opportunity }: { opportunity: OpportunityItem }) {
   const updateMutation = useUpdateOpportunity()
   const [closingDate, setClosingDate] = useState(opportunity.closingDate ?? '')
+  const [revertTarget, setRevertTarget] = useState<string | null>(null)
 
-  const handleStatusChange = async (newStatus: string) => {
-    const data: Record<string, string | undefined> = { status: newStatus }
+  const STATUS_ORDER = ['draft', 'pending_approval', 'approved', 'active', 'funding', 'funded', 'closing_soon', 'closed']
+  const currentStatus = (opportunity.status ?? '').toLowerCase()
+  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+
+  const handleStatusChange = async (newStatus: string, cancelInvestments = false) => {
+    const data: Record<string, unknown> = { status: newStatus }
     if (newStatus === 'closed') data.closingDate = undefined
     else if (closingDate) data.closingDate = closingDate
+    if (cancelInvestments) data.cancelInvestments = true
     await updateMutation.mutateAsync({ id: opportunity.id, data })
   }
 
-  const currentStatus = (opportunity.status ?? '').toLowerCase()
+  // Backward-transition targets that are meaningful
+  const revertOptions = STATUS_ORDER.slice(0, currentIdx).filter(
+    (s) => ['active', 'funding', 'approved'].includes(s)
+  )
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: 'Draft', pending_approval: 'Pending Approval', approved: 'Approved',
+    active: 'Active', funding: 'Funding', funded: 'Funded',
+    closing_soon: 'Closing Soon', closed: 'Closed',
+  }
 
   return (
     <div className="rounded-lg border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/30 px-4 py-3 space-y-3">
       <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Deal Lifecycle</p>
+
+      {/* Forward transitions */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[160px]">
           <label className="block text-xs text-amber-600 dark:text-amber-400 mb-1">Closing Date</label>
@@ -694,6 +712,67 @@ function LifecycleControls({ opportunity }: { opportunity: OpportunityItem }) {
           {updateMutation.isPending ? '…' : 'Close Deal'}
         </button>
       </div>
+
+      {/* Backward transitions (revert) */}
+      {revertOptions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200 dark:border-amber-700/40">
+          <Undo2 className="h-3.5 w-3.5 text-amber-600" />
+          <span className="text-xs text-amber-600 dark:text-amber-400">Revert to:</span>
+          {revertOptions.map((s) => (
+            <button
+              key={s}
+              onClick={() => setRevertTarget(s)}
+              disabled={updateMutation.isPending}
+              className="px-2 py-1 text-xs font-medium rounded-md border border-amber-300 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-800/40 disabled:opacity-50 transition-colors"
+            >
+              {STATUS_LABELS[s] ?? s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Revert confirmation dialog */}
+      {revertTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setRevertTarget(null)}>
+          <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-theme-primary">Revert Deal Status</h3>
+            <p className="text-sm text-theme-secondary">
+              You are moving this deal from <strong className="text-theme-primary">{STATUS_LABELS[currentStatus]}</strong> back to <strong className="text-theme-primary">{STATUS_LABELS[revertTarget]}</strong>.
+            </p>
+            <p className="text-sm text-theme-secondary">
+              Would you like to <strong className="text-red-600">cancel all confirmed investments</strong> associated with this deal?
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={async () => {
+                  await handleStatusChange(revertTarget, true)
+                  setRevertTarget(null)
+                }}
+                disabled={updateMutation.isPending}
+                className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {updateMutation.isPending ? 'Processing…' : 'Revert & Cancel Investments'}
+              </button>
+              <button
+                onClick={async () => {
+                  await handleStatusChange(revertTarget, false)
+                  setRevertTarget(null)
+                }}
+                disabled={updateMutation.isPending}
+                className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg border border-theme text-theme-primary hover:bg-[var(--bg-surface-hover)] disabled:opacity-50 transition-colors"
+              >
+                {updateMutation.isPending ? 'Processing…' : 'Revert Only'}
+              </button>
+            </div>
+            <button
+              onClick={() => setRevertTarget(null)}
+              className="w-full text-xs text-theme-secondary hover:text-theme-primary text-center pt-1"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -936,7 +1015,7 @@ function InfoBlock({ icon: Icon, label, value, valueClass }: {
         <span className="text-[11px] font-semibold uppercase tracking-wider text-theme-tertiary">{label}</span>
       </div>
       {valueClass ? (
-        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${valueClass}`}>{value}</span>
+        <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${valueClass}`}>{value}</span>
       ) : (
         <p className="text-sm font-medium text-theme-primary">{value}</p>
       )}
@@ -1016,7 +1095,7 @@ function KanbanBoard({
                     </p>
 
                     {/* Category badge */}
-                    <span className="inline-block text-[10px] font-medium text-theme-secondary bg-theme-surface-hover px-1.5 py-0.5 rounded mt-1.5">
+                    <span className="inline-block text-[10px] font-medium text-theme-secondary bg-theme-surface-hover px-2 py-0.5 rounded mt-2">
                       {CATEGORIES.find((c) => c.value === a.category)?.label ?? a.category}
                     </span>
 
@@ -1053,7 +1132,7 @@ function KanbanBoard({
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function ApprovalsPage() {
+export default function ApprovalsPage({ embedded }: { embedded?: boolean }) {
   const { filters, setFilter } = useApprovalStore()
   const { data, isLoading } = useApprovals()
   const [view, setView] = useState<'board' | 'table'>('board')
@@ -1075,11 +1154,12 @@ export default function ApprovalsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-theme-surface flex flex-col">
-        {/* Shared Navbar */}
-        <Navbar />
+      <div className={embedded ? 'flex flex-col' : 'min-h-screen bg-theme-surface flex flex-col'}>
+        {/* Shared Navbar — hidden when embedded in Command Control */}
+        {!embedded && <Navbar />}
 
-        {/* Hero */}
+        {/* Hero — hidden when embedded */}
+        {!embedded && (
         <section className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="page-hero-content">
             <span className="page-hero-badge">Workflow</span>
@@ -1087,12 +1167,13 @@ export default function ApprovalsPage() {
             <p className="page-hero-subtitle">Review, approve, and track all pending requests across the platform.</p>
           </div>
         </section>
+        )}
 
         {/* Sub-header with view toggle */}
         <div className="sticky top-16 z-40 bg-[var(--bg-card)] backdrop-blur-md border-b border-theme">
           <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-12 flex h-12 items-center justify-between">
             <span className="text-sm font-semibold text-theme-secondary">Approvals</span>
-            <div className="flex items-center rounded-lg border border-theme bg-[var(--bg-surface)] p-0.5">
+            <div className="flex items-center rounded-lg border border-theme bg-[var(--bg-surface)] p-1">
               <button
                 onClick={() => setView('board')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'board' ? 'bg-primary text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
@@ -1278,7 +1359,7 @@ export default function ApprovalsPage() {
             </>
           )}
         </main>
-        <Footer />
+        {!embedded && <Footer />}
       </div>
 
       {/* Detail popup (from board or table click) */}

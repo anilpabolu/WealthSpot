@@ -24,6 +24,7 @@ class AppreciationEventRead(BaseModel):
     input_value: float
     old_valuation: float
     new_valuation: float
+    new_min_investment: float | None = None
     note: str | None = None
     created_at: datetime
 

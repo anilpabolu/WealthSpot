@@ -14,3 +14,8 @@ __pycache__/
 celerybeat-schedule
 *.egg-info/
 .eggs/
+
+# Build logs & debug output
+logs/
+*.log
+.coverage

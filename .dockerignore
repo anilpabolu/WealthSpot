@@ -1,0 +1,27 @@
+# Folders not needed in Docker builds
+tests/
+docs/
+logs/
+.git/
+.github/
+.vscode/
+.claude/
+node_modules/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+
+# Log/debug files
+*.log
+compose_err.txt
+compose_out.txt
+derr.txt
+dout.txt
+profile_test_result.txt
+.coverage
+
+# Markdown docs (kept in docs/)
+ARCHITECTURE.md
+MANUAL_SETUP_CHECKLIST.md
+PRODUCTION_READINESS_REVIEW.md
+SETUP_GUIDE.md

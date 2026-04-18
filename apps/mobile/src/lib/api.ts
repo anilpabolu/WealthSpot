@@ -12,6 +12,14 @@ import axios, { type InternalAxiosRequestConfig } from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import { API_BASE_URL } from './constants'
 
+// ─── Auth state callback (set by auth hook to trigger logout nav) ─────
+let _onAuthFailure: (() => void) | null = null
+
+/** Register a callback to be invoked when token refresh fails (e.g. navigate to login). */
+export function setOnAuthFailure(cb: () => void): void {
+  _onAuthFailure = cb
+}
+
 // ─── snake_case → camelCase deep converter ────────────
 function snakeToCamel(str: string): string {
   return str.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase())
@@ -113,6 +121,7 @@ api.interceptors.response.use(
           processRefreshQueue(null, refreshError)
           await SecureStore.deleteItemAsync('ws-token')
           await SecureStore.deleteItemAsync('ws-refresh-token')
+          _onAuthFailure?.()
           return Promise.reject(refreshError)
         } finally {
           _isRefreshing = false

@@ -20,7 +20,7 @@ from app.schemas.appreciation import AppreciationCreateRequest, AppreciationEven
 router = APIRouter(prefix="/opportunities", tags=["appreciation"])
 
 
-def _event_to_read(event: AppreciationEvent) -> AppreciationEventRead:
+def _event_to_read(event: AppreciationEvent, new_min_investment: float | None = None) -> AppreciationEventRead:
     """Convert model to read schema with creator_name populated."""
     return AppreciationEventRead(
         id=event.id,
@@ -31,6 +31,7 @@ def _event_to_read(event: AppreciationEvent) -> AppreciationEventRead:
         input_value=float(event.input_value),
         old_valuation=float(event.old_valuation),
         new_valuation=float(event.new_valuation),
+        new_min_investment=new_min_investment,
         note=event.note,
         created_at=event.created_at,
     )
@@ -89,6 +90,10 @@ async def appreciate_opportunity(
     # Update opportunity valuation
     opp.current_valuation = new_val
 
+    # Update min_investment proportionally (same appreciation ratio)
+    if opp.min_investment and old_val > 0:
+        opp.min_investment = (Decimal(str(opp.min_investment)) * new_val / old_val).quantize(Decimal("0.01"))
+
     # Recalculate all investor returns proportionally
     total_invested = Decimal(str(opp.raised_amount or 0))
     if total_invested > 0:
@@ -114,7 +119,10 @@ async def appreciate_opportunity(
     # Eager-load creator for response
     await db.refresh(event, ["creator"])
 
-    return _event_to_read(event)
+    return _event_to_read(
+        event,
+        new_min_investment=float(opp.min_investment) if opp.min_investment else None,
+    )
 
 
 @router.get("/{opportunity_id}/appreciation-history", response_model=list[AppreciationEventRead])

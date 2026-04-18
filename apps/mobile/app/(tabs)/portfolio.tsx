@@ -53,15 +53,15 @@ export default function PortfolioScreen() {
         <View className="flex-row justify-between mb-4">
           <View>
             <Text className="text-white/60 text-xs">Total Invested</Text>
-            <Text className="text-white font-bold text-xl">{formatINR(summary?.totalInvested ?? 0)}</Text>
+            <Text className="text-white font-bold text-xl">{summary?.totalInvested ? formatINR(summary.totalInvested) : '—'}</Text>
           </View>
           <View className="items-end">
             <Text className="text-white/60 text-xs">Current Value</Text>
-            <Text className="text-white font-bold text-xl">{formatINR(summary?.currentValue ?? 0)}</Text>
+            <Text className="text-white font-bold text-xl">{summary?.currentValue ? formatINR(summary.currentValue) : '—'}</Text>
           </View>
         </View>
 
-        <View className="flex-row bg-white/10 rounded-xl p-3 gap-4">
+        <View className="flex-row bg-white/10 rounded-xl p-4 gap-4">
           <View className="flex-1 items-center">
             <Text className="text-white/60 text-[10px]">XIRR</Text>
             <Text className="text-emerald-300 font-bold text-base">{summary?.xirr?.toFixed(1) ?? '—'}%</Text>
@@ -69,7 +69,7 @@ export default function PortfolioScreen() {
           <View className="w-px bg-white/20" />
           <View className="flex-1 items-center">
             <Text className="text-white/60 text-[10px]">Monthly Income</Text>
-            <Text className="text-white font-bold text-base">{formatINR(summary?.monthlyIncome ?? 0)}</Text>
+            <Text className="text-white font-bold text-base">{summary?.monthlyIncome ? formatINR(summary.monthlyIncome) : '—'}</Text>
           </View>
           <View className="w-px bg-white/20" />
           <View className="flex-1 items-center">
@@ -108,7 +108,7 @@ export default function PortfolioScreen() {
           />
         )}
         {(holdings ?? []).map((prop) => (
-          <Pressable key={prop.propertyId} className="bg-white rounded-xl p-4 mb-2 shadow-sm">
+          <Pressable key={prop.propertyId} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
             <View className="flex-row justify-between items-start">
               <View className="flex-1 mr-3">
                 <Text className="text-gray-900 font-bold text-sm">{prop.propertyTitle}</Text>

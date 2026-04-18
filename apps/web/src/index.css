@@ -5,34 +5,37 @@
 @layer base {
   /* ───── Theme CSS Custom Properties ───── */
   :root {
-    --bg-base: #F5F0FF;
-    --bg-surface: #FDFBFF;
-    --bg-surface-hover: #F3EEFF;
-    --bg-card: rgba(255,255,255,0.85);
-    --bg-card-border: rgba(229,231,235,0.6);
+    --bg-base: #FDFBF5;
+    --bg-surface: #FFFEF9;
+    --bg-surface-hover: #F5F0E6;
+    --bg-card: rgba(255,254,248,0.92);
+    --bg-card-border: rgba(209,196,157,0.3);
     --bg-card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.04);
     --bg-card-shadow-hover: 0 1px 3px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08);
-    --bg-sidebar: rgba(245,240,255,0.6);
-    --bg-sidebar-border: rgba(229,231,235,0.5);
-    --bg-input: #FDFBFF;
-    --bg-input-border: #d1d5db;
-    --bg-input-focus-ring: rgba(99,102,241,0.4);
+    --bg-sidebar: rgba(253,251,245,0.7);
+    --bg-sidebar-border: rgba(209,196,157,0.35);
+    --bg-input: #FFFEF9;
+    --bg-input-border: #c9bea0;
+    --bg-input-focus-ring: rgba(79,70,229,0.4);
     --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
-    --text-muted: #d1d5db;
-    --text-accent: #6366f1;
+    --text-secondary: #4B5563;
+    --text-tertiary: #6B7280;
+    --text-muted: #9CA3AF;
+    --text-accent: #4F46E5;
     --text-on-accent: #ffffff;
-    --border-default: rgba(229,231,235,0.6);
-    --border-subtle: rgba(243,244,246,0.6);
-    --pill-bg: rgba(243,244,246,1);
+    --border-default: rgba(209,196,157,0.35);
+    --border-subtle: rgba(229,221,196,0.5);
+    --pill-bg: rgba(245,240,225,1);
     --pill-text: #374151;
-    --skeleton-from: #ede9fe;
-    --skeleton-via: #f5f0ff;
-    --skeleton-to: #ede9fe;
-    --modal-bg: rgba(253,251,255,0.95);
-    --modal-border: rgba(229,231,235,0.5);
-    --scrollbar-thumb: #c4b5fd;
+    --skeleton-from: #F0EBDC;
+    --skeleton-via: #FAF6ED;
+    --skeleton-to: #F0EBDC;
+    --modal-bg: rgba(253,251,245,0.96);
+    --modal-border: rgba(209,196,157,0.4);
+    --scrollbar-thumb: #C9B97A;
+    --frame-border: rgba(0, 0, 0, 0.15);
+    --frame-border-hover: rgba(0, 0, 0, 0.25);
+    --card-glow: 0 0 8px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.04);
     color-scheme: light;
   }
 
@@ -65,6 +68,9 @@
     --modal-bg: rgba(22,19,45,0.97);
     --modal-border: rgba(212,175,55,0.12);
     --scrollbar-thumb: rgba(255,255,255,0.15);
+    --frame-border: rgba(212, 175, 55, 0.25);
+    --frame-border-hover: rgba(212, 175, 55, 0.4);
+    --card-glow: 0 0 10px rgba(212, 175, 55, 0.12), 0 0 3px rgba(212, 175, 55, 0.08);
     color-scheme: dark;
   }
 
@@ -78,7 +84,7 @@
 
   /* Theme-aware selection highlight */
   ::selection {
-    background: rgba(99,102,241,0.25);
+    background: rgba(212,175,55,0.2);
     color: #111827;
   }
   .dark ::selection {
@@ -103,12 +109,12 @@
   /* Card base — glassmorphism elevated style */
   .card {
     background: var(--bg-card);
-    border: 1px solid var(--bg-card-border);
-    box-shadow: var(--bg-card-shadow);
+    border: 1px solid var(--frame-border);
+    box-shadow: var(--card-glow), var(--bg-card-shadow);
     @apply backdrop-blur-xl rounded-2xl transition-all duration-300;
   }
   .card:hover {
-    box-shadow: var(--bg-card-shadow-hover);
+    box-shadow: var(--card-glow), var(--bg-card-shadow-hover);
   }
 
   /* Premium card with accent border (vault-style) */
@@ -116,12 +122,16 @@
     @apply card border-l-4;
   }
 
-  /* Glass card (dark surfaces) */
+  /* Glass card — theme-aware */
   .glass-card {
-    @apply backdrop-blur-[24px] bg-white/[0.06] border border-white/10 rounded-2xl;
+    @apply backdrop-blur-[24px] bg-white/80 rounded-2xl;
+    border: 1px solid var(--frame-border);
+    box-shadow: var(--card-glow);
   }
   .dark .glass-card {
-    @apply bg-white/[0.04] border-[#D4AF37]/10;
+    @apply bg-white/[0.04];
+    border: 1px solid var(--frame-border);
+    box-shadow: var(--card-glow);
   }
 
   /* Primary button — premium gradient style */
@@ -139,9 +149,9 @@
 
   /* Secondary button */
   .btn-secondary {
-    @apply border border-gray-200 bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl px-5 py-2.5 font-semibold
-           hover:bg-white hover:border-gray-300 hover:shadow-sm transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2;
+    @apply border border-gray-300 bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl px-5 py-2.5 font-semibold
+           hover:bg-white hover:border-gray-400 hover:shadow-sm transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
   }
   .dark .btn-secondary {
     @apply border-white/[0.15] bg-white/[0.06] text-white/80 hover:bg-white/10 hover:border-white/25 focus:ring-white/10;
@@ -257,7 +267,7 @@
   }
 
   .page-hero-subtitle {
-    @apply text-white/60 max-w-2xl text-base sm:text-lg leading-relaxed font-body;
+    @apply text-white/70 max-w-2xl text-base sm:text-lg leading-relaxed font-body;
   }
 
   .page-hero-badge {
@@ -267,7 +277,7 @@
 
   /* Content section background — theme-aware gradient for rich sections */
   .content-section-bg {
-    background: linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 50%, #F5F0FF 100%);
+    background: linear-gradient(135deg, #FDFBF5 0%, #F5F0E1 50%, #FDFBF5 100%);
   }
   .dark .content-section-bg {
     background: linear-gradient(135deg, #1a1730 0%, #231f4d 50%, #1a1730 100%);
@@ -275,12 +285,12 @@
 
   /* Content card background — theme-aware for cards inside content sections */
   .content-card-bg {
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(253,251,255,0.9) 100%);
-    border-color: rgba(229,231,235,0.6);
+    background: linear-gradient(135deg, rgba(255,254,248,0.95) 0%, rgba(253,251,245,0.9) 100%);
+    border-color: var(--frame-border);
   }
   .dark .content-card-bg {
     background: linear-gradient(135deg, #1e1b40 0%, #262350 50%, #1e1b40 100%);
-    border-color: rgba(212,175,55,0.12);
+    border-color: var(--frame-border);
   }
 
   /* Section wrapper — theme-aware */
@@ -307,12 +317,12 @@
   /* Stat/metric card — theme-aware */
   .stat-card {
     background: var(--bg-card);
-    border: 1px solid var(--bg-card-border);
-    box-shadow: var(--bg-card-shadow);
+    border: 1px solid var(--frame-border);
+    box-shadow: var(--card-glow), var(--bg-card-shadow);
     @apply backdrop-blur-xl rounded-2xl p-5 space-y-2 transition-all duration-300;
   }
   .stat-card:hover {
-    box-shadow: var(--bg-card-shadow-hover);
+    box-shadow: var(--card-glow), var(--bg-card-shadow-hover);
   }
 
   .stat-card-icon {
@@ -326,8 +336,9 @@
 
   .modal-panel {
     background: var(--modal-bg);
-    border: 1px solid var(--modal-border);
-    @apply backdrop-blur-xl rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.04)]
+    border: 1px solid var(--frame-border);
+    box-shadow: var(--card-glow), 0 8px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+    @apply backdrop-blur-xl rounded-3xl
            w-full max-h-[90vh] overflow-y-auto animate-scale-in;
   }
 
@@ -366,10 +377,12 @@
 
   /* Glass utility for reusable glassmorphism */
   .glass {
-    @apply bg-white/60 backdrop-blur-xl border border-white/20;
+    @apply bg-[#FFFEF9]/70 backdrop-blur-xl;
+    border: 1px solid var(--frame-border);
   }
   .dark .glass {
-    @apply bg-white/[0.04] border-white/[0.08];
+    @apply bg-white/[0.04];
+    border: 1px solid var(--frame-border);
   }
 
   .glass-dark {
@@ -403,5 +416,7 @@
   .bg-theme-surface-hover { background: var(--bg-surface-hover); }
   .bg-theme-card { background: var(--bg-card); }
   .border-theme { border-color: var(--border-default); }
+  .border-frame { border: 1px solid var(--frame-border); }
+  .border-frame:hover { border-color: var(--frame-border-hover); }
   .divide-theme > :not([hidden]) ~ :not([hidden]) { border-color: var(--border-default); }
 }

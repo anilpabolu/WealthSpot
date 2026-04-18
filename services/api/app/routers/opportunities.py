@@ -19,6 +19,7 @@ from app.models.opportunity_like import OpportunityLike, UserActivity
 from app.models.profiling import UserProfileAnswer, VaultProfileQuestion
 from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
+from app.models.vault_explorer import VaultExplorer
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
     OpportunityRead,
@@ -45,7 +46,7 @@ async def list_opportunities(
     db: AsyncSession = Depends(get_db),
     user: User | None = Depends(get_optional_user),
     vault_type: VaultType | None = Query(None),
-    status: OpportunityStatus | None = Query(None),
+    status: str | None = Query(None),
     city: str | None = Query(None),
     community_subtype: str | None = Query(None, description="Filter community opportunities: co_investor or co_partner"),
     creator_id: str | None = Query(None, description="Filter by creator. Use 'me' for current user."),
@@ -67,7 +68,7 @@ async def list_opportunities(
             resolved_creator_id = _uuid.UUID(creator_id)
 
     # Hide archived opportunities unless explicitly requested
-    if status != OpportunityStatus.ARCHIVED:
+    if status != "archived":
         query = query.where(Opportunity.status != OpportunityStatus.ARCHIVED)
         count_query = count_query.where(Opportunity.status != OpportunityStatus.ARCHIVED)
 
@@ -75,8 +76,18 @@ async def list_opportunities(
         query = query.where(Opportunity.vault_type == vault_type)
         count_query = count_query.where(Opportunity.vault_type == vault_type)
     if status:
-        query = query.where(Opportunity.status == status)
-        count_query = count_query.where(Opportunity.status == status)
+        parsed_statuses = []
+        for s in status.split(","):
+            try:
+                parsed_statuses.append(OpportunityStatus(s.strip()))
+            except ValueError:
+                pass
+        if len(parsed_statuses) == 1:
+            query = query.where(Opportunity.status == parsed_statuses[0])
+            count_query = count_query.where(Opportunity.status == parsed_statuses[0])
+        elif parsed_statuses:
+            query = query.where(Opportunity.status.in_(parsed_statuses))
+            count_query = count_query.where(Opportunity.status.in_(parsed_statuses))
     if city:
         query = query.where(Opportunity.city == city)
         count_query = count_query.where(Opportunity.city == city)
@@ -214,7 +225,12 @@ async def vault_stats(
         total = float(agg_row.total_invested) if agg_row else 0.0
         actual_irr_map[vt] = _compute_irr(inv_by_vault[vt], total) if total > 0 else None
 
-    # Total active questions per vault type
+    # ── Explorer count ────────────────────────────────────────────────
+    # Explorer = user who completed ALL active DNA profiling questions for
+    # a vault but does NOT yet have a confirmed investment in that vault.
+    # When an explorer invests, they convert from explorer → investor.
+
+    # Step 1: total active questions per vault
     q_count_q = (
         select(
             VaultProfileQuestion.vault_type,
@@ -226,7 +242,7 @@ async def vault_stats(
     q_count_result = await db.execute(q_count_q)
     total_q_map = {row.vault_type: int(row.total_q) for row in q_count_result.fetchall()}
 
-    # Per-user answer counts grouped by vault type
+    # Step 2: count answers per user per vault
     user_answer_q = (
         select(
             UserProfileAnswer.vault_type,
@@ -237,20 +253,93 @@ async def vault_stats(
     )
     user_answer_result = await db.execute(user_answer_q)
 
-    # Split into explorers (started but not completed) and dna_investors (completed)
-    explorer_map: dict[str, int] = {}
-    dna_investor_map: dict[str, int] = {}
+    # Collect user_ids who completed DNA per vault
+    dna_complete_users: dict[str, set] = {}
     for row in user_answer_result.fetchall():
         vt_str = row.vault_type
         total_q = total_q_map.get(vt_str, 0)
         if total_q > 0 and int(row.answered) >= total_q:
-            dna_investor_map[vt_str] = dna_investor_map.get(vt_str, 0) + 1
-        else:
-            explorer_map[vt_str] = explorer_map.get(vt_str, 0) + 1
+            dna_complete_users.setdefault(vt_str, set()).add(row.user_id)
+
+    # Step 3: user_ids with confirmed investments per vault
+    invested_users_q = (
+        select(
+            Opportunity.vault_type,
+            OpportunityInvestment.user_id,
+        )
+        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
+        .where(
+            Opportunity.status.in_(active_statuses),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .distinct()
+    )
+    invested_result = await db.execute(invested_users_q)
+    invested_users: dict[str, set] = {}
+    for row in invested_result.fetchall():
+        vt_str = row.vault_type.value if hasattr(row.vault_type, 'value') else row.vault_type
+        invested_users.setdefault(vt_str, set()).add(row.user_id)
+
+    # Step 4: explorer = DNA complete MINUS invested
+    explorer_map: dict[str, int] = {}
+    for vt_str, dna_users in dna_complete_users.items():
+        inv_users = invested_users.get(vt_str, set())
+        explorer_map[vt_str] = len(dna_users - inv_users)
+
+    # Platform users count (total registered users)
+    platform_users_result = await db.execute(select(func.count(User.id)))
+    platform_users_count = platform_users_result.scalar() or 0
+
+    # New metrics: min_investment, cities, sectors per vault
+    extra_q = (
+        select(
+            Opportunity.vault_type,
+            func.min(Opportunity.min_investment).label("min_inv"),
+            func.count(func.distinct(Opportunity.city)).label("cities"),
+            func.count(func.distinct(Opportunity.industry)).label("sectors"),
+        )
+        .where(Opportunity.status.in_(active_statuses))
+        .group_by(Opportunity.vault_type)
+    )
+    extra_result = await db.execute(extra_q)
+    extra_map = {row.vault_type: row for row in extra_result.fetchall()}
+
+    # Avg ticket size from confirmed investments per vault
+    ticket_q = (
+        select(
+            Opportunity.vault_type,
+            func.avg(OpportunityInvestment.amount).label("avg_ticket"),
+        )
+        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
+        .where(
+            Opportunity.status.in_(active_statuses),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .group_by(Opportunity.vault_type)
+    )
+    ticket_result = await db.execute(ticket_q)
+    ticket_map = {row.vault_type: float(row.avg_ticket) for row in ticket_result.fetchall()}
+
+    # Co-investor / co-partner counts (community vault subtypes)
+    co_q = (
+        select(
+            Opportunity.community_subtype,
+            func.count(Opportunity.id).label("cnt"),
+        )
+        .where(
+            Opportunity.status.in_(active_statuses),
+            Opportunity.vault_type == VaultType.COMMUNITY,
+            Opportunity.community_subtype.in_(["co_investor", "co_partner"]),
+        )
+        .group_by(Opportunity.community_subtype)
+    )
+    co_result = await db.execute(co_q)
+    co_map = {row.community_subtype: int(row.cnt) for row in co_result.fetchall()}
 
     results = []
     for vt in VaultType:
         agg_row = agg_rows.get(vt)
+        extra_row = extra_map.get(vt)
         results.append(VaultStatsResponse(
             vault_type=vt.value,
             total_invested=float(agg_row.total_invested) if agg_row else 0.0,
@@ -259,7 +348,13 @@ async def vault_stats(
             expected_irr=round(float(irr_map[vt]), 2) if vt in irr_map and irr_map[vt] else None,
             actual_irr=actual_irr_map.get(vt),
             explorer_count=explorer_map.get(vt.value, 0),
-            dna_investor_count=dna_investor_map.get(vt.value, 0),
+            min_investment=float(extra_row.min_inv) if extra_row and extra_row.min_inv else None,
+            avg_ticket_size=ticket_map.get(vt),
+            cities_covered=int(extra_row.cities) if extra_row else 0,
+            sectors_covered=int(extra_row.sectors) if extra_row else 0,
+            co_investor_count=co_map.get("co_investor", 0) if vt == VaultType.COMMUNITY else 0,
+            co_partner_count=co_map.get("co_partner", 0) if vt == VaultType.COMMUNITY else 0,
+            platform_users_count=platform_users_count,
         ))
 
     return results
@@ -470,6 +565,37 @@ async def builder_analytics(
     ).model_dump()
 
 
+# ── User activities feed ─────────────────────────────────────────────────────
+
+
+@router.get("/user/activities")
+async def user_activities(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+    limit: int = Query(20, ge=1, le=100),
+) -> list[dict]:
+    """Return user's activity feed (liked, shared, invested, etc.)."""
+    result = await db.execute(
+        select(UserActivity)
+        .where(UserActivity.user_id == user.id)
+        .order_by(UserActivity.created_at.desc())
+        .limit(limit)
+    )
+    activities = result.scalars().all()
+    return [
+        {
+            "id": str(a.id),
+            "activityType": a.activity_type,
+            "resourceType": a.resource_type,
+            "resourceId": str(a.resource_id),
+            "resourceTitle": a.resource_title,
+            "resourceSlug": a.resource_slug,
+            "createdAt": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in activities
+    ]
+
+
 @router.get("/by-slug/{slug}", response_model=OpportunityRead)
 async def get_opportunity_by_slug(
     slug: str,
@@ -659,7 +785,7 @@ async def update_opportunity(
     if not is_creator and not is_approver:
         raise HTTPException(status_code=403, detail="Not authorised to edit this opportunity")
 
-    if is_creator and opp.status not in (OpportunityStatus.DRAFT, OpportunityStatus.PENDING_APPROVAL):
+    if is_creator and opp.status in (OpportunityStatus.CLOSED, OpportunityStatus.ARCHIVED):
         raise HTTPException(status_code=400, detail="Cannot edit opportunity in current status")
 
     # Detect backward status transition and handle investment cancellation
@@ -896,37 +1022,6 @@ async def get_property_referral_code(
         "code": prc.code,
         "referral_link": f"https://wealthspot.in/opportunity/{opp.slug}?pref={prc.code}",
     }
-
-
-# ── User activities feed ─────────────────────────────────────────────────────
-
-
-@router.get("/user/activities")
-async def user_activities(
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
-    limit: int = Query(20, ge=1, le=100),
-) -> list[dict]:
-    """Return user's activity feed (liked, shared, invested, etc.)."""
-    result = await db.execute(
-        select(UserActivity)
-        .where(UserActivity.user_id == user.id)
-        .order_by(UserActivity.created_at.desc())
-        .limit(limit)
-    )
-    activities = result.scalars().all()
-    return [
-        {
-            "id": str(a.id),
-            "activityType": a.activity_type,
-            "resourceType": a.resource_type,
-            "resourceId": str(a.resource_id),
-            "resourceTitle": a.resource_title,
-            "resourceSlug": a.resource_slug,
-            "createdAt": a.created_at.isoformat() if a.created_at else None,
-        }
-        for a in activities
-    ]
 
 
 # ── Soft-delete (archive) ────────────────────────────────────────────────────

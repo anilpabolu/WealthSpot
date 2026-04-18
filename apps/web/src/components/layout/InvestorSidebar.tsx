@@ -12,15 +12,18 @@ import {
   Bell,
   Settings,
   HelpCircle,
+  Vault,
 } from 'lucide-react'
 import { useUserStore } from '@/stores/user.store'
+import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 
 const INVESTOR_NAV = [
   { label: 'Dashboard', href: '/portal/investor', icon: LayoutDashboard },
   { label: 'Portfolio', href: '/portal/investor/portfolio', icon: PieChart },
   { label: 'Marketplace', href: '/marketplace', icon: Building2 },
-  { label: 'Transactions', href: '/portal/investor/transactions', icon: Receipt },
-  { label: 'Lend', href: '/portal/investor/lender', icon: Landmark },
+  { label: 'Vaults', href: '/vaults', icon: Vault },
+  { label: 'Transactions', href: '/portal/investor/transactions', icon: Receipt, requiresProfile: true },
+  { label: 'Lend', href: '/portal/investor/lender', icon: Landmark, requiresProfile: true },
   { label: 'KYC Status', href: '/settings?tab=kyc', icon: FileCheck },
   { label: 'Community', href: '/community', icon: Users, roles: ['super_admin'] as string[] },
   { label: 'Refer & Earn', href: '/referral', icon: Share2 },
@@ -35,10 +38,16 @@ const INVESTOR_BOTTOM = [
 export default function InvestorSidebar() {
   const location = useLocation()
   const userRole = useUserStore((s) => s.user?.role)
+  const { data: profileStatus } = useProfileCompletionStatus()
 
   const visibleNav = INVESTOR_NAV.filter((item) => {
-    if (!('roles' in item) || !item.roles) return true
-    return userRole && item.roles.includes(userRole)
+    if ('roles' in item && item.roles) {
+      if (!userRole || !item.roles.includes(userRole)) return false
+    }
+    if ('requiresProfile' in item && item.requiresProfile) {
+      if (!profileStatus?.isComplete) return false
+    }
+    return true
   })
 
   return (

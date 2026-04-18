@@ -4,6 +4,7 @@ import OnboardingVideo from '@/components/OnboardingVideo'
 import { usePlatformStats } from '@/hooks/usePlatformStats'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
+import { useClerk } from '@clerk/react'
 import {
   TrendingUp,
   Users,
@@ -45,13 +46,11 @@ function AnimatedNumber({ value, format }: { value: number; format?: (n: number)
 
 
 /* ---------- Hero ---------- */
-function HeroSection({ onRequestAccess, onExplore }: { onRequestAccess: () => void; onExplore: () => void }) {
+function HeroSection() {
   const heroBadge = useContent('landing', 'hero_badge', 'Curated access • trusted networks • strategic entry')
   const heroTitle = useContent('landing', 'hero_title', 'Private Access to Exceptional Real Asset Opportunities.')
   const heroSubtitle = useContent('landing', 'hero_subtitle', 'A refined platform for discerning investors, strategic partners, and value creators seeking curated entry into early-stage real estate opportunities and relationship-led wealth creation.')
   const heroItalic = useContent('landing', 'hero_italic', 'For those who understand that wealth is not built by chasing visibility, but by entering with clarity, conviction, and the right people around the table.')
-  const heroCtaPrimary = useContent('landing', 'hero_cta_primary', 'Request Private Access')
-  const heroCtaSecondary = useContent('landing', 'hero_cta_secondary', 'Explore WealthSpot')
   const thesisLabel = useContent('landing', 'thesis_label', 'WealthSpot Thesis')
   const thesisBadge = useContent('landing', 'thesis_badge', 'Private Market Mindset')
   const thesisHeading = useContent('landing', 'thesis_heading', 'Where access, judgment, and trust align.')
@@ -82,21 +81,10 @@ function HeroSection({ onRequestAccess, onExplore }: { onRequestAccess: () => vo
             <p className="text-[15px] text-white/50 italic max-w-lg leading-relaxed font-body">
               {heroItalic}
             </p>
-
-            {/* CTA row */}
-            <div className="flex flex-wrap items-center gap-4">
-              <button onClick={onRequestAccess} className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-base px-8 py-3.5 inline-flex items-center gap-2">
-                {heroCtaPrimary}
-                <ArrowRight className="h-5 w-5" />
-              </button>
-              <button onClick={onExplore} className="px-8 py-3.5 text-base rounded-xl border border-white/20 text-white/80 hover:border-[#D4AF37]/40 hover:text-white transition-colors">
-                {heroCtaSecondary}
-              </button>
-            </div>
           </div>
 
           {/* Right — Thesis panel */}
-          <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/15 p-8 space-y-6">
+          <div className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-8 space-y-6">
             {/* Warm gradient bg */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-2xl" />
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
@@ -303,7 +291,7 @@ function TheVaultsSection() {
           {vaults.map((v) => (
             <div
               key={v.title}
-              className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/15 p-7 hover:border-[#D4AF37]/30 transition-colors"
+              className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-7 hover:border-[var(--frame-border-hover)] transition-colors"
             >
               <div className="absolute inset-0 content-card-bg rounded-2xl" />
               <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
@@ -368,7 +356,7 @@ function InvestorIdentitiesSection() {
           {identities.map((id) => (
             <div
               key={id.title}
-              className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/15 p-7 hover:border-[#D4AF37]/30 transition-colors"
+              className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-7 hover:border-[var(--frame-border-hover)] transition-colors"
             >
               <div className="absolute inset-0 content-card-bg rounded-2xl" />
               <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
@@ -396,9 +384,13 @@ export default function LandingPage() {
   const [showVideo, setShowVideo] = useState(false)
   const [videoMode, setVideoMode] = useState<'browse' | 'signup'>('browse')
   const { introVideosEnabled } = useVaultConfig()
+  const clerk = useClerk()
 
   const openVideo = (mode: 'browse' | 'signup') => {
-    if (!introVideosEnabled) return
+    if (!introVideosEnabled) {
+      clerk.openSignUp({ forceRedirectUrl: '/vaults' })
+      return
+    }
     setVideoMode(mode)
     setShowVideo(true)
   }
@@ -407,7 +399,7 @@ export default function LandingPage() {
     <MainLayout>
       {/* Hero (2-col with thesis) + metrics fill one viewport */}
       <div className="flex flex-col h-[calc(100vh-4rem)]">
-        <HeroSection onRequestAccess={() => openVideo('signup')} onExplore={() => openVideo('browse')} />
+        <HeroSection />
         <StatsBar />
       </div>
       <IntroSection />

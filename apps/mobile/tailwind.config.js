@@ -59,6 +59,9 @@ module.exports = {
         gold: { DEFAULT: '#D4AF37', light: '#F0E6C8', dark: '#8B6914' },
         forest: { DEFAULT: '#065F46', light: '#ECFDF5', dark: '#064E3B' },
       },
+      borderColor: {
+        frame: 'rgba(0, 0, 0, 0.15)',
+      },
       fontFamily: {
         display: ['Syne'],
         hero: ['SpaceGrotesk'],

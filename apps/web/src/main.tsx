@@ -37,9 +37,24 @@ ReactDOM.createRoot(rootElement).render(
       afterSignOutUrl="/"
       appearance={{
         signIn: {
-          // Hide the sign-up link on the sign-in modal
           elements: {
-            footerAction: { display: 'none' },
+            footerActionText: {
+              fontSize: '13px',
+              color: '#D4AF37',
+            },
+            footerActionLink: {
+              color: '#D4AF37',
+              fontWeight: '600',
+              '&:hover': { color: '#B8860B' },
+            },
+          },
+        },
+      }}
+      localization={{
+        signIn: {
+          start: {
+            actionText: 'New here?',
+            actionLink: 'Sign up using Get Access',
           },
         },
       }}

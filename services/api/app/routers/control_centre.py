@@ -126,9 +126,9 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
 
 # Default metrics per vault (used when no DB config exists yet)
 _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
-    "wealth": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "properties_listed"],
-    "opportunity": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "startups_listed"],
-    "community": ["total_invested", "investor_count", "explorer_count", "dna_investor_count", "projects_launched", "co_investors"],
+    "wealth": ["total_invested", "investor_count", "explorer_count", "properties_listed"],
+    "opportunity": ["total_invested", "investor_count", "explorer_count", "startups_listed"],
+    "community": ["total_invested", "investor_count", "explorer_count", "projects_launched", "co_investors"],
 }
 
 
@@ -153,6 +153,24 @@ async def get_vault_metrics_config(db: AsyncSession = Depends(get_db)) -> dict[s
         "wealth": _metrics("wealth_metrics", "wealth"),
         "opportunity": _metrics("opportunity_metrics", "opportunity"),
         "community": _metrics("community_metrics", "community"),
+    }
+
+
+# ── Public Appearance Config ──────────────────────────────────────────────────
+
+
+@router.get("/appearance")
+async def get_appearance_config(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """Public endpoint: returns appearance settings (theme colors, etc.)."""
+    result = await db.execute(
+        select(PlatformConfig).where(
+            PlatformConfig.section == "appearance",
+            PlatformConfig.is_active.is_(True),
+        )
+    )
+    configs = {c.key: c.value for c in result.scalars().all()}
+    return {
+        "light_mode_bg_color": configs.get("light_mode_bg_color", "#FDFBF5"),
     }
 
 

@@ -7,6 +7,8 @@ import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
+import { useAppearanceConfig } from '@/hooks/useControlCentre'
+import { applyThemePalette, clearThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 
 // Lazy-loaded route components
@@ -34,7 +36,6 @@ const Vaults = lazy(() => import('@/pages/VaultsPage'))
 const Community = lazy(() => import('@/pages/CommunityPage'))
 const Referral = lazy(() => import('@/pages/ReferralPage'))
 const Settings = lazy(() => import('@/pages/SettingsPage'))
-const Approvals = lazy(() => import('@/pages/ApprovalsPage'))
 const CommandControl = lazy(() => import('@/pages/CommandControlPage'))
 const NotFound = lazy(() => import('@/pages/NotFoundPage'))
 const Portfolio = lazy(() => import('@/pages/PortfolioPage'))
@@ -110,10 +111,20 @@ export default function App() {
     const root = document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
+      clearThemePalette()
     } else {
       root.classList.remove('dark')
     }
   }, [theme])
+
+  // Apply admin-configured light mode background color
+  const { data: appearance } = useAppearanceConfig()
+  useEffect(() => {
+    const color = appearance?.lightModeBgColor || '#FDFBF5'
+    if (theme !== 'dark') {
+      applyThemePalette(color)
+    }
+  }, [appearance, theme])
 
   // Capture ?ref=CODE from URL and stash in localStorage for post-signup apply
   useEffect(() => {
@@ -205,7 +216,7 @@ export default function App() {
           <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
 
           {/* Approvals & Command Control */}
-          <Route path="/approvals" element={<ProtectedRoute><Approvals /></ProtectedRoute>} />
+          <Route path="/approvals" element={<Navigate to="/control-centre?section=approvals" replace />} />
           <Route path="/control-centre" element={<ProtectedRoute><CommandControl /></ProtectedRoute>} />
 
           {/* Settings */}

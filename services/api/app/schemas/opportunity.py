@@ -207,6 +207,13 @@ class VaultStatsResponse(BaseModel):
     actual_irr: float | None = None
     explorer_count: int = 0
     dna_investor_count: int = 0
+    min_investment: float | None = None
+    avg_ticket_size: float | None = None
+    cities_covered: int = 0
+    sectors_covered: int = 0
+    co_investor_count: int = 0
+    co_partner_count: int = 0
+    platform_users_count: int = 0
 
 
 # ── Builder investor / analytics schemas ────────────────────────────────────

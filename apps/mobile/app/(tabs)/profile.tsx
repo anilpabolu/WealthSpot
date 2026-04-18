@@ -105,7 +105,7 @@ export default function ProfileScreen() {
         {MENU_ITEMS.map((item, index) => (
           <Pressable
             key={item.label}
-            className={`flex-row items-center px-4 py-3.5 ${
+            className={`flex-row items-center px-4 py-4 ${
               index < MENU_ITEMS.length - 1 ? 'border-b border-gray-50' : ''
             }`}
           >

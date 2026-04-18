@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { useProfilingProgress, useOverallProgress } from '@/hooks/useProfiling'
+import VaultProfilingModal from '@/components/VaultProfilingModal'
+import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
+import { useProfilingProgress, useOverallProgress, useRecordExplorer } from '@/hooks/useProfiling'
 import {
   Building2,
   Compass,
@@ -18,13 +20,10 @@ import {
   X,
   Lock,
   Banknote,
-  Percent,
-  Target,
   Layers,
   MapPin,
   Handshake,
   UserCheck,
-  Trophy,
   type LucideIcon,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
@@ -247,7 +246,7 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
 type MetricDef = {
   label: string
   icon: LucideIcon
-  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number } | undefined, vaultId: string) => string
+  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number } | undefined, vaultId: string) => string
 }
 
 export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
@@ -282,17 +281,7 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
   min_investment: {
     label: 'Min Investment',
     icon: Banknote,
-    resolve: () => '₹10,000',
-  },
-  avg_occupancy: {
-    label: 'Avg Occupancy',
-    icon: Percent,
-    resolve: () => '—',
-  },
-  avg_rental_yield: {
-    label: 'Avg Rental Yield',
-    icon: Percent,
-    resolve: () => '—',
+    resolve: (s) => (s?.minInvestment != null ? formatINRCompact(s.minInvestment) : '—'),
   },
   startups_listed: {
     label: 'Startups Listed',
@@ -302,47 +291,37 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
   avg_ticket_size: {
     label: 'Avg Ticket Size',
     icon: Banknote,
-    resolve: () => '—',
+    resolve: (s) => (s?.avgTicketSize != null ? formatINRCompact(s.avgTicketSize) : '—'),
   },
   sectors_covered: {
     label: 'Sectors Covered',
     icon: Layers,
-    resolve: () => '—',
-  },
-  success_rate: {
-    label: 'Success Rate',
-    icon: Target,
-    resolve: () => '—',
+    resolve: (s) => (s ? s.sectorsCovered.toLocaleString('en-IN') : '—'),
   },
   projects_launched: {
     label: 'Projects Launched',
     icon: Rocket,
     resolve: (s) => (s ? s.opportunityCount.toLocaleString('en-IN') : '—'),
   },
-  projects_successful: {
-    label: 'Projects Successful',
-    icon: Trophy,
-    resolve: () => '—',
-  },
   co_investors: {
     label: 'Co-Investors',
     icon: Handshake,
-    resolve: () => '—',
+    resolve: (s) => (s ? s.coInvestorCount.toLocaleString('en-IN') : '—'),
   },
   co_partners: {
     label: 'Co-Partners',
     icon: UserCheck,
-    resolve: () => '—',
+    resolve: (s) => (s ? s.coPartnerCount.toLocaleString('en-IN') : '—'),
   },
   avg_project_size: {
     label: 'Avg Project Size',
     icon: Banknote,
-    resolve: () => '—',
+    resolve: (s) => (s?.avgTicketSize != null ? formatINRCompact(s.avgTicketSize) : '—'),
   },
   cities_covered: {
     label: 'Cities Covered',
     icon: MapPin,
-    resolve: () => '—',
+    resolve: (s) => (s ? s.citiesCovered.toLocaleString('en-IN') : '—'),
   },
   explorer_count: {
     label: 'Explorers',
@@ -354,13 +333,18 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
     icon: UserCheck,
     resolve: (s) => (s ? s.dnaInvestorCount.toLocaleString('en-IN') : '—'),
   },
+  platform_users: {
+    label: 'Platform Users',
+    icon: Users,
+    resolve: (s) => (s ? s.platformUsersCount.toLocaleString('en-IN') : '—'),
+  },
 }
 
 /* All available metric keys per vault (for admin UI) */
 export const ALL_VAULT_METRICS: Record<string, string[]> = {
-  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'properties_listed', 'avg_occupancy', 'avg_rental_yield'],
-  opportunity: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
-  community: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
+  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'properties_listed', 'min_investment', 'cities_covered'],
+  opportunity: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
+  community: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
 }
 
 function VaultCard({
@@ -374,9 +358,11 @@ function VaultCard({
   onPlayVideo,
   onComingSoon,
   onCommunityExplore,
+  onProfilingCircleClick,
+  onExplore,
 }: {
   vault: (typeof VAULTS)[number]
-  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number }
+  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number }
   opportunities: OpportunityItem[]
   profilingPct: number
   archetype?: string | null
@@ -385,6 +371,8 @@ function VaultCard({
   onPlayVideo?: () => void
   onComingSoon: () => void
   onCommunityExplore?: () => void
+  onProfilingCircleClick?: () => void
+  onExplore?: () => void
 }) {
   const Icon = vault.icon
 
@@ -396,10 +384,13 @@ function VaultCard({
       e.preventDefault()
       onCommunityExplore()
     }
+    if (!comingSoon) {
+      onExplore?.()
+    }
   }
 
   return (
-    <div className="rounded-3xl border border-[#D4AF37]/15 bg-white dark:bg-gradient-to-br dark:from-[#161b2e] dark:via-[#1c2240] dark:to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[#D4AF37]/30 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
+    <div className="rounded-3xl border border-[var(--frame-border)] bg-white dark:bg-gradient-to-br dark:from-[#161b2e] dark:via-[#1c2240] dark:to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[var(--frame-border-hover)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
       {/* Header band */}
       <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
         {/* Decorative background glow */}
@@ -412,7 +403,11 @@ function VaultCard({
           </div>
           <h3 className="font-hero text-xl font-bold text-white flex-1 tracking-tight">{vault.title}</h3>
           {!comingSoon && (
-            <div className="shrink-0 relative h-9 w-9" title={`${Math.round(profilingPct)}% profiled`}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onProfilingCircleClick?.() }}
+              className="shrink-0 relative h-9 w-9 cursor-pointer hover:scale-110 transition-transform"
+              title={`${Math.round(profilingPct)}% profiled — click to ${profilingPct >= 100 ? 'view results' : 'continue'}`}
+            >
               <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
                 <circle cx="18" cy="18" r="14" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="3" />
                 <circle cx="18" cy="18" r="14" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round"
@@ -421,7 +416,7 @@ function VaultCard({
               <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white/90">
                 {Math.round(profilingPct)}%
               </span>
-            </div>
+            </button>
           )}
           {comingSoon && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
@@ -447,7 +442,7 @@ function VaultCard({
       {/* Body */}
       <div className="p-6 space-y-5 flex-1 flex flex-col">
         {/* Vault description — moved from tooltip */}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <p className="text-sm text-gray-600 dark:text-white/80 leading-relaxed font-body">{vault.infoBody}</p>
           <p className="text-[13px] text-[#D4AF37]/60 italic leading-relaxed font-body">{vault.infoItalic}</p>
         </div>
@@ -462,7 +457,7 @@ function VaultCard({
             const isIrr = key === 'actual_irr'
             return (
               <div key={key} className="space-y-1">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <MetricIcon className={`h-3.5 w-3.5 ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`} />
                   <span className={`text-[11px] font-semibold uppercase tracking-wider ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>{def.label}</span>
                 </div>
@@ -512,7 +507,7 @@ function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number];
   const Icon = pillar.icon
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/15 p-5 hover:border-[#D4AF37]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <div className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-5 hover:border-[var(--frame-border-hover)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
       {/* Dark warm background matching landing page */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-2xl" />
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
@@ -553,9 +548,15 @@ export default function VaultsPage() {
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [showCommunityExplore, setShowCommunityExplore] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
+  const [profilingVault, setProfilingVault] = useState<string | null>(null)
   const userRole = useUserStore((s) => s.user?.role)
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const navigate = useNavigate()
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
+  const { mutate: recordExplorer } = useRecordExplorer()
+
+  // Profile completion (for % circle navigation logic)
+  const { data: profileCompletion } = useProfileCompletionStatus()
 
   // Fetch vault metrics config (which metrics to show per vault)
   const { data: metricsConfig } = useVaultMetricsConfig()
@@ -666,6 +667,16 @@ export default function VaultsPage() {
                   onPlayVideo={vaultVideosEnabled ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) }) : undefined}
                   onComingSoon={() => showComingSoon(vault.id)}
                   onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
+                  onExplore={() => { if (isAuthenticated) recordExplorer(vault.id) }}
+                  onProfilingCircleClick={() => {
+                    if (!profileCompletion?.isComplete) {
+                      navigate('/profile/complete')
+                    } else if ((profilingMap[vault.id] ?? 0) >= 100) {
+                      navigate(`/vault-profiling?vault=${vault.id}`)
+                    } else {
+                      setProfilingVault(vault.id)
+                    }
+                  }}
                 />
               )
             })}
@@ -746,6 +757,14 @@ export default function VaultsPage() {
             <p className="font-semibold text-sm">{comingSoonToast}</p>
           </div>
         </div>
+      )}
+
+      {/* Vault profiling modal */}
+      {profilingVault && (
+        <VaultProfilingModal
+          vaultType={profilingVault}
+          onClose={() => setProfilingVault(null)}
+        />
       )}
     </>
   )

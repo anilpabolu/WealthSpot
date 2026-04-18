@@ -10,7 +10,7 @@ from typing import Sequence
 
 from sqlalchemy import (
     Boolean, DateTime, Enum, ForeignKey, Integer, Numeric,
-    String, Text, UniqueConstraint,
+    String, Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -34,9 +34,6 @@ class EOIStatus(str, PyEnum):
 
 class ExpressionOfInterest(Base):
     __tablename__ = "expressions_of_interest"
-    __table_args__ = (
-        UniqueConstraint("user_id", "opportunity_id", name="uq_eoi_user_opportunity"),
-    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

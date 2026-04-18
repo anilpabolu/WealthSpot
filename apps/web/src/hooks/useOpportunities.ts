@@ -87,6 +87,13 @@ export interface VaultStats {
   actualIrr: number | null
   explorerCount: number
   dnaInvestorCount: number
+  minInvestment: number | null
+  avgTicketSize: number | null
+  citiesCovered: number
+  sectorsCovered: number
+  coInvestorCount: number
+  coPartnerCount: number
+  platformUsersCount: number
 }
 
 export interface OpportunityCreatePayload {

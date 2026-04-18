@@ -6,8 +6,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#6366F1', dark: '#4F46E5', light: '#EEF2FF' },
-        surface: '#F5F0FF',
+        primary: { DEFAULT: '#6366F1', dark: '#4F46E5', light: '#F5F0E6' },
+        surface: '#FDFBF5',
         status: {
           live: '#10B981',
           upcoming: '#3B82F6',

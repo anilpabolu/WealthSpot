@@ -142,9 +142,9 @@ export default function MarketplaceScreen() {
         data={properties}
         numColumns={2}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 12 }}
-        columnWrapperStyle={{ gap: 12 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        contentContainerStyle={{ padding: 16 }}
+        columnWrapperStyle={{ gap: 16 }}
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         ListHeaderComponent={
           isLoading ? (
             <View className="items-center py-10">

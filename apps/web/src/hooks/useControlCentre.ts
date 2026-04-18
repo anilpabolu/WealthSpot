@@ -50,6 +50,15 @@ export function useControlConfigs(section?: string) {
   })
 }
 
+export function useAppearanceConfig() {
+  return useQuery({
+    queryKey: ['control-centre', 'appearance'],
+    queryFn: () =>
+      apiGet<{ lightModeBgColor: string }>('/control-centre/appearance'),
+    staleTime: 60_000,
+  })
+}
+
 export function useCreateConfig() {
   const qc = useQueryClient()
   return useMutation({

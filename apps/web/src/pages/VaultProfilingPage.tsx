@@ -10,7 +10,7 @@
  *  - Personality reveal at the end with animated radar chart
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -27,7 +27,8 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { useVaultQuestions, useSubmitVaultAnswers, useProfilingProgress } from '@/hooks/useProfiling'
+import { useThemeStore } from '@/stores/theme.store'
+import { useVaultQuestions, useSubmitVaultAnswers, useProfilingProgress, useMyAnswers } from '@/hooks/useProfiling'
 import type { VaultProfileQuestion, QuestionOption, SliderOptions } from '@/hooks/useProfiling'
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -40,13 +41,13 @@ const VAULT_THEMES = {
     gradient: 'from-slate-900 via-indigo-950 to-slate-900',
     bgGradient: 'from-[#F5F0E1] via-[#FAF6ED] to-[#F5F0E1]',
     cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
-    accent: 'text-[#1B2A4A]',
+    accent: 'text-[#1B2A4A] dark:text-[#D4AF37]',
     accentHex: '#1B2A4A',
     accentBg: 'bg-[#1B2A4A]',
     ring: 'ring-[#D4AF37]',
     progressBar: 'bg-gradient-to-r from-[#1B2A4A] to-[#D4AF37]',
     selectedBorder: 'border-[#D4AF37]',
-    selectedBg: 'bg-[#F5F0E1]',
+    selectedBg: 'bg-[#F5F0E1] dark:bg-[#D4AF37]/15',
     radarFill: 'rgba(212, 175, 55, 0.15)',
     radarStroke: '#D4AF37',
     emoji: '🏛️',
@@ -58,13 +59,13 @@ const VAULT_THEMES = {
     gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
     bgGradient: 'from-[#FFF0F0] via-[#FFF5F5] to-[#FFF0F0]',
     cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
-    accent: 'text-[#FF6B6B]',
+    accent: 'text-[#FF6B6B] dark:text-[#20E3B2]',
     accentHex: '#FF6B6B',
     accentBg: 'bg-[#FF6B6B]',
     ring: 'ring-[#20E3B2]',
     progressBar: 'bg-gradient-to-r from-[#FF6B6B] to-[#20E3B2]',
     selectedBorder: 'border-[#20E3B2]',
-    selectedBg: 'bg-[#D5F5EC]',
+    selectedBg: 'bg-[#D5F5EC] dark:bg-[#20E3B2]/15',
     radarFill: 'rgba(32, 227, 178, 0.15)',
     radarStroke: '#20E3B2',
     emoji: '🚀',
@@ -76,13 +77,13 @@ const VAULT_THEMES = {
     gradient: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
     bgGradient: 'from-[#FFFBEB] via-[#FFFDF5] to-[#FFFBEB]',
     cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
-    accent: 'text-[#065F46]',
+    accent: 'text-[#065F46] dark:text-[#F59E0B]',
     accentHex: '#065F46',
     accentBg: 'bg-[#065F46]',
     ring: 'ring-[#D97706]',
     progressBar: 'bg-gradient-to-r from-[#D97706] to-[#065F46]',
     selectedBorder: 'border-[#D97706]',
-    selectedBg: 'bg-[#FFFBEB]',
+    selectedBg: 'bg-[#FFFBEB] dark:bg-[#D97706]/15',
     radarFill: 'rgba(217, 119, 6, 0.15)',
     radarStroke: '#D97706',
     emoji: '🤝',
@@ -275,11 +276,20 @@ function SliderInput({
 /*  Fun Fact Toast                                                            */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function FunFact({ text }: { text: string }) {
+function FunFact({ text, onDismiss }: { text: string; onDismiss?: () => void }) {
   return (
     <div className="animate-fade-up bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40 rounded-xl px-4 py-3 flex items-start gap-3 max-w-lg mx-auto">
       <span className="text-xl shrink-0">💡</span>
-      <p className="text-sm text-amber-800 leading-relaxed font-body">{text}</p>
+      <p className="text-sm text-amber-800 leading-relaxed font-body flex-1">{text}</p>
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="text-amber-500 hover:text-amber-700 text-sm font-bold shrink-0 ml-1"
+          aria-label="Dismiss fun fact"
+        >
+          ✕
+        </button>
+      )}
     </div>
   )
 }
@@ -335,7 +345,7 @@ function ProgressHeader({
 /*  Personality Radar Chart (SVG)                                             */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function PersonalityRadar({ dimensions, radarFill, radarStroke }: { dimensions: Record<string, number>; radarFill?: string; radarStroke?: string }) {
+function PersonalityRadar({ dimensions, radarFill, radarStroke, gridColor = '#D1C49D', labelColor = '#6B7280' }: { dimensions: Record<string, number>; radarFill?: string; radarStroke?: string; gridColor?: string; labelColor?: string }) {
   const labels = [
     { key: 'risk_appetite', label: 'Risk', color: '#EF4444' },
     { key: 'domain_expertise', label: 'Expertise', color: '#3B82F6' },
@@ -385,7 +395,7 @@ function PersonalityRadar({ dimensions, radarFill, radarStroke }: { dimensions: 
             })
             .join(' ')}
           fill="none"
-          stroke="#E5E7EB"
+          stroke={gridColor}
           strokeWidth="1"
         />
       ))}
@@ -400,7 +410,7 @@ function PersonalityRadar({ dimensions, radarFill, radarStroke }: { dimensions: 
             y1={cy}
             x2={cx + r * Math.cos(angle)}
             y2={cy + r * Math.sin(angle)}
-            stroke="#E5E7EB"
+            stroke={gridColor}
             strokeWidth="1"
           />
         )
@@ -423,7 +433,8 @@ function PersonalityRadar({ dimensions, radarFill, radarStroke }: { dimensions: 
             y={p.labelY}
             textAnchor="middle"
             dominantBaseline="middle"
-            className="text-[9px] font-semibold fill-gray-500"
+            className="text-[9px] font-semibold"
+            fill={labelColor}
           >
             {p.label}
           </text>
@@ -454,19 +465,64 @@ export default function VaultProfilingPage() {
   const theme = VAULT_THEMES[vaultType] || VAULT_THEMES.community
 
   const { data: questions = [], isLoading } = useVaultQuestions(vaultType)
+  const { data: existingAnswers = [] } = useMyAnswers(vaultType)
   const { data: progress } = useProfilingProgress(vaultType)
   const submitMutation = useSubmitVaultAnswers()
 
-  const [currentIdx, setCurrentIdx] = useState(0)
+  const [currentScreen, setCurrentScreen] = useState(0)
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
-  const [showFunFact, setShowFunFact] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [resultDimensions, setResultDimensions] = useState<Record<string, number> | null>(null)
 
-  const currentQuestion = questions[currentIdx] as VaultProfileQuestion | undefined
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined
-  const isLastQuestion = currentIdx >= questions.length - 1
-  const canGoNext = currentAnswer !== undefined
+  // Group questions by category into screens
+  interface QuestionScreen { category: string; label: string; questions: VaultProfileQuestion[] }
+  const screens: QuestionScreen[] = useMemo(() => {
+    const categoryMap = new Map<string, VaultProfileQuestion[]>()
+    const sorted = [...questions].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+    for (const q of sorted) {
+      const cat = q.category || 'general'
+      if (!categoryMap.has(cat)) categoryMap.set(cat, [])
+      categoryMap.get(cat)!.push(q)
+    }
+    return Array.from(categoryMap.entries()).map(([category, qs]) => ({
+      category,
+      label: category.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      questions: qs,
+    }))
+  }, [questions])
+
+  // Pre-fill existing answers (resume support)
+  useEffect(() => {
+    if (existingAnswers.length === 0) return
+    const prefilled: Record<string, unknown> = {}
+    for (const ans of existingAnswers) {
+      prefilled[ans.questionId] = ans.answerValue
+    }
+    setAnswers((prev) => ({ ...prefilled, ...prev }))
+    const answeredIds = new Set(existingAnswers.map((a) => a.questionId))
+    const idx = screens.findIndex((s) => s.questions.some((q) => !answeredIds.has(q.id)))
+    if (idx > 0) setCurrentScreen(idx)
+  }, [existingAnswers, screens])
+
+  const screen = screens[currentScreen]
+  const totalScreens = screens.length
+  const isLastScreen = currentScreen >= totalScreens - 1
+
+  const isScreenComplete = screen?.questions.every((q) => {
+    const val = answers[q.id]
+    if (val === undefined || val === null) return false
+    if (Array.isArray(val) && val.length === 0) return false
+    return true
+  }) ?? false
+
+  const totalQuestions = questions.length
+  const answeredCount = questions.filter((q) => {
+    const val = answers[q.id]
+    if (val === undefined || val === null) return false
+    if (Array.isArray(val) && val.length === 0) return false
+    return true
+  }).length
+  const progressPct = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0
 
   // If already completed, show result
   useEffect(() => {
@@ -486,36 +542,26 @@ export default function VaultProfilingPage() {
     }
   }, [progress])
 
-  const handleSelect = useCallback(
-    (value: unknown) => {
-      if (!currentQuestion) return
-      setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }))
-      setShowFunFact(!!currentQuestion.funFact)
-    },
-    [currentQuestion],
-  )
+  const setAnswer = useCallback((questionId: string, value: unknown) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }))
+  }, [])
 
-  const handleMultiToggle = useCallback(
-    (value: string) => {
-      if (!currentQuestion) return
-      const current = (answers[currentQuestion.id] as string[]) || []
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value]
-      setAnswers((prev) => ({ ...prev, [currentQuestion.id]: next }))
-    },
-    [currentQuestion, answers],
-  )
+  const toggleMulti = useCallback((questionId: string, optionValue: string) => {
+    setAnswers((prev) => {
+      const current = (prev[questionId] as string[] | undefined) ?? []
+      const next = current.includes(optionValue)
+        ? current.filter((v) => v !== optionValue)
+        : [...current, optionValue]
+      return { ...prev, [questionId]: next }
+    })
+  }, [])
 
-  const goNext = useCallback(() => {
-    setShowFunFact(false)
-    if (isLastQuestion) {
-      // Submit all answers
+  const handleNext = useCallback(() => {
+    if (isLastScreen) {
       const payload = {
         vaultType,
         answers: Object.entries(answers).map(([qId, val]) => ({
           questionId: qId,
-          vaultType,
           answerValue: val,
         })),
       }
@@ -525,14 +571,14 @@ export default function VaultProfilingPage() {
         },
       })
     } else {
-      setCurrentIdx((i) => Math.min(i + 1, questions.length - 1))
+      setCurrentScreen((s) => s + 1)
     }
-  }, [isLastQuestion, answers, vaultType, questions.length, submitMutation])
+  }, [isLastScreen, answers, vaultType, submitMutation])
 
-  const goPrev = useCallback(() => {
-    setShowFunFact(false)
-    setCurrentIdx((i) => Math.max(i - 1, 0))
-  }, [])
+  const handleBack = useCallback(() => {
+    if (currentScreen > 0) setCurrentScreen((s) => s - 1)
+    else navigate('/vaults')
+  }, [currentScreen, navigate])
 
   // ── Loading State ──────────────────────────────────────────────────────────
 
@@ -555,6 +601,11 @@ export default function VaultProfilingPage() {
   if (showResult) {
     const archLabel = progress?.personality?.archetypeLabel
     const archDesc = progress?.personality?.archetypeDescription
+    const isDark = useThemeStore.getState().theme === 'dark'
+    const gridColor = isDark ? 'rgba(255,255,255,0.15)' : '#D1C49D'
+    const labelColor = isDark ? 'rgba(255,255,255,0.6)' : '#6B7280'
+    const radarFill = theme.radarFill
+    const radarStroke = theme.radarStroke
 
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
@@ -593,11 +644,13 @@ export default function VaultProfilingPage() {
 
             {/* Radar Chart */}
             {resultDimensions && (
-              <div className="bg-[var(--bg-surface)] rounded-4xl shadow-vault-card p-8 animate-scale-in border border-theme">
+              <div className="bg-white dark:bg-[var(--bg-surface)] rounded-4xl shadow-lg dark:shadow-vault-card p-8 animate-scale-in border border-[var(--frame-border)]">
                 <PersonalityRadar
                   dimensions={resultDimensions}
-                  radarFill={theme.radarFill}
-                  radarStroke={theme.radarStroke}
+                  radarFill={radarFill}
+                  radarStroke={radarStroke}
+                  gridColor={gridColor}
+                  labelColor={labelColor}
                 />
               </div>
             )}
@@ -611,7 +664,7 @@ export default function VaultProfilingPage() {
                   return (
                     <div
                       key={key}
-                      className="bg-[var(--bg-surface)] rounded-2xl p-4 text-center shadow-sm animate-fade-up border border-theme hover:shadow-md transition-shadow"
+                      className="bg-white dark:bg-[var(--bg-surface)] rounded-2xl p-4 text-center shadow-md animate-fade-up border border-[var(--frame-border)] hover:shadow-lg transition-shadow"
                       style={{ animationDelay: `${i * 100}ms` }}
                     >
                       <Icon className={`h-5 w-5 mx-auto mb-2 ${info.color}`} />
@@ -636,10 +689,15 @@ export default function VaultProfilingPage() {
               <button
                 onClick={() => {
                   setShowResult(false)
-                  setCurrentIdx(0)
+                  setCurrentScreen(0)
                   setAnswers({})
                 }}
-                className="px-6 py-3.5 rounded-2xl border-2 border-theme text-theme-secondary font-semibold hover:bg-theme-surface transition-colors"
+                className="px-6 py-3.5 rounded-2xl font-semibold transition-all hover:scale-[1.02] hover:brightness-110"
+                style={{
+                  backgroundColor: `${theme.radarStroke}18`,
+                  border: `2px solid ${theme.radarStroke}55`,
+                  color: theme.radarStroke,
+                }}
               >
                 Retake Quiz
               </button>
@@ -679,112 +737,116 @@ export default function VaultProfilingPage() {
 
   // ── Questionnaire State ────────────────────────────────────────────────────
 
-  const q = currentQuestion!
-  const qOptions = Array.isArray(q.options) ? (q.options as QuestionOption[]) : []
-  const sliderOptions = !Array.isArray(q.options) && q.options ? (q.options as SliderOptions) : null
-  const illustration = q.illustration ? ILLUSTRATION_MAP[q.illustration] || '✨' : '✨'
-
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface">
       <Navbar />
       <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
-        <div className="mx-auto max-w-2xl px-6 py-8 space-y-8">
-          {/* Progress */}
-          <ProgressHeader
-            current={currentIdx}
-            total={questions.length}
-            theme={theme}
-            question={q}
-          />
-
-          {/* Question Card */}
-          <div
-            key={q.id}
-            className={`bg-[var(--bg-card)] backdrop-blur-xl rounded-4xl shadow-vault-card p-8 space-y-8 animate-slide-in-right border-l-4 ${theme.selectedBorder}`}
-          >
-            {/* Illustration & Category */}
-            <div className="flex items-center gap-4">
-              <span className="text-5xl animate-float">{illustration}</span>
+        <div className="mx-auto max-w-2xl px-6 py-8 space-y-6">
+          {/* Header with progress */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{theme.emoji}</span>
               <div>
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.accent} opacity-60`}>
-                  {q.category}
-                </span>
-                <h2 className="font-hero text-xl sm:text-2xl font-bold text-theme-primary leading-tight">
-                  {q.questionText}
-                </h2>
+                <h1 className="font-hero text-xl font-bold text-theme-primary">{theme.name}</h1>
+                <p className="text-xs text-theme-secondary">{theme.tagline}</p>
               </div>
             </div>
-
-            {/* Answer Options */}
-            <div className="space-y-3">
-              {q.questionType === 'choice' && (
-                <div className="space-y-3">
-                  {qOptions.map((opt, i) => (
-                    <ChoiceCard
-                      key={opt.value}
-                      option={opt}
-                      selected={currentAnswer === opt.value}
-                      onSelect={() => handleSelect(opt.value)}
-                      theme={theme}
-                      index={i}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {q.questionType === 'multi_choice' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {qOptions.map((opt, i) => (
-                    <MultiChoiceCard
-                      key={opt.value}
-                      option={opt}
-                      selected={((currentAnswer as string[]) || []).includes(opt.value)}
-                      onToggle={() => handleMultiToggle(opt.value)}
-                      theme={theme}
-                      index={i}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {(q.questionType === 'scale' || q.questionType === 'slider') && sliderOptions && (
-                <SliderInput
-                  options={sliderOptions}
-                  value={(currentAnswer as number) ?? Math.round((sliderOptions.min + sliderOptions.max) / 2)}
-                  onChange={handleSelect}
-                  theme={theme}
-                />
-              )}
-
-              {q.questionType === 'text' && (
-                <textarea
-                  className="w-full p-4 border-2 border-theme rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none font-body text-sm"
-                  rows={4}
-                  placeholder="Share your thoughts..."
-                  value={(currentAnswer as string) ?? ''}
-                  onChange={(e) => handleSelect(e.target.value)}
-                />
-              )}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-2 bg-[var(--bg-surface-hover)] rounded-full overflow-hidden">
+                <div className={`h-full ${theme.progressBar} rounded-full transition-all duration-500`} style={{ width: `${progressPct}%` }} />
+              </div>
+              <span className="text-xs font-mono font-bold text-theme-tertiary">
+                Screen {currentScreen + 1}/{totalScreens}
+              </span>
             </div>
+            {screen && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-theme-secondary uppercase tracking-wider">
+                  {screen.label}
+                </span>
+              </div>
+            )}
+          </div>
 
-            {/* Fun Fact */}
-            {showFunFact && q.funFact && <FunFact text={q.funFact} />}
+          {/* Questions Card */}
+          <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-4xl shadow-vault-card p-8 space-y-8 border border-[var(--frame-border)] max-h-[calc(100vh-280px)] overflow-y-auto">
+            {screen?.questions.map((q) => {
+              const qOptions = Array.isArray(q.options) ? (q.options as QuestionOption[]) : []
+              const sliderOpts = !Array.isArray(q.options) && q.options ? (q.options as SliderOptions) : null
+              return (
+                <div key={q.id} className="space-y-3">
+                  <h3 className="font-semibold text-theme-primary text-base">{q.questionText}</h3>
+
+                  {q.questionType === 'choice' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {qOptions.map((opt, i) => (
+                        <ChoiceCard
+                          key={opt.value}
+                          option={opt}
+                          selected={answers[q.id] === opt.value}
+                          onSelect={() => setAnswer(q.id, opt.value)}
+                          theme={theme}
+                          index={i}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {q.questionType === 'multi_choice' && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {qOptions.map((opt, i) => (
+                        <MultiChoiceCard
+                          key={opt.value}
+                          option={opt}
+                          selected={((answers[q.id] as string[] | undefined) ?? []).includes(opt.value)}
+                          onToggle={() => toggleMulti(q.id, opt.value)}
+                          theme={theme}
+                          index={i}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {(q.questionType === 'scale' || q.questionType === 'slider') && sliderOpts && (
+                    <SliderInput
+                      options={sliderOpts}
+                      value={(answers[q.id] as number) ?? Math.round((sliderOpts.min + sliderOpts.max) / 2)}
+                      onChange={(v) => setAnswer(q.id, v)}
+                      theme={theme}
+                    />
+                  )}
+
+                  {q.questionType === 'text' && (
+                    <textarea
+                      className="w-full p-4 border-2 border-theme rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none font-body text-sm"
+                      rows={3}
+                      placeholder="Share your thoughts..."
+                      value={(answers[q.id] as string) ?? ''}
+                      onChange={(e) => setAnswer(q.id, e.target.value)}
+                    />
+                  )}
+
+                  {q.funFact && answers[q.id] !== undefined && (
+                    <FunFact text={q.funFact} />
+                  )}
+                </div>
+              )
+            })}
           </div>
 
           {/* Navigation */}
           <div className="flex items-center justify-between">
             <button
-              onClick={goPrev}
-              disabled={currentIdx === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-theme-secondary disabled:opacity-30 hover:bg-white/50 transition-colors"
+              onClick={handleBack}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-theme-secondary hover:bg-white/50 dark:hover:bg-white/5 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              {currentScreen > 0 ? 'Back' : 'Cancel'}
             </button>
 
             <button
-              onClick={goNext}
-              disabled={!canGoNext || submitMutation.isPending}
+              onClick={handleNext}
+              disabled={!isScreenComplete || submitMutation.isPending}
               className={`
                 flex items-center gap-2 px-8 py-3.5 rounded-2xl text-sm font-bold text-white
                 bg-gradient-to-r ${theme.gradient}
@@ -794,10 +856,10 @@ export default function VaultProfilingPage() {
             >
               {submitMutation.isPending ? (
                 'Analyzing...'
-              ) : isLastQuestion ? (
+              ) : isLastScreen ? (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Reveal My Profile
+                  Reveal My DNA
                 </>
               ) : (
                 <>

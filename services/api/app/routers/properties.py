@@ -133,7 +133,7 @@ async def list_properties(
     db: AsyncSession = Depends(get_db),
     city: str | None = Query(None),
     asset_type: AssetType | None = Query(None),
-    property_status: PropertyStatus | None = Query(None, alias="status"),
+    property_status: str | None = Query(None, alias="status"),
     min_investment_min: Decimal | None = Query(None),
     min_investment_max: Decimal | None = Query(None),
     irr_min: Decimal | None = Query(None),
@@ -145,7 +145,7 @@ async def list_properties(
 ) -> PaginatedProperties:
     """Public marketplace listing with filtering & pagination."""
     query = select(Property).where(
-        Property.status.in_([PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED])
+        Property.status.in_([PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED, PropertyStatus.EXITED])
     )
 
     if city:
@@ -153,7 +153,16 @@ async def list_properties(
     if asset_type:
         query = query.where(Property.asset_type == asset_type)
     if property_status:
-        query = query.where(Property.status == property_status)
+        parsed_statuses = []
+        for s in property_status.split(","):
+            try:
+                parsed_statuses.append(PropertyStatus(s.strip()))
+            except ValueError:
+                pass
+        if len(parsed_statuses) == 1:
+            query = query.where(Property.status == parsed_statuses[0])
+        elif parsed_statuses:
+            query = query.where(Property.status.in_(parsed_statuses))
     if min_investment_min is not None:
         query = query.where(Property.min_investment >= min_investment_min)
     if min_investment_max is not None:

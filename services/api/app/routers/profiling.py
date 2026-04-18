@@ -48,6 +48,31 @@ from app.services.matching import (
 router = APIRouter(prefix="/profiling", tags=["profiling"])
 
 
+# ── Record Vault Explorer ────────────────────────────────────────────────────
+
+@router.post("/explore/{vault_type}")
+async def record_vault_explorer(
+    vault_type: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Record that a user clicked 'Explore' on a vault. Idempotent."""
+    from app.models.vault_explorer import VaultExplorer
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+    if vault_type not in ("wealth", "opportunity", "community"):
+        raise HTTPException(status_code=400, detail="Invalid vault type")
+
+    stmt = pg_insert(VaultExplorer).values(
+        user_id=user.id, vault_type=vault_type
+    ).on_conflict_do_nothing(
+        constraint="uq_vault_explorer_user_vault"
+    )
+    await db.execute(stmt)
+    await db.commit()
+    return {"ok": True}
+
+
 # ── Vault Profile Questions ──────────────────────────────────────────────────
 
 @router.get("/questions/{vault_type}", response_model=list[VaultProfileQuestionRead])

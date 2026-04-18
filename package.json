@@ -4,14 +4,19 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "tests"
   ],
   "scripts": {
     "dev:web": "npm run dev --workspace=apps/web",
     "build:web": "npm run build --workspace=apps/web",
     "dev:api": "cd services/api && uvicorn app.main:app --reload --port 8000",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "npm run test --workspace=tests",
+    "test:web": "npm run test:web --workspace=tests",
+    "test:mobile": "npm run test:mobile --workspace=tests",
+    "test:api": "npm run test:api --workspace=tests",
+    "test:e2e": "npm run test:web:e2e --workspace=tests"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

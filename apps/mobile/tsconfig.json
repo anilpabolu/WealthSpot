@@ -13,5 +13,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "src/**/*", "app/**/*", "nativewind-env.d.ts", "react-native-types-fix.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
 }

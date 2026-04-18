@@ -283,9 +283,9 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
       </div>
 
       {/* Email Verification */}
-      <div className={cn('border-2 rounded-2xl p-5 transition-all', emailVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30/50' : 'border-theme bg-[var(--bg-surface)]')}>
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', emailVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30' : 'border-theme bg-[var(--bg-surface)]')}>
         <div className="flex items-center gap-3 mb-3">
-          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', emailVerified ? 'bg-emerald-100' : 'bg-blue-100')}>
+          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', emailVerified ? 'bg-emerald-100 dark:bg-emerald-800/40' : 'bg-blue-100 dark:bg-blue-900/40')}>
             <Mail className={cn('h-5 w-5', emailVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400')} />
           </div>
           <div className="flex-1">
@@ -293,7 +293,7 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
             <p className="text-xs text-theme-secondary">{email}</p>
           </div>
           {emailVerified && (
-            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-800/40 px-2.5 py-1 rounded-full">
               <Check className="h-3.5 w-3.5" /> Verified
             </span>
           )}
@@ -330,9 +330,9 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
       </div>
 
       {/* Phone Verification */}
-      <div className={cn('border-2 rounded-2xl p-5 transition-all', phoneVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30/50' : 'border-theme bg-[var(--bg-surface)]')}>
+      <div className={cn('border-2 rounded-2xl p-5 transition-all', phoneVerified ? 'border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/30' : 'border-theme bg-[var(--bg-surface)]')}>
         <div className="flex items-center gap-3 mb-3">
-          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', phoneVerified ? 'bg-emerald-100' : 'bg-purple-100')}>
+          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', phoneVerified ? 'bg-emerald-100 dark:bg-emerald-800/40' : 'bg-purple-100 dark:bg-purple-900/40')}>
             <Phone className={cn('h-5 w-5', phoneVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400')} />
           </div>
           <div className="flex-1">
@@ -340,7 +340,7 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
             <p className="text-xs text-theme-secondary">{phone || 'No phone number added yet'}</p>
           </div>
           {phoneVerified && (
-            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-800/40 px-2.5 py-1 rounded-full">
               <Check className="h-3.5 w-3.5" /> Verified
             </span>
           )}
@@ -501,6 +501,10 @@ export default function ProfileCompletionPage() {
   const isSaving = updateS1.isPending || updateS2.isPending || updateS3.isPending
   const currentStep = STEPS[step - 1]
 
+  // CMS content — called unconditionally to respect Rules of Hooks
+  const heroTitle = useContent('profile', 'hero_title', 'Complete Your Profile')
+  const heroSubtitle = useContent('profile', 'hero_subtitle', 'Unlock premium features, personalized recommendations & your unique referral code')
+
   const saveCurrentStep = useCallback(async () => {
     const handlers = [updateS1, updateS2, updateS3]
     if (step <= 3) {
@@ -558,8 +562,8 @@ export default function ProfileCompletionPage() {
       <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{pct}% Complete</span>
-          <h1 className="page-hero-title">{useContent('profile', 'hero_title', 'Complete Your Profile')}</h1>
-          <p className="page-hero-subtitle">{useContent('profile', 'hero_subtitle', 'Unlock premium features, personalized recommendations & your unique referral code')}</p>
+          <h1 className="page-hero-title">{heroTitle}</h1>
+          <p className="page-hero-subtitle">{heroSubtitle}</p>
         </div>
       </section>
 

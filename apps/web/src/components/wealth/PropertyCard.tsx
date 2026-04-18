@@ -59,7 +59,7 @@ export default memo(function PropertyCard({
 
   if (isLoading) {
     return (
-      <div className={cn('bg-[var(--bg-card)] border border-theme/60 rounded-xl overflow-hidden', className)}>
+      <div className={cn('card overflow-hidden', className)}>
         <div className="skeleton aspect-video w-full" />
         <div className="p-4 space-y-3">
           <div className="skeleton h-5 w-3/4" />
@@ -115,7 +115,7 @@ export default memo(function PropertyCard({
   return (
     <div
       className={cn(
-        'bg-[var(--bg-card)] backdrop-blur-sm border border-theme/60 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-theme/60 cursor-pointer group relative',
+        'card overflow-hidden cursor-pointer group relative',
         className
       )}
       onClick={onCardClick}

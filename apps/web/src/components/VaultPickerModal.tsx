@@ -29,7 +29,7 @@ const VAULT_OPTIONS = [
     icon: Building2,
     gradient: 'from-[#1B2A4A] via-[#2D3F5E] to-[#1B2A4A]',
     accent: 'text-[#D4AF37]',
-    bg: 'bg-[#F5F0E1]',
+    bg: 'bg-[#F5F0E1] dark:bg-[#D4AF37]/15',
     border: 'border-[#D4AF37]/30',
     emoji: '🏛️',
   },
@@ -39,7 +39,7 @@ const VAULT_OPTIONS = [
     icon: Rocket,
     gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
     accent: 'text-[#FF6B6B]',
-    bg: 'bg-[#FFF0F0]',
+    bg: 'bg-[#FFF0F0] dark:bg-[#FF6B6B]/10',
     border: 'border-[#20E3B2]/30',
     emoji: '🚀',
   },
@@ -49,7 +49,7 @@ const VAULT_OPTIONS = [
     icon: Users,
     gradient: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
     accent: 'text-[#065F46]',
-    bg: 'bg-[#FFFBEB]',
+    bg: 'bg-[#FFFBEB] dark:bg-[#D97706]/15',
     border: 'border-[#065F46]/30',
     emoji: '🤝',
   },
@@ -172,7 +172,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
               {vaultProgress?.isComplete ? (
                 <>
                   <div className={`rounded-xl ${selectedVault.bg} p-3 text-center`}>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
                       🎉 Your {selectedVault.title} DNA is ready!
                     </p>
                     {vaultProgress.archetype && (
@@ -191,7 +191,7 @@ export default function VaultPickerModal({ open, onClose }: VaultPickerModalProp
                 </>
               ) : (
                 <>
-                  <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40/50 p-3 text-center">
+                  <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40 p-3 text-center">
                     <p className="text-sm font-semibold text-amber-800">
                       Complete your {selectedVault.title} profiling to discover your investor DNA
                     </p>
