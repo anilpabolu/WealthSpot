@@ -2,7 +2,7 @@
 Notification router – list, mark read, get unread count, enquiry.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -36,11 +36,16 @@ async def list_notifications(
     total = (await db.execute(total_q)).scalar() or 0
 
     unread_q = select(func.count()).where(
-        Notification.user_id == user.id, Notification.is_read == False  # noqa: E712
+        Notification.user_id == user.id,
+        Notification.is_read == False,  # noqa: E712
     )
     unread_count = (await db.execute(unread_q)).scalar() or 0
 
-    query = base.order_by(Notification.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    query = (
+        base.order_by(Notification.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     result = await db.execute(query)
     items = [NotificationRead.model_validate(n) for n in result.scalars().all()]
 
@@ -57,7 +62,8 @@ async def get_unread_count(
 ) -> dict[str, int]:
     """Return count of unread notifications."""
     q = select(func.count()).where(
-        Notification.user_id == user.id, Notification.is_read == False  # noqa: E712
+        Notification.user_id == user.id,
+        Notification.is_read == False,  # noqa: E712
     )
     count = (await db.execute(q)).scalar() or 0
     return {"unread_count": count}
@@ -70,7 +76,7 @@ async def mark_read(
     user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     """Mark notifications as read. If no IDs provided, marks all as read."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if payload.notification_ids:
         stmt = (
@@ -107,9 +113,9 @@ async def send_enquiry(
 ) -> dict[str, str]:
     """Send an enquiry about a property. Notifies the builder and/or referrer."""
     # Look up the property to find builder and referrer
-    prop = (await db.execute(
-        select(Property).where(Property.id == payload.property_id)
-    )).scalar_one_or_none()
+    prop = (
+        await db.execute(select(Property).where(Property.id == payload.property_id))
+    ).scalar_one_or_none()
 
     if not prop:
         return {"status": "error", "message": "Property not found"}
@@ -121,7 +127,7 @@ async def send_enquiry(
         recipients.append(str(prop.referrer_user_id))
 
     sender_name = user.full_name or user.email or "A user"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for recipient_id in recipients:
         notif = Notification(

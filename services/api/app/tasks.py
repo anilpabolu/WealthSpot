@@ -4,6 +4,7 @@ Separates long-running work from the request/response cycle.
 """
 
 import logging
+from datetime import UTC
 
 from celery import shared_task
 
@@ -14,10 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=30)
-def send_email_task(self, to_email: str, subject: str, body_text: str, body_html: str | None = None):
+def send_email_task(
+    self, to_email: str, subject: str, body_text: str, body_html: str | None = None
+):
     """Send an email via SMTP in the background."""
-    from email.message import EmailMessage
     import smtplib
+    from email.message import EmailMessage
 
     from app.core.config import get_settings
 
@@ -48,7 +51,7 @@ def send_email_task(self, to_email: str, subject: str, body_text: str, body_html
         return True
     except Exception as exc:
         logger.exception("Failed to send email to %s", to_email)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=30)
@@ -79,7 +82,7 @@ def send_sms_task(self, phone_number: str, message: str):
         return True
     except Exception as exc:
         logger.exception("Failed to send SMS to %s", phone_number)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 # ── Cleanup Tasks ────────────────────────────────────────────────────────────
@@ -89,13 +92,15 @@ def send_sms_task(self, phone_number: str, message: str):
 def cleanup_expired_otps():
     """Remove expired OTP records from the database."""
     import asyncio
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
+
     from sqlalchemy import text
+
     from app.core.database import async_session_factory
 
     async def _cleanup():
         async with async_session_factory() as session:
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=15)
+            cutoff = datetime.now(UTC) - timedelta(minutes=15)
             # OTPs older than 15 minutes are considered expired
             await session.execute(
                 text("DELETE FROM users WHERE otp IS NOT NULL AND otp_expires_at < :cutoff"),
@@ -119,18 +124,41 @@ def cleanup_expired_otps():
 def cleanup_old_audit_logs():
     """Archive/delete audit logs older than 90 days."""
     import asyncio
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
+
     from sqlalchemy import text
+
     from app.core.database import async_session_factory
 
     async def _cleanup():
         async with async_session_factory() as session:
-            cutoff = datetime.now(timezone.utc) - timedelta(days=90)
+            cutoff = datetime.now(UTC) - timedelta(days=90)
             await session.execute(
                 text("DELETE FROM audit_logs WHERE created_at < :cutoff"),
                 {"cutoff": cutoff},
             )
             await session.commit()
+
+
+# ── Analytics Tasks ─────────────────────────────────────────────────────────────────
+
+
+@shared_task
+def refresh_analytics_views():
+    """Refresh all analytics materialized views."""
+    import asyncio
+
+    from sqlalchemy import text
+
+    from app.core.database import async_session_factory
+
+    async def _refresh():
+        async with async_session_factory() as session:
+            await session.execute(text("SELECT refresh_analytics_views()"))
+            await session.commit()
+            logger.info("Analytics materialized views refreshed")
+
+    asyncio.run(_refresh())
             logger.info("Archived audit logs older than %s", cutoff)
 
     asyncio.run(_cleanup())

@@ -107,6 +107,4 @@ def generate_presigned_url(key: str, expires_in: int = 3600) -> str:
 async def delete_file(key: str) -> None:
     """Delete a file from S3. Runs blocking boto3 call in a thread."""
     s3: Any = _get_s3_client()
-    await anyio.to_thread.run_sync(
-        lambda: s3.delete_object(Bucket=settings.aws_s3_bucket, Key=key)
-    )
+    await anyio.to_thread.run_sync(lambda: s3.delete_object(Bucket=settings.aws_s3_bucket, Key=key))

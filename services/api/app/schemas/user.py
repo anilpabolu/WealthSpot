@@ -9,7 +9,6 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import KycStatus, UserRole
 
-
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 
@@ -67,6 +66,7 @@ class UserRead(UserBase):
 
 class UserProfile(UserRead):
     """Extended profile for authenticated /me endpoint."""
+
     pass
 
 
@@ -79,6 +79,7 @@ VISIBLE_PERSONAS = {"investor", "builder", "admin", "super_admin"}
 
 class PersonaSelectionRequest(BaseModel):
     """Payload for POST /auth/select-persona."""
+
     roles: list[str] = Field(min_length=1, max_length=4)
     primary_role: str
 
@@ -100,6 +101,7 @@ class PersonaSelectionRequest(BaseModel):
 
 class SwitchPersonaRequest(BaseModel):
     """Payload for POST /auth/switch-persona."""
+
     primary_role: str
 
     @field_validator("primary_role")
@@ -112,6 +114,7 @@ class SwitchPersonaRequest(BaseModel):
 
 class AddPersonaRequest(BaseModel):
     """Payload for POST /auth/add-persona."""
+
     role: str
 
     @field_validator("role")
@@ -128,6 +131,7 @@ class AddPersonaRequest(BaseModel):
 
 class ProfileSection1Update(BaseModel):
     """Step 1: Personal & Risk Profile"""
+
     full_name: str | None = Field(None, min_length=2, max_length=255)
     date_of_birth: date | None = None
     gender: str | None = None
@@ -141,6 +145,7 @@ class ProfileSection1Update(BaseModel):
 
 class ProfileSection2Update(BaseModel):
     """Step 2: Interests & Subscriptions"""
+
     interests: list[str] | None = None
     preferred_cities: list[str] | None = None
     subscription_topics: list[str] | None = None
@@ -148,6 +153,7 @@ class ProfileSection2Update(BaseModel):
 
 class ProfileSection3Update(BaseModel):
     """Step 3: Skills & Availability"""
+
     skills: list[str] | None = None
     weekly_hours_available: str | None = None
     contribution_interests: list[str] | None = None
@@ -156,6 +162,7 @@ class ProfileSection3Update(BaseModel):
 
 class ProfileSection4Update(BaseModel):
     """Step 4: Address"""
+
     address_line1: str | None = Field(None, max_length=255)
     address_line2: str | None = Field(None, max_length=255)
     city: str | None = Field(None, max_length=100)
@@ -186,6 +193,7 @@ class ProfileCompletionResponse(BaseModel):
 
 class FullProfileRead(BaseModel):
     """All profile fields for the completion page."""
+
     id: uuid.UUID
     email: str
     full_name: str | None = None

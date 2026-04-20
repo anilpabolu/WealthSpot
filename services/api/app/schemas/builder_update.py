@@ -7,8 +7,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-
 # ── Attachment schemas ───────────────────────────────────────────────────────
+
 
 class BuilderUpdateAttachmentRead(BaseModel):
     id: uuid.UUID
@@ -21,6 +21,7 @@ class BuilderUpdateAttachmentRead(BaseModel):
 
 
 # ── BuilderUpdate schemas ────────────────────────────────────────────────────
+
 
 class BuilderUpdateCreatorRead(BaseModel):
     id: uuid.UUID

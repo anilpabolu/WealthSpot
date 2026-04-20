@@ -4,6 +4,7 @@ Auth router – login, register, refresh, webhook, profile.
 
 import logging
 import uuid
+from datetime import UTC
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -104,9 +105,7 @@ async def check_user_exists(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, bool]:
     """Check if a user with this email is registered and active."""
-    result = await db.execute(
-        select(User.id).where(User.email == email, User.is_active.is_(True))
-    )
+    result = await db.execute(select(User.id).where(User.email == email, User.is_active.is_(True)))
     return {"exists": result.scalar_one_or_none() is not None}
 
 
@@ -121,7 +120,7 @@ async def refresh_token(
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token type")
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        raise HTTPException(status_code=401, detail="Invalid refresh token") from None
 
     user_id = payload["sub"]
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
@@ -152,7 +151,7 @@ async def select_persona(
     - If 'builder' selected, auto-creates a builder approval request
     - If 'admin'/'super_admin' selected without invite, rejects
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
 
@@ -173,7 +172,7 @@ async def select_persona(
     user.roles = body.roles
     user.primary_role = body.primary_role
     user.role = UserRole(body.primary_role)  # keep legacy column in sync
-    user.persona_selected_at = datetime.now(timezone.utc)
+    user.persona_selected_at = datetime.now(UTC)
 
     # Auto-create builder approval request
     if "builder" in body.roles:
@@ -262,7 +261,7 @@ async def add_persona(
     - Cannot add a persona the user already has.
     - Adding 'builder' auto-creates an approval request.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
 
@@ -279,7 +278,7 @@ async def add_persona(
 
     # If this is the user's first persona selection, set the timestamp
     if not user.persona_selected_at:
-        user.persona_selected_at = datetime.now(timezone.utc)
+        user.persona_selected_at = datetime.now(UTC)
         user.primary_role = body.role
         user.role = UserRole(body.role)
 
@@ -327,6 +326,7 @@ class KycDocumentOut(BaseModel):
 
 class UserMeResponse(UserRead):
     """Full profile returned by /auth/me including KYC documents."""
+
     kyc_documents: list[KycDocumentOut] = []
     phone: str | None = None
     email_verified: bool = False
@@ -359,4 +359,3 @@ async def update_me(
         user.avatar_url = body.avatar_url
     await db.flush()
     return user
-

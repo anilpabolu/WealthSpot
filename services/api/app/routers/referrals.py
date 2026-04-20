@@ -3,7 +3,7 @@ Referral router – code validation, tracking, rewards, admin management.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,7 +18,6 @@ from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role
 from app.models.community import Referral
 from app.models.investment import Investment
-from app.models.opportunity import Opportunity
 from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
 
@@ -60,9 +59,7 @@ async def referral_stats(
 ) -> ReferralStats:
     """Get referral stats for the current user."""
     total = (
-        await db.execute(
-            select(func.count(Referral.id)).where(Referral.referrer_id == user.id)
-        )
+        await db.execute(select(func.count(Referral.id)).where(Referral.referrer_id == user.id))
     ).scalar() or 0
 
     successful = (
@@ -134,9 +131,7 @@ async def apply_referral_code(
 ) -> dict[str, str]:
     """Apply a referral code during onboarding. Supports both platform and property codes."""
     # Check if user already has a referral
-    existing = await db.execute(
-        select(Referral).where(Referral.referee_id == user.id)
-    )
+    existing = await db.execute(select(Referral).where(Referral.referee_id == user.id))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Referral already applied")
 
@@ -167,13 +162,14 @@ async def apply_referral_code(
                 await db.flush()
             except IntegrityError:
                 await db.rollback()
-                raise HTTPException(status_code=400, detail="Referral already applied")
-            return {"message": "Property referral applied successfully", "reward": "₹250 (on first investment)"}
+                raise HTTPException(status_code=400, detail="Referral already applied") from None
+            return {
+                "message": "Property referral applied successfully",
+                "reward": "₹250 (on first investment)",
+            }
 
     # Platform referral code
-    referrer_result = await db.execute(
-        select(User).where(User.referral_code == code)
-    )
+    referrer_result = await db.execute(select(User).where(User.referral_code == code))
     referrer = referrer_result.scalar_one_or_none()
     if not referrer:
         raise HTTPException(status_code=404, detail="Invalid referral code")
@@ -194,7 +190,7 @@ async def apply_referral_code(
         await db.flush()
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=400, detail="Referral already applied")
+        raise HTTPException(status_code=400, detail="Referral already applied") from None
 
     return {"message": "Referral applied successfully", "reward": "₹250 (on first investment)"}
 
@@ -225,7 +221,7 @@ class AdminReferralDetail(BaseModel):
     first_investment_rewarded: bool
     rewarded_at: str | None
     created_at: str
-    referee_status: str          # invested / active / stale
+    referee_status: str  # invested / active / stale
     referee_joined_at: str | None
     referee_total_investments: int
 
@@ -240,11 +236,18 @@ async def admin_referral_summary(
         select(
             Referral.referrer_id,
             func.count(Referral.id).label("total"),
-            func.count(Referral.id).filter(Referral.first_investment_rewarded.is_(True)).label("successful"),
+            func.count(Referral.id)
+            .filter(Referral.first_investment_rewarded.is_(True))
+            .label("successful"),
             func.coalesce(
-                func.sum(Referral.reward_amount).filter(Referral.first_investment_rewarded.is_(True)), 0
+                func.sum(Referral.reward_amount).filter(
+                    Referral.first_investment_rewarded.is_(True)
+                ),
+                0,
             ).label("total_reward"),
-            func.count(Referral.id).filter(Referral.first_investment_rewarded.is_(False)).label("pending"),
+            func.count(Referral.id)
+            .filter(Referral.first_investment_rewarded.is_(False))
+            .label("pending"),
         )
         .group_by(Referral.referrer_id)
         .order_by(func.count(Referral.id).desc())
@@ -255,15 +258,15 @@ async def admin_referral_summary(
     user_ids = [row.referrer_id for row in rows]
     if not user_ids:
         return []
-    users_result = await db.execute(
-        select(User).where(User.id.in_(user_ids))
-    )
+    users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
     users_map = {u.id: u for u in users_result.scalars().all()}
 
     return [
         AdminReferralSummary(
             referrer_id=str(row.referrer_id),
-            referrer_name=users_map[row.referrer_id].full_name if row.referrer_id in users_map else "Unknown",
+            referrer_name=users_map[row.referrer_id].full_name
+            if row.referrer_id in users_map
+            else "Unknown",
             referrer_email=users_map[row.referrer_id].email if row.referrer_id in users_map else "",
             total_referrals=row.total,
             successful_referrals=row.successful,
@@ -319,7 +322,7 @@ async def admin_referral_details(
             status = "invested"
         elif ref.referee and ref.referee.created_at:
             # Active if joined < 30 days ago, stale otherwise
-            age = (datetime.now(timezone.utc) - ref.referee.created_at).days
+            age = (datetime.now(UTC) - ref.referee.created_at).days
             status = "active" if age <= 30 else "stale"
         else:
             status = "stale"
@@ -339,7 +342,9 @@ async def admin_referral_details(
                 rewarded_at=ref.rewarded_at.isoformat() if ref.rewarded_at else None,
                 created_at=ref.created_at.isoformat() if ref.created_at else "",
                 referee_status=status,
-                referee_joined_at=ref.referee.created_at.isoformat() if ref.referee and ref.referee.created_at else None,
+                referee_joined_at=ref.referee.created_at.isoformat()
+                if ref.referee and ref.referee.created_at
+                else None,
                 referee_total_investments=n_inv,
             )
         )
@@ -360,9 +365,7 @@ async def process_referral_reward_on_investment(
     Returns True if a reward was granted.
     """
     # Find the referral where this user is the referee
-    ref_result = await db.execute(
-        select(Referral).where(Referral.referee_id == investor_user_id)
-    )
+    ref_result = await db.execute(select(Referral).where(Referral.referee_id == investor_user_id))
     referral = ref_result.scalar_one_or_none()
     if not referral:
         return False
@@ -375,6 +378,6 @@ async def process_referral_reward_on_investment(
     referral.first_investment_rewarded = True
     referral.reward_claimed = True
     referral.rewarded_investment_id = investment_id
-    referral.rewarded_at = datetime.now(timezone.utc)
+    referral.rewarded_at = datetime.now(UTC)
     await db.flush()
     return True

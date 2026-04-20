@@ -7,7 +7,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.models.opportunity import VaultType, OpportunityStatus
+from app.models.opportunity import OpportunityStatus, VaultType
 
 
 class OpportunityCreatorRead(BaseModel):
@@ -125,6 +125,7 @@ class PaginatedOpportunities(BaseModel):
 
 class OpportunityCreateRequest(BaseModel):
     """Unified create request — fields depend on vault_type."""
+
     vault_type: VaultType
     title: str = Field(min_length=3, max_length=255)
     tagline: str | None = Field(None, max_length=500)
@@ -160,6 +161,7 @@ class OpportunityCreateRequest(BaseModel):
 
 class OpportunityUpdateRequest(BaseModel):
     """Update request — all fields optional (approver edit)."""
+
     title: str | None = Field(None, min_length=3, max_length=255)
     tagline: str | None = Field(None, max_length=500)
     description: str | None = None
@@ -199,6 +201,7 @@ class OpportunityUpdateRequest(BaseModel):
 
 class VaultStatsResponse(BaseModel):
     """Aggregated statistics for a single vault type."""
+
     vault_type: str
     total_invested: float
     investor_count: int
@@ -220,6 +223,7 @@ class VaultStatsResponse(BaseModel):
 
 
 class BuilderInvestorItem(BaseModel):
+    investment_id: uuid.UUID
     investor_id: uuid.UUID
     investor_name: str
     investor_email: str
@@ -272,3 +276,6 @@ class BuilderAnalyticsResponse(BaseModel):
     opportunities: list[BuilderOpportunityBreakdown]
     monthly_trends: list[BuilderMonthlyTrend]
     city_distribution: list[BuilderCityDistribution]
+    avg_days_to_fund: float | None = None
+    top_opportunity: BuilderOpportunityBreakdown | None = None
+    repeat_investor_rate: float = 0

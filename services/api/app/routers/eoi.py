@@ -4,7 +4,6 @@ EOI router – Expression of Interest, Builder Questions, Communication Mappings
 
 import math
 import uuid as _uuid
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -19,7 +18,7 @@ from app.models.eoi_stage_history import EoiStageHistory
 from app.models.expression_of_interest import EOIStatus, ExpressionOfInterest
 from app.models.notification import NotificationType
 from app.models.opportunity import Opportunity
-from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
+from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.user import User, UserRole
 from app.schemas.eoi import (
     BuilderQuestionCreate,
@@ -39,6 +38,7 @@ router = APIRouter(prefix="/eoi", tags=["eoi"])
 # ═══════════════════════════════════════════════════════════════════════════════
 # Expression of Interest CRUD
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @router.post("", response_model=EOIRead)
 async def submit_eoi(
@@ -86,11 +86,13 @@ async def submit_eoi(
     await db.flush()
 
     # Record initial stage history
-    db.add(EoiStageHistory(
-        eoi_id=eoi.id,
-        status=EOIStatus.SUBMITTED.value,
-        changed_by=user.id,
-    ))
+    db.add(
+        EoiStageHistory(
+            eoi_id=eoi.id,
+            status=EOIStatus.SUBMITTED.value,
+            changed_by=user.id,
+        )
+    )
 
     # Save builder question answers
     for ans in body.answers:
@@ -104,9 +106,7 @@ async def submit_eoi(
 
     # Notify comm mapping recipients (builder, handler, admin)
     mapping_result = await db.execute(
-        select(OpportunityCommMapping).where(
-            OpportunityCommMapping.opportunity_id == opp.id
-        )
+        select(OpportunityCommMapping).where(OpportunityCommMapping.opportunity_id == opp.id)
     )
     mappings = mapping_result.scalars().all()
     investor_name = user.full_name or user.email or "An investor"
@@ -201,9 +201,7 @@ async def get_eoi(
 ) -> EOIRead:
     """Get a single EOI by ID."""
     result = await db.execute(
-        select(ExpressionOfInterest).where(
-            ExpressionOfInterest.id == _uuid.UUID(eoi_id)
-        )
+        select(ExpressionOfInterest).where(ExpressionOfInterest.id == _uuid.UUID(eoi_id))
     )
     eoi = result.scalar_one_or_none()
     if not eoi:
@@ -225,9 +223,7 @@ async def connect_with_builder(
 ) -> EOIRead:
     """Investor requests to connect with builder after EOI submission."""
     result = await db.execute(
-        select(ExpressionOfInterest).where(
-            ExpressionOfInterest.id == _uuid.UUID(eoi_id)
-        )
+        select(ExpressionOfInterest).where(ExpressionOfInterest.id == _uuid.UUID(eoi_id))
     )
     eoi = result.scalar_one_or_none()
     if not eoi:
@@ -236,11 +232,13 @@ async def connect_with_builder(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     eoi.status = EOIStatus.BUILDER_CONNECTED
-    db.add(EoiStageHistory(
-        eoi_id=eoi.id,
-        status=EOIStatus.BUILDER_CONNECTED.value,
-        changed_by=user.id,
-    ))
+    db.add(
+        EoiStageHistory(
+            eoi_id=eoi.id,
+            status=EOIStatus.BUILDER_CONNECTED.value,
+            changed_by=user.id,
+        )
+    )
     await db.flush()
 
     # Notify builder and comm mapping users
@@ -248,9 +246,7 @@ async def connect_with_builder(
     investor_name = user.full_name or user.email or "An investor"
 
     mapping_result = await db.execute(
-        select(OpportunityCommMapping).where(
-            OpportunityCommMapping.opportunity_id == opp.id
-        )
+        select(OpportunityCommMapping).where(OpportunityCommMapping.opportunity_id == opp.id)
     )
     for mapping in mapping_result.scalars().all():
         await create_notification(
@@ -301,9 +297,7 @@ async def admin_eoi_pipeline(
     if status:
         query = query.where(ExpressionOfInterest.status == status)
     if opportunity_id:
-        query = query.where(
-            ExpressionOfInterest.opportunity_id == _uuid.UUID(opportunity_id)
-        )
+        query = query.where(ExpressionOfInterest.opportunity_id == _uuid.UUID(opportunity_id))
 
     query = query.order_by(ExpressionOfInterest.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
@@ -327,9 +321,7 @@ async def admin_update_eoi_status(
         raise HTTPException(status_code=400, detail=f"Invalid status: {new_status}")
 
     result = await db.execute(
-        select(ExpressionOfInterest).where(
-            ExpressionOfInterest.id == _uuid.UUID(eoi_id)
-        )
+        select(ExpressionOfInterest).where(ExpressionOfInterest.id == _uuid.UUID(eoi_id))
     )
     eoi = result.scalar_one_or_none()
     if not eoi:
@@ -337,23 +329,27 @@ async def admin_update_eoi_status(
 
     old_status = eoi.status
     eoi.status = EOIStatus(new_status)
-    db.add(EoiStageHistory(
-        eoi_id=eoi.id,
-        status=new_status,
-        changed_by=user.id,
-    ))
+    db.add(
+        EoiStageHistory(
+            eoi_id=eoi.id,
+            status=new_status,
+            changed_by=user.id,
+        )
+    )
 
     # When payment is done, create OpportunityInvestment + update opportunity stats
     if new_status == "payment_done" and old_status != EOIStatus.PAYMENT_DONE:
         amount = eoi.investment_amount
         if amount and amount > 0:
-            db.add(OpportunityInvestment(
-                opportunity_id=eoi.opportunity_id,
-                user_id=eoi.user_id,
-                amount=amount,
-                units=eoi.num_units or 1,
-                status=OppInvestmentStatus.CONFIRMED,
-            ))
+            db.add(
+                OpportunityInvestment(
+                    opportunity_id=eoi.opportunity_id,
+                    user_id=eoi.user_id,
+                    amount=amount,
+                    units=eoi.num_units or 1,
+                    status=OppInvestmentStatus.CONFIRMED,
+                )
+            )
             # Update opportunity raised_amount and investor_count
             opp_result = await db.execute(
                 select(Opportunity).where(Opportunity.id == eoi.opportunity_id)
@@ -366,6 +362,7 @@ async def admin_update_eoi_status(
     await db.flush()
     await db.refresh(eoi)
     return EOIRead.model_validate(eoi)
+
 
 @router.get("/questions/{opportunity_id}", response_model=list[BuilderQuestionRead])
 async def list_builder_questions(
@@ -398,7 +395,9 @@ async def create_builder_question(
 
     is_admin = user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN)
     if opp.creator_id != user.id and not is_admin:
-        raise HTTPException(status_code=403, detail="Only the opportunity creator or admin can add questions")
+        raise HTTPException(
+            status_code=403, detail="Only the opportunity creator or admin can add questions"
+        )
 
     question = BuilderQuestion(
         opportunity_id=opp.id,
@@ -476,6 +475,7 @@ async def delete_builder_question(
 # Communication Mappings CRUD
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @router.get("/comm-mappings/{opportunity_id}", response_model=list[CommMappingRead])
 async def list_comm_mappings(
     opportunity_id: str,
@@ -529,9 +529,7 @@ async def delete_comm_mapping(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     result = await db.execute(
-        select(OpportunityCommMapping).where(
-            OpportunityCommMapping.id == _uuid.UUID(mapping_id)
-        )
+        select(OpportunityCommMapping).where(OpportunityCommMapping.id == _uuid.UUID(mapping_id))
     )
     mapping = result.scalar_one_or_none()
     if not mapping:

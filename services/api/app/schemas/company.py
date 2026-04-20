@@ -89,6 +89,7 @@ class CompanyListItem(BaseModel):
 
 class CompanyUpdateRequest(BaseModel):
     """Partial update schema — only set fields are applied."""
+
     company_name: str | None = None
     brand_name: str | None = None
     entity_type: EntityType | None = None

@@ -10,7 +10,9 @@ from pydantic import BaseModel, Field
 
 class AppVideoBase(BaseModel):
     page: str = Field(..., max_length=100, description="Page identifier e.g. 'vaults', 'home'")
-    section_tag: str = Field(..., max_length=200, description="Section tag e.g. 'wealth_vault_intro'")
+    section_tag: str = Field(
+        ..., max_length=200, description="Section tag e.g. 'wealth_vault_intro'"
+    )
     title: str = Field(..., max_length=300)
     description: str | None = None
     thumbnail_url: str | None = None

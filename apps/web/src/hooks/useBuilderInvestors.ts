@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/lib/api'
 
 export interface BuilderInvestor {
+  investmentId: string
   investorId: string
   investorName: string
   investorEmail: string

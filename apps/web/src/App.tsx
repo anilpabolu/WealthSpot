@@ -39,6 +39,7 @@ const Settings = lazy(() => import('@/pages/SettingsPage'))
 const CommandControl = lazy(() => import('@/pages/CommandControlPage'))
 const NotFound = lazy(() => import('@/pages/NotFoundPage'))
 const Portfolio = lazy(() => import('@/pages/PortfolioPage'))
+const PropertyPortfolioDetail = lazy(() => import('@/pages/PropertyPortfolioDetailPage'))
 const ContributeWealth = lazy(() => import('@/pages/ContributeWealthPage'))
 const ContributeTime = lazy(() => import('@/pages/ContributeTimePage'))
 const ContributeNetwork = lazy(() => import('@/pages/ContributeNetworkPage'))
@@ -227,6 +228,7 @@ export default function App() {
 
           {/* Portfolio */}
           <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+          <Route path="/portfolio/property/:propertyId" element={<ProtectedRoute><PropertyPortfolioDetail /></ProtectedRoute>} />
 
           {/* Contribute pillar pages */}
           <Route path="/contribute/wealth" element={<ProtectedRoute><ContributeWealth /></ProtectedRoute>} />

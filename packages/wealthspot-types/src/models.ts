@@ -18,8 +18,6 @@ import type {
   ApprovalPriority,
   VaultType,
   OpportunityStatus,
-  FeatureKey,
-  InviteStatus,
 } from "./enums";
 
 // ── User ────────────────────────────────────────────────────────────────────

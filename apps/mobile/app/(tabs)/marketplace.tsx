@@ -7,11 +7,55 @@ import { View, Text, ScrollView, Pressable, Image, FlatList, ActivityIndicator }
 import { Link, useLocalSearchParams } from 'expo-router'
 import { useState, useMemo } from 'react'
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { formatINR } from '@/lib/formatters'
 import { useProperties } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { EmptyState, Badge, Input } from '@/components/ui'
+import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
+
+/* Vault-specific gradient + branding config */
+const VAULT_HERO_CONFIG: Record<
+  string,
+  {
+    badge: string
+    gradientColors: [string, string, string]
+    accentDot: string
+    accentText: string
+    defaultTitle: string
+    defaultSubtitle: string
+    shieldNote: string
+  }
+> = {
+  wealth: {
+    badge: 'Wealth Vault',
+    gradientColors: ['#0f172a', '#1a1a3e', '#0f172a'],
+    accentDot: '#34d399',
+    accentText: '#34d399',
+    defaultTitle: 'Invest Smarter',
+    defaultSubtitle: 'Transparent, secure, Shield-verified opportunities.',
+    shieldNote: 'Every listing is independently verified across 7 assessment layers.',
+  },
+  opportunity: {
+    badge: 'Opportunity Vault',
+    gradientColors: ['#4A1B1B', '#7A2D2D', '#4A1B1B'],
+    accentDot: '#20E3B2',
+    accentText: '#20E3B2',
+    defaultTitle: 'Premium Opportunities',
+    defaultSubtitle: 'Curated startup & growth-stage investments.',
+    shieldNote: 'Every listing is independently verified across 7 assessment layers.',
+  },
+  community: {
+    badge: 'Community Vault',
+    gradientColors: ['#2E1A06', '#4A2A0A', '#2E1A06'],
+    accentDot: '#F59E0B',
+    accentText: '#F59E0B',
+    defaultTitle: 'Invest Together',
+    defaultSubtitle: 'Collaborate with like-minded investors.',
+    shieldNote: 'Every listing is independently verified across 7 assessment layers.',
+  },
+}
 
 const FILTER_CHIPS = ['All', 'Residential', 'Commercial', 'Warehousing', 'Plotted']
 const COMMUNITY_SUBTYPE_CHIPS = [
@@ -22,6 +66,8 @@ const COMMUNITY_SUBTYPE_CHIPS = [
 
 export default function MarketplaceScreen() {
   const { vault, subtype } = useLocalSearchParams<{ vault?: string; subtype?: string }>()
+  const vaultKey = (vault && vault in VAULT_HERO_CONFIG ? vault : 'wealth') as keyof typeof VAULT_HERO_CONFIG
+  const hero = VAULT_HERO_CONFIG[vaultKey]
   const isCommunityVault = vault === 'community'
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
   const { isVaultEnabled } = useVaultConfig()
@@ -146,11 +192,51 @@ export default function MarketplaceScreen() {
         columnWrapperStyle={{ gap: 16 }}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         ListHeaderComponent={
-          isLoading ? (
-            <View className="items-center py-10">
-              <ActivityIndicator size="large" color="#5B4FCF" />
-            </View>
-          ) : null
+          <View>
+            {/* Vault-aware hero with gradient + carousel */}
+            <LinearGradient
+              colors={hero.gradientColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="rounded-2xl px-4 py-5 mb-4 -mx-1"
+            >
+              {/* Badge */}
+              <View className="flex-row items-center gap-1.5 mb-2">
+                <View
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: hero.accentDot }}
+                />
+                <Text className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                  {hero.badge}
+                </Text>
+              </View>
+
+              {/* Title & subtitle */}
+              <Text className="text-lg font-bold text-white mb-0.5">
+                {hero.defaultTitle}
+              </Text>
+              <Text className="text-xs text-white/60 mb-3">
+                {hero.defaultSubtitle}
+              </Text>
+
+              {/* Shield note */}
+              <Text className="text-[10px] text-white/40 mb-3">
+                {hero.shieldNote}{' '}
+                <Text style={{ color: hero.accentText }} className="font-semibold">
+                  Shield Certified
+                </Text>
+              </Text>
+
+              {/* Carousel */}
+              <ShieldHeroCarousel />
+            </LinearGradient>
+
+            {isLoading ? (
+              <View className="items-center py-10">
+                <ActivityIndicator size="large" color="#5B4FCF" />
+              </View>
+            ) : null}
+          </View>
         }
         ListEmptyComponent={
           !isLoading ? (

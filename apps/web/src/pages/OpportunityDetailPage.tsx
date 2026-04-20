@@ -12,7 +12,6 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Shield, Ruler, FolderKanban, BadgeCheck,
-  TrendingUp,
 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
@@ -23,6 +22,7 @@ import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
 import { useProfilingProgress } from '@/hooks/useProfiling'
 import ProfilingGateModal from '@/components/profiling/ProfilingGateModal'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
+import { ShieldSection } from '@/components/shield/ShieldSection'
 
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
@@ -382,7 +382,7 @@ export default function OpportunityDetailPage() {
   // Gate: investor who hasn't completed this vault's DNA
   const needsProfilingGate = isAuthenticated && isInvestorRole && !dnaComplete
 
-  const { data: appreciationHistory } = useAppreciationHistory(opp?.id ?? '')
+  const { data: _appreciationHistory } = useAppreciationHistory(opp?.id ?? '')
 
   // Like state
   const { data: likeData } = useLikeStatus(opp?.id ?? '')
@@ -598,6 +598,9 @@ export default function OpportunityDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* WealthSpot Shield */}
+            <ShieldSection opportunityId={opp.id} />
 
             {/* Company / Builder Info */}
             {opp.company && (

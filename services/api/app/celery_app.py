@@ -34,4 +34,8 @@ celery.conf.beat_schedule = {
         "task": "app.tasks.cleanup_old_audit_logs",
         "schedule": crontab(hour=3, minute=0),  # Daily at 3:00 AM UTC
     },
+    "refresh-analytics-views": {
+        "task": "app.tasks.refresh_analytics_views",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
+    },
 }

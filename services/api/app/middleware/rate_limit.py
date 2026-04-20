@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 def _get_redis_client():
     """Try to connect to Redis. Returns None if unavailable."""
     try:
-        from app.core.config import get_settings
         import redis
+
+        from app.core.config import get_settings
+
         settings = get_settings()
         client = redis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=1)
         client.ping()
@@ -75,9 +77,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._store[client_ip].append(now)
         return True, self.max_requests - len(self._store[client_ip])
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         client_ip = request.client.host if request.client else "unknown"
 
         if self._redis:

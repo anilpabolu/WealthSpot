@@ -57,6 +57,28 @@ export default memo(function PropertyCard({
 }: PropertyCardProps) {
   const { propertyVideosEnabled } = useVaultConfig()
 
+  // Build the images array: gallery first, fall back to coverImage
+  const images = (gallery && gallery.length > 0) ? gallery : [coverImage]
+  const hasMultiple = images.length > 1
+
+  // All hooks must be called unconditionally (before any early return)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
+  const touchStartRef = useRef<number>(0)
+
+  const startAutoPlay = useCallback(() => {
+    if (!hasMultiple) return
+    clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
+    }, 4000)
+  }, [hasMultiple, images.length])
+
+  useEffect(() => {
+    startAutoPlay()
+    return () => clearInterval(intervalRef.current)
+  }, [startAutoPlay])
+
   if (isLoading) {
     return (
       <div className={cn('card overflow-hidden', className)}>
@@ -78,28 +100,6 @@ export default memo(function PropertyCard({
   const isFunded = status === 'funded'
   const isUpcoming = status === 'upcoming'
   const fundedPct = target > 0 ? Math.round((raised / target) * 100) : 0
-
-  // Build the images array: gallery first, fall back to coverImage
-  const images = (gallery && gallery.length > 0) ? gallery : [coverImage]
-  const hasMultiple = images.length > 1
-
-  const [activeIdx, setActiveIdx] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
-  const touchStartRef = useRef<number>(0)
-
-  // Auto-advance every 4 seconds when multiple images
-  const startAutoPlay = useCallback(() => {
-    if (!hasMultiple) return
-    clearInterval(intervalRef.current)
-    intervalRef.current = setInterval(() => {
-      setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0))
-    }, 4000)
-  }, [hasMultiple, images.length])
-
-  useEffect(() => {
-    startAutoPlay()
-    return () => clearInterval(intervalRef.current)
-  }, [startAutoPlay])
 
   const goPrev = (e: React.MouseEvent) => {
     e.stopPropagation()

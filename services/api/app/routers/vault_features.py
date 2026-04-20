@@ -4,9 +4,10 @@ Vault feature flags router — matrix CRUD + SSE stream.
 
 import asyncio
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+from datetime import UTC
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,7 +90,7 @@ async def update_feature_matrix(
     db: AsyncSession = Depends(get_db),
 ) -> list[VaultFeatureFlag]:
     """Bulk-update vault feature toggles. Super-admin only."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     for upd in body.updates:
         await db.execute(
@@ -102,17 +103,19 @@ async def update_feature_matrix(
             .values(
                 enabled=upd.enabled,
                 updated_by=user.id,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
         )
 
     await db.flush()
 
     # Broadcast changes via SSE
-    await _broadcast_sse({
-        "type": "feature_matrix_update",
-        "updates": [u.model_dump() for u in body.updates],
-    })
+    await _broadcast_sse(
+        {
+            "type": "feature_matrix_update",
+            "updates": [u.model_dump() for u in body.updates],
+        }
+    )
 
     # Return full matrix
     result = await db.execute(
@@ -141,7 +144,7 @@ async def feature_stream(
                 try:
                     data = await asyncio.wait_for(queue.get(), timeout=30.0)
                     yield f"event: update\ndata: {data}\n\n"
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     yield ": keepalive\n\n"
         finally:
             if queue in _sse_subscribers:

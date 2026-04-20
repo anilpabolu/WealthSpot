@@ -17,7 +17,8 @@ class AppreciationCreateRequest(BaseModel):
 
 class AppreciationEventRead(BaseModel):
     id: uuid.UUID
-    opportunity_id: uuid.UUID
+    opportunity_id: uuid.UUID | None = None
+    property_id: uuid.UUID | None = None
     created_by: uuid.UUID | None = None
     creator_name: str | None = None
     mode: str

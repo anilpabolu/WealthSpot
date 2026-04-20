@@ -7,48 +7,49 @@ opportunity custom questions, and profile matching.
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
-from app.models.user import User
-from app.models.profiling import (
-    VaultProfileQuestion,
-    UserProfileAnswer,
-    OpportunityCustomQuestion,
-    OpportunityApplicationAnswer,
-    ProfileMatchScore,
-    PersonalityDimension,
-)
 from app.models.opportunity import Opportunity
+from app.models.profiling import (
+    OpportunityApplicationAnswer,
+    OpportunityCustomQuestion,
+    PersonalityDimension,
+    ProfileMatchScore,
+    UserProfileAnswer,
+    VaultProfileQuestion,
+)
+from app.models.user import User
 from app.schemas.profiling import (
-    VaultProfileQuestionRead,
-    UserProfileAnswerBulk,
-    UserProfileAnswerRead,
+    MatchedUserRead,
+    MatchScoreRead,
+    OpportunityApplicationAnswerRead,
+    OpportunityApplicationBulk,
     OpportunityCustomQuestionCreate,
     OpportunityCustomQuestionRead,
-    OpportunityApplicationBulk,
-    OpportunityApplicationAnswerRead,
-    PersonalityDimensionRead,
-    MatchScoreRead,
-    MatchedUserRead,
     OpportunityMatchesResponse,
-    ProfilingProgressRead,
     OverallProgressRead,
+    PersonalityDimensionRead,
+    ProfilingProgressRead,
+    UserProfileAnswerBulk,
+    UserProfileAnswerRead,
+    VaultProfileQuestionRead,
     VaultProgressDetail,
 )
 from app.services.matching import (
-    compute_personality,
-    compute_match_score,
-    get_top_matches_for_opportunity,
     _compute_answer_score,
+    compute_match_score,
+    compute_personality,
+    get_top_matches_for_opportunity,
 )
 
 router = APIRouter(prefix="/profiling", tags=["profiling"])
 
 
 # ── Record Vault Explorer ────────────────────────────────────────────────────
+
 
 @router.post("/explore/{vault_type}")
 async def record_vault_explorer(
@@ -57,16 +58,17 @@ async def record_vault_explorer(
     user: User = Depends(get_current_user),
 ):
     """Record that a user clicked 'Explore' on a vault. Idempotent."""
-    from app.models.vault_explorer import VaultExplorer
     from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+    from app.models.vault_explorer import VaultExplorer
 
     if vault_type not in ("wealth", "opportunity", "community"):
         raise HTTPException(status_code=400, detail="Invalid vault type")
 
-    stmt = pg_insert(VaultExplorer).values(
-        user_id=user.id, vault_type=vault_type
-    ).on_conflict_do_nothing(
-        constraint="uq_vault_explorer_user_vault"
+    stmt = (
+        pg_insert(VaultExplorer)
+        .values(user_id=user.id, vault_type=vault_type)
+        .on_conflict_do_nothing(constraint="uq_vault_explorer_user_vault")
     )
     await db.execute(stmt)
     await db.commit()
@@ -74,6 +76,7 @@ async def record_vault_explorer(
 
 
 # ── Vault Profile Questions ──────────────────────────────────────────────────
+
 
 @router.get("/questions/{vault_type}", response_model=list[VaultProfileQuestionRead])
 async def get_vault_questions(
@@ -98,6 +101,7 @@ async def get_vault_questions(
 
 
 # ── Submit Vault Profile Answers ─────────────────────────────────────────────
+
 
 @router.post("/answers", response_model=list[UserProfileAnswerRead])
 async def submit_vault_answers(
@@ -125,12 +129,14 @@ async def submit_vault_answers(
         score = _compute_answer_score(question, ans.answer_value)
 
         # Upsert
-        existing = (await db.execute(
-            select(UserProfileAnswer).where(
-                UserProfileAnswer.user_id == user.id,
-                UserProfileAnswer.question_id == ans.question_id,
+        existing = (
+            await db.execute(
+                select(UserProfileAnswer).where(
+                    UserProfileAnswer.user_id == user.id,
+                    UserProfileAnswer.question_id == ans.question_id,
+                )
             )
-        )).scalar_one_or_none()
+        ).scalar_one_or_none()
 
         if existing:
             existing.answer_value = ans.answer_value
@@ -178,6 +184,7 @@ async def submit_vault_answers(
 
 # ── Get My Answers for a Vault ───────────────────────────────────────────────
 
+
 @router.get("/answers/{vault_type}", response_model=list[UserProfileAnswerRead])
 async def get_my_answers(
     vault_type: str,
@@ -185,18 +192,16 @@ async def get_my_answers(
     user: User = Depends(get_current_user),
 ):
     """Get current user's answers for a vault."""
-    stmt = (
-        select(UserProfileAnswer)
-        .where(
-            UserProfileAnswer.user_id == user.id,
-            UserProfileAnswer.vault_type == vault_type,
-        )
+    stmt = select(UserProfileAnswer).where(
+        UserProfileAnswer.user_id == user.id,
+        UserProfileAnswer.vault_type == vault_type,
     )
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
 # ── Profiling Progress ───────────────────────────────────────────────────────
+
 
 @router.get("/progress/{vault_type}", response_model=ProfilingProgressRead)
 async def get_profiling_progress(
@@ -205,28 +210,34 @@ async def get_profiling_progress(
     user: User = Depends(get_current_user),
 ):
     """Get profiling completion progress for a vault."""
-    total = (await db.execute(
-        select(func.count(VaultProfileQuestion.id)).where(
-            VaultProfileQuestion.vault_type == vault_type,
-            VaultProfileQuestion.is_active.is_(True),
+    total = (
+        await db.execute(
+            select(func.count(VaultProfileQuestion.id)).where(
+                VaultProfileQuestion.vault_type == vault_type,
+                VaultProfileQuestion.is_active.is_(True),
+            )
         )
-    )).scalar() or 0
+    ).scalar() or 0
 
-    answered = (await db.execute(
-        select(func.count(UserProfileAnswer.id)).where(
-            UserProfileAnswer.user_id == user.id,
-            UserProfileAnswer.vault_type == vault_type,
+    answered = (
+        await db.execute(
+            select(func.count(UserProfileAnswer.id)).where(
+                UserProfileAnswer.user_id == user.id,
+                UserProfileAnswer.vault_type == vault_type,
+            )
         )
-    )).scalar() or 0
+    ).scalar() or 0
 
     pct = round((answered / total) * 100, 1) if total > 0 else 0
 
-    personality = (await db.execute(
-        select(PersonalityDimension).where(
-            PersonalityDimension.user_id == user.id,
-            PersonalityDimension.vault_type == vault_type,
+    personality = (
+        await db.execute(
+            select(PersonalityDimension).where(
+                PersonalityDimension.user_id == user.id,
+                PersonalityDimension.vault_type == vault_type,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     return ProfilingProgressRead(
         vault_type=vault_type,
@@ -239,6 +250,7 @@ async def get_profiling_progress(
 
 
 # ── Overall Progress (all vaults combined) ───────────────────────────────────
+
 
 @router.get("/overall-progress", response_model=OverallProgressRead)
 async def get_overall_progress(
@@ -254,37 +266,46 @@ async def get_overall_progress(
     vaults: dict[str, VaultProgressDetail] = {}
 
     for vt in vault_types:
-        total = (await db.execute(
-            select(func.count(VaultProfileQuestion.id)).where(
-                VaultProfileQuestion.vault_type == vt,
-                VaultProfileQuestion.is_active.is_(True),
+        total = (
+            await db.execute(
+                select(func.count(VaultProfileQuestion.id)).where(
+                    VaultProfileQuestion.vault_type == vt,
+                    VaultProfileQuestion.is_active.is_(True),
+                )
             )
-        )).scalar() or 0
+        ).scalar() or 0
 
-        answered = (await db.execute(
-            select(func.count(UserProfileAnswer.id)).where(
-                UserProfileAnswer.user_id == user.id,
-                UserProfileAnswer.vault_type == vt,
+        answered = (
+            await db.execute(
+                select(func.count(UserProfileAnswer.id)).where(
+                    UserProfileAnswer.user_id == user.id,
+                    UserProfileAnswer.vault_type == vt,
+                )
             )
-        )).scalar() or 0
+        ).scalar() or 0
 
         pct = round((answered / total) * 100, 1) if total > 0 else 0
         is_complete = answered >= total and total > 0
 
         archetype = None
         if is_complete:
-            pd = (await db.execute(
-                select(PersonalityDimension).where(
-                    PersonalityDimension.user_id == user.id,
-                    PersonalityDimension.vault_type == vt,
+            pd = (
+                await db.execute(
+                    select(PersonalityDimension).where(
+                        PersonalityDimension.user_id == user.id,
+                        PersonalityDimension.vault_type == vt,
+                    )
                 )
-            )).scalar_one_or_none()
+            ).scalar_one_or_none()
             if pd and hasattr(pd, "raw_dimensions"):
                 archetype = (pd.raw_dimensions or {}).get("archetype_label")
 
         vaults[vt] = VaultProgressDetail(
-            total=total, answered=answered, pct=pct,
-            is_complete=is_complete, archetype=archetype,
+            total=total,
+            answered=answered,
+            pct=pct,
+            is_complete=is_complete,
+            archetype=archetype,
         )
 
     vault_pcts = [v.pct for v in vaults.values()]
@@ -301,6 +322,7 @@ async def get_overall_progress(
 
 # ── Personality Dimensions ───────────────────────────────────────────────────
 
+
 @router.get("/personality/{vault_type}", response_model=PersonalityDimensionRead | None)
 async def get_my_personality(
     vault_type: str,
@@ -308,16 +330,19 @@ async def get_my_personality(
     user: User = Depends(get_current_user),
 ):
     """Get current user's personality dimensions for a vault."""
-    pd = (await db.execute(
-        select(PersonalityDimension).where(
-            PersonalityDimension.user_id == user.id,
-            PersonalityDimension.vault_type == vault_type,
+    pd = (
+        await db.execute(
+            select(PersonalityDimension).where(
+                PersonalityDimension.user_id == user.id,
+                PersonalityDimension.vault_type == vault_type,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
     return pd
 
 
 # ── Opportunity Custom Questions ─────────────────────────────────────────────
+
 
 @router.post(
     "/opportunities/{opportunity_id}/questions",
@@ -331,9 +356,9 @@ async def create_opportunity_questions(
     user: User = Depends(get_current_user),
 ):
     """Creator adds custom questions to their opportunity."""
-    opp = (await db.execute(
-        select(Opportunity).where(Opportunity.id == opportunity_id)
-    )).scalar_one_or_none()
+    opp = (
+        await db.execute(select(Opportunity).where(Opportunity.id == opportunity_id))
+    ).scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     if opp.creator_id != user.id:
@@ -381,6 +406,7 @@ async def get_opportunity_questions(
 
 # ── Apply to Opportunity (submit answers) ────────────────────────────────────
 
+
 @router.post("/applications", response_model=list[OpportunityApplicationAnswerRead])
 async def submit_application_answers(
     payload: OpportunityApplicationBulk,
@@ -388,20 +414,22 @@ async def submit_application_answers(
     user: User = Depends(get_current_user),
 ):
     """Submit answers when applying to an opportunity."""
-    opp = (await db.execute(
-        select(Opportunity).where(Opportunity.id == payload.opportunity_id)
-    )).scalar_one_or_none()
+    opp = (
+        await db.execute(select(Opportunity).where(Opportunity.id == payload.opportunity_id))
+    ).scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
     saved = []
     for ans in payload.answers:
         # Fetch question for scoring
-        question = (await db.execute(
-            select(OpportunityCustomQuestion).where(
-                OpportunityCustomQuestion.id == ans.question_id
+        question = (
+            await db.execute(
+                select(OpportunityCustomQuestion).where(
+                    OpportunityCustomQuestion.id == ans.question_id
+                )
             )
-        )).scalar_one_or_none()
+        ).scalar_one_or_none()
 
         score = None
         if question and question.options:
@@ -411,14 +439,17 @@ async def submit_application_answers(
                     self.weight = q.weight
                     self.question_type = q.question_type
                     self.options = q.options
+
             score = _compute_answer_score(_Q(question), ans.answer_value)
 
-        existing = (await db.execute(
-            select(OpportunityApplicationAnswer).where(
-                OpportunityApplicationAnswer.user_id == user.id,
-                OpportunityApplicationAnswer.question_id == ans.question_id,
+        existing = (
+            await db.execute(
+                select(OpportunityApplicationAnswer).where(
+                    OpportunityApplicationAnswer.user_id == user.id,
+                    OpportunityApplicationAnswer.question_id == ans.question_id,
+                )
             )
-        )).scalar_one_or_none()
+        ).scalar_one_or_none()
 
         if existing:
             existing.answer_value = ans.answer_value
@@ -438,7 +469,7 @@ async def submit_application_answers(
     await db.flush()
 
     # Recompute match score
-    vault_type = opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type)
+    _vault_type = opp.vault_type.value if hasattr(opp.vault_type, "value") else str(opp.vault_type)
     await compute_match_score(db, user.id, opp.id)
     await db.commit()
 
@@ -447,6 +478,7 @@ async def submit_application_answers(
 
 # ── Match Scores ─────────────────────────────────────────────────────────────
 
+
 @router.get("/match/{opportunity_id}", response_model=MatchScoreRead | None)
 async def get_my_match_score(
     opportunity_id: UUID,
@@ -454,12 +486,14 @@ async def get_my_match_score(
     user: User = Depends(get_current_user),
 ):
     """Get current user's match score for an opportunity."""
-    ms = (await db.execute(
-        select(ProfileMatchScore).where(
-            ProfileMatchScore.user_id == user.id,
-            ProfileMatchScore.opportunity_id == opportunity_id,
+    ms = (
+        await db.execute(
+            select(ProfileMatchScore).where(
+                ProfileMatchScore.user_id == user.id,
+                ProfileMatchScore.opportunity_id == opportunity_id,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if not ms:
         # Compute on-the-fly
@@ -492,13 +526,13 @@ async def get_opportunity_matches(
     user: User = Depends(get_current_user),
 ):
     """Get top matching users for an opportunity (creator, admin, or builder)."""
-    opp = (await db.execute(
-        select(Opportunity).where(Opportunity.id == opportunity_id)
-    )).scalar_one_or_none()
+    opp = (
+        await db.execute(select(Opportunity).where(Opportunity.id == opportunity_id))
+    ).scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     privileged_roles = {"admin", "super_admin", "builder"}
-    user_role = user.role.value if hasattr(user.role, 'value') else str(user.role)
+    user_role = user.role.value if hasattr(user.role, "value") else str(user.role)
     if opp.creator_id != user.id and user_role not in privileged_roles:
         raise HTTPException(status_code=403, detail="Only the creator can view matches")
 

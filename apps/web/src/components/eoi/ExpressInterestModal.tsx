@@ -52,7 +52,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Platform questions state
-  const [investmentAmount, setInvestmentAmount] = useState<number>(minInvestment)
+  const [investmentAmount, _setInvestmentAmount] = useState<number>(minInvestment)
   const [timeline, setTimeline] = useState('')
   const [fundingSource, setFundingSource] = useState<string[]>([])
   const [purpose, setPurpose] = useState<string[]>([])

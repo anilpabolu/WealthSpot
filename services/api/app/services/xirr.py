@@ -46,7 +46,7 @@ def calculate_xirr(
         npv = 0.0
         dnpv = 0.0
 
-        for amount, year in zip(amounts, years):
+        for amount, year in zip(amounts, years, strict=False):
             denom = (1.0 + rate) ** year
             if denom == 0:
                 return None

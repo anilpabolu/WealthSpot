@@ -2,14 +2,13 @@
 Pydantic schemas for the Vault Analytics Dashboard.
 """
 
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel
 
-
 # ── Vault Summary ────────────────────────────────────────────────────────────
+
 
 class VaultSummaryItem(BaseModel):
     vault_type: str
@@ -40,6 +39,7 @@ class VaultSummaryResponse(BaseModel):
 
 # ── Investment Trends ────────────────────────────────────────────────────────
 
+
 class MonthlyTrendPoint(BaseModel):
     month: str  # YYYY-MM
     vault_type: str
@@ -54,11 +54,12 @@ class InvestmentTrendsResponse(BaseModel):
     trends: list[MonthlyTrendPoint]
     total_volume: Decimal
     avg_monthly_volume: Decimal
-    peak_month: Optional[str] = None
+    peak_month: str | None = None
     peak_amount: Decimal = Decimal("0")
 
 
 # ── Geographic Distribution ──────────────────────────────────────────────────
+
 
 class GeoCityItem(BaseModel):
     city: str
@@ -74,11 +75,12 @@ class GeoCityItem(BaseModel):
 
 class GeoDistributionResponse(BaseModel):
     cities: list[GeoCityItem]
-    top_city: Optional[str] = None
+    top_city: str | None = None
     total_cities: int = 0
 
 
 # ── Investor Analytics ───────────────────────────────────────────────────────
+
 
 class InvestorGrowthPoint(BaseModel):
     month: str
@@ -104,6 +106,7 @@ class InvestorAnalyticsResponse(BaseModel):
 
 # ── EOI Funnel ───────────────────────────────────────────────────────────────
 
+
 class EOIFunnelItem(BaseModel):
     status: str
     vault_type: str
@@ -123,23 +126,24 @@ class EOIFunnelResponse(BaseModel):
 
 # ── Top Opportunities ────────────────────────────────────────────────────────
 
+
 class TopOpportunityItem(BaseModel):
     id: str
     title: str
     slug: str
     vault_type: str
     status: str
-    city: Optional[str] = None
-    state: Optional[str] = None
-    target_amount: Optional[Decimal] = None
+    city: str | None = None
+    state: str | None = None
+    target_amount: Decimal | None = None
     raised_amount: Decimal = Decimal("0")
-    target_irr: Optional[Decimal] = None
-    expected_irr: Optional[Decimal] = None
-    actual_irr: Optional[Decimal] = None
+    target_irr: Decimal | None = None
+    expected_irr: Decimal | None = None
+    actual_irr: Decimal | None = None
     investor_count: int = 0
     funding_pct: Decimal = Decimal("0")
-    company_name: Optional[str] = None
-    creator_name: Optional[str] = None
+    company_name: str | None = None
+    creator_name: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -151,6 +155,7 @@ class TopOpportunitiesResponse(BaseModel):
 
 
 # ── Transaction Revenue ──────────────────────────────────────────────────────
+
 
 class TransactionRevenueItem(BaseModel):
     month: str
@@ -168,6 +173,7 @@ class RevenueBreakdownResponse(BaseModel):
 
 
 # ── Full Analytics (convenience endpoint) ────────────────────────────────────
+
 
 class FullAnalyticsResponse(BaseModel):
     vault_summary: VaultSummaryResponse

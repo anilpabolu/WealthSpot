@@ -8,6 +8,39 @@ import { useState } from 'react'
 import { DataTable, Select, type Column } from '@/components/ui'
 import { useContent } from '@/hooks/useSiteContent'
 import { useBuilderListings, type BuilderListing } from '@/hooks/useBuilderListings'
+import { useOpportunityAssessments } from '@/hooks/useShield'
+import { dotColorForStatus } from '@/lib/assessments'
+
+function ShieldProgressChip({ opportunityId }: { opportunityId: string }) {
+  const { data, isLoading } = useOpportunityAssessments(opportunityId)
+  if (isLoading || !data) {
+    return <span className="text-[11px] text-theme-tertiary">—</span>
+  }
+  const passedCats = data.categories.filter(
+    (c) => c.status === 'passed',
+  ).length
+  const totalCats = data.categories.length
+  const flagged = data.categories.some((c) => c.status === 'flagged')
+  const status = data.certified
+    ? 'passed'
+    : flagged
+      ? 'flagged'
+      : passedCats > 0
+        ? 'in_progress'
+        : 'not_started'
+  return (
+    <Link
+      to={`/portal/builder/listings/${opportunityId}#shield`}
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-theme text-[11px] font-mono hover:border-primary"
+      title={`${passedCats}/${totalCats} Shield categories passed`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dotColorForStatus(status)}`} />
+      <span className="text-theme-primary">
+        {passedCats}/{totalCats}
+      </span>
+    </Link>
+  )
+}
 
 export default function BuilderListingsPage() {
   const [search, setSearch] = useState('')
@@ -93,6 +126,13 @@ export default function BuilderListingsPage() {
               headerClassName: 'text-center',
               className: 'text-center',
               render: (l) => <StatusBadge status={l.status} />,
+            },
+            {
+              key: 'shield',
+              header: 'Shield',
+              headerClassName: 'text-center',
+              className: 'text-center',
+              render: (l) => <ShieldProgressChip opportunityId={l.id} />,
             },
             {
               key: 'irr',

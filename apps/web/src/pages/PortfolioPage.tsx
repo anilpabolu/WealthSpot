@@ -247,9 +247,9 @@ function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: n
   )
 }
 
-/* ── Property Row (expandable) ───────────────────────────────────── */
+/* ── Property Row (expandable + clickable) ───────────────────────── */
 
-function PropertyRow({ p }: { p: PortfolioProperty }) {
+function PropertyRow({ p, onViewDetail }: { p: PortfolioProperty; onViewDetail: () => void }) {
   const [expanded, setExpanded] = useState(false)
   const isPositive = p.returnPercentage >= 0
 
@@ -265,7 +265,10 @@ function PropertyRow({ p }: { p: PortfolioProperty }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-theme-primary truncate">{p.propertyTitle}</p>
-          <p className="text-xs text-theme-tertiary">{p.propertyCity} · {p.assetType}</p>
+          <p className="text-xs text-theme-tertiary">
+            {p.propertyCity} · {p.assetType}
+            {p.investmentCount > 1 && <span className="ml-1 text-primary font-medium">· {p.investmentCount} investments</span>}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-sm font-mono font-bold text-theme-primary">{formatINR(p.currentValue)}</p>
@@ -276,11 +279,33 @@ function PropertyRow({ p }: { p: PortfolioProperty }) {
         {expanded ? <ChevronUp className="h-4 w-4 text-theme-tertiary" /> : <ChevronDown className="h-4 w-4 text-theme-tertiary" />}
       </button>
       {expanded && (
-        <div className="border-t border-theme bg-theme-surface/50 px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div><span className="text-theme-tertiary block">Invested</span><span className="font-mono font-semibold">{formatINR(p.investedAmount)}</span></div>
-          <div><span className="text-theme-tertiary block">Units</span><span className="font-mono font-semibold">{p.units}</span></div>
-          <div><span className="text-theme-tertiary block">IRR</span><span className="font-mono font-semibold">{p.irr ? `${p.irr}%` : '—'}</span></div>
-          <div><span className="text-theme-tertiary block">Since</span><span className="font-mono font-semibold">{new Date(p.investedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
+        <div className="border-t border-theme bg-theme-surface/50 px-4 py-3 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div><span className="text-theme-tertiary block">Invested</span><span className="font-mono font-semibold">{formatINR(p.investedAmount)}</span></div>
+            <div><span className="text-theme-tertiary block">Units</span><span className="font-mono font-semibold">{p.units}</span></div>
+            <div><span className="text-theme-tertiary block">IRR</span><span className="font-mono font-semibold">{p.irr ? `${p.irr}%` : '—'}</span></div>
+            <div><span className="text-theme-tertiary block">Since</span><span className="font-mono font-semibold">{new Date(p.investedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
+          </div>
+          {/* Appreciation row */}
+          {p.appreciationPct !== 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div><span className="text-theme-tertiary block">Original Price</span><span className="font-mono font-semibold">{formatINR(p.originalUnitPrice)}</span></div>
+              <div><span className="text-theme-tertiary block">Current Price</span><span className="font-mono font-semibold">{formatINR(p.currentUnitPrice)}</span></div>
+              <div>
+                <span className="text-theme-tertiary block">Appreciation</span>
+                <span className={`font-mono font-semibold ${p.appreciationPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                  {p.appreciationPct >= 0 ? '+' : ''}{p.appreciationPct.toFixed(1)}%
+                </span>
+              </div>
+              <div><span className="text-theme-tertiary block">Gain/Unit</span><span className="font-mono font-semibold">{formatINR(p.appreciationAmount)}</span></div>
+            </div>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onViewDetail() }}
+            className="w-full text-center text-xs font-semibold text-primary hover:text-primary-dark py-1.5 rounded-md hover:bg-primary/5 transition-colors"
+          >
+            View Full Details →
+          </button>
         </div>
       )}
     </div>
@@ -382,6 +407,21 @@ export default function PortfolioPage() {
   const { data: overallProgress, isLoading: progressLoading } = useOverallProgress()
   const hasAnyDna = overallProgress ? Object.values(overallProgress.vaults).some((v) => v.isComplete) : false
 
+  // CMS content (hooks must be called before any early return)
+  const heroBadge = useContent('portfolio', 'hero_badge', 'Portfolio')
+  const heroTitle = useContent('portfolio', 'hero_title', 'The War Chest')
+  const heroSubtitle = useContent('portfolio', 'hero_subtitle', 'Your empire-in-progress \u2014 every asset, every return, all in one place.')
+  const sectionVaults = useContent('portfolio', 'section_vaults', 'Vault-Wise Breakdown')
+  const sectionAlloc = useContent('portfolio', 'section_alloc', 'Asset Allocation')
+  const sectionReturns = useContent('portfolio', 'section_returns', 'Monthly Returns')
+  const sectionHoldings = useContent('portfolio', 'section_holdings', 'Holdings')
+  const sectionActivity = useContent('portfolio', 'section_activity', 'Recent Activity')
+  const sectionTxns = useContent('portfolio', 'section_txns', 'Recent Transactions')
+  const emptyHoldings = useContent('portfolio', 'empty_holdings', 'No Holdings Yet')
+  const emptyHoldingsMsg = useContent('portfolio', 'empty_holdings_msg', 'Start investing to see your portfolio here.')
+  const emptyTxns = useContent('portfolio', 'empty_txns', 'No Transactions')
+  const emptyTxnsMsg = useContent('portfolio', 'empty_txns_msg', 'No transactions yet.')
+
   if (isInvestorRole && !progressLoading && !hasAnyDna) {
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
@@ -399,21 +439,6 @@ export default function PortfolioPage() {
       </div>
     )
   }
-
-  // CMS content
-  const heroBadge = useContent('portfolio', 'hero_badge', 'Portfolio')
-  const heroTitle = useContent('portfolio', 'hero_title', 'The War Chest')
-  const heroSubtitle = useContent('portfolio', 'hero_subtitle', 'Your empire-in-progress \u2014 every asset, every return, all in one place.')
-  const sectionVaults = useContent('portfolio', 'section_vaults', 'Vault-Wise Breakdown')
-  const sectionAlloc = useContent('portfolio', 'section_alloc', 'Asset Allocation')
-  const sectionReturns = useContent('portfolio', 'section_returns', 'Monthly Returns')
-  const sectionHoldings = useContent('portfolio', 'section_holdings', 'Holdings')
-  const sectionActivity = useContent('portfolio', 'section_activity', 'Recent Activity')
-  const sectionTxns = useContent('portfolio', 'section_txns', 'Recent Transactions')
-  const emptyHoldings = useContent('portfolio', 'empty_holdings', 'No Holdings Yet')
-  const emptyHoldingsMsg = useContent('portfolio', 'empty_holdings_msg', 'Start investing to see your portfolio here.')
-  const emptyTxns = useContent('portfolio', 'empty_txns', 'No Transactions')
-  const emptyTxnsMsg = useContent('portfolio', 'empty_txns_msg', 'No transactions yet.')
 
   const isLoading = summaryLoading || vaultLoading
   const disabledVaultIds = ['opportunity', 'community'].filter((id) => !isVaultEnabled(id))
@@ -518,7 +543,12 @@ export default function PortfolioPage() {
 
               {/* ── Holdings ──────────────────────────────────────── */}
               <section>
-                <h2 className="section-title text-xl">{sectionHoldings}</h2>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="section-title text-xl">{sectionHoldings}</h2>
+                  {properties && properties.length > 0 && (
+                    <span className="text-xs text-theme-tertiary font-medium">{properties.length} propert{properties.length === 1 ? 'y' : 'ies'}</span>
+                  )}
+                </div>
                 {propsLoading ? (
                   <LoadingState />
                 ) : !properties || properties.length === 0 ? (
@@ -526,7 +556,7 @@ export default function PortfolioPage() {
                 ) : (
                   <div className="space-y-2">
                     {properties.map((p) => (
-                      <PropertyRow key={p.propertyId} p={p} />
+                      <PropertyRow key={p.propertyId} p={p} onViewDetail={() => navigate(`/portfolio/property/${p.propertyId}`)} />
                     ))}
                   </div>
                 )}

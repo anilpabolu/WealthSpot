@@ -4,6 +4,7 @@ Platform config schemas (Pydantic v2).
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -12,7 +13,7 @@ class ConfigRead(BaseModel):
     id: uuid.UUID
     section: str
     key: str
-    value: dict | None = None
+    value: Any = None
     description: str | None = None
     is_active: bool
     updated_at: datetime
@@ -21,7 +22,7 @@ class ConfigRead(BaseModel):
 
 
 class ConfigUpdate(BaseModel):
-    value: dict | None = None
+    value: Any = None
     description: str | None = None
     is_active: bool | None = None
 
@@ -29,6 +30,6 @@ class ConfigUpdate(BaseModel):
 class ConfigCreate(BaseModel):
     section: str = Field(min_length=1, max_length=100)
     key: str = Field(min_length=1, max_length=255)
-    value: dict | None = None
+    value: Any = None
     description: str | None = None
     is_active: bool = True

@@ -49,10 +49,13 @@ _INSIGHT_ROLES = {"admin", "super_admin", "community_lead", "knowledge_contribut
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _author(user: User | None) -> AuthorRead | None:
     if not user:
         return None
-    return AuthorRead(id=user.id, full_name=user.full_name, avatar_url=getattr(user, "avatar_url", None))
+    return AuthorRead(
+        id=user.id, full_name=user.full_name, avatar_url=getattr(user, "avatar_url", None)
+    )
 
 
 def _post_list_item(post: CommunityPost, liked: bool = False) -> PostListItem:
@@ -110,9 +113,7 @@ def _reply_read(reply: CommunityReply, liked: bool = False) -> ReplyRead:
 
 async def _get_community_config(db: AsyncSession) -> dict:
     """Return community platform configs as {key: value}."""
-    result = await db.execute(
-        select(PlatformConfig).where(PlatformConfig.section == "community")
-    )
+    result = await db.execute(select(PlatformConfig).where(PlatformConfig.section == "community"))
     configs = result.scalars().all()
     out: dict = {}
     for cfg in configs:
@@ -152,9 +153,7 @@ async def list_posts(
         base = base.where(CommunityPost.category == category)
     if search:
         like = f"%{search}%"
-        base = base.where(
-            CommunityPost.title.ilike(like) | CommunityPost.body.ilike(like)
-        )
+        base = base.where(CommunityPost.title.ilike(like) | CommunityPost.body.ilike(like))
 
     # Sorting
     if sort == "popular":
@@ -209,7 +208,9 @@ async def create_post(
     min_words: int = int(cfg.get("post_min_words", 10))
     word_count = len(body.body.split())
     if word_count < min_words:
-        raise HTTPException(status_code=422, detail=f"Post body must be at least {min_words} words.")
+        raise HTTPException(
+            status_code=422, detail=f"Post body must be at least {min_words} words."
+        )
     if word_count > max_words:
         raise HTTPException(status_code=422, detail=f"Post body must not exceed {max_words} words.")
 
@@ -229,8 +230,11 @@ async def create_post(
     # Award points
     action = "question_asked" if body.post_type == PostType.QUESTION else "post_created"
     await award_points(
-        db, user_id=str(user.id), action=action,
-        reference_type="community_post", reference_id=str(post.id),
+        db,
+        user_id=str(user.id),
+        action=action,
+        reference_type="community_post",
+        reference_id=str(post.id),
     )
 
     return _post_read(post)
@@ -280,13 +284,22 @@ async def list_replies(
 
     query = select(CommunityReply).where(CommunityReply.post_id == post_id)
 
-    is_privileged = current_user and current_user.role in {"admin", "super_admin", "approver", "community_lead"}
+    is_privileged = current_user and current_user.role in {
+        "admin",
+        "super_admin",
+        "approver",
+        "community_lead",
+    }
     if post.post_type == PostType.QUESTION and not is_privileged:
         query = query.where(CommunityReply.is_approved.is_(True))
 
     page = max(1, page)
     page_size = max(1, min(page_size, 100))
-    query = query.order_by(CommunityReply.created_at.asc()).offset((page - 1) * page_size).limit(page_size)
+    query = (
+        query.order_by(CommunityReply.created_at.asc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     replies = (await db.execute(query)).scalars().all()
 
     # Liked by current user?
@@ -379,12 +392,14 @@ async def toggle_post_like(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    existing = (await db.execute(
-        select(CommunityPostLike).where(
-            CommunityPostLike.post_id == post_id,
-            CommunityPostLike.user_id == user.id,
+    existing = (
+        await db.execute(
+            select(CommunityPostLike).where(
+                CommunityPostLike.post_id == post_id,
+                CommunityPostLike.user_id == user.id,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if existing:
         await db.delete(existing)
@@ -417,12 +432,14 @@ async def toggle_reply_like(
     if not reply:
         raise HTTPException(status_code=404, detail="Reply not found")
 
-    existing = (await db.execute(
-        select(CommunityReplyLike).where(
-            CommunityReplyLike.reply_id == reply_id,
-            CommunityReplyLike.user_id == user.id,
+    existing = (
+        await db.execute(
+            select(CommunityReplyLike).where(
+                CommunityReplyLike.reply_id == reply_id,
+                CommunityReplyLike.user_id == user.id,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if existing:
         await db.delete(existing)
@@ -448,7 +465,6 @@ async def get_community_config(
     return await _get_community_config(db)
 
 
-
 @router.post("/posts/{post_id}/upvote")
 async def upvote_post(
     post_id: uuid.UUID,
@@ -456,20 +472,20 @@ async def upvote_post(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, int]:
     """Upvote a post (idempotent toggle – uses like table to track uniqueness)."""
-    result = await db.execute(
-        select(CommunityPost).where(CommunityPost.id == post_id)
-    )
+    result = await db.execute(select(CommunityPost).where(CommunityPost.id == post_id))
     post = result.scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
     # Check if user already upvoted (reuse the like mechanism for dedup)
-    existing = (await db.execute(
-        select(CommunityPostLike).where(
-            CommunityPostLike.post_id == post_id,
-            CommunityPostLike.user_id == user.id,
+    existing = (
+        await db.execute(
+            select(CommunityPostLike).where(
+                CommunityPostLike.post_id == post_id,
+                CommunityPostLike.user_id == user.id,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if existing:
         # Already upvoted – idempotent, return current count
@@ -551,7 +567,11 @@ async def list_pending_answers(
 
     total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
 
-    query = base.order_by(CommunityReply.created_at.asc()).offset((page - 1) * page_size).limit(page_size)
+    query = (
+        base.order_by(CommunityReply.created_at.asc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     replies = (await db.execute(query)).scalars().all()
 
     return {

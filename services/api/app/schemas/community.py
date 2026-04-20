@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field
 
 from app.models.community import PostType
 
-
 # ── Author (nested) ─────────────────────────────────────────────────────────
+
 
 class AuthorRead(BaseModel):
     id: uuid.UUID
@@ -21,6 +21,7 @@ class AuthorRead(BaseModel):
 
 
 # ── Posts ────────────────────────────────────────────────────────────────────
+
 
 class PostCreate(BaseModel):
     title: str = Field(min_length=3, max_length=500)
@@ -52,6 +53,7 @@ class PostRead(BaseModel):
 
 class PostListItem(BaseModel):
     """Lightweight post for feed – body truncated."""
+
     id: uuid.UUID
     post_type: PostType
     title: str
@@ -77,6 +79,7 @@ class PaginatedPosts(BaseModel):
 
 # ── Replies ──────────────────────────────────────────────────────────────────
 
+
 class ReplyCreate(BaseModel):
     body: str = Field(min_length=1)
 
@@ -97,6 +100,7 @@ class ReplyRead(BaseModel):
 
 
 # ── Likes ────────────────────────────────────────────────────────────────────
+
 
 class LikeResponse(BaseModel):
     liked: bool

@@ -5,7 +5,8 @@ Opportunities router – create, list, manage multi-vault opportunities.
 import math
 import re
 import uuid as _uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,12 +15,11 @@ from app.core.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
-from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
+from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.opportunity_like import OpportunityLike, UserActivity
 from app.models.profiling import UserProfileAnswer, VaultProfileQuestion
 from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
-from app.models.vault_explorer import VaultExplorer
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
     OpportunityRead,
@@ -48,8 +48,12 @@ async def list_opportunities(
     vault_type: VaultType | None = Query(None),
     status: str | None = Query(None),
     city: str | None = Query(None),
-    community_subtype: str | None = Query(None, description="Filter community opportunities: co_investor or co_partner"),
-    creator_id: str | None = Query(None, description="Filter by creator. Use 'me' for current user."),
+    community_subtype: str | None = Query(
+        None, description="Filter community opportunities: co_investor or co_partner"
+    ),
+    creator_id: str | None = Query(
+        None, description="Filter by creator. Use 'me' for current user."
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> PaginatedOpportunities:
@@ -62,7 +66,9 @@ async def list_opportunities(
     if creator_id:
         if creator_id == "me":
             if not user:
-                raise HTTPException(status_code=401, detail="Authentication required for creator_id=me")
+                raise HTTPException(
+                    status_code=401, detail="Authentication required for creator_id=me"
+                )
             resolved_creator_id = user.id
         else:
             resolved_creator_id = _uuid.UUID(creator_id)
@@ -145,6 +151,7 @@ async def list_opportunities(
 
 # ── Vault-level aggregated stats ────────────────────────────────────────────
 
+
 def _compute_irr(investments: list, total_invested: float) -> float | None:
     """Compute a simplified actual IRR from investment returns."""
     if not investments or total_invested <= 0:
@@ -152,10 +159,10 @@ def _compute_irr(investments: list, total_invested: float) -> float | None:
     total_returns = float(sum(inv.returns_amount or 0 for inv in investments))
     if total_returns <= 0:
         return None
-    now = datetime.now(timezone.utc)
-    avg_days = sum(
-        (now - inv.invested_at).days for inv in investments if inv.invested_at
-    ) / len(investments)
+    now = datetime.now(UTC)
+    avg_days = sum((now - inv.invested_at).days for inv in investments if inv.invested_at) / len(
+        investments
+    )
     years = max(avg_days / 365.25, 0.25)
     return_ratio = total_returns / total_invested
     irr = ((1 + return_ratio) ** (1 / years) - 1) * 100
@@ -243,14 +250,11 @@ async def vault_stats(
     total_q_map = {row.vault_type: int(row.total_q) for row in q_count_result.fetchall()}
 
     # Step 2: count answers per user per vault
-    user_answer_q = (
-        select(
-            UserProfileAnswer.vault_type,
-            UserProfileAnswer.user_id,
-            func.count(UserProfileAnswer.id).label("answered"),
-        )
-        .group_by(UserProfileAnswer.vault_type, UserProfileAnswer.user_id)
-    )
+    user_answer_q = select(
+        UserProfileAnswer.vault_type,
+        UserProfileAnswer.user_id,
+        func.count(UserProfileAnswer.id).label("answered"),
+    ).group_by(UserProfileAnswer.vault_type, UserProfileAnswer.user_id)
     user_answer_result = await db.execute(user_answer_q)
 
     # Collect user_ids who completed DNA per vault
@@ -277,7 +281,7 @@ async def vault_stats(
     invested_result = await db.execute(invested_users_q)
     invested_users: dict[str, set] = {}
     for row in invested_result.fetchall():
-        vt_str = row.vault_type.value if hasattr(row.vault_type, 'value') else row.vault_type
+        vt_str = row.vault_type.value if hasattr(row.vault_type, "value") else row.vault_type
         invested_users.setdefault(vt_str, set()).add(row.user_id)
 
     # Step 4: explorer = DNA complete MINUS invested
@@ -340,22 +344,28 @@ async def vault_stats(
     for vt in VaultType:
         agg_row = agg_rows.get(vt)
         extra_row = extra_map.get(vt)
-        results.append(VaultStatsResponse(
-            vault_type=vt.value,
-            total_invested=float(agg_row.total_invested) if agg_row else 0.0,
-            investor_count=int(agg_row.investor_count) if agg_row else 0,
-            opportunity_count=int(agg_row.opp_count) if agg_row else 0,
-            expected_irr=round(float(irr_map[vt]), 2) if vt in irr_map and irr_map[vt] else None,
-            actual_irr=actual_irr_map.get(vt),
-            explorer_count=explorer_map.get(vt.value, 0),
-            min_investment=float(extra_row.min_inv) if extra_row and extra_row.min_inv else None,
-            avg_ticket_size=ticket_map.get(vt),
-            cities_covered=int(extra_row.cities) if extra_row else 0,
-            sectors_covered=int(extra_row.sectors) if extra_row else 0,
-            co_investor_count=co_map.get("co_investor", 0) if vt == VaultType.COMMUNITY else 0,
-            co_partner_count=co_map.get("co_partner", 0) if vt == VaultType.COMMUNITY else 0,
-            platform_users_count=platform_users_count,
-        ))
+        results.append(
+            VaultStatsResponse(
+                vault_type=vt.value,
+                total_invested=float(agg_row.total_invested) if agg_row else 0.0,
+                investor_count=int(agg_row.investor_count) if agg_row else 0,
+                opportunity_count=int(agg_row.opp_count) if agg_row else 0,
+                expected_irr=round(float(irr_map[vt]), 2)
+                if vt in irr_map and irr_map[vt]
+                else None,
+                actual_irr=actual_irr_map.get(vt),
+                explorer_count=explorer_map.get(vt.value, 0),
+                min_investment=float(extra_row.min_inv)
+                if extra_row and extra_row.min_inv
+                else None,
+                avg_ticket_size=ticket_map.get(vt),
+                cities_covered=int(extra_row.cities) if extra_row else 0,
+                sectors_covered=int(extra_row.sectors) if extra_row else 0,
+                co_investor_count=co_map.get("co_investor", 0) if vt == VaultType.COMMUNITY else 0,
+                co_partner_count=co_map.get("co_partner", 0) if vt == VaultType.COMMUNITY else 0,
+                platform_users_count=platform_users_count,
+            )
+        )
 
     return results
 
@@ -384,6 +394,7 @@ async def builder_investors(
     # Join investments + users + opportunities
     stmt = (
         select(
+            OpportunityInvestment.id,
             OpportunityInvestment.user_id,
             OpportunityInvestment.amount,
             OpportunityInvestment.invested_at,
@@ -412,18 +423,21 @@ async def builder_investors(
     for row in rows:
         unique_investors.add(row.user_id)
         total_invested += float(row.amount)
-        investors.append(BuilderInvestorItem(
-            investor_id=row.user_id,
-            investor_name=row.full_name or "Unknown",
-            investor_email=row.email,
-            investor_avatar=row.avatar_url,
-            opportunity_id=row.opportunity_id,
-            opportunity_title=row.title,
-            opportunity_slug=row.slug,
-            amount=float(row.amount),
-            invested_at=row.invested_at,
-            status=row.status.value if hasattr(row.status, 'value') else str(row.status),
-        ))
+        investors.append(
+            BuilderInvestorItem(
+                investment_id=row.id,
+                investor_id=row.user_id,
+                investor_name=row.full_name or "Unknown",
+                investor_email=row.email,
+                investor_avatar=row.avatar_url,
+                opportunity_id=row.opportunity_id,
+                opportunity_title=row.title,
+                opportunity_slug=row.slug,
+                amount=float(row.amount),
+                invested_at=row.invested_at,
+                status=row.status.value if hasattr(row.status, "value") else str(row.status),
+            )
+        )
 
     return BuilderInvestorsResponse(
         investors=investors,
@@ -440,9 +454,9 @@ async def builder_analytics(
     """Builder-scoped analytics for the current user's opportunities."""
     from app.schemas.opportunity import (
         BuilderAnalyticsResponse,
-        BuilderOpportunityBreakdown,
-        BuilderMonthlyTrend,
         BuilderCityDistribution,
+        BuilderMonthlyTrend,
+        BuilderOpportunityBreakdown,
     )
 
     # Fetch all opportunities by this creator
@@ -458,8 +472,13 @@ async def builder_analytics(
 
     if not opps:
         return BuilderAnalyticsResponse(
-            total_raised=0, total_target=0, investor_count=0, opportunity_count=0,
-            opportunities=[], monthly_trends=[], city_distribution=[],
+            total_raised=0,
+            total_target=0,
+            investor_count=0,
+            opportunity_count=0,
+            opportunities=[],
+            monthly_trends=[],
+            city_distribution=[],
         ).model_dump()
 
     opp_ids = [o.id for o in opps]
@@ -478,11 +497,13 @@ async def builder_analytics(
         .group_by(OpportunityInvestment.opportunity_id)
     )
     stats_result = await db.execute(stats_q)
-    stats_map = {row.opportunity_id: (int(row.inv_count), float(row.raised)) for row in stats_result.all()}
+    stats_map = {
+        row.opportunity_id: (int(row.inv_count), float(row.raised)) for row in stats_result.all()
+    }
 
     total_raised = 0.0
     total_target = 0.0
-    all_investor_ids: set[_uuid.UUID] = set()
+    _all_investor_ids: set[_uuid.UUID] = set()
     opp_breakdowns = []
 
     for opp in opps:
@@ -492,28 +513,29 @@ async def builder_analytics(
         total_target += target
         funding_pct = (raised / target * 100) if target > 0 else 0
 
-        opp_breakdowns.append(BuilderOpportunityBreakdown(
-            id=opp.id,
-            title=opp.title,
-            slug=opp.slug,
-            status=opp.status.value if hasattr(opp.status, 'value') else str(opp.status),
-            vault_type=opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type),
-            city=opp.city,
-            raised_amount=raised,
-            target_amount=target,
-            investor_count=inv_count,
-            funding_pct=round(funding_pct, 1),
-            created_at=opp.created_at,
-        ))
+        opp_breakdowns.append(
+            BuilderOpportunityBreakdown(
+                id=opp.id,
+                title=opp.title,
+                slug=opp.slug,
+                status=opp.status.value if hasattr(opp.status, "value") else str(opp.status),
+                vault_type=opp.vault_type.value
+                if hasattr(opp.vault_type, "value")
+                else str(opp.vault_type),
+                city=opp.city,
+                raised_amount=raised,
+                target_amount=target,
+                investor_count=inv_count,
+                funding_pct=round(funding_pct, 1),
+                created_at=opp.created_at,
+            )
+        )
 
     # Unique investor count across all opps
     if opp_ids:
-        unique_inv_q = (
-            select(func.count(func.distinct(OpportunityInvestment.user_id)))
-            .where(
-                OpportunityInvestment.opportunity_id.in_(opp_ids),
-                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-            )
+        unique_inv_q = select(func.count(func.distinct(OpportunityInvestment.user_id))).where(
+            OpportunityInvestment.opportunity_id.in_(opp_ids),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
         )
         unique_count = (await db.execute(unique_inv_q)).scalar() or 0
     else:
@@ -522,21 +544,23 @@ async def builder_analytics(
     # Monthly investment trends (last 12 months)
     monthly_q = (
         select(
-            func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM').label("month"),
+            func.to_char(OpportunityInvestment.invested_at, "YYYY-MM").label("month"),
             func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("amount"),
             func.count(OpportunityInvestment.id).label("count"),
         )
         .where(
             OpportunityInvestment.opportunity_id.in_(opp_ids),
             OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+            OpportunityInvestment.invested_at.isnot(None),
         )
-        .group_by(func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM'))
-        .order_by(func.to_char(OpportunityInvestment.invested_at, 'YYYY-MM'))
+        .group_by(func.to_char(OpportunityInvestment.invested_at, "YYYY-MM"))
+        .order_by(func.to_char(OpportunityInvestment.invested_at, "YYYY-MM"))
     )
     monthly_result = await db.execute(monthly_q)
     monthly_trends = [
         BuilderMonthlyTrend(month=row.month, amount=float(row.amount), count=int(row.count))
         for row in monthly_result.all()
+        if row.month is not None
     ]
 
     # City distribution
@@ -554,6 +578,52 @@ async def builder_analytics(
         for city, data in sorted(city_map.items(), key=lambda x: x[1]["total_raised"], reverse=True)
     ]
 
+    # ── New metrics: avg time-to-fund, top opportunity, repeat investor rate ──
+
+    # Average days to fund (for opportunities where raised >= target)
+    avg_days_to_fund: float | None = None
+    funded_days = []
+    for opp in opps:
+        target = float(opp.target_amount or 0)
+        _inv_count, raised = stats_map.get(opp.id, (0, 0.0))
+        if target > 0 and raised >= target:
+            # Find the last confirmed investment date for this opportunity
+            last_inv_q = (
+                select(func.max(OpportunityInvestment.invested_at))
+                .where(
+                    OpportunityInvestment.opportunity_id == opp.id,
+                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+                )
+            )
+            last_inv_date = (await db.execute(last_inv_q)).scalar()
+            if last_inv_date and opp.created_at:
+                delta = (last_inv_date - opp.created_at).total_seconds() / 86400
+                funded_days.append(max(delta, 0))
+    if funded_days:
+        avg_days_to_fund = round(sum(funded_days) / len(funded_days), 1)
+
+    # Top performing listing (highest funding_pct)
+    top_opportunity = None
+    if opp_breakdowns:
+        top_opportunity = max(opp_breakdowns, key=lambda b: b.funding_pct)
+
+    # Investor repeat rate (% of investors who invested in >1 listing)
+    repeat_investor_rate = 0.0
+    if opp_ids and unique_count > 1:
+        repeat_q = (
+            select(OpportunityInvestment.user_id)
+            .where(
+                OpportunityInvestment.opportunity_id.in_(opp_ids),
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+            )
+            .group_by(OpportunityInvestment.user_id)
+            .having(func.count(func.distinct(OpportunityInvestment.opportunity_id)) > 1)
+        )
+        repeat_result = await db.execute(repeat_q)
+        repeat_count = len(repeat_result.all())
+        if unique_count > 0:
+            repeat_investor_rate = round(repeat_count / unique_count * 100, 1)
+
     return BuilderAnalyticsResponse(
         total_raised=total_raised,
         total_target=total_target,
@@ -562,6 +632,9 @@ async def builder_analytics(
         opportunities=opp_breakdowns,
         monthly_trends=monthly_trends,
         city_distribution=city_distribution,
+        avg_days_to_fund=avg_days_to_fund,
+        top_opportunity=top_opportunity,
+        repeat_investor_rate=repeat_investor_rate,
     ).model_dump()
 
 
@@ -602,9 +675,7 @@ async def get_opportunity_by_slug(
     db: AsyncSession = Depends(get_db),
 ) -> OpportunityRead:
     """Fetch a single opportunity by its URL slug."""
-    result = await db.execute(
-        select(Opportunity).where(Opportunity.slug == slug)
-    )
+    result = await db.execute(select(Opportunity).where(Opportunity.slug == slug))
     opp = result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -637,7 +708,10 @@ async def create_opportunity(
     """
     # Validate community_subtype for community vault
     if body.vault_type == VaultType.COMMUNITY:
-        if not body.community_subtype or body.community_subtype not in ("co_investor", "co_partner"):
+        if not body.community_subtype or body.community_subtype not in (
+            "co_investor",
+            "co_partner",
+        ):
             raise HTTPException(
                 status_code=422,
                 detail="community_subtype is required for Community Vault (co_investor or co_partner)",
@@ -763,6 +837,7 @@ async def assign_role_for_opportunity(
 
 # ── Update opportunity (for approver edit) ───────────────────────────────────
 
+
 @router.patch("/{opportunity_id}", response_model=OpportunityRead)
 async def update_opportunity(
     opportunity_id: str,
@@ -814,6 +889,7 @@ async def update_opportunity(
             if old_idx > new_idx >= 0:
                 # Backward transition — cancel confirmed investments
                 from sqlalchemy import update as sql_update
+
                 await db.execute(
                     sql_update(OpportunityInvestment)
                     .where(
@@ -848,9 +924,7 @@ async def toggle_like(
     opp_uuid = _uuid.UUID(opportunity_id)
 
     # Verify opportunity exists
-    opp_result = await db.execute(
-        select(Opportunity).where(Opportunity.id == opp_uuid)
-    )
+    opp_result = await db.execute(select(Opportunity).where(Opportunity.id == opp_uuid))
     opp = opp_result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -874,21 +948,21 @@ async def toggle_like(
         activity_type = "liked"
 
     # Record activity
-    db.add(UserActivity(
-        user_id=user.id,
-        activity_type=activity_type,
-        resource_type="opportunity",
-        resource_id=opp_uuid,
-        resource_title=opp.title,
-        resource_slug=opp.slug,
-    ))
+    db.add(
+        UserActivity(
+            user_id=user.id,
+            activity_type=activity_type,
+            resource_type="opportunity",
+            resource_id=opp_uuid,
+            resource_title=opp.title,
+            resource_slug=opp.slug,
+        )
+    )
     await db.flush()
 
     # Total like count
     count_result = await db.execute(
-        select(func.count(OpportunityLike.id)).where(
-            OpportunityLike.opportunity_id == opp_uuid
-        )
+        select(func.count(OpportunityLike.id)).where(OpportunityLike.opportunity_id == opp_uuid)
     )
     like_count = count_result.scalar() or 0
 
@@ -905,9 +979,7 @@ async def like_status(
     opp_uuid = _uuid.UUID(opportunity_id)
 
     count_result = await db.execute(
-        select(func.count(OpportunityLike.id)).where(
-            OpportunityLike.opportunity_id == opp_uuid
-        )
+        select(func.count(OpportunityLike.id)).where(OpportunityLike.opportunity_id == opp_uuid)
     )
     like_count = count_result.scalar() or 0
 
@@ -936,22 +1008,22 @@ async def track_share(
     """Record a share event and return the property referral code for this user+opportunity."""
     opp_uuid = _uuid.UUID(opportunity_id)
 
-    opp_result = await db.execute(
-        select(Opportunity).where(Opportunity.id == opp_uuid)
-    )
+    opp_result = await db.execute(select(Opportunity).where(Opportunity.id == opp_uuid))
     opp = opp_result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
     # Record share activity
-    db.add(UserActivity(
-        user_id=user.id,
-        activity_type="shared",
-        resource_type="opportunity",
-        resource_id=opp_uuid,
-        resource_title=opp.title,
-        resource_slug=opp.slug,
-    ))
+    db.add(
+        UserActivity(
+            user_id=user.id,
+            activity_type="shared",
+            resource_type="opportunity",
+            resource_id=opp_uuid,
+            resource_title=opp.title,
+            resource_slug=opp.slug,
+        )
+    )
 
     # Get or create property referral code
     existing = await db.execute(
@@ -992,9 +1064,7 @@ async def get_property_referral_code(
     """Get the static property referral code for this user+opportunity (creates if needed)."""
     opp_uuid = _uuid.UUID(opportunity_id)
 
-    opp_result = await db.execute(
-        select(Opportunity).where(Opportunity.id == opp_uuid)
-    )
+    opp_result = await db.execute(select(Opportunity).where(Opportunity.id == opp_uuid))
     opp = opp_result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -1035,9 +1105,7 @@ async def soft_delete_opportunity(
 ) -> None:
     """Soft-delete an opportunity tile (admin/super_admin only). Sets status to ARCHIVED."""
     opp_uuid = _uuid.UUID(opportunity_id)
-    result = await db.execute(
-        select(Opportunity).where(Opportunity.id == opp_uuid)
-    )
+    result = await db.execute(select(Opportunity).where(Opportunity.id == opp_uuid))
     opp = result.scalar_one_or_none()
 
     if not opp:

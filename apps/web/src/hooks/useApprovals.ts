@@ -83,8 +83,22 @@ export function useApprovalStats() {
 export function useReviewApproval() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action, reviewNote }: { id: string; action: 'approve' | 'reject'; reviewNote?: string }) =>
-      apiPost(`/approvals/${id}/review`, { action, review_note: reviewNote }),
+    mutationFn: ({
+      id,
+      action,
+      reviewNote,
+      override,
+    }: {
+      id: string
+      action: 'approve' | 'reject'
+      reviewNote?: string
+      override?: boolean
+    }) =>
+      apiPost(`/approvals/${id}/review`, {
+        action,
+        review_note: reviewNote,
+        override: override ?? false,
+      }),
     onSuccess: () => {
       // Invalidate approvals list + stats
       qc.invalidateQueries({ queryKey: ['approvals'] })

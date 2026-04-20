@@ -35,6 +35,9 @@ export interface BuilderAnalyticsData {
   opportunities: BuilderOpportunityBreakdown[]
   monthlyTrends: BuilderMonthlyTrend[]
   cityDistribution: BuilderCityDistribution[]
+  avgDaysToFund: number | null
+  topOpportunity: BuilderOpportunityBreakdown | null
+  repeatInvestorRate: number
 }
 
 export function useBuilderAnalytics() {

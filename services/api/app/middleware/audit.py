@@ -3,7 +3,7 @@ Audit logging middleware – records all state-changing requests.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import Request
@@ -13,13 +13,27 @@ from app.core.database import async_session_factory
 from app.models.community import AuditLog
 
 # Keys whose values must be redacted in audit details
-_SENSITIVE_KEYS = frozenset({
-    "pan_number", "pan", "aadhaar", "aadhaar_number",
-    "bank_account_number", "account_number", "ifsc_code",
-    "otp", "otp_hash", "email_otp_hash", "phone_otp_hash",
-    "password", "password_hash", "secret", "token",
-    "razorpay_signature", "razorpay_key_secret",
-})
+_SENSITIVE_KEYS = frozenset(
+    {
+        "pan_number",
+        "pan",
+        "aadhaar",
+        "aadhaar_number",
+        "bank_account_number",
+        "account_number",
+        "ifsc_code",
+        "otp",
+        "otp_hash",
+        "email_otp_hash",
+        "phone_otp_hash",
+        "password",
+        "password_hash",
+        "secret",
+        "token",
+        "razorpay_signature",
+        "razorpay_key_secret",
+    }
+)
 
 
 def _redact_sensitive(data: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -64,7 +78,7 @@ async def log_audit_event(
                 details=_redact_sensitive(details),
                 ip_address=ip_address,
                 user_agent=user_agent,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
         await session.commit()

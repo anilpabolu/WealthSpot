@@ -3,6 +3,7 @@ Properties router – CRUD, marketplace listing, filtering & search.
 """
 
 import uuid
+from datetime import UTC
 from decimal import Decimal
 from math import ceil
 
@@ -94,10 +95,7 @@ async def autocomplete(
 
     # Builder / company names
     builder_q = (
-        select(Builder.company_name)
-        .where(Builder.company_name.ilike(term))
-        .distinct()
-        .limit(limit)
+        select(Builder.company_name).where(Builder.company_name.ilike(term)).distinct().limit(limit)
     )
     for row in (await db.execute(builder_q)).all():
         key = f"builder:{row[0]}"
@@ -145,7 +143,14 @@ async def list_properties(
 ) -> PaginatedProperties:
     """Public marketplace listing with filtering & pagination."""
     query = select(Property).where(
-        Property.status.in_([PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED, PropertyStatus.EXITED])
+        Property.status.in_(
+            [
+                PropertyStatus.ACTIVE,
+                PropertyStatus.FUNDING,
+                PropertyStatus.FUNDED,
+                PropertyStatus.EXITED,
+            ]
+        )
     )
 
     if city:
@@ -292,19 +297,18 @@ async def get_my_builder_profile(
     db: AsyncSession = Depends(get_db),
 ) -> BuilderProfileResponse:
     """Current user's builder profile with their listed properties."""
-    result = await db.execute(
-        select(Builder).where(Builder.user_id == user.id)
-    )
+    result = await db.execute(select(Builder).where(Builder.user_id == user.id))
     builder = result.scalar_one_or_none()
 
     # Return empty profile for users without a Builder row (instead of 404)
     if not builder:
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         return BuilderProfileResponse(
             id=user.id,
             company_name="",
             verified=False,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             properties=[],
         )
 
@@ -417,9 +421,7 @@ async def get_builder_profile(
     db: AsyncSession = Depends(get_db),
 ) -> BuilderProfileResponse:
     """Public builder profile with their listed properties."""
-    result = await db.execute(
-        select(Builder).where(Builder.id == builder_id)
-    )
+    result = await db.execute(select(Builder).where(Builder.id == builder_id))
     builder = result.scalar_one_or_none()
     if not builder:
         raise HTTPException(status_code=404, detail="Builder not found")
@@ -428,7 +430,9 @@ async def get_builder_profile(
         select(Property)
         .where(
             Property.builder_id == builder.id,
-            Property.status.in_([PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED]),
+            Property.status.in_(
+                [PropertyStatus.ACTIVE, PropertyStatus.FUNDING, PropertyStatus.FUNDED]
+            ),
         )
         .order_by(Property.created_at.desc())
     )
@@ -468,9 +472,7 @@ async def create_property(
 ) -> PropertyDetail:
     """Builder creates a new property listing."""
     # Find builder profile
-    builder_result = await db.execute(
-        select(Builder).where(Builder.user_id == user.id)
-    )
+    builder_result = await db.execute(select(Builder).where(Builder.user_id == user.id))
     builder = builder_result.scalar_one_or_none()
     if not builder:
         raise HTTPException(status_code=400, detail="Builder profile not found")
@@ -528,9 +530,7 @@ async def update_property(
 
     # Builders can only update their own properties
     if user.role == UserRole.BUILDER:
-        builder_result = await db.execute(
-            select(Builder).where(Builder.user_id == user.id)
-        )
+        builder_result = await db.execute(select(Builder).where(Builder.user_id == user.id))
         builder = builder_result.scalar_one_or_none()
         if not builder or prop.builder_id != builder.id:
             raise HTTPException(status_code=403, detail="You can only update your own properties")
@@ -562,4 +562,3 @@ async def soft_delete_property(
 
     prop.status = PropertyStatus.ARCHIVED
     await db.flush()
-

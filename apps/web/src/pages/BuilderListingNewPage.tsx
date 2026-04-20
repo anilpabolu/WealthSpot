@@ -12,6 +12,14 @@ import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
 import CompanyOnboardingModal from '@/components/CompanyOnboardingModal'
 import { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
+import {
+  BuilderShieldStep,
+  type BuilderAnswer,
+} from '@/components/shield/BuilderShieldStep'
+import {
+  useSaveAssessmentBulk,
+  useUploadAssessmentDocument,
+} from '@/hooks/useShield'
 
 const VAULT_OPTIONS = [
   { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5' },
@@ -76,7 +84,8 @@ const inputCls = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:
 
 export default function BuilderListingNewPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<'vault' | 'community-subtype' | 'form' | 'uploading' | 'success'>('vault')
+  const [step, setStep] = useState<'vault' | 'community-subtype' | 'form' | 'shield' | 'uploading' | 'success'>('vault')
+  const [shieldAnswers, setShieldAnswers] = useState<Record<string, BuilderAnswer>>({})
   const [vaultType, setVaultType] = useState('')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
@@ -87,6 +96,8 @@ export default function BuilderListingNewPage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
+  const saveShield = useSaveAssessmentBulk()
+  const uploadShieldDoc = useUploadAssessmentDocument()
   const { isVaultEnabled } = useVaultConfig()
 
   const handleChange = (key: keyof OpportunityCreatePayload, value: string | number) => {
@@ -121,8 +132,12 @@ export default function BuilderListingNewPage() {
     setStep('form')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setStep('shield')
+  }
+
+  const finalSubmit = async () => {
     const payload: OpportunityCreatePayload = {
       ...form,
       ...(vaultType === 'wealth' || vaultType === 'community'
@@ -162,6 +177,33 @@ export default function BuilderListingNewPage() {
         if (videos.length > 0) {
           setUploadProgress(`Uploading ${videos.length} video(s)…`)
           await uploadMutation.mutateAsync({ opportunityId: created.id, files: videos })
+        }
+      }
+
+      // Shield — save any filled answers and upload any queued evidence.
+      const answeredItems = Object.values(shieldAnswers).filter(
+        (a) => a.value !== '' || a.files.length > 0,
+      )
+      if (answeredItems.length > 0) {
+        setStep('uploading')
+        setUploadProgress('Saving Shield answers…')
+        await saveShield.mutateAsync({
+          opportunityId: created.id,
+          items: answeredItems.map((a) => ({
+            categoryCode: a.categoryCode,
+            subcategoryCode: a.subcategoryCode,
+            builderAnswer: a.value ? { text: a.value } : null,
+          })),
+        })
+        const withFiles = answeredItems.filter((a) => a.files.length > 0)
+        for (const a of withFiles) {
+          setUploadProgress(`Uploading Shield evidence for ${a.subcategoryCode}…`)
+          await uploadShieldDoc.mutateAsync({
+            opportunityId: created.id,
+            category: a.categoryCode,
+            subcategory: a.subcategoryCode,
+            files: a.files,
+          })
         }
       }
       setStep('success')
@@ -468,12 +510,53 @@ export default function BuilderListingNewPage() {
                 <button type="button" onClick={() => navigate('/portal/builder/listings')} className="px-4 py-2 text-sm font-medium text-theme-secondary hover:text-theme-primary transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={createMutation.isPending} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50">
-                  {createMutation.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>) : '🚀 Submit for Approval'}
+                <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50">
+                  Continue → Shield
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Shield (optional) */}
+          {step === 'shield' && (
+            <div className="space-y-5">
+              <button type="button" onClick={() => setStep('form')} className="text-sm text-theme-secondary hover:text-theme-primary flex items-center gap-1">
+                <ArrowLeft className="h-4 w-4" /> Back to form
+              </button>
+              <div>
+                <h2 className="font-display text-xl font-bold text-theme-primary">
+                  WealthSpot Shield · optional
+                </h2>
+                <p className="text-sm text-theme-secondary">
+                  Everything on this step is optional — fill what you have, our review team will follow up for the rest.
+                </p>
+              </div>
+              <BuilderShieldStep
+                answers={shieldAnswers}
+                onChange={(key, answer) =>
+                  setShieldAnswers((prev) => ({ ...prev, [key]: answer }))
+                }
+              />
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={finalSubmit}
+                  disabled={createMutation.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-theme text-sm font-semibold text-theme-secondary hover:text-theme-primary"
+                >
+                  Skip Shield &amp; submit
+                </button>
+                <button
+                  type="button"
+                  onClick={finalSubmit}
+                  disabled={createMutation.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+                >
+                  {createMutation.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>) : '🚀 Submit listing'}
                 </button>
               </div>
               {createMutation.isError && <p className="text-sm text-red-600 dark:text-red-400 text-center mt-2">Failed to submit. Please try again.</p>}
-            </form>
+            </div>
           )}
 
           {/* Uploading */}
@@ -493,13 +576,13 @@ export default function BuilderListingNewPage() {
               </div>
               <h3 className="font-display text-xl font-bold text-theme-primary mb-2">Listing Created!</h3>
               <p className="text-sm text-theme-secondary max-w-sm mx-auto mb-6">
-                Your listing has been submitted for approval. You'll be notified once it goes live.
+                Submitted — our Shield review starts now. We'll reach out for any missing evidence.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button onClick={() => navigate('/portal/builder/listings')} className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors">
                   View My Listings
                 </button>
-                <button onClick={() => { setStep('vault'); setVaultType(''); setForm({ vaultType: '', title: '' }); setMediaItems([]); setAddress(EMPTY_ADDRESS); setCommunityDetails({}); setCommunitySubtype('') }} className="px-5 py-2.5 rounded-lg border border-theme text-sm font-medium text-theme-secondary hover:text-theme-primary transition-colors">
+                <button onClick={() => { setStep('vault'); setVaultType(''); setForm({ vaultType: '', title: '' }); setMediaItems([]); setAddress(EMPTY_ADDRESS); setCommunityDetails({}); setCommunitySubtype(''); setShieldAnswers({}) }} className="px-5 py-2.5 rounded-lg border border-theme text-sm font-medium text-theme-secondary hover:text-theme-primary transition-colors">
                   Create Another
                 </button>
               </div>

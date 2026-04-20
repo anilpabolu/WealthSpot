@@ -28,6 +28,7 @@ import { useApprovals, useAllApprovals, useReviewApproval, type Approval } from 
 import { useApprovalStore } from '@/stores/approval.store'
 import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useCompany, useUpdateCompany, type CompanyDetail } from '@/hooks/useCompanies'
+import { AdminShieldReviewPanel } from '@/components/shield/AdminShieldReviewPanel'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -109,12 +110,20 @@ function ReviewModal({
   onClose: () => void
 }) {
   const [note, setNote] = useState('')
+  const [override, setOverride] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const review = useReviewApproval()
+  const isOpportunityApprove =
+    action === 'approve' && approval.resourceType === 'opportunity'
 
   const handleSubmit = async () => {
     try {
-      await review.mutateAsync({ id: approval.id, action, reviewNote: note || undefined })
+      await review.mutateAsync({
+        id: approval.id,
+        action,
+        reviewNote: note || undefined,
+        override: isOpportunityApprove ? override : undefined,
+      })
       const msg = action === 'approve'
         ? 'Request approved successfully! Changes are now live.'
         : 'Request has been rejected.'
@@ -154,6 +163,21 @@ function ReviewModal({
             placeholder={action === 'reject' ? 'Why is this being rejected?' : 'Add a note...'}
           />
         </div>
+
+        {isOpportunityApprove && (
+          <label className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={override}
+              onChange={(e) => setOverride(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              <strong>Override Shield</strong> — force-approve even if Shield
+              review is incomplete. Use only with a note explaining why.
+            </span>
+          </label>
+        )}
 
         <div className="flex gap-3 mt-4">
           <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-theme-secondary border border-theme rounded-lg hover:bg-theme-surface">
@@ -821,7 +845,7 @@ function DetailPopup({ approval, onClose, onReview }: {
   return (
     <div className="modal-overlay z-[9999]" onClick={onClose}>
       <div
-        className="modal-panel max-w-lg mx-4 overflow-hidden flex flex-col"
+        className={`modal-panel ${isOpportunityApproval ? 'max-w-3xl' : 'max-w-lg'} mx-4 overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Colored header band */}
@@ -915,6 +939,11 @@ function DetailPopup({ approval, onClose, onReview }: {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* WealthSpot Shield review panel (opportunity only) */}
+          {isOpportunityApproval && approval.resourceId && !editMode && (
+            <AdminShieldReviewPanel opportunityId={approval.resourceId} />
           )}
 
           {/* Edit Opportunity panel (inline) */}

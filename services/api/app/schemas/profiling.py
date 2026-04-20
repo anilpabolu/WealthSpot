@@ -3,14 +3,13 @@ Pydantic schemas for profiling & matching endpoints.
 """
 
 from datetime import datetime
-from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-
+from pydantic import BaseModel, ConfigDict
 
 # ── Vault Profile Questions ──────────────────────────────────────────────────
+
 
 class VaultProfileQuestionRead(BaseModel):
     id: UUID
@@ -31,6 +30,7 @@ class VaultProfileQuestionRead(BaseModel):
 
 # ── User Profile Answers ────────────────────────────────────────────────────
 
+
 class UserProfileAnswerCreate(BaseModel):
     question_id: UUID
     vault_type: str
@@ -39,6 +39,7 @@ class UserProfileAnswerCreate(BaseModel):
 
 class UserProfileAnswerBulk(BaseModel):
     """Submit multiple answers at once (full vault questionnaire)."""
+
     vault_type: str
     answers: list[UserProfileAnswerCreate]
 
@@ -56,6 +57,7 @@ class UserProfileAnswerRead(BaseModel):
 
 
 # ── Opportunity Custom Questions ─────────────────────────────────────────────
+
 
 class OpportunityCustomQuestionCreate(BaseModel):
     question_text: str
@@ -85,6 +87,7 @@ class OpportunityCustomQuestionRead(BaseModel):
 
 # ── Opportunity Application Answers ──────────────────────────────────────────
 
+
 class OpportunityApplicationAnswerCreate(BaseModel):
     question_id: UUID
     answer_value: Any
@@ -92,6 +95,7 @@ class OpportunityApplicationAnswerCreate(BaseModel):
 
 class OpportunityApplicationBulk(BaseModel):
     """Submit answers when applying to an opportunity."""
+
     opportunity_id: UUID
     answers: list[OpportunityApplicationAnswerCreate]
 
@@ -109,6 +113,7 @@ class OpportunityApplicationAnswerRead(BaseModel):
 
 
 # ── Personality Dimensions ───────────────────────────────────────────────────
+
 
 class PersonalityDimensionRead(BaseModel):
     user_id: UUID
@@ -131,6 +136,7 @@ class PersonalityDimensionRead(BaseModel):
 
 # ── Profile Match Scores ────────────────────────────────────────────────────
 
+
 class MatchScoreRead(BaseModel):
     user_id: UUID
     opportunity_id: UUID
@@ -145,12 +151,13 @@ class MatchScoreRead(BaseModel):
 
 class MatchedUserRead(BaseModel):
     """For opportunity creator – see who matches their opportunity."""
+
     user_id: UUID
     full_name: str
     avatar_url: str | None = None
     overall_score: float
     dimension_scores: dict[str, float] = {}
-    top_strengths: list[str] = []      # e.g. ["High investment capacity", "Strong network"]
+    top_strengths: list[str] = []  # e.g. ["High investment capacity", "Strong network"]
     compatibility_note: str | None = None  # human-readable note
     archetype_label: str | None = None
     archetype_compatibility: str | None = None
@@ -164,6 +171,7 @@ class OpportunityMatchesResponse(BaseModel):
 
 # ── Profiling Progress ──────────────────────────────────────────────────────
 
+
 class ProfilingProgressRead(BaseModel):
     vault_type: str
     total_questions: int
@@ -174,6 +182,7 @@ class ProfilingProgressRead(BaseModel):
 
 
 # ── Overall Progress ─────────────────────────────────────────────────────────
+
 
 class VaultProgressDetail(BaseModel):
     total: int

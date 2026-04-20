@@ -19,7 +19,9 @@ def _get_client() -> razorpay.Client:
     )
 
 
-def create_order(amount_inr: Decimal, receipt: str, notes: dict[str, str] | None = None) -> dict[str, object]:
+def create_order(
+    amount_inr: Decimal, receipt: str, notes: dict[str, str] | None = None
+) -> dict[str, object]:
     """
     Create a Razorpay order.
     Amount is in INR (Decimal), converted to paise for Razorpay.

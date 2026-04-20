@@ -38,6 +38,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 # ── Helper: safe materialized-view query with direct-query fallback ──────────
 
+
 async def _safe_mv_query(db: AsyncSession, mv_sql: str, fallback_sql: str) -> list[dict[str, Any]]:
     """Try querying a materialized view; fall back to direct SQL."""
     try:
@@ -74,9 +75,17 @@ SELECT
     COALESCE(AVG(o.expected_irr), 0)                      AS avg_expected_irr,
     COALESCE(AVG(o.actual_irr), 0)                        AS avg_actual_irr,
     COUNT(DISTINCT o.creator_id)::int                     AS unique_creators,
-    COALESCE(SUM(o.investor_count), 0)::int               AS total_investors
+    COALESCE(inv_agg.total_investors, 0)::int             AS total_investors
 FROM opportunities o
-GROUP BY o.vault_type ORDER BY o.vault_type
+LEFT JOIN (
+    SELECT o2.vault_type,
+           COUNT(DISTINCT oi.user_id) AS total_investors
+    FROM opportunity_investments oi
+    JOIN opportunities o2 ON o2.id = oi.opportunity_id
+    WHERE oi.status = 'confirmed'
+    GROUP BY o2.vault_type
+) inv_agg ON inv_agg.vault_type = o.vault_type
+GROUP BY o.vault_type, inv_agg.total_investors ORDER BY o.vault_type
 """
 
 
@@ -95,7 +104,9 @@ async def vault_summary(
     for r in rows:
         target = Decimal(str(r["total_target_amount"]))
         raised = Decimal(str(r["total_raised_amount"]))
-        funding_pct = (raised / target * 100).quantize(Decimal("0.1")) if target > 0 else Decimal("0")
+        funding_pct = (
+            (raised / target * 100).quantize(Decimal("0.1")) if target > 0 else Decimal("0")
+        )
         item = VaultSummaryItem(
             vault_type=r["vault_type"],
             total_opportunities=r["total_opportunities"],
@@ -117,7 +128,9 @@ async def vault_summary(
         total_inv += item.total_investors
         total_opp += item.total_opportunities
 
-    avg_deal = (platform_aum / total_opp).quantize(Decimal("0.01")) if total_opp > 0 else Decimal("0")
+    avg_deal = (
+        (platform_aum / total_opp).quantize(Decimal("0.01")) if total_opp > 0 else Decimal("0")
+    )
 
     return VaultSummaryResponse(
         vaults=vaults,
@@ -146,17 +159,6 @@ FROM opportunity_investments oi
 JOIN opportunities o ON o.id = oi.opportunity_id
 WHERE oi.status = 'confirmed'
 GROUP BY date_trunc('month', oi.created_at), o.vault_type
-
-UNION ALL
-
-SELECT to_char(date_trunc('month', i.created_at), 'YYYY-MM') AS month,
-       'wealth' AS vault_type,
-       COUNT(*)::int              AS investment_count,
-       COALESCE(SUM(i.amount),0)  AS total_amount,
-       COUNT(DISTINCT i.user_id)::int AS unique_investors
-FROM investments i
-WHERE i.status IN ('confirmed','payment_received')
-GROUP BY date_trunc('month', i.created_at)
 ORDER BY month
 """
 
@@ -176,13 +178,15 @@ async def investment_trends(
 
     for r in rows:
         amt = Decimal(str(r["total_amount"]))
-        points.append(MonthlyTrendPoint(
-            month=r["month"],
-            vault_type=r["vault_type"],
-            investment_count=r["investment_count"],
-            total_amount=amt,
-            unique_investors=r["unique_investors"],
-        ))
+        points.append(
+            MonthlyTrendPoint(
+                month=r["month"],
+                vault_type=r["vault_type"],
+                investment_count=r["investment_count"],
+                total_amount=amt,
+                unique_investors=r["unique_investors"],
+            )
+        )
         total_vol += amt
         month_totals[r["month"]] = month_totals.get(r["month"], Decimal("0")) + amt
 
@@ -224,9 +228,19 @@ SELECT
     COUNT(*)::int                AS opportunity_count,
     COALESCE(SUM(o.target_amount),0) AS total_target,
     COALESCE(SUM(o.raised_amount),0) AS total_raised,
-    COALESCE(SUM(o.investor_count),0)::int AS total_investors
+    COALESCE(inv_agg.total_investors, 0)::int AS total_investors
 FROM opportunities o
-GROUP BY COALESCE(o.city,'Unknown'), COALESCE(o.state,'Unknown'), o.vault_type
+LEFT JOIN (
+    SELECT o2.city, o2.state, o2.vault_type,
+           COUNT(DISTINCT oi.user_id) AS total_investors
+    FROM opportunity_investments oi
+    JOIN opportunities o2 ON o2.id = oi.opportunity_id
+    WHERE oi.status = 'confirmed'
+    GROUP BY o2.city, o2.state, o2.vault_type
+) inv_agg ON COALESCE(inv_agg.city, 'Unknown') = COALESCE(o.city, 'Unknown')
+         AND COALESCE(inv_agg.state, 'Unknown') = COALESCE(o.state, 'Unknown')
+         AND inv_agg.vault_type = o.vault_type
+GROUP BY COALESCE(o.city,'Unknown'), COALESCE(o.state,'Unknown'), o.vault_type, inv_agg.total_investors
 ORDER BY total_raised DESC
 """
 
@@ -273,8 +287,8 @@ INVESTOR_DIRECT = """
 SELECT
     to_char(date_trunc('month', u.created_at), 'YYYY-MM')     AS month,
     COUNT(*)::int                                              AS new_users,
-    COUNT(*) FILTER (WHERE u.role = 'investor')::int           AS new_investors,
-    COUNT(*) FILTER (WHERE u.role = 'builder')::int            AS new_builders,
+    COUNT(*) FILTER (WHERE u.primary_role = 'investor')::int   AS new_investors,
+    COUNT(*) FILTER (WHERE u.primary_role = 'builder')::int    AS new_builders,
     COUNT(*) FILTER (WHERE u.kyc_status = 'APPROVED')::int     AS kyc_approved,
     COUNT(*) FILTER (WHERE u.kyc_status IN ('IN_PROGRESS','UNDER_REVIEW'))::int AS kyc_in_progress
 FROM users u
@@ -299,16 +313,18 @@ async def investor_analytics(
     for r in rows:
         cum_users += r["new_users"]
         cum_inv += r["new_investors"]
-        growth.append(InvestorGrowthPoint(
-            month=r["month"],
-            new_users=r["new_users"],
-            new_investors=r["new_investors"],
-            new_builders=r["new_builders"],
-            kyc_approved=r["kyc_approved"],
-            kyc_in_progress=r["kyc_in_progress"],
-            cumulative_users=cum_users,
-            cumulative_investors=cum_inv,
-        ))
+        growth.append(
+            InvestorGrowthPoint(
+                month=r["month"],
+                new_users=r["new_users"],
+                new_investors=r["new_investors"],
+                new_builders=r["new_builders"],
+                kyc_approved=r["kyc_approved"],
+                kyc_in_progress=r["kyc_in_progress"],
+                cumulative_users=cum_users,
+                cumulative_investors=cum_inv,
+            )
+        )
         total_users += r["new_users"]
         total_inv += r["new_investors"]
         total_bld += r["new_builders"]
@@ -317,7 +333,9 @@ async def investor_analytics(
 
     kyc_rate = Decimal("0")
     if total_users > 0:
-        kyc_rate = (Decimal(str(total_kyc_approved)) / Decimal(str(total_users)) * 100).quantize(Decimal("0.1"))
+        kyc_rate = (Decimal(str(total_kyc_approved)) / Decimal(str(total_users)) * 100).quantize(
+            Decimal("0.1")
+        )
 
     n_months = max(len(growth), 1)
     avg_signups = (Decimal(str(total_users)) / n_months).quantize(Decimal("0.1"))
@@ -361,18 +379,20 @@ async def eoi_funnel(
     submitted, closed = 0, 0
 
     for r in rows:
-        items.append(EOIFunnelItem(
-            status=r["status"],
-            vault_type=r["vault_type"],
-            eoi_count=r["eoi_count"],
-            total_interest_amount=Decimal(str(r["total_interest_amount"])),
-            avg_interest_amount=Decimal(str(r["avg_interest_amount"])),
-        ))
+        items.append(
+            EOIFunnelItem(
+                status=r["status"],
+                vault_type=r["vault_type"],
+                eoi_count=r["eoi_count"],
+                total_interest_amount=Decimal(str(r["total_interest_amount"])),
+                avg_interest_amount=Decimal(str(r["avg_interest_amount"])),
+            )
+        )
         total_eois += r["eoi_count"]
         total_interest += Decimal(str(r["total_interest_amount"]))
         if r["status"] == "submitted":
             submitted += r["eoi_count"]
-        if r["status"] in ("closed", "deal_completed"):
+        if r["status"] == "deal_completed":
             closed += r["eoi_count"]
 
     conv = Decimal("0")
@@ -401,7 +421,8 @@ TOP_OPP_DIRECT = """
 SELECT
     o.id::text, o.title, o.slug, o.vault_type, o.status,
     o.city, o.state, o.target_amount, o.raised_amount,
-    o.target_irr, o.expected_irr, o.actual_irr, o.investor_count,
+    o.target_irr, o.expected_irr, o.actual_irr,
+    COALESCE(inv_cnt.cnt, 0)::int AS investor_count,
     CASE WHEN o.target_amount > 0
          THEN ROUND((o.raised_amount / o.target_amount)*100, 1)
          ELSE 0 END AS funding_pct,
@@ -409,6 +430,12 @@ SELECT
 FROM opportunities o
 LEFT JOIN companies c ON c.id = o.company_id
 LEFT JOIN users u ON u.id = o.creator_id
+LEFT JOIN (
+    SELECT opportunity_id, COUNT(DISTINCT user_id) AS cnt
+    FROM opportunity_investments
+    WHERE status = 'confirmed'
+    GROUP BY opportunity_id
+) inv_cnt ON inv_cnt.opportunity_id = o.id
 WHERE o.status NOT IN ('draft','rejected')
 ORDER BY o.raised_amount DESC LIMIT :lim
 """
@@ -484,12 +511,14 @@ async def revenue_breakdown(
 
     for r in rows:
         amt = Decimal(str(r["total_amount"]))
-        items.append(TransactionRevenueItem(
-            month=r["month"],
-            txn_type=r["txn_type"],
-            txn_count=r["txn_count"],
-            total_amount=amt,
-        ))
+        items.append(
+            TransactionRevenueItem(
+                month=r["month"],
+                txn_type=r["txn_type"],
+                txn_count=r["txn_count"],
+                total_amount=amt,
+            )
+        )
         by_type[r["txn_type"]] = by_type.get(r["txn_type"], Decimal("0")) + amt
         total += amt
 
@@ -497,6 +526,7 @@ async def revenue_breakdown(
 
 
 # ── 8. Refresh Materialized Views ───────────────────────────────────────────
+
 
 @router.post("/refresh")
 async def refresh_views(
@@ -508,10 +538,11 @@ async def refresh_views(
         await db.execute(text("SELECT refresh_analytics_views()"))
         return {"status": "ok", "message": "All analytics views refreshed"}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Refresh failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Refresh failed: {exc}") from exc
 
 
 # ── 9. Full Dashboard (single call) ─────────────────────────────────────────
+
 
 @router.get("/dashboard", response_model=FullAnalyticsResponse)
 async def full_analytics_dashboard(

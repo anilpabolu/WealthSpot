@@ -13,15 +13,45 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# Import all models so SQLAlchemy resolves relationship() string references
+import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from app.core.config import get_settings
 from app.core.logging_config import setup_logging
 from app.middleware.metrics import MetricsMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
-from app.middleware.request_id import RequestIdMiddleware, RequestIdFilter
-from app.routers import admin, analytics, auth, community, investments, lender, notifications, properties, referrals, webhooks, approvals, opportunities, control_centre, uploads, pincodes, companies, templates, points, profile, kyc, bank_details, eoi, portfolio, app_videos, profiling, site_content, vault_features, builder_updates, appreciation
-
-# Import all models so SQLAlchemy resolves relationship() string references
-import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
+from app.middleware.request_id import RequestIdFilter, RequestIdMiddleware
+from app.routers import (
+    admin,
+    analytics,
+    app_videos,
+    appreciation,
+    approvals,
+    assessments,
+    auth,
+    bank_details,
+    builder_updates,
+    community,
+    companies,
+    control_centre,
+    eoi,
+    investments,
+    kyc,
+    lender,
+    notifications,
+    opportunities,
+    pincodes,
+    points,
+    portfolio,
+    profile,
+    profiling,
+    properties,
+    referrals,
+    site_content,
+    templates,
+    uploads,
+    vault_features,
+    webhooks,
+)
 
 settings = get_settings()
 
@@ -43,12 +73,14 @@ if settings.sentry_dsn:
 
 # ── Lifespan ─────────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     yield
     # Shutdown
     from app.core.database import engine
+
     await engine.dispose()
 
 
@@ -120,6 +152,8 @@ app.include_router(site_content.router, prefix=API_PREFIX)
 app.include_router(vault_features.router, prefix=API_PREFIX)
 app.include_router(builder_updates.router, prefix=API_PREFIX)
 app.include_router(appreciation.router, prefix=API_PREFIX)
+app.include_router(appreciation.property_router, prefix=API_PREFIX)
+app.include_router(assessments.router, prefix=API_PREFIX)
 
 
 # ── Global exception handler ─────────────────────────────────────────────────
@@ -156,10 +190,13 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
 async def operational_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
     """Handle database connectivity issues with a clear 503."""
     _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
-    return JSONResponse(status_code=503, content={"detail": "Service temporarily unavailable. Please try again."})
+    return JSONResponse(
+        status_code=503, content={"detail": "Service temporarily unavailable. Please try again."}
+    )
 
 
 # ── Health ───────────────────────────────────────────────────────────────────
+
 
 @app.get("/health")
 async def health() -> dict:
@@ -176,8 +213,10 @@ async def health() -> dict:
 
     # Database check
     try:
-        from app.core.database import engine
         from sqlalchemy import text
+
+        from app.core.database import engine
+
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         checks["db"] = "ok"
@@ -188,6 +227,7 @@ async def health() -> dict:
     # Redis check
     try:
         import redis as _redis
+
         r = _redis.from_url(settings.redis_url, socket_connect_timeout=2)
         r.ping()
         checks["redis"] = "ok"
@@ -198,12 +238,12 @@ async def health() -> dict:
 
     # Alembic migration head
     try:
-        from app.core.database import engine
         from sqlalchemy import text
+
+        from app.core.database import engine
+
         async with engine.connect() as conn:
-            result = await conn.execute(
-                text("SELECT version_num FROM alembic_version LIMIT 1")
-            )
+            result = await conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1"))
             row = result.first()
             checks["migration_head"] = row[0] if row else "none"
     except Exception:

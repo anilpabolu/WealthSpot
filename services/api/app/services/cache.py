@@ -23,7 +23,9 @@ def _get_redis() -> redis.Redis | None:
         try:
             settings = get_settings()
             _redis_client = redis.from_url(
-                settings.redis_url, socket_connect_timeout=2, decode_responses=True,
+                settings.redis_url,
+                socket_connect_timeout=2,
+                decode_responses=True,
             )
             _redis_client.ping()
         except Exception:
@@ -51,6 +53,17 @@ def cache_set(key: str, value: Any, ttl_seconds: int = 300) -> None:
         return
     try:
         r.setex(key, ttl_seconds, json.dumps(value, default=str))
+    except Exception:
+        pass
+
+
+async def cache_delete(key: str) -> None:
+    """Delete a cache key (best-effort, no error raised)."""
+    r = _get_redis()
+    if r is None:
+        return
+    try:
+        r.delete(key)
     except Exception:
         pass
 

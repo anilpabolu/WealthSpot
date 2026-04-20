@@ -72,10 +72,8 @@ export function useCanAccess(vaultType: 'wealth' | 'opportunity' | 'community', 
   const user = useUserStore((s) => s.user)
 
   // Super-admin bypass
-  if (user?.roles?.includes('super_admin')) {
-    return { allowed: true, isLoading: false }
-  }
-
+  const isSuperAdmin = user?.roles?.includes('super_admin') ?? false
+  if (isSuperAdmin) return { allowed: true, isLoading: false }
   if (isLoading || !data) return { allowed: false, isLoading: true }
   const vault = data[vaultType] ?? {}
   return { allowed: !!vault[featureKey], isLoading: false }
@@ -86,16 +84,12 @@ export function useCanAccess(vaultType: 'wealth' | 'opportunity' | 'community', 
 export function useVaultFeatureStream() {
   const qc = useQueryClient()
   const esRef = useRef<EventSource | null>(null)
+  const connectRef = useRef<() => void>(null)
 
   const connect = useCallback(() => {
     const token = localStorage.getItem('ws_token')
     if (!token) return
 
-    // EventSource doesn't support Authorization header natively,
-    // so we pass the token as a query param (the SSE endpoint should accept it).
-    // For now, we use the standard approach; the backend's SSE endpoint
-    // already requires auth via dependency injection, so we need a workaround.
-    // Using the fetch-based approach:
     const url = `${API_BASE_URL}/vault-features/stream`
 
     const es = new EventSource(url)
@@ -104,7 +98,6 @@ export function useVaultFeatureStream() {
     es.addEventListener('update', (event) => {
       try {
         JSON.parse(event.data)
-        // Invalidate both matrix and my-features caches
         qc.invalidateQueries({ queryKey: ['vault-features'] })
       } catch {
         // Ignore malformed events
@@ -119,11 +112,12 @@ export function useVaultFeatureStream() {
       es.close()
       esRef.current = null
       // Reconnect after 5s
-      setTimeout(connect, 5_000)
+      setTimeout(() => connectRef.current?.(), 5_000)
     }
   }, [qc])
 
   useEffect(() => {
+    connectRef.current = connect
     connect()
     return () => {
       esRef.current?.close()

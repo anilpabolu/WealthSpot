@@ -122,14 +122,19 @@ async def upload_kyc_document(
     """Upload a KYC document (PAN, AADHAAR, or SELFIE) to S3."""
     doc_type = document_type.upper()
     if doc_type not in ALLOWED_DOC_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid document type. Allowed: {', '.join(ALLOWED_DOC_TYPES)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid document type. Allowed: {', '.join(ALLOWED_DOC_TYPES)}",
+        )
 
     if user.kyc_status == KycStatus.APPROVED:
         raise HTTPException(status_code=400, detail="KYC already approved")
 
     content_type = file.content_type or "application/octet-stream"
     if content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=400, detail="File type not allowed. Accepted: JPG, PNG, WebP, PDF")
+        raise HTTPException(
+            status_code=400, detail="File type not allowed. Accepted: JPG, PNG, WebP, PDF"
+        )
 
     # Read file and check size
     file_data = await file.read()
@@ -342,9 +347,7 @@ async def submit_for_review(
     if user.kyc_status == KycStatus.APPROVED:
         raise HTTPException(status_code=400, detail="KYC already approved")
 
-    result = await db.execute(
-        select(KycDocument).where(KycDocument.user_id == user.id)
-    )
+    result = await db.execute(select(KycDocument).where(KycDocument.user_id == user.id))
     docs = result.scalars().all()
     doc_types = {d.document_type for d in docs}
 

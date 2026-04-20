@@ -195,7 +195,7 @@ export default function DiagnosticPanel() {
   const toggleCategory = (cat: LogCategory) => {
     setActiveCategories((prev) => {
       const next = new Set(prev)
-      next.has(cat) ? next.delete(cat) : next.add(cat)
+      if (next.has(cat)) next.delete(cat); else next.add(cat)
       return next
     })
   }
@@ -203,7 +203,7 @@ export default function DiagnosticPanel() {
   const toggleLevel = (lvl: LogLevel) => {
     setActiveLevels((prev) => {
       const next = new Set(prev)
-      next.has(lvl) ? next.delete(lvl) : next.add(lvl)
+      if (next.has(lvl)) next.delete(lvl); else next.add(lvl)
       return next
     })
   }
@@ -211,7 +211,7 @@ export default function DiagnosticPanel() {
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
   }

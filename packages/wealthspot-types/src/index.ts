@@ -99,3 +99,26 @@ export type {
   AdminDashboardStats,
   LenderDashboardStats,
 } from "./api";
+
+// WealthSpot Shield — 7-layer trust framework
+export {
+  AssessmentStatus,
+  ASSESSMENT_CATEGORIES,
+  countAssessmentSlots,
+  findCategory,
+  findSubItem,
+} from "./assessments";
+export type {
+  AssessmentCategoryCode,
+  AssessmentOverallStatus,
+  PerformedBy,
+  AssessmentInputType,
+  AssessmentSubItem,
+  AssessmentCategory,
+  AssessmentSubItemRead,
+  AssessmentDocumentRead,
+  AssessmentCategoryRead,
+  AssessmentSummaryRead,
+  OpportunityRiskFlagRead,
+  ShieldMetrics,
+} from "./assessments";

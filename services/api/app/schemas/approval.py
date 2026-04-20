@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field
 
 from app.models.approval import ApprovalCategory, ApprovalPriority, ApprovalStatus
 
-
 # ── Read ─────────────────────────────────────────────────────────────────────
+
 
 class ApprovalRequesterRead(BaseModel):
     id: uuid.UUID
@@ -53,6 +53,7 @@ class PaginatedApprovals(BaseModel):
 
 # ── Create ───────────────────────────────────────────────────────────────────
 
+
 class ApprovalCreate(BaseModel):
     category: ApprovalCategory
     title: str = Field(min_length=3, max_length=500)
@@ -65,6 +66,9 @@ class ApprovalCreate(BaseModel):
 
 # ── Review ───────────────────────────────────────────────────────────────────
 
+
 class ApprovalReviewRequest(BaseModel):
     action: str = Field(pattern=r"^(approve|reject)$")
     review_note: str | None = None
+    # Shield override: approve an opportunity even when assessments are incomplete.
+    override: bool = False

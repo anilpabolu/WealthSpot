@@ -48,12 +48,8 @@ async def list_companies(
         count_q = count_q.where(Company.vault_type == vault_type)
     if search:
         like = f"%{search}%"
-        query = query.where(
-            Company.company_name.ilike(like) | Company.brand_name.ilike(like)
-        )
-        count_q = count_q.where(
-            Company.company_name.ilike(like) | Company.brand_name.ilike(like)
-        )
+        query = query.where(Company.company_name.ilike(like) | Company.brand_name.ilike(like))
+        count_q = count_q.where(Company.company_name.ilike(like) | Company.brand_name.ilike(like))
 
     total = (await db.execute(count_q)).scalar() or 0
     total_pages = max(1, math.ceil(total / page_size))
@@ -136,8 +132,11 @@ async def create_company(
 
     # Award company onboarding points
     await award_points(
-        db, user_id=str(user.id), action="company_onboarded",
-        reference_type="company", reference_id=str(company.id),
+        db,
+        user_id=str(user.id),
+        action="company_onboarded",
+        reference_type="company",
+        reference_id=str(company.id),
         description=f"Onboarded {body.company_name}",
     )
 

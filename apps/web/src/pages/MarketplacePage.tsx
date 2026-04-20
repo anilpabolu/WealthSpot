@@ -3,7 +3,7 @@ import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import FundingBar from '@/components/wealth/FundingBar'
 import { useProperties, type Property } from '@/hooks/useProperties'
-import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
+import { useOpportunities } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
@@ -16,6 +16,71 @@ import { Select } from '@/components/ui'
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
+import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
+
+/* ------------------------------------------------------------------ */
+/*  Per-vault hero theming (gradient · accent · copy)                  */
+/* ------------------------------------------------------------------ */
+
+const VAULT_HERO_CONFIG: Record<
+  string,
+  {
+    badge: string
+    leftGradient: string
+    rightGradient: string
+    mobileGradient: string
+    separatorRgba: [string, string]
+    accentDot: string
+    accentText: string
+    defaultTitle: string
+    defaultSubtitle: string
+    shieldNote: string
+    cmsTag: string
+  }
+> = {
+  wealth: {
+    badge: 'Wealth Vault',
+    leftGradient: 'from-slate-900 via-indigo-950 to-slate-900',
+    rightGradient: 'from-indigo-950/80 via-purple-950/60 to-slate-900',
+    mobileGradient: 'from-slate-900 via-indigo-950 to-slate-900',
+    separatorRgba: ['rgba(99,102,241,0.15)', 'rgba(139,92,246,0.08)'],
+    accentDot: 'bg-emerald-400',
+    accentText: 'text-emerald-400',
+    defaultTitle: 'Wealth Vault',
+    defaultSubtitle: "Discover RERA-verified investment opportunities across India\u2019s top cities.",
+    shieldNote:
+      'Every listing passes through a rigorous 7-layer Shield review \u2014 from builder credibility to exit clauses \u2014 before it earns',
+    cmsTag: 'wealth',
+  },
+  opportunity: {
+    badge: 'Opportunity Vault',
+    leftGradient: 'from-[#4A1B1B] via-[#7A2D2D] to-[#4A1B1B]',
+    rightGradient: 'from-[#5C2020]/80 via-[#3D1A3D]/60 to-[#4A1B1B]',
+    mobileGradient: 'from-[#4A1B1B] via-[#7A2D2D] to-[#4A1B1B]',
+    separatorRgba: ['rgba(32,227,178,0.15)', 'rgba(255,107,107,0.08)'],
+    accentDot: 'bg-[#20E3B2]',
+    accentText: 'text-[#20E3B2]',
+    defaultTitle: 'Opportunity Vault',
+    defaultSubtitle: 'Premium startup investment opportunities curated for high-growth potential.',
+    shieldNote:
+      'Every startup passes through a rigorous 7-layer Shield review \u2014 from founder credibility to exit strategy \u2014 before it earns',
+    cmsTag: 'opportunity',
+  },
+  community: {
+    badge: 'Community Vault',
+    leftGradient: 'from-[#2E1A06] via-[#4A2A0A] to-[#2E1A06]',
+    rightGradient: 'from-[#3D2008]/80 via-[#1A3D2E]/60 to-[#2E1A06]',
+    mobileGradient: 'from-[#2E1A06] via-[#4A2A0A] to-[#2E1A06]',
+    separatorRgba: ['rgba(6,95,70,0.15)', 'rgba(217,119,6,0.08)'],
+    accentDot: 'bg-[#F59E0B]',
+    accentText: 'text-[#F59E0B]',
+    defaultTitle: 'Community Vault',
+    defaultSubtitle: 'Co-invest and co-partner with like-minded collaborators on curated deals.',
+    shieldNote:
+      'Every community deal passes through a rigorous 7-layer Shield review \u2014 from partner credibility to exit clauses \u2014 before it earns',
+    cmsTag: 'community',
+  },
+}
 
 function FilterSidebar() {
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
@@ -164,10 +229,14 @@ export default function MarketplacePage() {
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const [toast, setToast] = useState<string | null>(null)
 
-  // CMS content
-  const heroBadge = useContent('marketplace', 'hero_badge', 'Marketplace')
-  const heroTitle = useContent('marketplace', 'hero_title', 'Property Marketplace')
-  const heroSubtitle = useContent('marketplace', 'hero_subtitle', "Discover RERA-verified investment opportunities across India's top cities.")
+  // Vault hero config (keyed by ?vault= param, defaults to wealth)
+  const vaultParam = searchParams.get('vault') ?? ''
+  const vaultKey = (vaultParam || 'wealth') as string
+  const hero = VAULT_HERO_CONFIG[vaultKey] ?? VAULT_HERO_CONFIG.wealth!
+
+  // CMS content — tagged per vault so each vault can have unique copy
+  const heroTitle = useContent('marketplace', `hero_title_${hero.cmsTag}`, hero.defaultTitle)
+  const heroSubtitle = useContent('marketplace', `hero_subtitle_${hero.cmsTag}`, hero.defaultSubtitle)
   const emptyTitle = useContent('marketplace', 'empty_title', 'Nothing here yet \u{1F3D7}\uFE0F')
   const emptyMessage = useContent('marketplace', 'empty_message', 'Tweak those filters — your next opportunity could be one click away.')
 
@@ -196,7 +265,6 @@ export default function MarketplacePage() {
     }
   }
 
-  const vaultParam = searchParams.get('vault') ?? ''
   const subtypeParam = searchParams.get('subtype') ?? ''
   const { isVaultEnabled } = useVaultConfig()
   const isVaultDisabled = vaultParam && !isVaultEnabled(vaultParam)
@@ -239,13 +307,55 @@ export default function MarketplacePage() {
 
   return (
     <MainLayout>
-      {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
-        <div className="page-hero-content">
-          <span className="page-hero-badge">{heroBadge}</span>
-          <h1 className="page-hero-title">{heroTitle}</h1>
-          <p className="page-hero-subtitle">{heroSubtitle}</p>
+      {/* Hero — diagonal ribbon split (vault-aware) */}
+      <div className="relative overflow-hidden bg-slate-900" style={{ minHeight: 340 }}>
+        {/* Left panel — vault-branded diagonal clip */}
+        <div
+          className={`absolute inset-0 z-[2] bg-gradient-to-br ${hero.leftGradient} hidden lg:block`}
+          style={{ clipPath: 'polygon(0 0, 48% 0, 32% 100%, 0 100%)' }}
+        />
+
+        {/* Right panel — carousel background */}
+        <div
+          className={`absolute inset-0 z-[1] bg-gradient-to-br ${hero.rightGradient} hidden lg:block`}
+        />
+
+        {/* Mobile: simple stacked background */}
+        <div className={`absolute inset-0 z-[1] bg-gradient-to-br ${hero.mobileGradient} lg:hidden`} />
+
+        {/* Content overlay */}
+        <div className="relative z-[3] mx-auto max-w-7xl px-6 sm:px-8 lg:pl-6 lg:pr-6 py-10 sm:py-12 lg:py-14">
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8 lg:gap-0 items-center">
+            {/* Left — vault info */}
+            <div className="lg:pr-12">
+              <div className="page-hero-badge mb-4">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${hero.accentDot} animate-pulse`} />
+                  {hero.badge}
+                </span>
+              </div>
+              <h1 className="page-hero-title">{heroTitle}</h1>
+              <p className="page-hero-subtitle mt-3">{heroSubtitle}</p>
+              <p className="text-white/40 text-sm mt-4 leading-relaxed max-w-md">
+                {hero.shieldNote}{' '}
+                <span className={`${hero.accentText} font-semibold`}>Shield Certified</span> status.
+              </p>
+            </div>
+
+            {/* Right — animated shield carousel */}
+            <div className="lg:pl-8">
+              <ShieldHeroCarousel />
+            </div>
+          </div>
         </div>
+
+        {/* Diagonal separator line glow (visible on lg+) */}
+        <div
+          className="absolute inset-0 z-[2] pointer-events-none hidden lg:block"
+          style={{
+            background: `linear-gradient(135deg, transparent 30%, ${hero.separatorRgba[0]} 31%, ${hero.separatorRgba[1]} 32%, transparent 33%)`,
+          }}
+        />
       </div>
 
       <div className="page-section">

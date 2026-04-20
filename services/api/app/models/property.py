@@ -3,14 +3,21 @@ Property & Builder models.
 """
 
 import uuid
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum, ForeignKey, Integer, Numeric,
-    String, Text,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -45,9 +52,7 @@ class PropertyStatus(str, PyEnum):
 class Builder(Base):
     __tablename__ = "builders"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
     )
@@ -68,7 +73,7 @@ class Builder(Base):
     total_sqft_delivered: Mapped[int] = mapped_column(Integer, default=0)
     about: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     properties = relationship("Property", back_populates="builder", lazy="selectin")
@@ -78,9 +83,7 @@ class Builder(Base):
 class Property(Base):
     __tablename__ = "properties"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     builder_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("builders.id"), nullable=False, index=True
     )
@@ -111,6 +114,7 @@ class Property(Base):
     raised_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0"))
     min_investment: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    current_unit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     total_units: Mapped[int] = mapped_column(Integer, nullable=False)
     sold_units: Mapped[int] = mapped_column(Integer, default=0)
     target_irr: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
@@ -146,12 +150,12 @@ class Property(Base):
     # Timestamps
     launch_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships

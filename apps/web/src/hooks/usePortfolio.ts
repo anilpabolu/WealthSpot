@@ -12,6 +12,11 @@ export interface PortfolioProperty {
   units: number
   irr: number
   returnPercentage: number
+  investmentCount: number
+  originalUnitPrice: number
+  currentUnitPrice: number
+  appreciationAmount: number
+  appreciationPct: number
   status: string
   investedAt: string
   lastPayoutDate: string | null
@@ -96,6 +101,51 @@ export function useVaultWisePortfolio() {
   return useQuery({
     queryKey: ['portfolio', 'vault-wise'],
     queryFn: () => apiGet<VaultPortfolioResponse>('/portfolio/vault-wise'),
+    staleTime: 30_000,
+  })
+}
+
+/* ── Property investment detail ─────────────────────────────────── */
+
+export interface PropertyInvestmentItem {
+  investmentId: string
+  units: number
+  amount: number
+  unitPrice: number
+  investedAt: string
+}
+
+export interface PropertyAppreciationItem {
+  id: string
+  mode: string
+  inputValue: number
+  oldValuation: number
+  newValuation: number
+  note: string | null
+  createdAt: string
+}
+
+export interface PropertyInvestmentDetail {
+  propertyId: string
+  propertyName: string
+  city: string
+  assetType: string
+  originalUnitPrice: number
+  currentUnitPrice: number
+  appreciationPct: number
+  totalInvested: number
+  currentValue: number
+  totalUnits: number
+  investmentCount: number
+  investments: PropertyInvestmentItem[]
+  appreciationHistory: PropertyAppreciationItem[]
+}
+
+export function usePropertyInvestmentDetail(propertyId: string | undefined) {
+  return useQuery({
+    queryKey: ['portfolio', 'property-detail', propertyId],
+    queryFn: () => apiGet<PropertyInvestmentDetail>(`/portfolio/properties/${propertyId}`),
+    enabled: !!propertyId,
     staleTime: 30_000,
   })
 }

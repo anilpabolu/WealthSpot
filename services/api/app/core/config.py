@@ -4,6 +4,7 @@ Reads from .env / environment variables.
 """
 
 from functools import lru_cache
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -45,7 +46,9 @@ class Settings(BaseSettings):
     aws_s3_bucket: str = "wealthspot-media"
     aws_region: str = "us-east-1"
     s3_endpoint_url: str = ""  # Set to MinIO URL for local dev (e.g. http://localhost:9000)
-    s3_public_url: str = ""    # Public URL prefix for media (e.g. http://localhost:9000/wealthspot-media)
+    s3_public_url: str = (
+        ""  # Public URL prefix for media (e.g. http://localhost:9000/wealthspot-media)
+    )
 
     # ── Razorpay ─────────────────────────────────────────
     razorpay_key_id: str = ""

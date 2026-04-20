@@ -26,13 +26,11 @@ def _label(method: str, path: str, status: int) -> str:
     normalized = []
     for part in parts:
         # Replace UUIDs and numeric IDs with placeholder
-        if len(part) == 36 and part.count("-") == 4:
-            normalized.append("{id}")
-        elif part.isdigit():
+        if len(part) == 36 and part.count("-") == 4 or part.isdigit():
             normalized.append("{id}")
         else:
             normalized.append(part)
-    return f'{method}|{"/".join(normalized)}|{status}'
+    return f"{method}|{'/'.join(normalized)}|{status}"
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
@@ -62,7 +60,10 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         if duration >= _SLOW_REQUEST_THRESHOLD:
             _logger.warning(
                 "Slow request: %s %s took %.2fs (status=%d)",
-                method, path, duration, status_code,
+                method,
+                path,
+                duration,
+                status_code,
             )
 
         return response

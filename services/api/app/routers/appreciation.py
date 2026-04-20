@@ -1,5 +1,6 @@
 """
 Appreciation router – apply valuation appreciation and view history.
+Supports both Opportunities and Properties.
 """
 
 import uuid
@@ -12,19 +13,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role
 from app.models.appreciation_event import AppreciationEvent
+from app.models.investment import Investment, InvestmentStatus
 from app.models.opportunity import Opportunity
-from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
+from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
+from app.models.property import Property
 from app.models.user import User, UserRole
 from app.schemas.appreciation import AppreciationCreateRequest, AppreciationEventRead
+from app.services.cache import cache_delete, make_cache_key
 
 router = APIRouter(prefix="/opportunities", tags=["appreciation"])
 
+# Second router for property-scoped endpoints
+property_router = APIRouter(prefix="/properties", tags=["appreciation"])
 
-def _event_to_read(event: AppreciationEvent, new_min_investment: float | None = None) -> AppreciationEventRead:
+
+def _event_to_read(
+    event: AppreciationEvent, new_min_investment: float | None = None
+) -> AppreciationEventRead:
     """Convert model to read schema with creator_name populated."""
     return AppreciationEventRead(
         id=event.id,
         opportunity_id=event.opportunity_id,
+        property_id=event.property_id,
         created_by=event.created_by,
         creator_name=event.creator.full_name if event.creator else None,
         mode=event.mode,
@@ -42,9 +52,14 @@ async def appreciate_opportunity(
     opportunity_id: uuid.UUID,
     body: AppreciationCreateRequest,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.APPROVER, UserRole.BUILDER,
-    )),
+    user: User = Depends(
+        require_role(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.APPROVER,
+            UserRole.BUILDER,
+        )
+    ),
 ):
     """Apply a valuation appreciation to an opportunity.
 
@@ -92,7 +107,9 @@ async def appreciate_opportunity(
 
     # Update min_investment proportionally (same appreciation ratio)
     if opp.min_investment and old_val > 0:
-        opp.min_investment = (Decimal(str(opp.min_investment)) * new_val / old_val).quantize(Decimal("0.01"))
+        opp.min_investment = (Decimal(str(opp.min_investment)) * new_val / old_val).quantize(
+            Decimal("0.01")
+        )
 
     # Recalculate all investor returns proportionally
     total_invested = Decimal(str(opp.raised_amount or 0))
@@ -135,6 +152,102 @@ async def appreciation_history(
     result = await db.execute(
         select(AppreciationEvent)
         .where(AppreciationEvent.opportunity_id == opportunity_id)
+        .order_by(AppreciationEvent.created_at.desc())
+    )
+    return [_event_to_read(e) for e in result.scalars().all()]
+
+
+# ── Property appreciation endpoints ──────────────────────────────────
+
+
+@property_router.post("/{property_id}/appreciate", response_model=AppreciationEventRead)
+async def appreciate_property(
+    property_id: uuid.UUID,
+    body: AppreciationCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(
+        require_role(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.APPROVER,
+            UserRole.BUILDER,
+        )
+    ),
+):
+    """Apply a valuation appreciation to a property.
+
+    Updates current_unit_price and logs an AppreciationEvent.
+    Builders can only appreciate properties they created.
+    """
+    prop = await db.get(Property, property_id)
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # Builder can only appreciate own properties
+    if (
+        not user.has_role(UserRole.SUPER_ADMIN.value)
+        and not user.has_role(UserRole.ADMIN.value)
+        and not user.has_role(UserRole.APPROVER.value)
+        and prop.builder_id != user.id
+    ):
+        raise HTTPException(status_code=403, detail="You can only appreciate your own properties")
+
+    old_price = prop.current_unit_price or prop.unit_price or Decimal("0")
+    old_price = Decimal(str(old_price))
+
+    if body.mode == "percentage":
+        new_price = old_price * (1 + Decimal(str(body.value)) / 100)
+    else:  # absolute
+        new_price = old_price + Decimal(str(body.value))
+
+    new_price = new_price.quantize(Decimal("0.01"))
+
+    # Log appreciation event
+    event = AppreciationEvent(
+        property_id=prop.id,
+        created_by=user.id,
+        mode=body.mode,
+        input_value=Decimal(str(body.value)),
+        old_valuation=old_price,
+        new_valuation=new_price,
+        note=body.note,
+    )
+    db.add(event)
+
+    # Update property current unit price
+    prop.current_unit_price = new_price
+
+    # Invalidate XIRR cache for all investors in this property
+    inv_result = await db.execute(
+        select(Investment.user_id)
+        .where(
+            Investment.property_id == prop.id,
+            Investment.status == InvestmentStatus.CONFIRMED,
+        )
+        .distinct()
+    )
+    for (uid,) in inv_result.all():
+        await cache_delete(make_cache_key("xirr", str(uid), "portfolio"))
+
+    await db.flush()
+    await db.refresh(event)
+    await db.refresh(event, ["creator"])
+
+    return _event_to_read(event)
+
+
+@property_router.get(
+    "/{property_id}/appreciation-history", response_model=list[AppreciationEventRead]
+)
+async def property_appreciation_history(
+    property_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """List all appreciation events for a property (newest first)."""
+    result = await db.execute(
+        select(AppreciationEvent)
+        .where(AppreciationEvent.property_id == property_id)
         .order_by(AppreciationEvent.created_at.desc())
     )
     return [_event_to_read(e) for e in result.scalars().all()]

@@ -81,13 +81,25 @@ class CityDistribution(BaseModel):
     amount: Decimal
 
 
+class MonthlyReturn(BaseModel):
+    month: str
+    returns: float
+    invested: float
+
+
 class PortfolioSummary(BaseModel):
     total_invested: Decimal
     current_value: Decimal
+    total_returns: Decimal = Decimal("0")
+    unrealized_gains: Decimal = Decimal("0")
+    avg_irr: float = 0.0
     xirr: float
+    properties_count: int = 0
+    cities_count: int = 0
     monthly_income: Decimal
     asset_allocation: list[AssetAllocation]
     city_distribution: list[CityDistribution]
+    monthly_returns: list[MonthlyReturn] = []
 
 
 class PortfolioProperty(BaseModel):
@@ -99,6 +111,11 @@ class PortfolioProperty(BaseModel):
     current_value: Decimal
     irr: float
     units: int
+    investment_count: int = 1
+    original_unit_price: Decimal = Decimal("0")
+    current_unit_price: Decimal = Decimal("0")
+    appreciation_amount: Decimal = Decimal("0")
+    appreciation_pct: float = 0.0
     status: str
 
     model_config = {"from_attributes": True}

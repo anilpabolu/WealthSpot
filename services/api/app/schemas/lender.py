@@ -53,5 +53,6 @@ class PaginatedLoans(BaseModel):
 
 class LoanRepayment(BaseModel):
     """Record a repayment against a loan."""
+
     amount: int = Field(gt=0, description="Repayment amount in paise")
     reference_id: str | None = None

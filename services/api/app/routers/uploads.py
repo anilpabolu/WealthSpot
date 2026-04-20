@@ -3,8 +3,8 @@ Upload router – media (images/videos) for opportunities, company logos,
 and template spreadsheets.  All stored in S3-compatible storage (MinIO/AWS).
 """
 
-import uuid
 import io
+import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
@@ -15,7 +15,7 @@ from app.middleware.auth import get_current_user, require_super_admin
 from app.models.opportunity import Opportunity
 from app.models.opportunity_media import OpportunityMedia
 from app.models.user import User
-from app.services.s3 import get_public_url, upload_opportunity_media, upload_file, delete_file
+from app.services.s3 import delete_file, get_public_url, upload_file, upload_opportunity_media
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
@@ -60,7 +60,7 @@ async def upload_opportunity_files(
         if len(content) > max_size:
             raise HTTPException(
                 status_code=400,
-                detail=f"File too large: {f.filename} exceeds {max_size // (1024*1024)} MB",
+                detail=f"File too large: {f.filename} exceeds {max_size // (1024 * 1024)} MB",
             )
 
         # Reset for upload
@@ -95,14 +95,16 @@ async def upload_opportunity_files(
             opp.cover_image = url
             await db.flush()
 
-        results.append({
-            "id": str(media.id),
-            "media_type": media.media_type,
-            "url": media.url,
-            "filename": media.filename,
-            "size_bytes": media.size_bytes,
-            "is_cover": media.is_cover,
-        })
+        results.append(
+            {
+                "id": str(media.id),
+                "media_type": media.media_type,
+                "url": media.url,
+                "filename": media.filename,
+                "size_bytes": media.size_bytes,
+                "is_cover": media.is_cover,
+            }
+        )
 
     await db.commit()
     return results
@@ -145,6 +147,7 @@ async def upload_company_logo(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Admin Media Management Endpoints
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @router.delete("/opportunity-media/{media_id}")
 async def delete_opportunity_media(
@@ -197,7 +200,10 @@ async def admin_upload_opportunity_media(
 
         content = await f.read()
         if len(content) > max_size:
-            raise HTTPException(status_code=400, detail=f"File too large: {f.filename} exceeds {max_size // (1024*1024)} MB")
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large: {f.filename} exceeds {max_size // (1024 * 1024)} MB",
+            )
 
         file_obj = io.BytesIO(content)
         s3_key = await upload_opportunity_media(
@@ -228,14 +234,16 @@ async def admin_upload_opportunity_media(
             opp.cover_image = url
             await db.flush()
 
-        results.append({
-            "id": str(media.id),
-            "media_type": media.media_type,
-            "url": media.url,
-            "filename": media.filename,
-            "size_bytes": media.size_bytes,
-            "is_cover": media.is_cover,
-        })
+        results.append(
+            {
+                "id": str(media.id),
+                "media_type": media.media_type,
+                "url": media.url,
+                "filename": media.filename,
+                "size_bytes": media.size_bytes,
+                "is_cover": media.is_cover,
+            }
+        )
 
     await db.commit()
     return results
@@ -364,17 +372,165 @@ async def upload_opportunity_documents(
         await db.flush()
         await db.refresh(media)
 
-        results.append({
-            "id": str(media.id),
-            "media_type": media.media_type,
-            "url": media.url,
-            "filename": media.filename,
-            "size_bytes": media.size_bytes,
-            "content_type": media.content_type,
-        })
+        results.append(
+            {
+                "id": str(media.id),
+                "media_type": media.media_type,
+                "url": media.url,
+                "filename": media.filename,
+                "size_bytes": media.size_bytes,
+                "content_type": media.content_type,
+            }
+        )
 
     await db.commit()
     return results
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Shield Assessment Documents (gated behind EOI approval)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@router.post("/opportunity/{opportunity_id}/assessment-document")
+async def upload_assessment_document(
+    opportunity_id: str,
+    category: str = Query(...),
+    subcategory: str = Query(...),
+    files: list[UploadFile] = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[dict]:
+    """Upload an evidence document attached to a Shield assessment sub-item."""
+    from app.core.assessments import find_subitem
+
+    opp = await db.get(Opportunity, uuid.UUID(opportunity_id))
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    is_admin = user.role in ("admin", "super_admin")
+    if opp.creator_id != user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not your opportunity")
+
+    if find_subitem(category, subcategory) is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown assessment sub-item {category}/{subcategory}",
+        )
+
+    results = []
+    for idx, f in enumerate(files):
+        content_type = f.content_type or "application/octet-stream"
+        if content_type not in ALLOWED_DOCUMENT_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported document type: {content_type}",
+            )
+        content = await f.read()
+        if len(content) > MAX_DOCUMENT_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large: {f.filename} exceeds 25 MB",
+            )
+
+        file_obj = io.BytesIO(content)
+        s3_key = await upload_opportunity_media(
+            file=file_obj,
+            filename=f.filename or "document",
+            opportunity_id=opportunity_id,
+            media_type="document",
+            content_type=content_type,
+        )
+        url = get_public_url(s3_key)
+
+        media = OpportunityMedia(
+            opportunity_id=uuid.UUID(opportunity_id),
+            media_type="document",
+            s3_key=s3_key,
+            url=url,
+            filename=f.filename,
+            size_bytes=len(content),
+            content_type=content_type,
+            sort_order=idx,
+            is_cover=False,
+            assessment_category_code=category,
+            assessment_subcategory_code=subcategory,
+        )
+        db.add(media)
+        await db.flush()
+        await db.refresh(media)
+        results.append(
+            {
+                "id": str(media.id),
+                "filename": media.filename,
+                "size_bytes": media.size_bytes,
+                "content_type": media.content_type,
+                "category": category,
+                "subcategory": subcategory,
+            }
+        )
+    await db.commit()
+    return results
+
+
+@router.get("/opportunity/{opportunity_id}/assessment-document/{media_id}")
+async def download_assessment_document(
+    opportunity_id: str,
+    media_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Return the signed URL for an assessment document.
+
+    Access rules:
+      - Creator: always allowed.
+      - Admin / super_admin: always allowed.
+      - Any other user: allowed only if they have an EOI on this opportunity
+        whose status is past SUBMITTED (i.e. super-admin has moved it
+        forward in the pipeline). Else 403 EOI_REQUIRED.
+    """
+    from app.core.assessments import subitem_is_sensitive
+    from app.models.expression_of_interest import EOIStatus, ExpressionOfInterest
+
+    media = await db.get(OpportunityMedia, uuid.UUID(media_id))
+    if not media or media.assessment_subcategory_code is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if str(media.opportunity_id) != opportunity_id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    opp = await db.get(Opportunity, uuid.UUID(opportunity_id))
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    is_privileged = opp.creator_id == user.id or user.role in ("admin", "super_admin", "approver")
+
+    if not is_privileged and subitem_is_sensitive(
+        media.assessment_category_code or "", media.assessment_subcategory_code
+    ):
+        approved_statuses = {
+            EOIStatus.BUILDER_CONNECTED.value,
+            EOIStatus.DEAL_IN_PROGRESS.value,
+            EOIStatus.PAYMENT_DONE.value,
+            EOIStatus.DEAL_COMPLETED.value,
+            EOIStatus.TOKEN_PAID.value,
+        }
+        eoi_result = await db.execute(
+            select(ExpressionOfInterest.status).where(
+                ExpressionOfInterest.user_id == user.id,
+                ExpressionOfInterest.opportunity_id == opp.id,
+            )
+        )
+        statuses = [row[0] for row in eoi_result.all()]
+        vals = [s.value if hasattr(s, "value") else str(s) for s in statuses]
+        if not any(v in approved_statuses for v in vals):
+            raise HTTPException(status_code=403, detail="EOI_REQUIRED")
+
+    return {
+        "id": str(media.id),
+        "url": media.url,
+        "filename": media.filename,
+        "content_type": media.content_type,
+        "size_bytes": media.size_bytes,
+    }
 
 
 @router.get("/opportunity/{opportunity_id}/media")

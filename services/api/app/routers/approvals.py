@@ -3,7 +3,7 @@ Approvals router – list, review, filter approval requests.
 """
 
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -81,9 +81,7 @@ async def my_approvals(
     """Get current user's own approval requests with pagination."""
     base = select(ApprovalRequest).where(ApprovalRequest.requester_id == user.id)
 
-    total = (await db.execute(
-        select(func.count()).select_from(base.subquery())
-    )).scalar() or 0
+    total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
     total_pages = math.ceil(total / page_size) if total else 0
 
     result = await db.execute(
@@ -134,6 +132,7 @@ async def review_approval(
 ) -> ApprovalRead:
     """Approve or reject an approval request. Syncs linked resource status."""
     import uuid as _uuid
+
     result = await db.execute(
         select(ApprovalRequest).where(ApprovalRequest.id == _uuid.UUID(approval_id))
     )
@@ -143,12 +142,25 @@ async def review_approval(
     if approval.status not in (ApprovalStatus.PENDING, ApprovalStatus.IN_REVIEW):
         raise HTTPException(status_code=400, detail="This request has already been processed")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     approval.reviewer_id = reviewer.id
     approval.review_note = body.review_note
     approval.reviewed_at = now
 
     if body.action == "approve":
+        # Shield gate: if the request is linked to an opportunity, every
+        # assessment sub-item must be passed or N/A unless the reviewer
+        # explicitly overrides.
+        if approval.resource_type == "opportunity" and approval.resource_id:
+            from app.routers.assessments import any_incomplete
+
+            if not body.override:
+                if await any_incomplete(db, _uuid.UUID(approval.resource_id)):
+                    raise HTTPException(
+                        status_code=409,
+                        detail="ASSESSMENT_INCOMPLETE",
+                    )
+
         approval.status = ApprovalStatus.APPROVED
 
         # Sync linked opportunity status to APPROVED
@@ -173,6 +185,7 @@ async def review_approval(
         # Sync linked KYC status to APPROVED
         if approval.resource_type == "kyc" and approval.resource_id:
             from app.models.user import User as UserModel
+
             kyc_user_result = await db.execute(
                 select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
             )
@@ -183,6 +196,7 @@ async def review_approval(
         # Sync linked user role assignment
         if approval.resource_type == "user" and approval.resource_id:
             from app.models.user import User as UserModel
+
             target_user_result = await db.execute(
                 select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
             )
@@ -195,7 +209,8 @@ async def review_approval(
 
         # Sync linked community reply to approved
         if approval.resource_type == "community_reply" and approval.resource_id:
-            from app.models.community import CommunityReply, CommunityPost
+            from app.models.community import CommunityPost, CommunityReply
+
             reply_result = await db.execute(
                 select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
             )
@@ -213,6 +228,7 @@ async def review_approval(
         # Sync builder approval — activate builder persona
         if approval.resource_type == "builder_approval" and approval.resource_id:
             from app.models.user import User as UserModel
+
             builder_result = await db.execute(
                 select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
             )
@@ -255,6 +271,7 @@ async def review_approval(
         # Sync linked KYC status to REJECTED
         if approval.resource_type == "kyc" and approval.resource_id:
             from app.models.user import User as UserModel
+
             kyc_user_result = await db.execute(
                 select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
             )
@@ -265,17 +282,23 @@ async def review_approval(
         # Sync linked user role — revert to investor on rejection
         if approval.resource_type == "user" and approval.resource_id:
             from app.models.user import User as UserModel
+
             target_user_result = await db.execute(
                 select(UserModel).where(UserModel.id == _uuid.UUID(approval.resource_id))
             )
             target_user = target_user_result.scalar_one_or_none()
             # Don't revert admins/approvers
-            if target_user and target_user.role not in (UserRole.ADMIN, UserRole.APPROVER, UserRole.SUPER_ADMIN):
+            if target_user and target_user.role not in (
+                UserRole.ADMIN,
+                UserRole.APPROVER,
+                UserRole.SUPER_ADMIN,
+            ):
                 target_user.role = UserRole.INVESTOR
 
         # Sync linked community reply — keep rejected (not approved)
         if approval.resource_type == "community_reply" and approval.resource_id:
             from app.models.community import CommunityReply
+
             reply_result = await db.execute(
                 select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
             )
@@ -305,18 +328,34 @@ async def approval_stats(
     _user: User = Depends(approver_dep),
 ) -> dict[str, Any]:
     """Get approval stats for dashboard."""
-    pending = (await db.execute(
-        select(func.count(ApprovalRequest.id)).where(ApprovalRequest.status == ApprovalStatus.PENDING)
-    )).scalar() or 0
-    in_review = (await db.execute(
-        select(func.count(ApprovalRequest.id)).where(ApprovalRequest.status == ApprovalStatus.IN_REVIEW)
-    )).scalar() or 0
-    approved = (await db.execute(
-        select(func.count(ApprovalRequest.id)).where(ApprovalRequest.status == ApprovalStatus.APPROVED)
-    )).scalar() or 0
-    rejected = (await db.execute(
-        select(func.count(ApprovalRequest.id)).where(ApprovalRequest.status == ApprovalStatus.REJECTED)
-    )).scalar() or 0
+    pending = (
+        await db.execute(
+            select(func.count(ApprovalRequest.id)).where(
+                ApprovalRequest.status == ApprovalStatus.PENDING
+            )
+        )
+    ).scalar() or 0
+    in_review = (
+        await db.execute(
+            select(func.count(ApprovalRequest.id)).where(
+                ApprovalRequest.status == ApprovalStatus.IN_REVIEW
+            )
+        )
+    ).scalar() or 0
+    approved = (
+        await db.execute(
+            select(func.count(ApprovalRequest.id)).where(
+                ApprovalRequest.status == ApprovalStatus.APPROVED
+            )
+        )
+    ).scalar() or 0
+    rejected = (
+        await db.execute(
+            select(func.count(ApprovalRequest.id)).where(
+                ApprovalRequest.status == ApprovalStatus.REJECTED
+            )
+        )
+    ).scalar() or 0
 
     return {
         "pending": pending,

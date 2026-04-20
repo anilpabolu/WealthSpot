@@ -28,8 +28,15 @@ class GroupMessage(Base):
     __tablename__ = "group_messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    group_id = Column(UUID(as_uuid=True), ForeignKey("role_groups.id", ondelete="CASCADE"), nullable=False, index=True)
-    sender_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    group_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("role_groups.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sender_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     subject = Column(String(500), nullable=False)
     body = Column(Text, nullable=False)
     message_type = Column(String(20), nullable=False, default="announcement")

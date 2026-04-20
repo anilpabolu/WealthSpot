@@ -4,6 +4,8 @@ import FundingBar from '@/components/wealth/FundingBar'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import IrrBadge from '@/components/wealth/IrrBadge'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import { ShieldSection } from '@/components/shield/ShieldSection'
+import { BuilderShieldPanel } from '@/components/shield/BuilderShieldPanel'
 import { useOpportunity } from '@/hooks/useOpportunities'
 import { formatINRCompact, formatDate } from '@/lib/formatters'
 import { EmptyState } from '@/components/ui'
@@ -143,6 +145,14 @@ export default function BuilderListingDetailPage() {
             {opp.closingDate && <Detail label="Closing Date" value={formatDate(opp.closingDate)} />}
           </div>
         </div>
+
+        {/* WealthSpot Shield — editable builder answers */}
+        <div id="shield">
+          <BuilderShieldPanel opportunityId={opp.id} />
+        </div>
+
+        {/* WealthSpot Shield — read-only summary */}
+        <ShieldSection opportunityId={opp.id} mode="builder" />
 
         {/* Documents */}
         {documents.length > 0 && (

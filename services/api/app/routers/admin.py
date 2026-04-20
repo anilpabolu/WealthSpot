@@ -135,9 +135,7 @@ async def approve_property(
 ) -> PropertyDetail:
     """Approve a property listing for the marketplace."""
     result = await db.execute(
-        select(Property)
-        .options(selectinload(Property.builder))
-        .where(Property.slug == slug)
+        select(Property).options(selectinload(Property.builder)).where(Property.slug == slug)
     )
     prop = result.scalar_one_or_none()
     if not prop:

@@ -3,14 +3,20 @@ Opportunity model – multi-vault investment opportunities (Wealth / Opportunity
 """
 
 import uuid
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy import (
-    DateTime, Enum, ForeignKey, Integer, Numeric,
-    String, Text,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -54,26 +60,30 @@ class ProjectPhase(str, PyEnum):
 class Opportunity(Base):
     __tablename__ = "opportunities"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Who created it
     creator_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     # Vault classification
     vault_type: Mapped[VaultType] = mapped_column(
         Enum(VaultType, native_enum=False, length=20, values_callable=_enum_values),
-        nullable=False, index=True,
+        nullable=False,
+        index=True,
     )
     status: Mapped[OpportunityStatus] = mapped_column(
         Enum(OpportunityStatus, native_enum=False, length=20, values_callable=_enum_values),
-        default=OpportunityStatus.DRAFT, nullable=False, index=True,
+        default=OpportunityStatus.DRAFT,
+        nullable=False,
+        index=True,
     )
     # Linked approval request
     approval_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("approval_requests.id"),
+        UUID(as_uuid=True),
+        ForeignKey("approval_requests.id"),
     )
     # Core details
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -106,10 +116,16 @@ class Opportunity(Base):
     founder_name: Mapped[str | None] = mapped_column(String(255))
     pitch_deck_url: Mapped[str | None] = mapped_column(Text)
     # Community-specific
-    community_type: Mapped[str | None] = mapped_column(String(100))  # sports complex, co-working, etc.
-    collaboration_type: Mapped[str | None] = mapped_column(String(100))  # time, network, expertise, capital
+    community_type: Mapped[str | None] = mapped_column(
+        String(100)
+    )  # sports complex, co-working, etc.
+    collaboration_type: Mapped[str | None] = mapped_column(
+        String(100)
+    )  # time, network, expertise, capital
     community_subtype: Mapped[str | None] = mapped_column(String(20))  # co_investor, co_partner
-    community_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # subtype-specific fields
+    community_details: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB
+    )  # subtype-specific fields
     # Project lifecycle phase
     project_phase: Mapped[str | None] = mapped_column(String(50))
     # Valuation (appreciation tracking)
@@ -124,7 +140,9 @@ class Opportunity(Base):
     template_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     # Company / builder link
     company_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("companies.id"), index=True,
+        UUID(as_uuid=True),
+        ForeignKey("companies.id"),
+        index=True,
     )
     # Stats
     investor_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -132,23 +150,38 @@ class Opportunity(Base):
     launch_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closing_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships
     creator = relationship("User", lazy="joined")
     approval = relationship("ApprovalRequest", lazy="joined")
-    media = relationship("OpportunityMedia", back_populates="opportunity", lazy="selectin", order_by="OpportunityMedia.sort_order")
+    media = relationship(
+        "OpportunityMedia",
+        back_populates="opportunity",
+        lazy="selectin",
+        order_by="OpportunityMedia.sort_order",
+    )
     company = relationship("Company", back_populates="opportunities", lazy="joined")
-    investments = relationship("OpportunityInvestment", back_populates="opportunity", lazy="selectin")
-    builder_questions = relationship("BuilderQuestion", lazy="selectin", order_by="BuilderQuestion.sort_order")
+    investments = relationship(
+        "OpportunityInvestment", back_populates="opportunity", lazy="selectin"
+    )
+    builder_questions = relationship(
+        "BuilderQuestion", lazy="selectin", order_by="BuilderQuestion.sort_order"
+    )
     comm_mappings = relationship("OpportunityCommMapping", lazy="selectin")
-    builder_updates = relationship("BuilderUpdate", back_populates="opportunity", lazy="selectin", order_by="BuilderUpdate.created_at.desc()")
+    builder_updates = relationship(
+        "BuilderUpdate",
+        back_populates="opportunity",
+        lazy="selectin",
+        order_by="BuilderUpdate.created_at.desc()",
+    )
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.slug} vault={self.vault_type} status={self.status}>"

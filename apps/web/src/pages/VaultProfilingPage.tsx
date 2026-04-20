@@ -96,7 +96,7 @@ const VAULT_THEMES = {
 /*  Illustration Map (emoji characters for each question illustration key)    */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-const ILLUSTRATION_MAP: Record<string, string> = {
+export const ILLUSTRATION_MAP: Record<string, string> = {
   coins: '🪙',
   mountain: '⛰️',
   calendar: '📅',
@@ -298,7 +298,7 @@ function FunFact({ text, onDismiss }: { text: string; onDismiss?: () => void }) 
 /*  Progress Header                                                           */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function ProgressHeader({
+export function ProgressHeader({
   current,
   total,
   theme,

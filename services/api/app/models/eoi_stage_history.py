@@ -3,7 +3,7 @@ EoiStageHistory model – audit trail for EOI pipeline stage transitions.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -15,9 +15,7 @@ from app.core.database import Base
 class EoiStageHistory(Base):
     __tablename__ = "eoi_stage_history"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     eoi_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("expressions_of_interest.id", ondelete="CASCADE"),
@@ -31,7 +29,7 @@ class EoiStageHistory(Base):
     )
     changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     # Relationships

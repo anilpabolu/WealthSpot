@@ -1,5 +1,6 @@
 import { PortalLayout } from '@/components/layout'
 import MetricCard from '@/components/wealth/MetricCard'
+import { ShieldMetricsCard } from '@/components/shield/ShieldMetricsCard'
 import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { Link } from 'react-router-dom'
 import {
@@ -45,6 +46,9 @@ export default function AdminDashboardPage() {
 
       <div className="page-section">
         <div className="page-section-container space-y-6">
+
+        {/* WealthSpot Shield */}
+        <ShieldMetricsCard />
 
         {/* Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

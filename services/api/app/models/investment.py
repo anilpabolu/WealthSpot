@@ -3,13 +3,20 @@ Investment & Transaction models.
 """
 
 import uuid
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy import (
-    DateTime, Enum, ForeignKey, Integer, Numeric, String, Text,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -42,9 +49,7 @@ class TransactionType(str, PyEnum):
 class Investment(Base):
     __tablename__ = "investments"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
@@ -64,12 +69,12 @@ class Investment(Base):
     razorpay_payment_id: Mapped[str | None] = mapped_column(String(100))
     payment_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Relationships
@@ -84,9 +89,7 @@ class Investment(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     investment_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("investments.id"), nullable=False, index=True
     )
@@ -94,14 +97,15 @@ class Transaction(Base):
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
     type: Mapped[TransactionType] = mapped_column(
-        Enum(TransactionType, native_enum=False, length=30, values_callable=_enum_values), nullable=False
+        Enum(TransactionType, native_enum=False, length=30, values_callable=_enum_values),
+        nullable=False,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     reference_id: Mapped[str | None] = mapped_column(String(255))
     extra_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     investment = relationship("Investment", back_populates="transactions")

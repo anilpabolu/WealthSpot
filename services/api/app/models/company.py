@@ -3,13 +3,18 @@ Company model – builder/developer/individual onboarding for opportunity creati
 """
 
 import uuid
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from enum import Enum as PyEnum
-from typing import Sequence
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum, ForeignKey, Integer,
-    String, Text,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,18 +48,18 @@ class VerificationStatus(str, PyEnum):
 class Company(Base):
     __tablename__ = "companies"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"),
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
     )
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     brand_name: Mapped[str | None] = mapped_column(String(255))
     entity_type: Mapped[EntityType] = mapped_column(
         Enum(EntityType, native_enum=False, length=50, values_callable=_enum_values),
-        default=EntityType.PRIVATE_LIMITED, nullable=False,
+        default=EntityType.PRIVATE_LIMITED,
+        nullable=False,
     )
     cin: Mapped[str | None] = mapped_column(String(21))
     gstin: Mapped[str | None] = mapped_column(String(15))
@@ -65,7 +70,8 @@ class Company(Base):
     description: Mapped[str | None] = mapped_column(Text)
     vault_type: Mapped[VaultType | None] = mapped_column(
         Enum(VaultType, native_enum=False, length=20, values_callable=_enum_values),
-        nullable=True, index=True,
+        nullable=True,
+        index=True,
     )
     # Contact
     contact_name: Mapped[str | None] = mapped_column(String(255))
@@ -89,16 +95,17 @@ class Company(Base):
         default=VerificationStatus.PENDING,
     )
     approval_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("approval_requests.id"),
+        UUID(as_uuid=True),
+        ForeignKey("approval_requests.id"),
     )
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     user = relationship("User", lazy="joined")

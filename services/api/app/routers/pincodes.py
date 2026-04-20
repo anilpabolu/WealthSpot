@@ -30,11 +30,11 @@ async def lookup_pincode(
     Tries DB first, falls back to India Post public API.
     """
     if not _PINCODE_PATTERN.match(pincode):
-        raise HTTPException(status_code=400, detail="Invalid pincode format — must be exactly 6 digits")
+        raise HTTPException(
+            status_code=400, detail="Invalid pincode format — must be exactly 6 digits"
+        )
     # 1 – Local DB
-    result = await db.execute(
-        select(IndianPincode).where(IndianPincode.pincode == pincode)
-    )
+    result = await db.execute(select(IndianPincode).where(IndianPincode.pincode == pincode))
     rows = result.scalars().all()
     if rows:
         return [

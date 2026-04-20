@@ -7,8 +7,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-
 # ── Builder Questions ────────────────────────────────────────────────────────
+
 
 class BuilderQuestionCreate(BaseModel):
     question_text: str = Field(min_length=3, max_length=1000)
@@ -41,6 +41,7 @@ class BuilderQuestionUpdate(BaseModel):
 
 # ── EOI Question Answers ────────────────────────────────────────────────────
 
+
 class EOIAnswerCreate(BaseModel):
     question_id: str
     answer_text: str | None = None
@@ -56,6 +57,7 @@ class EOIAnswerRead(BaseModel):
 
 
 # ── Expression of Interest ──────────────────────────────────────────────────
+
 
 class EOICreate(BaseModel):
     opportunity_id: str
@@ -141,6 +143,7 @@ class PaginatedEOIs(BaseModel):
 
 
 # ── Communication Mapping ───────────────────────────────────────────────────
+
 
 class CommMappingCreate(BaseModel):
     opportunity_id: str

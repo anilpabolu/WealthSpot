@@ -3,9 +3,9 @@ Command Control Centre router – super-admin only platform configuration.
 """
 
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any
 import uuid as _uuid
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -16,10 +16,10 @@ from app.middleware.auth import get_current_user, require_super_admin
 from app.models.admin_invite import AdminInvite
 from app.models.approval import ApprovalCategory, ApprovalRequest, ApprovalStatus
 from app.models.opportunity import Opportunity, OpportunityStatus
-from app.models.opportunity_investment import OpportunityInvestment, OppInvestmentStatus
+from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.platform_config import PlatformConfig
+from app.models.role_group import GroupMessage, RoleGroup
 from app.models.user import User, UserRole
-from app.models.role_group import RoleGroup, GroupMessage
 from app.schemas.admin_invite import AdminInviteCreate, AdminInviteRead
 from app.schemas.platform_config import ConfigCreate, ConfigRead, ConfigUpdate
 from app.schemas.user import UserRead
@@ -34,17 +34,17 @@ router = APIRouter(prefix="/control-centre", tags=["control-centre"])
 async def platform_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """Public endpoint: aggregated platform metrics for landing page."""
     active_statuses = [
-        OpportunityStatus.APPROVED, OpportunityStatus.ACTIVE,
-        OpportunityStatus.FUNDING, OpportunityStatus.FUNDED,
+        OpportunityStatus.APPROVED,
+        OpportunityStatus.ACTIVE,
+        OpportunityStatus.FUNDING,
+        OpportunityStatus.FUNDED,
     ]
 
     total_members = (await db.execute(select(func.count(User.id)))).scalar() or 0
 
     active_opps = (
         await db.execute(
-            select(func.count(Opportunity.id)).where(
-                Opportunity.status.in_(active_statuses)
-            )
+            select(func.count(Opportunity.id)).where(Opportunity.status.in_(active_statuses))
         )
     ).scalar() or 0
 
@@ -128,7 +128,13 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
 _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
     "wealth": ["total_invested", "investor_count", "explorer_count", "properties_listed"],
     "opportunity": ["total_invested", "investor_count", "explorer_count", "startups_listed"],
-    "community": ["total_invested", "investor_count", "explorer_count", "projects_launched", "co_investors"],
+    "community": [
+        "total_invested",
+        "investor_count",
+        "explorer_count",
+        "projects_launched",
+        "co_investors",
+    ],
 }
 
 
@@ -249,30 +255,32 @@ async def control_dashboard(
     _admin: User = Depends(require_super_admin),
 ) -> dict[str, Any]:
     """Aggregated overview for the Command Control Centre dashboard."""
-    total_users = (await db.execute(select(func.count(User.id)).where(User.is_active.is_(True)))).scalar() or 0
+    total_users = (
+        await db.execute(select(func.count(User.id)).where(User.is_active.is_(True)))
+    ).scalar() or 0
 
     # Role distribution
     role_counts = {}
     for role in UserRole:
-        count = (await db.execute(
-            select(func.count(User.id)).where(User.role == role, User.is_active.is_(True))
-        )).scalar() or 0
+        count = (
+            await db.execute(
+                select(func.count(User.id)).where(User.role == role, User.is_active.is_(True))
+            )
+        ).scalar() or 0
         role_counts[role.value] = count
 
     # Approval stats
-    pending_approvals = (await db.execute(
-        select(func.count(ApprovalRequest.id)).where(
-            ApprovalRequest.status.in_([ApprovalStatus.PENDING, ApprovalStatus.IN_REVIEW])
+    pending_approvals = (
+        await db.execute(
+            select(func.count(ApprovalRequest.id)).where(
+                ApprovalRequest.status.in_([ApprovalStatus.PENDING, ApprovalStatus.IN_REVIEW])
+            )
         )
-    )).scalar() or 0
+    ).scalar() or 0
 
-    total_opportunities = (await db.execute(
-        select(func.count(Opportunity.id))
-    )).scalar() or 0
+    total_opportunities = (await db.execute(select(func.count(Opportunity.id)))).scalar() or 0
 
-    total_configs = (await db.execute(
-        select(func.count(PlatformConfig.id))
-    )).scalar() or 0
+    total_configs = (await db.execute(select(func.count(PlatformConfig.id)))).scalar() or 0
 
     return {
         "total_users": total_users,
@@ -330,8 +338,7 @@ async def list_approval_categories(
 ) -> list[dict[str, str]]:
     """Return all approval category types and their labels."""
     return [
-        {"value": c.value, "label": c.value.replace("_", " ").title()}
-        for c in ApprovalCategory
+        {"value": c.value, "label": c.value.replace("_", " ").title()} for c in ApprovalCategory
     ]
 
 
@@ -468,12 +475,14 @@ async def invite_admin(
     """Invite a new admin or super_admin by email. Generates a secure token."""
     # Soft warning if already >= 3 super_admins
     if body.role == "super_admin":
-        count = (await db.execute(
-            select(func.count(User.id)).where(
-                User.roles.contains('"super_admin"'),
-                User.is_active.is_(True),
+        count = (
+            await db.execute(
+                select(func.count(User.id)).where(
+                    User.roles.contains('"super_admin"'),
+                    User.is_active.is_(True),
+                )
             )
-        )).scalar() or 0
+        ).scalar() or 0
         if count >= 3:
             pass  # soft warning — not blocking
 
@@ -493,7 +502,7 @@ async def invite_admin(
         role=body.role,
         invited_by=admin.id,
         token=token,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+        expires_at=datetime.now(UTC) + timedelta(days=7),
     )
     db.add(invite)
     await db.flush()
@@ -508,15 +517,13 @@ async def accept_invite(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     """Accept an admin invite. Adds the admin/super_admin role to the user."""
-    result = await db.execute(
-        select(AdminInvite).where(AdminInvite.token == token)
-    )
+    result = await db.execute(select(AdminInvite).where(AdminInvite.token == token))
     invite = result.scalar_one_or_none()
     if not invite:
         raise HTTPException(status_code=404, detail="Invite not found")
     if invite.status != "pending":
         raise HTTPException(status_code=400, detail=f"Invite is already {invite.status}")
-    if invite.expires_at < datetime.now(timezone.utc):
+    if invite.expires_at < datetime.now(UTC):
         invite.status = "expired"
         await db.flush()
         raise HTTPException(status_code=400, detail="Invite has expired")
@@ -532,7 +539,7 @@ async def accept_invite(
     user.primary_role = invite.role
 
     invite.status = "accepted"
-    invite.accepted_at = datetime.now(timezone.utc)
+    invite.accepted_at = datetime.now(UTC)
     await db.flush()
     return {"status": "accepted", "role": invite.role}
 
@@ -549,3 +556,122 @@ async def list_invites(
         query = query.where(AdminInvite.status == status_filter)
     result = await db.execute(query)
     return list(result.scalars().all())
+
+
+# ── WealthSpot Shield metrics ────────────────────────────────────────────────
+
+
+@router.get("/shield-metrics")
+async def shield_metrics(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_super_admin),
+) -> dict[str, Any]:
+    """Funnel + top-flagged + avg time-to-certify for WealthSpot Shield."""
+    from app.core.assessments import (
+        CERTIFIED_STATUSES,
+        AssessmentStatus,
+        total_subitem_count,
+    )
+    from app.models.opportunity_assessment import (
+        OpportunityAssessment,
+        OpportunityRiskFlag,
+    )
+
+    # Group opportunity ids by certification state
+    total_slots = total_subitem_count()
+    per_opp_rows = (
+        await db.execute(
+            select(
+                OpportunityAssessment.opportunity_id,
+                OpportunityAssessment.status,
+            )
+        )
+    ).all()
+    by_opp: dict[_uuid.UUID, list[str]] = {}
+    for opp_id, st in per_opp_rows:
+        by_opp.setdefault(opp_id, []).append(st)
+
+    all_opp_ids = {row[0] for row in (await db.execute(select(Opportunity.id))).all()}
+
+    funnel = {"not_started": 0, "in_review": 0, "partial": 0, "certified": 0}
+    for opp_id in all_opp_ids:
+        statuses = by_opp.get(opp_id, [])
+        if not statuses:
+            funnel["not_started"] += 1
+            continue
+        certified_count = sum(1 for s in statuses if s in CERTIFIED_STATUSES)
+        if certified_count == total_slots:
+            funnel["certified"] += 1
+        elif any(s == AssessmentStatus.FLAGGED.value for s in statuses):
+            funnel["in_review"] += 1
+        else:
+            funnel["partial"] += 1
+
+    # Top flagged sub-items
+    flagged_rows = (
+        await db.execute(
+            select(
+                OpportunityAssessment.category_code,
+                OpportunityAssessment.subcategory_code,
+                func.count(OpportunityAssessment.id).label("cnt"),
+            )
+            .where(OpportunityAssessment.status == AssessmentStatus.FLAGGED.value)
+            .group_by(
+                OpportunityAssessment.category_code,
+                OpportunityAssessment.subcategory_code,
+            )
+            .order_by(func.count(OpportunityAssessment.id).desc())
+            .limit(5)
+        )
+    ).all()
+    top_flagged = [
+        {
+            "category_code": cat,
+            "subcategory_code": sub,
+            "flagged_count": cnt,
+        }
+        for cat, sub, cnt in flagged_rows
+    ]
+
+    # Average time-to-certify (reviewed_at - created_at), last 90 days
+    since = datetime.now(UTC) - timedelta(days=90)
+    avg_row = (
+        await db.execute(
+            select(
+                func.avg(
+                    func.extract(
+                        "epoch",
+                        OpportunityAssessment.reviewed_at - OpportunityAssessment.created_at,
+                    )
+                )
+            ).where(
+                OpportunityAssessment.status == AssessmentStatus.PASSED.value,
+                OpportunityAssessment.reviewed_at.is_not(None),
+                OpportunityAssessment.reviewed_at >= since,
+            )
+        )
+    ).scalar()
+    avg_days = None
+    if avg_row is not None:
+        avg_days = round(float(avg_row) / 86400.0, 2)
+
+    # Risk-flag counts by severity
+    risk_rows = (
+        await db.execute(
+            select(
+                OpportunityRiskFlag.severity,
+                func.count(OpportunityRiskFlag.id),
+            ).group_by(OpportunityRiskFlag.severity)
+        )
+    ).all()
+    risk_counts = {"low": 0, "medium": 0, "high": 0}
+    for sev, cnt in risk_rows:
+        if sev in risk_counts:
+            risk_counts[sev] = cnt
+
+    return {
+        "funnel": funnel,
+        "top_flagged": top_flagged,
+        "avg_time_to_certify_days": avg_days,
+        "risk_counts": risk_counts,
+    }

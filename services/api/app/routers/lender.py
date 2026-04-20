@@ -48,26 +48,18 @@ async def lender_dashboard(
 
     # Active loan count
     active_count = (
-        await db.execute(
-            select(func.count()).where(base_filter, Loan.status == LoanStatus.ACTIVE)
-        )
+        await db.execute(select(func.count()).where(base_filter, Loan.status == LoanStatus.ACTIVE))
     ).scalar() or 0
 
     # Total lent (sum of principal across all loans)
     total_lent = (
-        await db.execute(
-            select(func.coalesce(func.sum(Loan.principal), 0)).where(base_filter)
-        )
+        await db.execute(select(func.coalesce(func.sum(Loan.principal), 0)).where(base_filter))
     ).scalar() or 0
 
     # Interest earned = sum(amount_repaid - principal) for repaid loans where repaid > principal
     total_interest = (
         await db.execute(
-            select(
-                func.coalesce(
-                    func.sum(Loan.amount_repaid - Loan.principal), 0
-                )
-            ).where(
+            select(func.coalesce(func.sum(Loan.amount_repaid - Loan.principal), 0)).where(
                 base_filter,
                 Loan.status == LoanStatus.REPAID,
                 Loan.amount_repaid > Loan.principal,
@@ -179,9 +171,7 @@ async def get_loan(
     user: User = Depends(require_lender),
 ) -> LoanRead:
     """Get a specific loan detail."""
-    result = await db.execute(
-        select(Loan).where(Loan.id == loan_id, Loan.lender_id == user.id)
-    )
+    result = await db.execute(select(Loan).where(Loan.id == loan_id, Loan.lender_id == user.id))
     loan = result.scalar_one_or_none()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
@@ -209,9 +199,7 @@ async def record_repayment(
     user: User = Depends(require_lender),
 ) -> LoanRead:
     """Record a repayment against a loan."""
-    result = await db.execute(
-        select(Loan).where(Loan.id == loan_id, Loan.lender_id == user.id)
-    )
+    result = await db.execute(select(Loan).where(Loan.id == loan_id, Loan.lender_id == user.id))
     loan = result.scalar_one_or_none()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")

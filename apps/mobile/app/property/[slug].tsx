@@ -13,6 +13,7 @@ import { useProperty } from '@/hooks/useProperties'
 import { useLikeStatus, useToggleLike, useTrackShare } from '@/hooks/useOpportunityActions'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import { ShieldSection } from '@/components/shield/ShieldSection'
 import { useProfilingProgress } from '@/hooks/useProfiling'
 import { useUserStore } from '@/stores/user.store'
 
@@ -223,6 +224,11 @@ export default function PropertyDetailScreen() {
               </View>
             </View>
           )}
+
+          {/* WealthSpot Shield */}
+          <View className="mt-3">
+            <ShieldSection opportunityId={property.id} />
+          </View>
 
           {/* Builder / Company Card */}
           {property.builder ? (

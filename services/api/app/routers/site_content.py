@@ -6,7 +6,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select, delete as sa_delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -19,6 +19,7 @@ router = APIRouter(prefix="/site-content", tags=["site-content"])
 
 # ── Schemas ──────────────────────────────────────────────────────────────────
 
+
 class ContentOut(BaseModel):
     id: str
     page: str
@@ -28,12 +29,14 @@ class ContentOut(BaseModel):
     description: str | None = None
     is_active: bool = True
 
+
 class ContentCreate(BaseModel):
     page: str
     section_tag: str
     value: str
     content_type: str = "text"
     description: str | None = None
+
 
 class ContentUpdate(BaseModel):
     value: str | None = None
@@ -43,20 +46,25 @@ class ContentUpdate(BaseModel):
 
 # ── Public endpoints ─────────────────────────────────────────────────────────
 
+
 @router.get("/page/{page}", response_model=list[ContentOut])
 async def get_page_content(page: str, db: AsyncSession = Depends(get_db)):
     """Get all active content entries for a page. Public endpoint."""
     stmt = (
         select(SiteContent)
-        .where(SiteContent.page == page, SiteContent.is_active == True)
+        .where(SiteContent.page == page, SiteContent.is_active.is_(True))
         .order_by(SiteContent.section_tag)
     )
     rows = (await db.execute(stmt)).scalars().all()
     return [
         ContentOut(
-            id=str(r.id), page=r.page, section_tag=r.section_tag,
-            content_type=r.content_type, value=r.value,
-            description=r.description, is_active=r.is_active,
+            id=str(r.id),
+            page=r.page,
+            section_tag=r.section_tag,
+            content_type=r.content_type,
+            value=r.value,
+            description=r.description,
+            is_active=r.is_active,
         )
         for r in rows
     ]
@@ -68,19 +76,24 @@ async def get_single_content(page: str, section_tag: str, db: AsyncSession = Dep
     stmt = select(SiteContent).where(
         SiteContent.page == page,
         SiteContent.section_tag == section_tag,
-        SiteContent.is_active == True,
+        SiteContent.is_active.is_(True),
     )
     row = (await db.execute(stmt)).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Content not found")
     return ContentOut(
-        id=str(row.id), page=row.page, section_tag=row.section_tag,
-        content_type=row.content_type, value=row.value,
-        description=row.description, is_active=row.is_active,
+        id=str(row.id),
+        page=row.page,
+        section_tag=row.section_tag,
+        content_type=row.content_type,
+        value=row.value,
+        description=row.description,
+        is_active=row.is_active,
     )
 
 
 # ── Admin endpoints ──────────────────────────────────────────────────────────
+
 
 @router.get("/admin/all", response_model=list[ContentOut])
 async def list_all_content(
@@ -92,9 +105,13 @@ async def list_all_content(
     rows = (await db.execute(stmt)).scalars().all()
     return [
         ContentOut(
-            id=str(r.id), page=r.page, section_tag=r.section_tag,
-            content_type=r.content_type, value=r.value,
-            description=r.description, is_active=r.is_active,
+            id=str(r.id),
+            page=r.page,
+            section_tag=r.section_tag,
+            content_type=r.content_type,
+            value=r.value,
+            description=r.description,
+            is_active=r.is_active,
         )
         for r in rows
     ]
@@ -108,14 +125,18 @@ async def create_content(
 ):
     """Create a new content entry. Super-admin only."""
     # Check uniqueness
-    existing = (await db.execute(
-        select(SiteContent).where(
-            SiteContent.page == body.page,
-            SiteContent.section_tag == body.section_tag,
+    existing = (
+        await db.execute(
+            select(SiteContent).where(
+                SiteContent.page == body.page,
+                SiteContent.section_tag == body.section_tag,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
     if existing:
-        raise HTTPException(status_code=409, detail="Content entry already exists for this page+section")
+        raise HTTPException(
+            status_code=409, detail="Content entry already exists for this page+section"
+        )
 
     entry = SiteContent(
         page=body.page,
@@ -129,9 +150,13 @@ async def create_content(
     await db.commit()
     await db.refresh(entry)
     return ContentOut(
-        id=str(entry.id), page=entry.page, section_tag=entry.section_tag,
-        content_type=entry.content_type, value=entry.value,
-        description=entry.description, is_active=entry.is_active,
+        id=str(entry.id),
+        page=entry.page,
+        section_tag=entry.section_tag,
+        content_type=entry.content_type,
+        value=entry.value,
+        description=entry.description,
+        is_active=entry.is_active,
     )
 
 
@@ -158,9 +183,13 @@ async def update_content(
     await db.commit()
     await db.refresh(entry)
     return ContentOut(
-        id=str(entry.id), page=entry.page, section_tag=entry.section_tag,
-        content_type=entry.content_type, value=entry.value,
-        description=entry.description, is_active=entry.is_active,
+        id=str(entry.id),
+        page=entry.page,
+        section_tag=entry.section_tag,
+        content_type=entry.content_type,
+        value=entry.value,
+        description=entry.description,
+        is_active=entry.is_active,
     )
 
 

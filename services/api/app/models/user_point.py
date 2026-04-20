@@ -14,7 +14,9 @@ class UserPoint(Base):
     __tablename__ = "user_points"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     action = Column(String(50), nullable=False, index=True)
     points = Column(Integer, nullable=False, default=0)
     reference_type = Column(String(50))

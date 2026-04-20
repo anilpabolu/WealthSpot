@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -15,12 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
-from app.middleware.auth import get_current_user, require_kyc_approved
 from app.middleware.audit import log_audit_event
+from app.middleware.auth import get_current_user, require_kyc_approved
 from app.models.investment import Investment, InvestmentStatus, Transaction, TransactionType
-from app.routers.referrals import process_referral_reward_on_investment
 from app.models.property import Property, PropertyStatus
 from app.models.user import User
+from app.routers.referrals import process_referral_reward_on_investment
 from app.schemas.investment import (
     ConfirmPayment,
     InvestmentCreate,
@@ -29,8 +29,8 @@ from app.schemas.investment import (
     PaginatedInvestments,
     TransactionRead,
 )
-from app.services.xirr import calculate_xirr
 from app.services.cache import cache_get, cache_set, make_cache_key
+from app.services.xirr import calculate_xirr
 
 router = APIRouter(prefix="/investments", tags=["investments"])
 settings = get_settings()
@@ -49,7 +49,9 @@ async def list_investments(
     total_q = select(func.count()).select_from(base.subquery())
     total = (await db.execute(total_q)).scalar() or 0
 
-    query = base.order_by(Investment.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    query = (
+        base.order_by(Investment.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    )
     result = await db.execute(query)
     investments = result.scalars().all()
 
@@ -113,10 +115,10 @@ async def investment_summary(
     if xirr_value is None:
         cashflows: list[tuple[datetime, float]] = []
         for inv in investments:
-            inv_date = inv.created_at or datetime.now(timezone.utc)
+            inv_date = inv.created_at or datetime.now(UTC)
             cashflows.append((inv_date, -float(inv.amount)))
         if cashflows:
-            cashflows.append((datetime.now(timezone.utc), float(current_value)))
+            cashflows.append((datetime.now(UTC), float(current_value)))
         xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
         if xirr_value is not None:
             cache_set(xirr_cache_key, xirr_value, ttl_seconds=300)
@@ -140,9 +142,7 @@ async def initiate_investment(
 ) -> InvestmentRead:
     """Initiate an investment (KYC approved required)."""
     # Validate property
-    prop_result = await db.execute(
-        select(Property).where(Property.id == body.property_id)
-    )
+    prop_result = await db.execute(select(Property).where(Property.id == body.property_id))
     prop = prop_result.scalar_one_or_none()
 
     if not prop:
@@ -189,10 +189,12 @@ async def confirm_payment(
 ) -> InvestmentRead:
     """Confirm payment after Razorpay callback."""
     result = await db.execute(
-        select(Investment).where(
+        select(Investment)
+        .where(
             Investment.id == body.investment_id,
             Investment.user_id == user.id,
-        ).with_for_update()
+        )
+        .with_for_update()
     )
     investment = result.scalar_one_or_none()
 
@@ -224,7 +226,9 @@ async def confirm_payment(
         # Use of=Property to lock only the properties table row; avoids PostgreSQL restriction
         # on FOR UPDATE applied to the nullable side of an outer join.
         prop_result = await db.execute(
-            select(Property).where(Property.id == investment.property_id).with_for_update(of=Property)
+            select(Property)
+            .where(Property.id == investment.property_id)
+            .with_for_update(of=Property)
         )
         prop = prop_result.scalar_one_or_none()
         if prop:

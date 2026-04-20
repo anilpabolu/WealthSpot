@@ -6,10 +6,10 @@ Public endpoint allows frontend to fetch active videos by page.
 
 import io
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -17,14 +17,14 @@ from app.middleware.auth import get_current_user
 from app.models.app_video import AppVideo
 from app.models.user import User
 from app.schemas.app_video import (
-    AppVideoCreate,
-    AppVideoRead,
-    AppVideoUpdate,
-    AppVideoPublic,
     APP_VIDEO_PAGES,
     APP_VIDEO_SECTIONS,
+    AppVideoCreate,
+    AppVideoPublic,
+    AppVideoRead,
+    AppVideoUpdate,
 )
-from app.services.s3 import upload_file, get_public_url
+from app.services.s3 import get_public_url, upload_file
 
 router = APIRouter(prefix="/app-videos", tags=["app-videos"])
 
@@ -33,6 +33,7 @@ MAX_VIDEO_SIZE = 200 * 1024 * 1024  # 200 MB
 
 
 # ── Public endpoints ─────────────────────────────────────────────────────────
+
 
 @router.get("/public", response_model=list[AppVideoPublic])
 async def get_public_videos(
@@ -71,6 +72,7 @@ async def get_public_video_by_tag(
 
 # ── Admin metadata endpoints ─────────────────────────────────────────────────
 
+
 @router.get("/pages")
 async def get_video_pages(
     _user: User = Depends(get_current_user),
@@ -80,6 +82,7 @@ async def get_video_pages(
 
 
 # ── Admin CRUD ───────────────────────────────────────────────────────────────
+
 
 @router.get("/admin", response_model=list[AppVideoRead])
 async def list_all_videos(
@@ -135,7 +138,7 @@ async def update_video(
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(video, field, value)
-    video.updated_at = datetime.now(timezone.utc)
+    video.updated_at = datetime.now(UTC)
     await db.flush()
     await db.refresh(video)
     return AppVideoRead.model_validate(video)
@@ -156,6 +159,7 @@ async def delete_video(
 
 
 # ── Admin upload (replace video file) ────────────────────────────────────────
+
 
 @router.post("/admin/{video_id}/upload", response_model=AppVideoRead)
 async def upload_video_file(
@@ -180,7 +184,7 @@ async def upload_video_file(
     if len(content) > MAX_VIDEO_SIZE:
         raise HTTPException(
             status_code=400,
-            detail=f"Video too large ({len(content) // (1024*1024)} MB). Max: {MAX_VIDEO_SIZE // (1024*1024)} MB",
+            detail=f"Video too large ({len(content) // (1024 * 1024)} MB). Max: {MAX_VIDEO_SIZE // (1024 * 1024)} MB",
         )
 
     # Upload to S3/MinIO
@@ -196,7 +200,7 @@ async def upload_video_file(
     video.content_type = content_type
     video.size_bytes = len(content)
     video.uploaded_by = user.id
-    video.updated_at = datetime.now(timezone.utc)
+    video.updated_at = datetime.now(UTC)
     await db.flush()
     await db.refresh(video)
 

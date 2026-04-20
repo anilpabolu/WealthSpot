@@ -255,7 +255,7 @@
 
   /* Page hero section */
   .page-hero {
-    @apply relative overflow-hidden py-16 sm:py-20 lg:py-24;
+    @apply relative overflow-hidden py-10 sm:py-12 lg:py-14;
   }
 
   .page-hero-content {

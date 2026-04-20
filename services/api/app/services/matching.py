@@ -9,20 +9,17 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.profiling import (
-    VaultProfileQuestion,
-    UserProfileAnswer,
-    OpportunityCustomQuestion,
-    OpportunityApplicationAnswer,
-    ProfileMatchScore,
-    PersonalityDimension,
-)
 from app.models.opportunity import Opportunity
+from app.models.profiling import (
+    PersonalityDimension,
+    ProfileMatchScore,
+    UserProfileAnswer,
+    VaultProfileQuestion,
+)
 from app.models.user import User
-
 
 # ── Dimensions that map to personality_dimensions columns ────────────────────
 DIMENSION_COLUMNS = [
@@ -45,25 +42,33 @@ ARCHETYPE_MAP: dict[str, list[dict[str, Any]]] = {
             "label": "The Mogul",
             "emoji": "👑",
             "description": "High conviction, big bets — you think like an empire builder.",
-            "condition": lambda pd: float(pd.investment_capacity or 0) > 70 and float(pd.risk_appetite or 0) > 65,
+            "condition": lambda pd: (
+                float(pd.investment_capacity or 0) > 70 and float(pd.risk_appetite or 0) > 65
+            ),
         },
         {
             "label": "The Strategist",
             "emoji": "🎯",
             "description": "Calculated, data-driven, you never make a move without a plan.",
-            "condition": lambda pd: float(pd.domain_expertise or 0) > 60 and float(pd.risk_appetite or 0) < 50,
+            "condition": lambda pd: (
+                float(pd.domain_expertise or 0) > 60 and float(pd.risk_appetite or 0) < 50
+            ),
         },
         {
             "label": "The Pioneer",
             "emoji": "🚀",
             "description": "First mover, growth seeker — you spot trends before they trend.",
-            "condition": lambda pd: float(pd.risk_appetite or 0) > 60 and float(pd.creativity_score or 0) > 50,
+            "condition": lambda pd: (
+                float(pd.risk_appetite or 0) > 60 and float(pd.creativity_score or 0) > 50
+            ),
         },
         {
             "label": "The Steward",
             "emoji": "🛡️",
             "description": "Patient, income-focused, community-minded — you play the long game.",
-            "condition": lambda pd: float(pd.collaboration_score or 0) > 50 and float(pd.time_commitment or 0) > 40,
+            "condition": lambda pd: (
+                float(pd.collaboration_score or 0) > 50 and float(pd.time_commitment or 0) > 40
+            ),
         },
     ],
     "opportunity": [
@@ -71,25 +76,33 @@ ARCHETYPE_MAP: dict[str, list[dict[str, Any]]] = {
             "label": "The Visionary",
             "emoji": "🔮",
             "description": "You see the future before it arrives — backing world-changing ideas.",
-            "condition": lambda pd: float(pd.creativity_score or 0) > 60 and float(pd.risk_appetite or 0) > 65,
+            "condition": lambda pd: (
+                float(pd.creativity_score or 0) > 60 and float(pd.risk_appetite or 0) > 65
+            ),
         },
         {
             "label": "The Operator",
             "emoji": "⚙️",
             "description": "Hands-on, execution-focused — you don't just invest, you co-build.",
-            "condition": lambda pd: float(pd.collaboration_score or 0) > 65 and float(pd.time_commitment or 0) > 55,
+            "condition": lambda pd: (
+                float(pd.collaboration_score or 0) > 65 and float(pd.time_commitment or 0) > 55
+            ),
         },
         {
             "label": "The Angel",
             "emoji": "👼",
             "description": "Generous with capital and guidance — founders love having you on board.",
-            "condition": lambda pd: float(pd.investment_capacity or 0) > 60 and float(pd.network_strength or 0) > 50,
+            "condition": lambda pd: (
+                float(pd.investment_capacity or 0) > 60 and float(pd.network_strength or 0) > 50
+            ),
         },
         {
             "label": "The Scout",
             "emoji": "🔭",
             "description": "Connected, analytical — you find diamonds in the rough.",
-            "condition": lambda pd: float(pd.domain_expertise or 0) > 60 and float(pd.network_strength or 0) > 55,
+            "condition": lambda pd: (
+                float(pd.domain_expertise or 0) > 60 and float(pd.network_strength or 0) > 55
+            ),
         },
     ],
     "community": [
@@ -97,34 +110,54 @@ ARCHETYPE_MAP: dict[str, list[dict[str, Any]]] = {
             "label": "The Catalyst",
             "emoji": "⚡",
             "description": "You ignite projects and energize teams — nothing starts without you.",
-            "condition": lambda pd: float(pd.leadership_score or 0) > 60 and float(pd.creativity_score or 0) > 55,
+            "condition": lambda pd: (
+                float(pd.leadership_score or 0) > 60 and float(pd.creativity_score or 0) > 55
+            ),
         },
         {
             "label": "The Connector",
             "emoji": "🌐",
             "description": "You know everyone and bring the right people together.",
-            "condition": lambda pd: float(pd.network_strength or 0) > 65 and float(pd.collaboration_score or 0) > 55,
+            "condition": lambda pd: (
+                float(pd.network_strength or 0) > 65 and float(pd.collaboration_score or 0) > 55
+            ),
         },
         {
             "label": "The Builder",
             "emoji": "🔨",
             "description": "Roll up your sleeves — you're the one who actually makes things happen.",
-            "condition": lambda pd: float(pd.time_commitment or 0) > 60 and float(pd.collaboration_score or 0) > 60,
+            "condition": lambda pd: (
+                float(pd.time_commitment or 0) > 60 and float(pd.collaboration_score or 0) > 60
+            ),
         },
         {
             "label": "The Guardian",
             "emoji": "🏛️",
             "description": "Wise, steady, trusted — the backbone of any successful community project.",
-            "condition": lambda pd: float(pd.domain_expertise or 0) > 55 and float(pd.investment_capacity or 0) > 50,
+            "condition": lambda pd: (
+                float(pd.domain_expertise or 0) > 55 and float(pd.investment_capacity or 0) > 50
+            ),
         },
     ],
 }
 
 # Default fallback archetypes when no condition matches
 DEFAULT_ARCHETYPES: dict[str, dict[str, str]] = {
-    "wealth": {"label": "The Explorer", "emoji": "🧭", "description": "Curious and open — you're discovering your investment style."},
-    "opportunity": {"label": "The Newcomer", "emoji": "🌟", "description": "Fresh perspective and unlimited potential — every expert was once a beginner."},
-    "community": {"label": "The Supporter", "emoji": "💫", "description": "Warm, willing, and ready to contribute — the heart of every community."},
+    "wealth": {
+        "label": "The Explorer",
+        "emoji": "🧭",
+        "description": "Curious and open — you're discovering your investment style.",
+    },
+    "opportunity": {
+        "label": "The Newcomer",
+        "emoji": "🌟",
+        "description": "Fresh perspective and unlimited potential — every expert was once a beginner.",
+    },
+    "community": {
+        "label": "The Supporter",
+        "emoji": "💫",
+        "description": "Warm, willing, and ready to contribute — the heart of every community.",
+    },
 }
 
 # Compatibility labels for match scoring
@@ -142,7 +175,11 @@ def determine_archetype(pd: PersonalityDimension, vault_type: str) -> dict[str, 
     archetypes = ARCHETYPE_MAP.get(vault_type, [])
     for arch in archetypes:
         if arch["condition"](pd):
-            return {"label": arch["label"], "emoji": arch["emoji"], "description": arch["description"]}
+            return {
+                "label": arch["label"],
+                "emoji": arch["emoji"],
+                "description": arch["description"],
+            }
     return DEFAULT_ARCHETYPES.get(vault_type, DEFAULT_ARCHETYPES["wealth"])
 
 
@@ -230,11 +267,13 @@ async def compute_personality(
             dimension_scores[dim].append(score)
 
         raw_dimensions[question.category] = raw_dimensions.get(question.category, [])
-        raw_dimensions[question.category].append({
-            "question": question.question_text[:60],
-            "score": round(score, 1),
-            "dimension": dim,
-        })
+        raw_dimensions[question.category].append(
+            {
+                "question": question.question_text[:60],
+                "score": round(score, 1),
+                "dimension": dim,
+            }
+        )
 
     # Average each dimension
     dim_averages = {}
@@ -242,12 +281,14 @@ async def compute_personality(
         dim_averages[dim] = round(sum(scores) / len(scores), 2) if scores else 0
 
     # Upsert PersonalityDimension
-    existing = (await db.execute(
-        select(PersonalityDimension).where(
-            PersonalityDimension.user_id == user_id,
-            PersonalityDimension.vault_type == vault_type,
+    existing = (
+        await db.execute(
+            select(PersonalityDimension).where(
+                PersonalityDimension.user_id == user_id,
+                PersonalityDimension.vault_type == vault_type,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if existing:
         for dim in DIMENSION_COLUMNS:
@@ -285,26 +326,26 @@ async def compute_match_score(
     4. Bonus for domain match, risk alignment, capacity fit
     """
     # 1. Get opportunity
-    opp = (await db.execute(
-        select(Opportunity).where(Opportunity.id == opportunity_id)
-    )).scalar_one_or_none()
+    opp = (
+        await db.execute(select(Opportunity).where(Opportunity.id == opportunity_id))
+    ).scalar_one_or_none()
     if not opp:
         raise ValueError(f"Opportunity {opportunity_id} not found")
 
-    vault_type = opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type)
+    vault_type = opp.vault_type.value if hasattr(opp.vault_type, "value") else str(opp.vault_type)
 
     # 1b. Get user profile for context-aware scoring
-    user = (await db.execute(
-        select(User).where(User.id == user_id)
-    )).scalar_one_or_none()
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
 
     # 2. Get user's personality
-    pd = (await db.execute(
-        select(PersonalityDimension).where(
-            PersonalityDimension.user_id == user_id,
-            PersonalityDimension.vault_type == vault_type,
+    pd = (
+        await db.execute(
+            select(PersonalityDimension).where(
+                PersonalityDimension.user_id == user_id,
+                PersonalityDimension.vault_type == vault_type,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     if not pd:
         # No profile yet → default 30% score
@@ -335,12 +376,14 @@ async def compute_match_score(
     breakdown = _generate_breakdown(dim_scores, overall, vault_type, opp, user)
 
     # Upsert
-    existing = (await db.execute(
-        select(ProfileMatchScore).where(
-            ProfileMatchScore.user_id == user_id,
-            ProfileMatchScore.opportunity_id == opportunity_id,
+    existing = (
+        await db.execute(
+            select(ProfileMatchScore).where(
+                ProfileMatchScore.user_id == user_id,
+                ProfileMatchScore.opportunity_id == opportunity_id,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
 
     compatibility = determine_compatibility_label(overall)
 
@@ -407,7 +450,7 @@ def _apply_opportunity_bonuses(
 ) -> float:
     """Apply bonuses/penalties based on opportunity-profile alignment."""
     bonus = 0.0
-    vault = opp.vault_type.value if hasattr(opp.vault_type, 'value') else str(opp.vault_type)
+    vault = opp.vault_type.value if hasattr(opp.vault_type, "value") else str(opp.vault_type)
 
     # ── Investment capacity vs opportunity size ──────────────────────────────
     inv_cap = float(pd.investment_capacity or 0)
@@ -455,19 +498,25 @@ def _apply_opportunity_bonuses(
         if float(pd.network_strength or 0) > 70:
             bonus += 4
         collab = (opp.collaboration_type or "").lower()
-        if collab == "expertise" and float(pd.domain_expertise or 0) > 65:
-            bonus += 5
-        elif collab == "network" and float(pd.network_strength or 0) > 65:
-            bonus += 5
-        elif collab == "time" and float(pd.time_commitment or 0) > 65:
+        if (
+            collab == "expertise"
+            and float(pd.domain_expertise or 0) > 65
+            or collab == "network"
+            and float(pd.network_strength or 0) > 65
+            or collab == "time"
+            and float(pd.time_commitment or 0) > 65
+        ):
             bonus += 5
 
     return min(score + bonus, 100)
 
 
 def _generate_breakdown(
-    dim_scores: dict[str, float], overall: float, vault_type: str,
-    opp: Opportunity | None = None, user: User | None = None,
+    dim_scores: dict[str, float],
+    overall: float,
+    vault_type: str,
+    opp: Opportunity | None = None,
+    user: User | None = None,
 ) -> dict[str, Any]:
     """Generate human-readable match breakdown with property-context awareness."""
     strengths: list[str] = []
@@ -530,8 +579,12 @@ def _generate_breakdown(
     # Community collaboration type
     if opp and vault_type == "community" and opp.collaboration_type:
         collab = opp.collaboration_type.lower()
-        dim_map = {"expertise": "domain_expertise", "network": "network_strength",
-                    "time": "time_commitment", "capital": "investment_capacity"}
+        dim_map = {
+            "expertise": "domain_expertise",
+            "network": "network_strength",
+            "time": "time_commitment",
+            "capital": "investment_capacity",
+        }
         dim_key = dim_map.get(collab)
         if dim_key and dim_scores.get(dim_key, 0) >= 65:
             strengths.append(f"Good {collab.title()} contributor for community")
@@ -609,16 +662,18 @@ async def get_top_matches_for_opportunity(
                 top_strengths.append(dim.replace("_", " ").title())
 
         user_pd = pd_map.get(user.id)
-        matches.append({
-            "user_id": str(user.id),
-            "full_name": user.full_name,
-            "avatar_url": user.avatar_url,
-            "overall_score": float(ms.overall_score),
-            "dimension_scores": dim_scores,
-            "top_strengths": top_strengths,
-            "compatibility_note": (ms.breakdown or {}).get("note"),
-            "archetype_label": user_pd.archetype_label if user_pd else None,
-            "archetype_compatibility": ms.archetype_compatibility,
-        })
+        matches.append(
+            {
+                "user_id": str(user.id),
+                "full_name": user.full_name,
+                "avatar_url": user.avatar_url,
+                "overall_score": float(ms.overall_score),
+                "dimension_scores": dim_scores,
+                "top_strengths": top_strengths,
+                "compatibility_note": (ms.breakdown or {}).get("note"),
+                "archetype_label": user_pd.archetype_label if user_pd else None,
+                "archetype_compatibility": ms.archetype_compatibility,
+            }
+        )
 
     return matches

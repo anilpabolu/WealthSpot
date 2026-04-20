@@ -21,6 +21,7 @@ class VaultFeatureFlagRead(BaseModel):
 
 class VaultFeatureFlagUpdate(BaseModel):
     """Bulk-update payload: list of flag toggles."""
+
     vault_type: str
     role: str
     feature_key: str
@@ -29,11 +30,13 @@ class VaultFeatureFlagUpdate(BaseModel):
 
 class VaultFeatureMatrixUpdate(BaseModel):
     """PUT /vault-features/matrix body."""
+
     updates: list[VaultFeatureFlagUpdate] = Field(min_length=1)
 
 
 class MyFeatureFlags(BaseModel):
     """Flat map of feature_key → enabled, keyed by vault_type."""
+
     wealth: dict[str, bool] = {}
     opportunity: dict[str, bool] = {}
     community: dict[str, bool] = {}

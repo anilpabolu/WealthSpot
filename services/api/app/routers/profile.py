@@ -6,7 +6,7 @@ import hashlib
 import logging
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -53,15 +53,21 @@ def _calculate_completion(user: User) -> tuple[int, dict[str, bool]]:
 
     # Section 1: Personal info (need at least 3 of name/DOB/gender/occupation)
     s1_fields = [
-        user.full_name, user.date_of_birth, user.gender,
+        user.full_name,
+        user.date_of_birth,
+        user.gender,
         user.occupation,
     ]
     s1_done = sum(1 for f in s1_fields if f) >= 3
     sections["personal"] = s1_done
 
     # Section 2: Interests (need at least 1 interest + 1 city)
-    s2_done = bool(user.interests and len(user.interests) > 0 and
-                   user.preferred_cities and len(user.preferred_cities) > 0)
+    s2_done = bool(
+        user.interests
+        and len(user.interests) > 0
+        and user.preferred_cities
+        and len(user.preferred_cities) > 0
+    )
     sections["interests"] = s2_done
 
     # Section 3: Address (need line1 + city + pincode)
@@ -116,7 +122,7 @@ async def update_section_1(
     pct, _ = _calculate_completion(user)
     user.profile_completion_pct = pct
     if pct == 100 and not user.profile_completed_at:
-        user.profile_completed_at = datetime.now(timezone.utc)
+        user.profile_completed_at = datetime.now(UTC)
         if not user.referral_code:
             user.referral_code = uuid.uuid4().hex[:8].upper()
     await db.flush()
@@ -135,7 +141,7 @@ async def update_section_2(
     pct, _ = _calculate_completion(user)
     user.profile_completion_pct = pct
     if pct == 100 and not user.profile_completed_at:
-        user.profile_completed_at = datetime.now(timezone.utc)
+        user.profile_completed_at = datetime.now(UTC)
         if not user.referral_code:
             user.referral_code = uuid.uuid4().hex[:8].upper()
     await db.flush()
@@ -154,7 +160,7 @@ async def update_section_3(
     pct, _ = _calculate_completion(user)
     user.profile_completion_pct = pct
     if pct == 100 and not user.profile_completed_at:
-        user.profile_completed_at = datetime.now(timezone.utc)
+        user.profile_completed_at = datetime.now(UTC)
         if not user.referral_code:
             user.referral_code = uuid.uuid4().hex[:8].upper()
     await db.flush()
@@ -173,7 +179,7 @@ async def update_section_4(
     pct, _ = _calculate_completion(user)
     user.profile_completion_pct = pct
     if pct == 100 and not user.profile_completed_at:
-        user.profile_completed_at = datetime.now(timezone.utc)
+        user.profile_completed_at = datetime.now(UTC)
         if not user.referral_code:
             user.referral_code = uuid.uuid4().hex[:8].upper()
     await db.flush()
@@ -217,7 +223,7 @@ async def send_otp(
     settings = get_settings()
     otp = _generate_otp()
     otp_hash = _hash_otp(otp)
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.otp_expiry_minutes)
+    expires_at = datetime.now(UTC) + timedelta(minutes=settings.otp_expiry_minutes)
 
     sent = False
 
@@ -228,7 +234,9 @@ async def send_otp(
         user.email_otp_expires_at = expires_at
         sent = await send_otp_email(user.email, otp)
         if not sent:
-            logger.warning("OTP delivery failed for %s email (email service unavailable)", user.email)
+            logger.warning(
+                "OTP delivery failed for %s email (email service unavailable)", user.email
+            )
     else:
         if user.phone_verified:
             raise HTTPException(status_code=400, detail="Phone already verified")
@@ -241,7 +249,9 @@ async def send_otp(
         if not sent:
             sent = await send_otp_whatsapp(user.phone, otp)
         if not sent:
-            logger.warning("OTP delivery failed for %s phone (SMS/WhatsApp service unavailable)", user.phone)
+            logger.warning(
+                "OTP delivery failed for %s phone (SMS/WhatsApp service unavailable)", user.phone
+            )
 
     await db.flush()
 
@@ -266,7 +276,7 @@ async def verify_otp(
 ) -> dict:
     """Verify an OTP for email or phone."""
     otp_hash = _hash_otp(body.otp)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if body.channel == "email":
         if user.email_verified:
@@ -297,7 +307,7 @@ async def verify_otp(
     pct, _ = _calculate_completion(user)
     user.profile_completion_pct = pct
     if pct == 100 and not user.profile_completed_at:
-        user.profile_completed_at = datetime.now(timezone.utc)
+        user.profile_completed_at = datetime.now(UTC)
         if not user.referral_code:
             user.referral_code = uuid.uuid4().hex[:8].upper()
 

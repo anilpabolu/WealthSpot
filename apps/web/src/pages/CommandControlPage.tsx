@@ -40,6 +40,7 @@ import {
   Phone,
   MapPin,
   Shield,
+  ShieldCheck,
   Briefcase,
   Calendar,
   BarChart3,
@@ -122,6 +123,8 @@ import {
   type SiteContentItem,
 } from '../hooks/useSiteContent'
 import { useVaultMetricsConfig } from '@/hooks/useVaultMetricsConfig'
+import { ShieldMetricsCard } from '@/components/shield/ShieldMetricsCard'
+import { AdminShieldReviewTab } from '@/components/shield/AdminShieldReviewTab'
 import { ALL_VAULT_METRICS, VAULT_METRICS_REGISTRY } from '@/pages/VaultsPage'
 import {
   useBuilderUpdates,
@@ -143,7 +146,7 @@ import { applyThemePalette } from '@/lib/colorUtils'
 /*  Side-nav sections                                                  */
 /* ------------------------------------------------------------------ */
 
-type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites' | 'vault-metrics' | 'deal-lifecycle' | 'builder-updates' | 'approvals'
+type Section = 'dashboard' | 'vault-analytics' | 'users' | 'admin-settings' | 'content' | 'builder-questions' | 'comm-mapping' | 'answer-questions' | 'referral-tracking' | 'eoi-pipeline' | 'media-management' | 'site-content' | 'vault-features' | 'admin-invites' | 'vault-metrics' | 'deal-lifecycle' | 'builder-updates' | 'approvals' | 'shield-review'
 
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
@@ -156,6 +159,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'deal-lifecycle', label: 'Deal Lifecycle', icon: Briefcase, group: 'Operations' },
   { id: 'approvals', label: 'Approvals', icon: ClipboardCheck, group: 'Operations' },
   { id: 'builder-updates', label: 'Builder Updates', icon: Rocket, group: 'Operations' },
+  { id: 'shield-review', label: 'Shield Review', icon: ShieldCheck, group: 'Operations' },
   { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle, group: 'Operations' },
   { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
   { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle, group: 'Operations' },
@@ -182,6 +186,8 @@ function DashboardTab() {
   return (
     <div className="space-y-8">
       <h2 className="font-display text-xl font-bold text-theme-primary">Platform Overview</h2>
+
+      <ShieldMetricsCard />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1435,6 +1441,22 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdv
   )
 }
 
+/* ── User Detail Field (extracted for React compiler compliance) ─── */
+
+function UserDetailField({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex items-start gap-3 py-2">
+      <div className="h-8 w-8 rounded-lg bg-theme-surface flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="h-4 w-4 text-theme-tertiary" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] text-theme-tertiary uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-medium text-theme-primary break-all">{value || '—'}</p>
+      </div>
+    </div>
+  )
+}
+
 /* ── User Details Modal (read-only) ──────────────────────────────── */
 
 function UserDetailsModal({
@@ -1448,18 +1470,6 @@ function UserDetailsModal({
 }) {
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
-
-  const Field = ({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) => (
-    <div className="flex items-start gap-3 py-2">
-      <div className="h-8 w-8 rounded-lg bg-theme-surface flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-4 w-4 text-theme-tertiary" />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[11px] text-theme-tertiary uppercase tracking-wide">{label}</p>
-        <p className="text-sm font-medium text-theme-primary break-all">{value || '—'}</p>
-      </div>
-    </div>
-  )
 
   const kycLabel: Record<string, string> = {
     not_started: 'Not Started',
@@ -1527,23 +1537,23 @@ function UserDetailsModal({
           </div>
 
           {/* Contact */}
-          <Field icon={Mail} label="Email" value={user.email} />
-          <Field icon={Phone} label="Phone" value={user.phone} />
+          <UserDetailField icon={Mail} label="Email" value={user.email} />
+          <UserDetailField icon={Phone} label="Phone" value={user.phone} />
 
           {/* Location */}
-          <Field icon={MapPin} label="Location" value={[user.city, user.state].filter(Boolean).join(', ') || null} />
+          <UserDetailField icon={MapPin} label="Location" value={[user.city, user.state].filter(Boolean).join(', ') || null} />
 
           {/* Professional */}
-          <Field icon={Briefcase} label="Occupation" value={user.occupation} />
-          <Field icon={Shield} label="Annual Income" value={user.annualIncome} />
+          <UserDetailField icon={Briefcase} label="Occupation" value={user.occupation} />
+          <UserDetailField icon={Shield} label="Annual Income" value={user.annualIncome} />
 
           {/* Investment profile */}
-          <Field icon={Eye} label="Investment Experience" value={user.investmentExperience} />
-          <Field icon={Shield} label="Risk Tolerance" value={user.riskTolerance} />
-          <Field icon={Gift} label="Referral Code" value={user.referralCode} />
+          <UserDetailField icon={Eye} label="Investment Experience" value={user.investmentExperience} />
+          <UserDetailField icon={Shield} label="Risk Tolerance" value={user.riskTolerance} />
+          <UserDetailField icon={Gift} label="Referral Code" value={user.referralCode} />
 
           {/* Member since */}
-          <Field icon={Calendar} label="Member Since" value={fmtDate(user.createdAt)} />
+          <UserDetailField icon={Calendar} label="Member Since" value={fmtDate(user.createdAt)} />
         </div>
       </div>
     </div>
@@ -1863,7 +1873,7 @@ function VideoManagementTab() {
 
   // Group by page for display
   const grouped = useMemo(() => filtered.reduce<Record<string, AppVideo[]>>((acc, v) => {
-    ;(acc[v.page] ??= []).push(v)
+    (acc[v.page] ??= []).push(v)
     return acc
   }, {}), [filtered])
 
@@ -3432,6 +3442,7 @@ export default function CommandControlPage() {
             {activeSection === 'eoi-pipeline' && <EOIPipelineTab />}
             {activeSection === 'deal-lifecycle' && <DealLifecycleTab />}
             {activeSection === 'builder-updates' && <BuilderUpdatesTab />}
+            {activeSection === 'shield-review' && <AdminShieldReviewTab />}
             {activeSection === 'media-management' && <MediaManagementTab />}
             {activeSection === 'site-content' && <SiteContentTab />}
             {activeSection === 'vault-features' && <VaultFeatureMatrixTab />}

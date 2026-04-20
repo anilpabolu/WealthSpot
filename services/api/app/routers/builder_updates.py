@@ -17,10 +17,10 @@ from app.models.builder_update import BuilderUpdate, BuilderUpdateAttachment
 from app.models.opportunity import Opportunity
 from app.models.user import User, UserRole
 from app.schemas.builder_update import (
+    BuilderUpdateAttachmentRead,
     BuilderUpdateCreate,
     BuilderUpdatePatch,
     BuilderUpdateRead,
-    BuilderUpdateAttachmentRead,
 )
 from app.services.s3 import delete_file, get_public_url, upload_file
 
@@ -38,6 +38,7 @@ def _can_manage(user: User, opp: Opportunity) -> bool:
 
 
 # ── List updates for an opportunity ──────────────────────────────────────────
+
 
 @router.get(
     "/opportunities/{opportunity_id}",
@@ -59,6 +60,7 @@ async def list_updates(
 
 
 # ── Create update ────────────────────────────────────────────────────────────
+
 
 @router.post(
     "/opportunities/{opportunity_id}",
@@ -92,6 +94,7 @@ async def create_update(
 
 # ── Patch update ─────────────────────────────────────────────────────────────
 
+
 @router.patch(
     "/{update_id}",
     response_model=BuilderUpdateRead,
@@ -117,6 +120,7 @@ async def patch_update(
 
 
 # ── Delete update (+ S3 cleanup) ────────────────────────────────────────────
+
 
 @router.delete("/{update_id}", status_code=204)
 async def delete_update(
@@ -144,6 +148,7 @@ async def delete_update(
 
 # ── Upload attachment ────────────────────────────────────────────────────────
 
+
 @router.post(
     "/{update_id}/attachments",
     response_model=BuilderUpdateAttachmentRead,
@@ -164,7 +169,7 @@ async def upload_attachment(
 
     content = await file.read()
     if len(content) > MAX_ATTACHMENT_SIZE:
-        raise HTTPException(400, f"File exceeds {MAX_ATTACHMENT_SIZE // (1024*1024)} MB limit")
+        raise HTTPException(400, f"File exceeds {MAX_ATTACHMENT_SIZE // (1024 * 1024)} MB limit")
 
     content_type = file.content_type or "application/octet-stream"
     safe_name = (file.filename or "file").replace(" ", "_")
@@ -188,6 +193,7 @@ async def upload_attachment(
 
 
 # ── Delete attachment ────────────────────────────────────────────────────────
+
 
 @router.delete("/attachments/{attachment_id}", status_code=204)
 async def delete_attachment(

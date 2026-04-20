@@ -2,11 +2,12 @@ import { PortalLayout } from '@/components/layout'
 import { useBuilderAnalytics } from '@/hooks/useBuilderAnalytics'
 import { formatINRCompact, formatPercent } from '@/lib/formatters'
 import { EmptyState } from '@/components/ui'
+import { ShieldMetricsCard } from '@/components/shield/ShieldMetricsCard'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, IndianRupee, Users, Building2, Loader2, Target } from 'lucide-react'
+import { TrendingUp, IndianRupee, Users, Building2, Loader2, Target, Clock, Repeat, Trophy, AlertTriangle } from 'lucide-react'
 
 const VAULT_COLORS: Record<string, string> = {
   wealth: '#6366f1',
@@ -23,12 +24,24 @@ function fmtCompact(v: number): string {
 }
 
 export default function BuilderAnalyticsPage() {
-  const { data, isLoading } = useBuilderAnalytics()
+  const { data, isLoading, isError } = useBuilderAnalytics()
 
   if (isLoading) {
     return (
       <PortalLayout variant="builder">
         <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 text-primary animate-spin" /></div>
+      </PortalLayout>
+    )
+  }
+
+  if (isError) {
+    return (
+      <PortalLayout variant="builder">
+        <div>
+          <h1 className="section-title text-2xl mb-1">Analytics</h1>
+          <p className="text-theme-secondary mb-6">Insights across your listings</p>
+          <EmptyState icon={AlertTriangle} title="Failed to load analytics" message="Something went wrong. Please try again later." />
+        </div>
       </PortalLayout>
     )
   }
@@ -60,13 +73,42 @@ export default function BuilderAnalyticsPage() {
           <p className="text-theme-secondary mt-1">Insights across your listings</p>
         </div>
 
+        <ShieldMetricsCard title="My Shield pipeline" />
+
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <KpiCard icon={IndianRupee} label="Total Raised" value={`₹${formatINRCompact(data.totalRaised)}`} color="text-emerald-600" />
           <KpiCard icon={Target} label="Target" value={`₹${formatINRCompact(data.totalTarget)}`} color="text-primary" />
           <KpiCard icon={Users} label="Investors" value={String(data.investorCount)} color="text-violet-600" />
           <KpiCard icon={Building2} label="Listings" value={String(data.opportunityCount)} sub={`${formatPercent(fundingPct)} funded`} color="text-amber-600" />
+          <KpiCard icon={Clock} label="Avg Time to Fund" value={data.avgDaysToFund != null ? `${data.avgDaysToFund}d` : '—'} color="text-sky-600" />
+          <KpiCard icon={Repeat} label="Repeat Investors" value={data.repeatInvestorRate > 0 ? `${data.repeatInvestorRate}%` : '—'} color="text-pink-600" />
         </div>
+
+        {/* Top Performing Listing */}
+        {data.topOpportunity && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-200 dark:border-amber-800/50 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy className="h-4 w-4 text-amber-600" />
+              <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Top Performing Listing</h2>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-lg font-bold text-theme-primary">{data.topOpportunity.title}</p>
+                <p className="text-sm text-theme-secondary mt-0.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${VAULT_COLORS[data.topOpportunity.vaultType] ?? '#6366f1'}20`, color: VAULT_COLORS[data.topOpportunity.vaultType] ?? '#6366f1' }}>
+                    {data.topOpportunity.vaultType}
+                  </span>
+                  <span className="ml-2">{data.topOpportunity.city || 'Unknown'}</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPercent(data.topOpportunity.fundingPct)}</p>
+                <p className="text-xs text-theme-secondary">funded • {data.topOpportunity.investorCount} investors</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

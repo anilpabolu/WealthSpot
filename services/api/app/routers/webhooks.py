@@ -51,6 +51,7 @@ def _verify_clerk_signature(body: bytes, headers: dict[str, str]) -> bool:
     secret_bytes = secret.encode("utf-8")
     if secret.startswith("whsec_"):
         import base64
+
         secret_bytes = base64.b64decode(secret[6:])
 
     expected = hmac.new(
@@ -60,6 +61,7 @@ def _verify_clerk_signature(body: bytes, headers: dict[str, str]) -> bool:
     ).digest()
 
     import base64
+
     expected_b64 = base64.b64encode(expected).decode("utf-8")
 
     # svix-signature can contain multiple signatures separated by spaces
@@ -85,7 +87,7 @@ async def clerk_webhook(
     if not _verify_clerk_signature(body, dict(request.headers)):
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
-    payload: dict[str, Any] = (await request.json())
+    payload: dict[str, Any] = await request.json()
     event_type = payload.get("type", "")
     data = payload.get("data", {})
 
@@ -98,7 +100,11 @@ async def clerk_webhook(
 
         full_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
         avatar_url = data.get("image_url")
-        phone = data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None
+        phone = (
+            data.get("phone_numbers", [{}])[0].get("phone_number")
+            if data.get("phone_numbers")
+            else None
+        )
 
         if email:
             # Check if user already exists
@@ -116,12 +122,16 @@ async def clerk_webhook(
                 logger.info("Clerk webhook: created user %s", email)
             else:
                 # Link existing user to Clerk
-                existing_user = (await db.execute(select(User).where(User.email == email))).scalar_one()
+                existing_user = (
+                    await db.execute(select(User).where(User.email == email))
+                ).scalar_one()
                 existing_user.clerk_id = clerk_id
                 if avatar_url:
                     existing_user.avatar_url = avatar_url
                 await db.flush()
-                logger.info("Clerk webhook: linked existing user %s to clerk_id %s", email, clerk_id)
+                logger.info(
+                    "Clerk webhook: linked existing user %s to clerk_id %s", email, clerk_id
+                )
 
     elif event_type == "user.updated":
         clerk_id = data.get("id", "")
@@ -187,7 +197,7 @@ async def razorpay_webhook(
     if not _verify_razorpay_signature(body, signature):
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    payload: dict[str, Any] = (await request.json())
+    payload: dict[str, Any] = await request.json()
     event = payload.get("event", "")
     payment_entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
     razorpay_payment_id = payment_entity.get("id", "")
@@ -236,7 +246,10 @@ async def razorpay_webhook(
             if investment and investment.status == InvestmentStatus.PAYMENT_PENDING:
                 investment.status = InvestmentStatus.CANCELLED
                 await db.flush()
-                logger.info("Razorpay webhook: cancelled investment %s due to payment failure", investment.id)
+                logger.info(
+                    "Razorpay webhook: cancelled investment %s due to payment failure",
+                    investment.id,
+                )
 
     elif event == "refund.processed":
         refund_entity = payload.get("payload", {}).get("refund", {}).get("entity", {})

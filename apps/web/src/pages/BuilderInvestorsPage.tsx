@@ -118,7 +118,7 @@ export default function BuilderInvestorsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState icon={Users} title="No investors yet" message="Once investors fund your listings, they'll appear here." />
         ) : (
-          <DataTable columns={columns} data={filtered} keyExtractor={(row) => `${row.investorId}-${row.opportunityId}`} />
+          <DataTable columns={columns} data={filtered} keyExtractor={(row) => row.investmentId} />
         )}
       </div>
     </PortalLayout>
