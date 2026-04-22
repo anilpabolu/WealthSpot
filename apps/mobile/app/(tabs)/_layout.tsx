@@ -7,6 +7,8 @@ import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useUserStore } from '@/stores/user.store'
 import { useOverallProgress } from '@/hooks/useProfiling'
+import { useThemeStore } from '@/stores/theme.store'
+import { getThemeColors } from '@/lib/theme'
 
 type TabIconProps = { color: string; size: number }
 
@@ -20,32 +22,37 @@ export default function TabLayout() {
     : false
   const showPortfolio = isAdmin || (isInvestor && hasAnyDna)
 
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#5B4FCF',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: isDark ? '#D4AF37' : '#5B4FCF',
+        tabBarInactiveTintColor: isDark ? 'rgba(255,255,255,0.35)' : '#9CA3AF',
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: isDark ? colors.bgSurface : '#FFFFFF',
           borderTopWidth: 0,
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
-          shadowColor: '#1B2A4A',
+          shadowColor: isDark ? '#000000' : '#1B2A4A',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.06,
+          shadowOpacity: isDark ? 0.3 : 0.06,
           shadowRadius: 12,
           elevation: 12,
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '700',
           letterSpacing: 0.3,
+          fontFamily: 'PlusJakartaSans',
         },
-        headerStyle: { backgroundColor: '#FFFFFF' },
-        headerTintColor: '#1F2937',
+        headerStyle: { backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' },
+        headerTintColor: isDark ? colors.textPrimary : '#1F2937',
       }}
     >
       <Tabs.Screen

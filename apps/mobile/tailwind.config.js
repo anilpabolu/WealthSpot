@@ -4,6 +4,7 @@ module.exports = {
     './app/**/*.{js,ts,jsx,tsx}',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
+  darkMode: 'class',
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
@@ -16,6 +17,15 @@ module.exports = {
         secondary: '#FF6B35',
         accent: '#22C55E',
         surface: '#F5F0FF',
+        // ── Dark mode palette ───────────────────────────────────
+        'dark-base': '#0c0a1f',
+        'dark-surface': '#13102e',
+        'dark-surface-hover': '#1c1842',
+        'dark-card': '#13102e',
+        'dark-text-primary': '#f1f5f9',
+        'dark-text-secondary': 'rgba(255,255,255,0.6)',
+        'dark-text-accent': '#D4AF37',
+        'dark-border': 'rgba(255,255,255,0.08)',
         // ── Vault Theme Palettes (distinct identity per vault) ───
         vault: {
           wealth: {
@@ -62,12 +72,15 @@ module.exports = {
       borderColor: {
         frame: 'rgba(0, 0, 0, 0.15)',
       },
+      borderRadius: {
+        '3xl': 24,
+      },
       fontFamily: {
-        display: ['Syne'],
-        hero: ['SpaceGrotesk'],
-        body: ['DMSans'],
-        mono: ['JetBrainsMono'],
-        fun: ['Quicksand'],
+        display: ['BricolageGrotesque'],
+        hero: ['BricolageGrotesque'],
+        body: ['PlusJakartaSans'],
+        mono: ['FiraCode'],
+        fun: ['PlusJakartaSans'],
       },
     },
   },

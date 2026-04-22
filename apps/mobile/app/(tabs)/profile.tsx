@@ -3,12 +3,14 @@
  * User info, KYC status, settings, referral code.
  */
 
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native'
+import { View, Text, ScrollView, Pressable, Alert, Switch } from 'react-native'
 import { Link, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useProfileCompletion } from '@/hooks/useProfileCompletion'
+import { useThemeStore } from '@/stores/theme.store'
+import { getThemeColors } from '@/lib/theme'
 import { Badge } from '@/components/ui'
 
 const MENU_ITEMS = [
@@ -26,6 +28,10 @@ export default function ProfileScreen() {
   const { signOut } = useAuth()
   const { data: user } = useUserProfile()
   const { percentage } = useProfileCompletion()
+  const resolved = useThemeStore((s) => s.resolved)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -38,9 +44,9 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-surface">
+    <ScrollView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       {/* Profile Header */}
-      <View className="bg-white px-4 pt-6 pb-5">
+      <View style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }} className="px-4 pt-6 pb-5">
         <View className="flex-row items-center">
           <View className="w-16 h-16 rounded-full bg-primary items-center justify-center mr-4">
             <Text className="text-white text-xl font-bold">
@@ -48,13 +54,13 @@ export default function ProfileScreen() {
             </Text>
           </View>
           <View className="flex-1">
-            <Text className="text-gray-900 font-bold text-lg">
+            <Text style={{ color: colors.textPrimary }} className="font-bold text-lg">
               {user?.fullName || 'Investor'}
             </Text>
-            <Text className="text-gray-500 text-sm">{user?.email || 'investor@wealthspot.in'}</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm">{user?.email || 'investor@wealthspot.in'}</Text>
           </View>
-          <Pressable className="bg-gray-100 rounded-full p-2">
-            <Ionicons name="create-outline" size={18} color="#5B4FCF" />
+          <Pressable style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }} className="rounded-full p-2">
+            <Ionicons name="create-outline" size={18} color={isDark ? colors.gold : '#5B4FCF'} />
           </Pressable>
         </View>
 
@@ -100,20 +106,37 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {/* Theme Toggle */}
+      <View className="mt-2" style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }}>
+        <View className="flex-row items-center px-4 py-4 border-b" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB' }}>
+          <View className="w-9 h-9 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F9FAFB' }}>
+            <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? colors.gold : '#5B4FCF'} />
+          </View>
+          <Text style={{ color: colors.textPrimary }} className="flex-1 text-sm font-medium">Dark Mode</Text>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#D1D5DB', true: 'rgba(212,175,55,0.4)' }}
+            thumbColor={isDark ? '#D4AF37' : '#FFFFFF'}
+          />
+        </View>
+      </View>
+
       {/* Menu Items */}
-      <View className="mt-2 bg-white">
+      <View className="mt-2" style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }}>
         {MENU_ITEMS.map((item, index) => (
           <Pressable
             key={item.label}
             className={`flex-row items-center px-4 py-4 ${
-              index < MENU_ITEMS.length - 1 ? 'border-b border-gray-50' : ''
+              index < MENU_ITEMS.length - 1 ? 'border-b' : ''
             }`}
+            style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB' }}
           >
-            <View className="w-9 h-9 rounded-xl bg-gray-50 items-center justify-center mr-3">
-              <Ionicons name={item.icon} size={18} color="#5B4FCF" />
+            <View className="w-9 h-9 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F9FAFB' }}>
+              <Ionicons name={item.icon} size={18} color={isDark ? colors.gold : '#5B4FCF'} />
             </View>
-            <Text className="flex-1 text-gray-900 text-sm font-medium">{item.label}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+            <Text style={{ color: colors.textPrimary }} className="flex-1 text-sm font-medium">{item.label}</Text>
+            <Ionicons name="chevron-forward" size={16} color={isDark ? 'rgba(255,255,255,0.2)' : '#D1D5DB'} />
           </Pressable>
         ))}
       </View>
@@ -121,13 +144,18 @@ export default function ProfileScreen() {
       {/* Logout */}
       <Pressable
         onPress={handleLogout}
-        className="mx-4 mt-4 mb-8 bg-white rounded-xl py-3.5 items-center border border-red-200"
+        className="mx-4 mt-4 mb-8 rounded-xl py-3.5 items-center"
+        style={{
+          backgroundColor: isDark ? colors.bgSurface : '#FFFFFF',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(239,68,68,0.3)' : '#FECACA',
+        }}
       >
         <Text className="text-red-500 font-semibold">Logout</Text>
       </Pressable>
 
       {/* Version */}
-      <Text className="text-center text-gray-300 text-xs mb-8">WealthSpot v1.0.0</Text>
+      <Text style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#D1D5DB' }} className="text-center text-xs mb-8">WealthSpot v1.0.0</Text>
     </ScrollView>
   )
 }

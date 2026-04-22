@@ -9,6 +9,8 @@ import {
 } from '../../lib/assessments'
 import { useOpportunityAssessments } from '../../hooks/useShield'
 import { ShieldDot } from './ShieldDot'
+import { useThemeStore } from '../../stores/theme.store'
+import { getThemeColors } from '../../lib/theme'
 
 interface ShieldSectionProps {
   opportunityId: string
@@ -22,10 +24,13 @@ interface ShieldSectionProps {
 export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   const { data, isLoading } = useOpportunityAssessments(opportunityId)
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({})
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
 
   if (isLoading) {
     return (
-      <View className="bg-white rounded-2xl border-2 border-gray-200 p-5 items-center">
+      <View className="rounded-2xl p-5 items-center" style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF', borderWidth: 1, borderColor: isDark ? colors.borderSubtle : '#E5E7EB' }}>
         <ActivityIndicator color="#10b981" />
       </View>
     )
@@ -33,10 +38,10 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   if (!data) return null
 
   return (
-    <View className="bg-white rounded-2xl border-2 border-gray-200 p-5">
+    <View className="rounded-2xl p-5" style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF', borderWidth: 1, borderColor: isDark ? colors.borderSubtle : '#E5E7EB' }}>
       <View className="flex-row items-center gap-2 mb-3">
         <ShieldCheck size={18} color={data.certified ? '#10b981' : '#94a3b8'} />
-        <Text className="text-base font-bold text-gray-900">
+        <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
           WealthSpot Shield
         </Text>
         {data.certified && (
@@ -47,7 +52,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
           </View>
         )}
       </View>
-      <Text className="text-xs text-gray-500 mb-3">
+      <Text className="text-xs mb-3" style={{ color: colors.textSecondary }}>
         {data.passedCount} of {data.totalCount} checks passed across all 7 layers.
       </Text>
 
@@ -60,21 +65,23 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
         return (
           <View
             key={cat.code}
-            className="rounded-xl border border-gray-200 overflow-hidden mb-2"
+            className="rounded-xl overflow-hidden mb-2"
+            style={{ borderWidth: 1, borderColor: isDark ? colors.borderSubtle : '#E5E7EB' }}
           >
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() =>
                 setOpenCats((s) => ({ ...s, [cat.code]: !open }))
               }
-              className="flex-row items-center gap-3 px-4 py-3 bg-gray-50"
+              className="flex-row items-center gap-3 px-4 py-3"
+              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB' }}
             >
-              <Icon size={16} color="#475569" />
+              <Icon size={16} color={isDark ? '#94a3b8' : '#475569'} />
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-gray-900">
+                <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
                   {cat.name}
                 </Text>
-                <Text className="text-[11px] text-gray-500">
+                <Text className="text-[11px]" style={{ color: colors.textSecondary }}>
                   {catRead.passedCount}/{catRead.totalCount} passed ·{' '}
                   {humanStatus(catRead.status)}
                 </Text>
@@ -88,7 +95,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
             </TouchableOpacity>
             {open &&
               catRead.subItems.map((sub) => (
-                <SubItemRow key={sub.code} sub={sub} />
+                <SubItemRow key={sub.code} sub={sub} isDark={isDark} />
               ))}
           </View>
         )
@@ -104,12 +111,12 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
           </View>
           {data.risks.map((r) => (
             <View key={r.id} className="mt-1">
-              <Text className="text-xs text-gray-900">
+              <Text className="text-xs" style={{ color: colors.textPrimary }}>
                 <Text className="font-semibold">{r.label}</Text>
-                <Text className="text-gray-500"> · severity {r.severity}</Text>
+                <Text style={{ color: colors.textSecondary }}> · severity {r.severity}</Text>
               </Text>
               {r.note && (
-                <Text className="text-[11px] text-gray-600 mt-0.5">
+                <Text className="text-[11px] mt-0.5" style={{ color: colors.textSecondary }}>
                   {r.note}
                 </Text>
               )}
@@ -121,20 +128,20 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   )
 }
 
-function SubItemRow({ sub }: { sub: AssessmentSubItemRead }) {
+function SubItemRow({ sub, isDark }: { sub: AssessmentSubItemRead; isDark: boolean }) {
   return (
-    <View className="px-4 py-3 border-t border-gray-100">
+    <View className="px-4 py-3" style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6' }}>
       <View className="flex-row items-center gap-2">
         <ShieldDot status={sub.status} size="sm" />
-        <Text className="text-[13px] font-medium text-gray-900 flex-1">
+        <Text className="text-[13px] font-medium flex-1" style={{ color: isDark ? '#E2E8F0' : '#111827' }}>
           {sub.label}
         </Text>
-        <Text className="text-[10px] uppercase tracking-wider text-gray-500">
+        <Text className="text-[10px] uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,0.55)' : '#6B7280' }}>
           {humanStatus(sub.status)}
         </Text>
       </View>
       {sub.reviewerNote && (
-        <Text className="mt-1 text-[11px] italic text-gray-600">
+        <Text className="mt-1 text-[11px] italic" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#4B5563' }}>
           Reviewer: {sub.reviewerNote}
         </Text>
       )}
@@ -143,12 +150,13 @@ function SubItemRow({ sub }: { sub: AssessmentSubItemRead }) {
           {sub.documents.map((d) => (
             <View
               key={d.id}
-              className="flex-row items-center gap-2 mt-1 px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50"
+              className="flex-row items-center gap-2 mt-1 px-2 py-1.5 rounded-lg"
+              style={{ borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB', backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB' }}
             >
               {d.locked ? (
                 <>
                   <Lock size={12} color="#f59e0b" />
-                  <Text className="text-[11px] text-gray-600 flex-1" numberOfLines={1}>
+                  <Text className="text-[11px] flex-1" style={{ color: isDark ? 'rgba(255,255,255,0.65)' : '#4B5563' }} numberOfLines={1}>
                     {d.filename ?? 'Document'}
                   </Text>
                   <Text className="text-[10px] text-amber-600 uppercase tracking-wider">

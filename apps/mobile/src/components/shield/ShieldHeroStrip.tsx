@@ -4,6 +4,8 @@ import { ShieldCheck, ChevronRight } from 'lucide-react-native'
 import { ASSESSMENT_CATEGORIES, iconForCategory } from '../../lib/assessments'
 import { ShieldDot } from './ShieldDot'
 import { ShieldInfoSheet } from './ShieldInfoSheet'
+import { useThemeStore } from '../../stores/theme.store'
+import { getThemeColors } from '../../lib/theme'
 
 const ACCENT_HEX: Record<string, string> = {
   'text-emerald-500': '#10b981',
@@ -21,6 +23,9 @@ const ACCENT_HEX: Record<string, string> = {
  */
 export function ShieldHeroStrip() {
   const [open, setOpen] = useState(false)
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
 
   return (
     <View className="px-5 py-3">
@@ -36,8 +41,8 @@ export function ShieldHeroStrip() {
           onPress={() => setOpen(true)}
           className="flex-row items-center gap-0.5"
         >
-          <Text className="text-[10px] text-indigo-400">Learn more</Text>
-          <ChevronRight size={10} color="#818cf8" />
+          <Text className="text-[10px]" style={{ color: isDark ? colors.gold : '#818cf8' }}>Learn more</Text>
+          <ChevronRight size={10} color={isDark ? colors.gold : '#818cf8'} />
         </TouchableOpacity>
       </View>
 
@@ -65,7 +70,7 @@ export function ShieldHeroStrip() {
                 <Icon size={12} color={hex} />
               </View>
               <View className="flex-row items-center gap-1">
-                <Text className="text-[10px] font-semibold text-gray-900">
+                <Text className="text-[10px] font-semibold" style={{ color: colors.textPrimary }}>
                   {cat.name.replace(' Assessment', '')}
                 </Text>
                 <ShieldDot status="passed" size="sm" />

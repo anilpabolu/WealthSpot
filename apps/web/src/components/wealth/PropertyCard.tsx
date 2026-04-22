@@ -223,7 +223,7 @@ export default memo(function PropertyCard({
         )}
         {/* Property info overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
-          <h3 className="text-white font-semibold text-lg drop-shadow-sm">{title}</h3>
+          <h3 className="text-white font-display font-bold text-lg drop-shadow-sm tracking-tight">{title}</h3>
           <p className="text-[var(--border-default)] text-sm flex items-center gap-1">
             📍 {micromarket ? `${micromarket}, ` : ''}{city}
           </p>

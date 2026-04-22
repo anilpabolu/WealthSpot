@@ -602,7 +602,7 @@ export default function VaultProfilingScreen() {
                 Your {theme.name} DNA
               </Text>
               <Text className="text-sm text-gray-500 text-center mb-8">
-                Here's what your answers reveal about your investment personality
+                Here is what your answers reveal about your investment personality
               </Text>
             </>
           )}

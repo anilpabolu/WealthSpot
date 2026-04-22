@@ -17,6 +17,8 @@ import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
 import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
+import ParticleCanvas from '@/components/ui/ParticleCanvas'
+import GradientMesh from '@/components/ui/GradientMesh'
 
 /* ------------------------------------------------------------------ */
 /*  Per-vault hero theming (gradient · accent · copy)                  */
@@ -309,6 +311,9 @@ export default function MarketplacePage() {
     <MainLayout>
       {/* Hero — diagonal ribbon split (vault-aware) */}
       <div className="relative overflow-hidden bg-slate-900" style={{ minHeight: 340 }}>
+        {/* Particle + Gradient overlays */}
+        <ParticleCanvas className="opacity-40 z-[0]" />
+        <GradientMesh className="z-[0]" />
         {/* Left panel — vault-branded diagonal clip */}
         <div
           className={`absolute inset-0 z-[2] bg-gradient-to-br ${hero.leftGradient} hidden lg:block`}

@@ -85,7 +85,7 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS).map(([category, links]) => (
             <div key={category}>
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-3">
                 {category}
               </h3>
               <ul className="space-y-2">
@@ -119,7 +119,7 @@ export default function Footer() {
               <a
                 key={social.label}
                 href={social.href}
-                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                className="p-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/25 transition-all duration-200"
                 aria-label={social.label}
                 target="_blank"
                 rel="noopener noreferrer"

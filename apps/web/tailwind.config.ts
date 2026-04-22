@@ -74,10 +74,10 @@ export default {
         forest: { DEFAULT: '#065F46', light: '#ECFDF5', dark: '#064E3B' },
       },
       fontFamily: {
-        display: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
-        hero: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        display: ['"Bricolage Grotesque"', '"Plus Jakarta Sans"', 'sans-serif'],
+        hero: ['"Bricolage Grotesque"', '"Plus Jakarta Sans"', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"Fira Code"', '"Cascadia Code"', 'monospace'],
         fun: ['"Plus Jakarta Sans"', '"DM Sans"', 'sans-serif'],
       },
       backdropBlur: { glass: '24px' },
@@ -104,7 +104,7 @@ export default {
         ticker: 'ticker 25s linear infinite',
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         shimmer: 'shimmer 1.5s ease-in-out infinite',
-        'fade-up': 'fade-up 0.4s cubic-bezier(0.34,1.56,0.64,1) both',
+        'fade-up': 'fade-up 0.7s ease both',
         'float': 'float 3s ease-in-out infinite',
         'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
         'slide-in-right': 'slide-in-right 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
@@ -132,7 +132,7 @@ export default {
           '100%': { backgroundPosition: '200% 0' },
         },
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(12px)' },
+          from: { opacity: '0', transform: 'translateY(28px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         'float': {

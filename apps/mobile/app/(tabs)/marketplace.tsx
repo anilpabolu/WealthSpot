@@ -12,8 +12,10 @@ import { formatINR } from '@/lib/formatters'
 import { useProperties } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
-import { EmptyState, Badge, Input } from '@/components/ui'
+import { EmptyState, Badge, Input, FadeInView } from '@/components/ui'
 import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
+import { useThemeStore } from '@/stores/theme.store'
+import { getThemeColors } from '@/lib/theme'
 
 /* Vault-specific gradient + branding config */
 const VAULT_HERO_CONFIG: Record<
@@ -76,6 +78,10 @@ export default function MarketplaceScreen() {
   const [activeFilter, setActiveFilter] = useState(filters.assetType ?? 'All')
   const [communitySubtype, setCommunitySubtype] = useState(subtype ?? '')
 
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
+
   const queryFilters = useMemo(
     () => ({
       ...filters,
@@ -94,14 +100,14 @@ export default function MarketplaceScreen() {
   }
 
   return (
-    <View className="flex-1 bg-surface">
+    <View className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       {isVaultDisabled ? (
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-4xl mb-3">🔒</Text>
-          <Text className="text-lg font-bold text-gray-900 text-center mb-2">
+          <Text className="text-lg font-bold text-center mb-2" style={{ color: colors.textPrimary }}>
             {vault === 'community' ? 'Rallying the Tribe...' : 'The Launchpad is Being Built...'}
           </Text>
-          <Text className="text-sm text-gray-500 text-center">
+          <Text className="text-sm text-center" style={{ color: colors.textSecondary }}>
             {vault === 'community'
               ? 'Community Vault is coming soon. We\'re building something special for collaborative investing.'
               : 'Opportunity Vault is coming soon. Premium startup opportunities are being curated.'}
@@ -110,77 +116,97 @@ export default function MarketplaceScreen() {
       ) : (
       <>
       {/* Search Bar */}
-      <View className="px-4 pt-4 pb-2 bg-white">
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-2.5">
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
-          <Input
-            className="flex-1 ml-2"
-            placeholder="Search properties, cities..."
-            value={search}
-            onChangeText={setSearch}
-            size="sm"
-          />
-          {search ? (
-            <Pressable onPress={() => setSearch('')}>
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-            </Pressable>
-          ) : null}
+      <FadeInView delay={0}>
+        <View className="px-4 pt-4 pb-2" style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }}>
+          <View className="flex-row items-center rounded-xl px-4 py-2.5" style={{ backgroundColor: isDark ? colors.bgInput : '#F3F4F6' }}>
+            <Ionicons name="search-outline" size={18} color={isDark ? colors.textTertiary : '#9CA3AF'} />
+            <Input
+              className="flex-1 ml-2"
+              placeholder="Search properties, cities..."
+              value={search}
+              onChangeText={setSearch}
+              size="sm"
+            />
+            {search ? (
+              <Pressable onPress={() => setSearch('')}>
+                <Ionicons name="close-circle" size={18} color={isDark ? colors.textTertiary : '#9CA3AF'} />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
-      </View>
+      </FadeInView>
 
       {/* Filter Chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="bg-white px-4 pb-3"
-      >
-        {FILTER_CHIPS.map((chip) => (
-          <Pressable
-            key={chip}
-            onPress={() => handleFilterChip(chip)}
-            className={`mr-2 px-4 py-1.5 rounded-full ${
-              activeFilter === chip ? 'bg-primary' : 'bg-gray-100'
-            }`}
-          >
-            <Text
-              className={`text-sm font-semibold ${
-                activeFilter === chip ? 'text-white' : 'text-gray-600'
-              }`}
-            >
-              {chip}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Community Subtype Chips */}
-      {isCommunityVault && (
+      <FadeInView delay={80}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="bg-white px-4 pb-3"
+          className="px-4 pb-3"
+          style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }}
         >
-          <View className="flex-row items-center">
-            <Text className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-2">Type:</Text>
-            {COMMUNITY_SUBTYPE_CHIPS.map((chip) => (
-              <Pressable
-                key={chip.value}
-                onPress={() => setCommunitySubtype(chip.value)}
-                className={`mr-2 px-4 py-1.5 rounded-full ${
-                  communitySubtype === chip.value ? 'bg-emerald-600' : 'bg-gray-100'
-                }`}
+          {FILTER_CHIPS.map((chip) => (
+            <Pressable
+              key={chip}
+              onPress={() => handleFilterChip(chip)}
+              className="mr-2 px-4 py-1.5 rounded-full"
+              style={{
+                backgroundColor: activeFilter === chip
+                  ? (isDark ? colors.gold : '#5B4FCF')
+                  : (isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6'),
+              }}
+            >
+              <Text
+                className="text-sm font-semibold"
+                style={{
+                  color: activeFilter === chip
+                    ? (isDark ? '#0c0a1f' : '#FFFFFF')
+                    : (isDark ? colors.textSecondary : '#4B5563'),
+                }}
               >
-                <Text
-                  className={`text-sm font-semibold ${
-                    communitySubtype === chip.value ? 'text-white' : 'text-gray-600'
-                  }`}
-                >
-                  {chip.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                {chip}
+              </Text>
+            </Pressable>
+          ))}
         </ScrollView>
+      </FadeInView>
+
+      {/* Community Subtype Chips */}
+      {isCommunityVault && (
+        <FadeInView delay={120}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="px-4 pb-3"
+            style={{ backgroundColor: isDark ? colors.bgSurface : '#FFFFFF' }}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-[10px] font-bold uppercase tracking-wider mr-2" style={{ color: colors.textTertiary }}>Type:</Text>
+              {COMMUNITY_SUBTYPE_CHIPS.map((chip) => (
+                <Pressable
+                  key={chip.value}
+                  onPress={() => setCommunitySubtype(chip.value)}
+                  className="mr-2 px-4 py-1.5 rounded-full"
+                  style={{
+                    backgroundColor: communitySubtype === chip.value
+                      ? '#059669'
+                      : (isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6'),
+                  }}
+                >
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{
+                      color: communitySubtype === chip.value
+                        ? '#FFFFFF'
+                        : (isDark ? colors.textSecondary : '#4B5563'),
+                    }}
+                  >
+                    {chip.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </ScrollView>
+        </FadeInView>
       )}
 
       {/* Property Grid */}
@@ -194,12 +220,13 @@ export default function MarketplaceScreen() {
         ListHeaderComponent={
           <View>
             {/* Vault-aware hero with gradient + carousel */}
-            <LinearGradient
-              colors={hero.gradientColors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="rounded-2xl px-4 py-5 mb-4 -mx-1"
-            >
+            <FadeInView delay={180}>
+              <LinearGradient
+                colors={hero.gradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="rounded-2xl px-4 py-5 mb-4 -mx-1"
+              >
               {/* Badge */}
               <View className="flex-row items-center gap-1.5 mb-2">
                 <View
@@ -228,12 +255,13 @@ export default function MarketplaceScreen() {
               </Text>
 
               {/* Carousel */}
-              <ShieldHeroCarousel />
-            </LinearGradient>
+                <ShieldHeroCarousel />
+              </LinearGradient>
+            </FadeInView>
 
             {isLoading ? (
               <View className="items-center py-10">
-                <ActivityIndicator size="large" color="#5B4FCF" />
+                <ActivityIndicator size="large" color={isDark ? colors.gold : '#5B4FCF'} />
               </View>
             ) : null}
           </View>
@@ -247,47 +275,61 @@ export default function MarketplaceScreen() {
             />
           ) : null
         }
-        renderItem={({ item }) => (
-          <Link href={`/property/${item.slug}`} asChild>
-            <Pressable className="flex-1 bg-white rounded-xl overflow-hidden shadow-sm">
-              {item.coverImage ? (
-                <Image
-                  source={{ uri: item.coverImage }}
-                  className="w-full h-28"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="w-full h-28 bg-gray-200 items-center justify-center">
-                  <Ionicons name="image-outline" size={24} color="#9CA3AF" />
-                </View>
-              )}
-              <View className="absolute top-2 left-2">
-                <Badge variant="purple" size="xs">{item.assetType}</Badge>
-              </View>
-              <View className="p-3">
-                <Text className="text-gray-900 font-bold text-xs" numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text className="text-gray-400 text-[10px]">{item.city}</Text>
-                <View className="flex-row mt-2 gap-3">
-                  <View>
-                    <Text className="text-[9px] text-gray-400">IRR</Text>
-                    <Text className="text-emerald-600 font-bold text-xs">{item.targetIrr}%</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[9px] text-gray-400">Min</Text>
-                    <Text className="text-gray-900 font-bold text-xs">{formatINR(item.minInvestment)}</Text>
-                  </View>
-                </View>
-                <View className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <View
-                    className="h-full bg-primary rounded-full"
-                    style={{ width: `${item.fundingPercentage}%` }}
+        renderItem={({ item, index }) => (
+          <FadeInView delay={220 + index * 40}>
+            <Link href={`/property/${item.slug}`} asChild>
+              <Pressable
+                className="flex-1 rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: isDark ? colors.bgSurface : '#FFFFFF',
+                  borderWidth: isDark ? 1 : 0,
+                  borderColor: colors.cardBorder,
+                  shadowColor: isDark ? '#D4AF37' : '#000',
+                  shadowOpacity: isDark ? 0.05 : 0.06,
+                  shadowRadius: isDark ? 10 : 4,
+                  shadowOffset: { width: 0, height: 2 },
+                  elevation: 2,
+                }}
+              >
+                {item.coverImage ? (
+                  <Image
+                    source={{ uri: item.coverImage }}
+                    className="w-full h-28"
+                    resizeMode="cover"
                   />
+                ) : (
+                  <View className="w-full h-28 items-center justify-center" style={{ backgroundColor: isDark ? colors.bgCard : '#E5E7EB' }}>
+                    <Ionicons name="image-outline" size={24} color={isDark ? colors.textTertiary : '#9CA3AF'} />
+                  </View>
+                )}
+                <View className="absolute top-2 left-2">
+                  <Badge variant="purple" size="xs">{item.assetType}</Badge>
                 </View>
-              </View>
-            </Pressable>
-          </Link>
+                <View className="p-3">
+                  <Text className="font-bold text-xs" numberOfLines={1} style={{ color: colors.textPrimary, fontFamily: 'BricolageGrotesque-Bold' }}>
+                    {item.title}
+                  </Text>
+                  <Text className="text-[10px]" style={{ color: colors.textTertiary }}>{item.city}</Text>
+                  <View className="flex-row mt-2 gap-3">
+                    <View>
+                      <Text className="text-[9px]" style={{ color: colors.textTertiary }}>IRR</Text>
+                      <Text className="font-bold text-xs" style={{ color: '#10B981' }}>{item.targetIrr}%</Text>
+                    </View>
+                    <View>
+                      <Text className="text-[9px]" style={{ color: colors.textTertiary }}>Min</Text>
+                      <Text className="font-bold text-xs" style={{ color: colors.textPrimary }}>{formatINR(item.minInvestment)}</Text>
+                    </View>
+                  </View>
+                  <View className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }}>
+                    <View
+                      className="h-full rounded-full"
+                      style={{ width: `${item.fundingPercentage}%`, backgroundColor: isDark ? colors.gold : '#5B4FCF' }}
+                    />
+                  </View>
+                </View>
+              </Pressable>
+            </Link>
+          </FadeInView>
         )}
       />
       </>

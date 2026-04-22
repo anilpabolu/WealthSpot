@@ -1,6 +1,8 @@
 import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { X, ShieldCheck, CheckCircle2 } from 'lucide-react-native'
 import { ASSESSMENT_CATEGORIES, iconForCategory } from '../../lib/assessments'
+import { useThemeStore } from '../../stores/theme.store'
+import { getThemeColors } from '../../lib/theme'
 
 interface ShieldInfoSheetProps {
   visible: boolean
@@ -23,6 +25,10 @@ const ACCENT_HEX: Record<string, string> = {
  * numbered badges, descriptions, and sub-item chips.
  */
 export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInfoSheetProps) {
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
+
   return (
     <Modal
       visible={visible}
@@ -30,9 +36,9 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-white">
+      <View className="flex-1" style={{ backgroundColor: isDark ? colors.bgBase : '#FFFFFF' }}>
         {/* Header */}
-        <View className="px-5 py-4 border-b border-gray-100 bg-emerald-50">
+        <View className="px-5 py-4" style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6', backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : '#ECFDF5' }}>
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <View className="flex-row items-center gap-1.5 mb-1">
@@ -41,15 +47,15 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
                   WealthSpot Shield
                 </Text>
               </View>
-              <Text className="text-lg font-bold text-gray-900">
+              <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
                 7 layers of trust
               </Text>
-              <Text className="text-xs text-gray-500 mt-0.5 leading-4">
+              <Text className="text-xs mt-0.5 leading-4" style={{ color: colors.textSecondary }}>
                 Every opportunity is independently verified before listing.
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} className="p-2">
-              <X size={20} color="#94a3b8" />
+              <X size={20} color={isDark ? '#CBD5E1' : '#94a3b8'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -65,8 +71,9 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
             return (
               <View key={cat.code} className="mb-4">
                 <View
-                  className={`rounded-xl p-4 bg-gray-50 ${isLeft ? 'mr-4' : 'ml-4'}`}
+                  className={`rounded-xl p-4 ${isLeft ? 'mr-4' : 'ml-4'}`}
                   style={{
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
                     [isLeft ? 'borderLeftWidth' : 'borderRightWidth']: 3,
                     [isLeft ? 'borderLeftColor' : 'borderRightColor']: hex,
                     ...(highlight ? { borderWidth: 2, borderColor: hex, backgroundColor: `${hex}08` } : {}),
@@ -89,8 +96,8 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
                       <Icon size={16} color={hex} />
                     </View>
                     <View className={`flex-1 ${isLeft ? '' : 'items-end'}`}>
-                      <Text className="text-sm font-bold text-gray-900">{cat.name}</Text>
-                      <Text className="text-[10px] uppercase tracking-wider text-gray-400">
+                      <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>{cat.name}</Text>
+                      <Text className="text-[10px] uppercase tracking-wider" style={{ color: colors.textTertiary }}>
                         Verified by{' '}
                         {cat.performedBy === 'law_firm'
                           ? 'Law Firm'
@@ -102,7 +109,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
                   </View>
 
                   {/* Description */}
-                  <Text className={`text-xs text-gray-600 leading-5 mt-2 ${isLeft ? '' : 'text-right'}`}>
+                  <Text className={`text-xs leading-5 mt-2 ${isLeft ? '' : 'text-right'}`} style={{ color: colors.textSecondary }}>
                     {cat.fullDescription}
                   </Text>
 
@@ -111,10 +118,11 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
                     {cat.subItems.map((s) => (
                       <View
                         key={s.code}
-                        className="flex-row items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-gray-200"
+                        className="flex-row items-center gap-1 px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E5E7EB' }}
                       >
                         <CheckCircle2 size={9} color={hex} />
-                        <Text className="text-[10px] text-gray-600 font-medium">{s.label}</Text>
+                        <Text className="text-[10px] font-medium" style={{ color: colors.textSecondary }}>{s.label}</Text>
                       </View>
                     ))}
                   </View>
@@ -132,7 +140,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
           })}
 
           <View className="py-3 mb-6">
-            <Text className="text-[11px] text-gray-400 text-center">
+            <Text className="text-[11px] text-center" style={{ color: colors.textTertiary }}>
               All assessments refreshed quarterly. Documents independently verified.
             </Text>
           </View>

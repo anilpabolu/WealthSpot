@@ -11,6 +11,8 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated'
 import { useEffect } from 'react'
+import { useThemeStore } from '@/stores/theme.store'
+import { getThemeColors } from '@/lib/theme'
 
 interface ToggleProps {
   checked: boolean
@@ -21,10 +23,11 @@ interface ToggleProps {
 }
 
 const SPRING = { damping: 15, stiffness: 200, mass: 0.5 }
-const PRIMARY = '#5B4FCF'
-const GRAY = '#D1D5DB'
 
 export function Toggle({ checked, onChange, label, size = 'md', disabled = false }: ToggleProps) {
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
   const progress = useSharedValue(checked ? 1 : 0)
 
   useEffect(() => {
@@ -35,9 +38,11 @@ export function Toggle({ checked, onChange, label, size = 'md', disabled = false
   const trackH = size === 'sm' ? 18 : 22
   const knobSize = size === 'sm' ? 14 : 18
   const travel = trackW - knobSize - 4
+  const trackOff = isDark ? 'rgba(255,255,255,0.2)' : '#D1D5DB'
+  const trackOn = isDark ? colors.gold : '#5B4FCF'
 
   const trackStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(progress.value, [0, 1], [GRAY, PRIMARY]),
+    backgroundColor: interpolateColor(progress.value, [0, 1], [trackOff, trackOn]),
   }))
 
   const knobStyle = useAnimatedStyle(() => ({
@@ -69,7 +74,7 @@ export function Toggle({ checked, onChange, label, size = 'md', disabled = false
         />
       </Animated.View>
       {label && (
-        <Text className="text-sm text-gray-600">{label}</Text>
+        <Text className="text-sm" style={{ color: colors.textSecondary }}>{label}</Text>
       )}
     </Pressable>
   )

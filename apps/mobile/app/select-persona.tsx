@@ -8,6 +8,8 @@ import { View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from 'rea
 import { useRouter } from 'expo-router'
 import { apiPost } from '../src/lib/api'
 import { useUserStore } from '../src/stores/user.store'
+import { useThemeStore } from '../src/stores/theme.store'
+import { getThemeColors } from '../src/lib/theme'
 
 const PERSONAS = [
   { id: 'investor', label: 'Investor', desc: 'Invest in fractional real estate', emoji: '💰' },
@@ -17,6 +19,9 @@ const PERSONAS = [
 export default function SelectPersonaScreen() {
   const router = useRouter()
   const { user, setUser } = useUserStore()
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
   const [selected, setSelected] = useState<string[]>([])
   const [primary, setPrimary] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -53,9 +58,9 @@ export default function SelectPersonaScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 60, paddingBottom: 40 }}>
-      <Text className="text-2xl font-bold text-gray-900 mb-2">Choose your persona</Text>
-      <Text className="text-sm text-gray-500 mb-6">Select one or more roles. Tap again to set as primary.</Text>
+    <ScrollView className="flex-1" style={{ backgroundColor: colors.bgBase }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 60, paddingBottom: 40 }}>
+      <Text className="text-2xl font-bold mb-2" style={{ color: colors.textPrimary, fontFamily: 'BricolageGrotesque-Bold' }}>Choose your persona</Text>
+      <Text className="text-sm mb-6" style={{ color: colors.textSecondary }}>Select one or more roles. Tap again to set as primary.</Text>
 
       {PERSONAS.map((p) => {
         const isSelected = selected.includes(p.id)
@@ -65,48 +70,51 @@ export default function SelectPersonaScreen() {
             key={p.id}
             onPress={() => toggle(p.id)}
             onLongPress={() => isSelected && setPrimary(p.id)}
-            className={`border rounded-xl p-4 mb-3 flex-row items-center ${
-              isSelected ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white'
-            }`}
+            className="border rounded-xl p-4 mb-3 flex-row items-center"
+            style={{
+              borderColor: isSelected
+                ? (isDark ? colors.gold : '#8B5CF6')
+                : (isDark ? colors.borderSubtle : '#E5E7EB'),
+              backgroundColor: isSelected
+                ? (isDark ? 'rgba(212,175,55,0.12)' : '#F5F3FF')
+                : (isDark ? colors.bgSurface : '#FFFFFF'),
+            }}
           >
             <Text className="text-3xl mr-4">{p.emoji}</Text>
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
-                <Text className="text-base font-semibold text-gray-900">{p.label}</Text>
+                <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>{p.label}</Text>
                 {isPrimary && (
-                  <View className="bg-violet-500 px-2 py-0.5 rounded-full">
-                    <Text className="text-white text-[10px] font-bold">PRIMARY</Text>
+                  <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: isDark ? colors.gold : '#8B5CF6' }}>
+                    <Text className="text-[10px] font-bold" style={{ color: isDark ? '#0c0a1f' : '#FFFFFF' }}>PRIMARY</Text>
                   </View>
                 )}
               </View>
-              <Text className="text-xs text-gray-500 mt-0.5">{p.desc}</Text>
+              <Text className="text-xs mt-0.5" style={{ color: colors.textSecondary }}>{p.desc}</Text>
             </View>
-            <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-              isSelected ? 'border-violet-500 bg-violet-500' : 'border-gray-300'
-            }`}>
-              {isSelected && <Text className="text-white text-xs font-bold">✓</Text>}
+            <View className="w-6 h-6 rounded-full border-2 items-center justify-center" style={{ borderColor: isSelected ? (isDark ? colors.gold : '#8B5CF6') : (isDark ? 'rgba(255,255,255,0.25)' : '#D1D5DB'), backgroundColor: isSelected ? (isDark ? colors.gold : '#8B5CF6') : 'transparent' }}>
+              {isSelected && <Text className="text-xs font-bold" style={{ color: isDark ? '#0c0a1f' : '#FFFFFF' }}>✓</Text>}
             </View>
           </Pressable>
         )
       })}
 
       {selected.includes('builder') && (
-        <View className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-          <Text className="text-xs text-amber-700">Builder access requires admin approval. You can use investor features while waiting.</Text>
+        <View className="border rounded-xl p-3 mb-4" style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.12)' : '#FFFBEB', borderColor: isDark ? 'rgba(245,158,11,0.3)' : '#FDE68A' }}>
+          <Text className="text-xs" style={{ color: isDark ? '#FCD34D' : '#B45309' }}>Builder access requires admin approval. You can use investor features while waiting.</Text>
         </View>
       )}
 
       <Pressable
         onPress={handleContinue}
         disabled={selected.length === 0 || loading}
-        className={`mt-4 py-3 rounded-xl items-center ${
-          selected.length > 0 ? 'bg-violet-600' : 'bg-gray-300'
-        }`}
+        className="mt-4 py-3 rounded-xl items-center"
+        style={{ backgroundColor: selected.length > 0 ? (isDark ? colors.gold : '#7C3AED') : (isDark ? 'rgba(255,255,255,0.15)' : '#D1D5DB') }}
       >
         {loading ? (
-          <ActivityIndicator color="white" />
+          <ActivityIndicator color={isDark ? '#0c0a1f' : '#FFFFFF'} />
         ) : (
-          <Text className="text-white font-semibold">Continue</Text>
+          <Text className="font-semibold" style={{ color: isDark ? '#0c0a1f' : '#FFFFFF' }}>Continue</Text>
         )}
       </Pressable>
     </ScrollView>

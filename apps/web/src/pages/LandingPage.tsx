@@ -5,6 +5,8 @@ import { usePlatformStats } from '@/hooks/usePlatformStats'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
+import ParticleCanvas from '@/components/ui/ParticleCanvas'
+import GradientMesh from '@/components/ui/GradientMesh'
 import {
   TrendingUp,
   Users,
@@ -59,6 +61,9 @@ function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center">
+      {/* Particle + Gradient overlays */}
+      <ParticleCanvas className="opacity-60" />
+      <GradientMesh />
       {/* Subtle ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
@@ -68,14 +73,14 @@ function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left — Hero copy */}
           <div className="space-y-6">
-            <span className="page-hero-badge">
+            <span className="page-hero-badge animate-fade-up" style={{ animationDelay: '0.1s' }}>
               <Zap className="h-3.5 w-3.5 inline mr-1.5" />
               {heroBadge}
             </span>
-            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight animate-fade-up" style={{ animationDelay: '0.2s' }}>
               {heroTitle}
             </h1>
-            <p className="text-lg text-white/70 max-w-lg leading-relaxed font-body">
+            <p className="text-lg text-white/70 max-w-lg leading-relaxed font-body animate-fade-up" style={{ animationDelay: '0.3s' }}>
               {heroSubtitle}
             </p>
             <p className="text-[15px] text-white/50 italic max-w-lg leading-relaxed font-body">
@@ -84,10 +89,10 @@ function HeroSection() {
           </div>
 
           {/* Right — Thesis panel */}
-          <div className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-8 space-y-6">
+          <div className="relative overflow-hidden rounded-3xl border border-[var(--frame-border)] p-8 space-y-6 animate-float">
             {/* Warm gradient bg */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-2xl" />
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-3xl" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-3xl" />
             <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
             <div className="relative z-10 flex items-start justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37]">

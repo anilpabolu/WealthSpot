@@ -3,7 +3,7 @@
  * Synced design language with web stat-card patterns.
  */
 
-import { View, Text } from 'react-native'
+import { View, Text, type ViewStyle } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import type { ReactNode } from 'react'
 
@@ -15,6 +15,7 @@ interface MetricCardProps {
   trendLabel?: string
   icon?: ReactNode
   className?: string
+  style?: ViewStyle
 }
 
 export function MetricCard({
@@ -25,6 +26,7 @@ export function MetricCard({
   trendLabel,
   icon,
   className = '',
+  style,
 }: MetricCardProps) {
   const trendColor =
     trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-red-500' : 'text-gray-400'
@@ -32,7 +34,7 @@ export function MetricCard({
     trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove-outline'
 
   return (
-    <View className={`bg-white rounded-xl border border-gray-200 p-3.5 flex-1 min-w-[140px] ${className}`}>
+    <View className={`bg-white rounded-xl border border-gray-200 p-3.5 flex-1 min-w-[140px] ${className}`} style={style}>
       <View className="flex-row items-center justify-between mb-1.5">
         <Text className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider" numberOfLines={1}>
           {label}

@@ -67,17 +67,17 @@ export default function Navbar(_props?: NavbarProps) {
 
   return (
     <>
-    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0c0a1f]/70 backdrop-blur-xl dark:saturate-[180%] border-b border-black/5 dark:border-white/10 transition-colors duration-300">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/vaults" className="flex items-center gap-2.5 shrink-0" aria-label="WealthSpot Home">
             <Shield className="h-8 w-8 text-indigo-400" />
             <div className="flex flex-col">
-              <span className="font-display text-xl font-bold tracking-tight text-white leading-none">
-                Wealth<span className="text-indigo-400">Spot</span>
+              <span className="font-display text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
+                Wealth<span className="text-indigo-400 dark:text-indigo-400">Spot</span>
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/40 leading-none mt-0.5">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-white/40 leading-none mt-0.5">
                 Private Wealth Access
               </span>
             </div>

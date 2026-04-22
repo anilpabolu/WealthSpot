@@ -7,6 +7,8 @@ import { View, Text, Pressable } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import { Ionicons } from '@expo/vector-icons'
 import type { MatchScore, MatchBreakdown } from '@/hooks/useProfiling'
+import { useThemeStore } from '@/stores/theme.store'
+import { getThemeColors } from '@/lib/theme'
 
 /* ─── Vault Color Maps ────────────────────────────────────────────────── */
 
@@ -58,6 +60,9 @@ function ScoreRing({
   strokeWidth?: number
   vaultType?: string
 }) {
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
@@ -72,7 +77,7 @@ function ScoreRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#F3F4F6"
+          stroke={isDark ? 'rgba(255,255,255,0.14)' : '#F3F4F6'}
           strokeWidth={strokeWidth}
         />
         <Circle
@@ -88,7 +93,7 @@ function ScoreRing({
         />
       </Svg>
       <View className="absolute inset-0 items-center justify-center">
-        <Text className="text-xs font-bold text-gray-800">{Math.round(score)}</Text>
+        <Text className="text-xs font-bold" style={{ color: colors.textPrimary }}>{Math.round(score)}</Text>
       </View>
     </View>
   )
@@ -153,6 +158,9 @@ export function MatchScoreFull({
   score: MatchScore
   vaultType?: string
 }) {
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
   const tier = getTier(score.overallScore)
   const breakdown = score.breakdown as MatchBreakdown | null
   const bgColor = vaultType ? (VAULT_BG[vaultType] ?? tier.bg) : tier.bg
@@ -165,7 +173,7 @@ export function MatchScoreFull({
     : []
 
   return (
-    <View className="rounded-3xl p-5" style={{ backgroundColor: bgColor }}>
+    <View className="rounded-3xl p-5" style={{ backgroundColor: isDark ? colors.bgSurface : bgColor }}>
       {/* Header */}
       <View className="flex-row items-center gap-4 mb-4">
         <ScoreRing score={score.overallScore} size={64} strokeWidth={5} vaultType={vaultType} />
@@ -177,7 +185,7 @@ export function MatchScoreFull({
             </Text>
           </View>
           {breakdown?.note && (
-            <Text className="text-xs text-gray-500 mt-1">{breakdown.note}</Text>
+            <Text className="text-xs mt-1" style={{ color: colors.textSecondary }}>{breakdown.note}</Text>
           )}
           {/* Archetype compatibility */}
           {score.archetypeCompatibility && (
@@ -199,7 +207,7 @@ export function MatchScoreFull({
       {/* Dimension bars */}
       {topDims.length > 0 && (
         <View className="mb-4">
-          <Text className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">
+          <Text className="text-[10px] font-bold uppercase tracking-wider mb-2.5" style={{ color: colors.textTertiary }}>
             HOW YOU MATCH
           </Text>
           {topDims.map(([key, value]) => {
@@ -209,14 +217,14 @@ export function MatchScoreFull({
                 <Text className="text-sm">{dimMeta?.emoji ?? '📊'}</Text>
                 <View className="flex-1">
                   <View className="flex-row items-center justify-between mb-1">
-                    <Text className="text-[11px] font-semibold text-gray-700 capitalize">
+                    <Text className="text-[11px] font-semibold capitalize" style={{ color: colors.textSecondary }}>
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </Text>
-                    <Text className="text-[11px] font-bold text-gray-900">
+                    <Text className="text-[11px] font-bold" style={{ color: colors.textPrimary }}>
                       {Math.round(value)}%
                     </Text>
                   </View>
-                  <View className="h-2 rounded-full bg-white overflow-hidden">
+                  <View className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#FFFFFF' }}>
                     <View
                       className="h-full rounded-full"
                       style={{
@@ -280,6 +288,9 @@ export function ProfilePrompt({
   onPress?: () => void
   completionPct?: number
 }) {
+  const resolved = useThemeStore((s) => s.resolved)
+  const isDark = resolved === 'dark'
+  const colors = getThemeColors(isDark)
   const config: Record<string, { label: string; emoji: string; primary: string; bg: string }> = {
     wealth: { label: 'Wealth', emoji: '🏛️', primary: '#1B2A4A', bg: '#F5F0E1' },
     opportunity: { label: 'Opportunity', emoji: '🚀', primary: '#FF6B6B', bg: '#FFF0F0' },
@@ -290,14 +301,18 @@ export function ProfilePrompt({
 
   return (
     <View
-      className="rounded-3xl border border-gray-200 p-5 items-center"
-      style={{ backgroundColor: vc.bg }}
+      className="rounded-3xl p-5 items-center"
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : vc.bg,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB',
+      }}
     >
       <Text className="text-3xl mb-2">{vc.emoji}</Text>
-      <Text className="text-base font-bold text-gray-900 mb-1 text-center">
+      <Text className="text-base font-bold mb-1 text-center" style={{ color: colors.textPrimary }}>
         {hasProgress ? `Continue Your ${vc.label} Profile` : `Complete Your ${vc.label} Profile`}
       </Text>
-      <Text className="text-xs text-gray-500 text-center mb-3">
+      <Text className="text-xs text-center mb-3" style={{ color: colors.textSecondary }}>
         {hasProgress
           ? `${Math.round(completionPct)}% complete — pick up where you left off!`
           : 'Answer a few fun questions to find your match!'}
@@ -305,7 +320,7 @@ export function ProfilePrompt({
 
       {/* Progress bar */}
       {hasProgress && (
-        <View className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mb-3">
+        <View className="w-full h-1.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : '#E5E7EB' }}>
           <View
             className="h-full rounded-full"
             style={{ width: `${completionPct}%`, backgroundColor: vc.primary }}
