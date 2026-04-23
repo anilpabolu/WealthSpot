@@ -3,7 +3,23 @@
  */
 
 import { create } from 'zustand'
+import { devtools, persist, createJSONStorage } from 'zustand/middleware'
+import { MMKV } from 'react-native-mmkv'
 import type { UserRole } from '../lib/constants'
+
+const storage = new MMKV()
+const mmkvZustandStorage = {
+  setItem: (name: string, value: string) => {
+    return storage.set(name, value)
+  },
+  getItem: (name: string) => {
+    const value = storage.getString(name)
+    return value ?? null
+  },
+  removeItem: (name: string) => {
+    return storage.delete(name)
+  },
+}
 
 export interface UserProfile {
   id: string
@@ -20,6 +36,9 @@ export interface UserProfile {
   referralCode: string
   wealthPassActive: boolean
   createdAt: string
+  emailVerified?: boolean
+  phoneVerified?: boolean
+  profileCompletionPct?: number
 }
 
 interface UserState {
@@ -32,22 +51,38 @@ interface UserState {
   updateKycStatus: (status: string) => void
 }
 
-export const useUserStore = create<UserState>((set) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
+export const useUserStore = create<UserState>()(
+  devtools(
+    persist(
+      (set) => ({
+        user: null,
+        token: null,
+        isAuthenticated: false,
 
-  setUser: (user) =>
-    set({ user, isAuthenticated: true }),
+        setUser: (user) =>
+          set({ user, isAuthenticated: true }),
 
-  setToken: (token) =>
-    set({ token }),
+        setToken: (token) =>
+          set({ token }),
 
-  logout: () =>
-    set({ user: null, token: null, isAuthenticated: false }),
+        logout: () =>
+          set({ user: null, token: null, isAuthenticated: false }),
 
-  updateKycStatus: (kycStatus) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, kycStatus } : null,
-    })),
-}))
+        updateKycStatus: (kycStatus) =>
+          set((state) => ({
+            user: state.user ? { ...state.user, kycStatus } : null,
+          })),
+      }),
+      {
+        name: 'ws-mobile-user-store',
+        storage: createJSONStorage(() => mmkvZustandStorage),
+        partialize: (state) => ({
+          user: state.user,
+          token: state.token,
+          isAuthenticated: state.isAuthenticated,
+        }),
+      }
+    ),
+    { name: 'UserStoreMobile' }
+  )
+)

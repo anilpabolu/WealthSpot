@@ -3,13 +3,14 @@
  * Amount input → review → payment → confirmation.
  */
 
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Platform, NativeModules, Alert } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { useInitiateInvestment, useConfirmPayment } from '@/hooks/useInvestment'
 import { useProperty } from '@/hooks/useProperties'
+import { useUserStore } from '@/stores/user.store'
 import { Input } from '@/components/ui'
 
 const STEPS = ['Amount', 'Review', 'Payment', 'Confirm']
@@ -19,6 +20,7 @@ export default function InvestScreen() {
   const { data: property, isLoading: propertyLoading } = useProperty(id as string)
   const initiateMutation = useInitiateInvestment()
   const confirmMutation = useConfirmPayment()
+  const user = useUserStore((s) => s.user)
 
   const [step, setStep] = useState(0)
   const [amount, setAmount] = useState('')
@@ -42,16 +44,51 @@ export default function InvestScreen() {
         amount: totalAmount,
         units,
       })
-      // In production, launch Razorpay SDK with order.razorpayOrderId / order.key
-      // For now, auto-confirm (replace with real Razorpay integration)
-      await confirmMutation.mutateAsync({
-        orderId: order.orderId,
-        razorpayPaymentId: `pay_${Date.now()}`,
-        razorpaySignature: 'mock_signature',
-      })
-      setStep(3) // success
+
+      // Try initiating native Razorpay if available
+      const { RazorpayCheckout } = NativeModules
+
+      if (Platform.OS !== 'web' && RazorpayCheckout) {
+        const options = {
+          description: `Investment in ${property.title}`,
+          image: property.coverImage || 'https://wealthspot.in/logo.png',
+          currency: order.currency || 'INR',
+          key: order.key,
+          amount: Math.round(order.amount * 100), // convert to paise if not already
+          name: 'WealthSpot',
+          order_id: order.razorpayOrderId,
+          prefill: {
+            email: user?.email || '',
+            contact: user?.phone || '',
+            name: user?.name || '',
+          },
+          theme: { color: '#0f172a' } // WealthSpot primary theme
+        }
+        
+        try {
+          const params = await RazorpayCheckout.open(options);
+          // Wait for backend confirmation
+          await confirmMutation.mutateAsync({
+            orderId: order.orderId,
+            razorpayPaymentId: params.razorpay_payment_id,
+            razorpaySignature: params.razorpay_signature,
+          })
+          setStep(3);
+        } catch (error: any) {
+             Alert.alert("Payment Cancelled or Failed", error?.description || "Something went wrong.");
+        }
+      } else {
+        // Fallback for Web/Expo Go (Mock Success)
+        await confirmMutation.mutateAsync({
+          orderId: order.orderId,
+          razorpayPaymentId: `pay_${Date.now()}`,
+          razorpaySignature: 'mock_signature',
+        })
+        setStep(3) // success
+      }
     } catch {
-      // Payment failed - stay on payment step
+      // Overall network / init failure
+      Alert.alert("Error", "Failed to initiate payment. Please try again.");
     } finally {
       setProcessing(false)
     }

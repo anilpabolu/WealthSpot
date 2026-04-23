@@ -316,7 +316,7 @@ async def bulk_save_assessments(
                 )
             )
 
-    await db.commit()
+    await db.flush()
     return await _load_summary(db, opp_id, user)
 
 
@@ -381,7 +381,7 @@ async def review_assessment(
             )
         )
 
-    await db.commit()
+    await db.flush()
     return await _load_summary(db, opp_id, reviewer)
 
 
@@ -404,7 +404,7 @@ async def create_risk_flag(
         created_by=reviewer.id,
     )
     db.add(flag)
-    await db.commit()
+    await db.flush()
     await db.refresh(flag)
     return OpportunityRiskFlagRead.model_validate(flag)
 
@@ -429,7 +429,7 @@ async def delete_risk_flag(
     if not row:
         raise HTTPException(status_code=404, detail="Risk flag not found")
     await db.delete(row)
-    await db.commit()
+    await db.flush()
     return {"deleted": True, "id": risk_id}
 
 

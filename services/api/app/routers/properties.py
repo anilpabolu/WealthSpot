@@ -186,8 +186,7 @@ async def list_properties(
         )
 
     # Count
-    count_query = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_query)).scalar() or 0
+    total = (await db.execute(query.with_only_columns(func.count()).order_by(None))).scalar() or 0
 
     # Sort
     if sort_by == "irr_high":
@@ -382,7 +381,7 @@ async def update_my_builder_profile(
     for key, value in update_data.items():
         setattr(builder, key, value)
 
-    await db.commit()
+    await db.flush()
     await db.refresh(builder)
 
     props_q = (

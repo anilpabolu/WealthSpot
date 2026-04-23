@@ -317,7 +317,7 @@ async def review_approval(
 
     # Explicit commit to ensure all sync changes are persisted before the
     # response reaches the client (prevents race with frontend cache refetch).
-    await db.commit()
+    await db.flush()
     await db.refresh(approval)
     return ApprovalRead.model_validate(approval)
 

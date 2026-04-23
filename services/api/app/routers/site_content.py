@@ -147,7 +147,7 @@ async def create_content(
         updated_by=admin.id,
     )
     db.add(entry)
-    await db.commit()
+    await db.flush()
     await db.refresh(entry)
     return ContentOut(
         id=str(entry.id),
@@ -180,7 +180,7 @@ async def update_content(
         entry.is_active = body.is_active
     entry.updated_by = admin.id
 
-    await db.commit()
+    await db.flush()
     await db.refresh(entry)
     return ContentOut(
         id=str(entry.id),
@@ -204,5 +204,5 @@ async def delete_content(
     if not entry:
         raise HTTPException(status_code=404, detail="Content not found")
     await db.delete(entry)
-    await db.commit()
+    await db.flush()
     return {"deleted": True, "id": content_id}

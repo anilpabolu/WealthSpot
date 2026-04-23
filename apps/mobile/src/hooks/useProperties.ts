@@ -1,12 +1,8 @@
-/**
- * useProperties – React Query hooks for property data.
- * Mirrors web's useProperties.ts.
- */
-
 import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '../lib/api'
-import type { MarketplaceFilters } from '../stores/marketplace.store'
+import { apiGet } from '@/lib/api'
+import type { MarketplaceFilters } from '@/stores/marketplace.store'
 
+/** Shape returned by the API after snake_case→camelCase auto-conversion */
 interface ApiProperty {
   id: string
   slug: string
@@ -43,7 +39,6 @@ interface ApiProperty {
   referrerPhone?: string
   referrerUserId?: string
   documents?: Record<string, unknown>
-  vaultType?: string
   builder?: {
     id: string
     companyName: string
@@ -64,6 +59,25 @@ interface ApiProperty {
   launchDate?: string
   createdAt: string
   updatedAt?: string
+}
+
+/** Frontend-friendly property shape used throughout the app */
+export interface PropertyBuilder {
+  id: string
+  companyName: string
+  reraNumber?: string
+  logoUrl?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experienceYears?: number
+  projectsCompleted?: number
+  totalSqftDelivered?: number
+  about?: string
+  description?: string
+  website?: string
 }
 
 export interface Property {
@@ -87,10 +101,14 @@ export interface Property {
   investorCount: number
   status: string
   reraNumber: string
+  rentalYield?: number
+  areaSqft?: number
+  possessionDate?: string
+  vaultType?: string
   builderId: string
   builderName: string
   builderLogo: string
-  builder: ApiProperty['builder'] | null
+  builder: PropertyBuilder | null
   fundingPercentage: number
   amenities: string[]
   highlights: string[]
@@ -99,14 +117,11 @@ export interface Property {
   referrerName: string
   referrerPhone: string
   referrerUserId: string
-  rentalYield: number
-  areaSqft: number
-  possessionDate: string
   documents: Array<{ name: string; url: string; type: string }>
-  vaultType: string
   createdAt: string
 }
 
+/** Map API property to the frontend Property shape */
 function mapProperty(p: ApiProperty): Property {
   return {
     id: p.id,
@@ -117,7 +132,7 @@ function mapProperty(p: ApiProperty): Property {
     micromarket: p.locality ?? '',
     address: p.address ?? '',
     assetType: p.assetType,
-    coverImage: p.coverImage ?? '',
+    coverImage: p.coverImage ?? '/placeholder-property.svg',
     gallery: p.gallery ?? [],
     targetIrr: Number(p.targetIrr),
     minInvestment: Number(p.minInvestment),
@@ -129,10 +144,29 @@ function mapProperty(p: ApiProperty): Property {
     investorCount: p.investorCount,
     status: p.status,
     reraNumber: p.reraId ?? '',
+    rentalYield: p.rentalYield,
+    areaSqft: p.areaSqft,
+    possessionDate: p.possessionDate,
     builderId: p.builder?.id ?? '',
     builderName: p.builder?.companyName ?? '',
     builderLogo: p.builder?.logoUrl ?? '',
-    builder: p.builder ?? null,
+    builder: p.builder ? {
+      id: p.builder.id,
+      companyName: p.builder.companyName,
+      reraNumber: p.builder.reraNumber,
+      logoUrl: p.builder.logoUrl,
+      verified: p.builder.verified,
+      phone: p.builder.phone,
+      email: p.builder.email,
+      address: p.builder.address,
+      city: p.builder.city,
+      experienceYears: p.builder.experienceYears,
+      projectsCompleted: p.builder.projectsCompleted,
+      totalSqftDelivered: p.builder.totalSqftDelivered,
+      about: p.builder.about,
+      description: p.builder.description,
+      website: p.builder.website,
+    } : null,
     fundingPercentage: p.fundingPercentage,
     amenities: p.amenities ?? [],
     highlights: p.highlights ?? [],
@@ -141,11 +175,7 @@ function mapProperty(p: ApiProperty): Property {
     referrerName: p.referrerName ?? '',
     referrerPhone: p.referrerPhone ?? '',
     referrerUserId: p.referrerUserId ?? '',
-    rentalYield: Number(p.rentalYield ?? 0),
-    areaSqft: Number(p.areaSqft ?? 0),
-    possessionDate: p.possessionDate ?? '',
     documents: [],
-    vaultType: p.vaultType ?? 'wealth',
     createdAt: p.createdAt,
   }
 }
@@ -228,5 +258,89 @@ export function usePropertyCities() {
     queryKey: ['properties', 'cities'],
     queryFn: () => apiGet<string[]>('/properties/cities'),
     staleTime: 300_000,
+  })
+}
+
+/** Autocomplete suggestions for the marketplace search bar */
+export interface SearchSuggestion {
+  text: string
+  type: 'property' | 'city' | 'area' | 'builder' | 'referrer'
+  slug?: string
+}
+
+export function usePropertyAutocomplete(query: string) {
+  return useQuery({
+    queryKey: ['properties', 'autocomplete', query],
+    queryFn: () => apiGet<SearchSuggestion[]>('/properties/autocomplete', { params: { q: query } }),
+    enabled: query.length >= 2,
+    staleTime: 30_000,
+  })
+}
+
+/** Full builder profile with their listed properties */
+export interface BuilderProfile {
+  id: string
+  companyName: string
+  reraNumber?: string
+  logoUrl?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experienceYears?: number
+  projectsCompleted?: number
+  totalSqftDelivered?: number
+  about?: string
+  description?: string
+  website?: string
+  properties: Property[]
+}
+
+interface ApiBuilderProfile {
+  id: string
+  company_name: string
+  rera_number?: string
+  logo_url?: string
+  verified: boolean
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  experience_years?: number
+  projects_completed?: number
+  total_sqft_delivered?: number
+  about?: string
+  description?: string
+  website?: string
+  properties: ApiProperty[]
+}
+
+export function useBuilderProfile(builderId: string) {
+  return useQuery({
+    queryKey: ['builder', builderId],
+    queryFn: async (): Promise<BuilderProfile> => {
+      const raw = await apiGet<ApiBuilderProfile>(`/properties/builders/${builderId}`)
+      return {
+        id: raw.id,
+        companyName: raw.company_name,
+        reraNumber: raw.rera_number,
+        logoUrl: raw.logo_url,
+        verified: raw.verified,
+        phone: raw.phone,
+        email: raw.email,
+        address: raw.address,
+        city: raw.city,
+        experienceYears: raw.experience_years,
+        projectsCompleted: raw.projects_completed,
+        totalSqftDelivered: raw.total_sqft_delivered,
+        about: raw.about,
+        description: raw.description,
+        website: raw.website,
+        properties: raw.properties.map(mapProperty),
+      }
+    },
+    enabled: !!builderId,
+    staleTime: 120_000,
   })
 }

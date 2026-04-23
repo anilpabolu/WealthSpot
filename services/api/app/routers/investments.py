@@ -46,28 +46,23 @@ async def list_investments(
 ) -> PaginatedInvestments:
     """List user's investments."""
     base = select(Investment).where(Investment.user_id == user.id)
-    total_q = select(func.count()).select_from(base.subquery())
+    total_q = select(func.count()).select_from(Investment).where(Investment.user_id == user.id)
     total = (await db.execute(total_q)).scalar() or 0
 
+    from sqlalchemy.orm import selectinload
     query = (
-        base.order_by(Investment.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        base.options(selectinload(Investment.property))
+        .order_by(Investment.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
     result = await db.execute(query)
     investments = result.scalars().all()
 
-    # Batch-load property names to avoid N+1
-    property_ids = {inv.property_id for inv in investments}
-    prop_map: dict = {}
-    if property_ids:
-        prop_result = await db.execute(
-            select(Property.id, Property.title).where(Property.id.in_(property_ids))
-        )
-        prop_map = {row.id: row.title for row in prop_result.fetchall()}
-
     items: list[InvestmentRead] = []
     for inv in investments:
         item = InvestmentRead.model_validate(inv)
-        item.property_name = prop_map.get(inv.property_id)
+        item.property_name = inv.property.title if inv.property else None
         items.append(item)
 
     return PaginatedInvestments(
@@ -84,7 +79,8 @@ async def investment_summary(
     user: User = Depends(get_current_user),
 ) -> InvestmentSummary:
     """Aggregated investment summary for dashboard."""
-    confirmed = select(Investment).where(
+    from sqlalchemy.orm import selectinload
+    confirmed = select(Investment).options(selectinload(Investment.property)).where(
         Investment.user_id == user.id,
         Investment.status == InvestmentStatus.CONFIRMED,
     )
@@ -92,20 +88,14 @@ async def investment_summary(
     investments = list(result.scalars().all())
 
     total_invested = sum((inv.amount for inv in investments), Decimal("0"))
-    # Compute current value from property-level valuations or NAV
-    # For now use each property's current unit_price vs purchase price
-    property_ids = {inv.property_id for inv in investments}
-    prop_map: dict = {}
-    if property_ids:
-        prop_result = await db.execute(
-            select(Property.id, Property.unit_price).where(Property.id.in_(property_ids))
-        )
-        prop_map = {row.id: row.unit_price for row in prop_result.fetchall()}
-
+    
     current_value = Decimal("0")
+    property_ids = set()
     for inv in investments:
-        current_unit_price = prop_map.get(inv.property_id, inv.unit_price)
+        current_unit_price = inv.property.unit_price if inv.property else inv.unit_price
         current_value += inv.units * current_unit_price
+        if inv.property_id:
+            property_ids.add(inv.property_id)
 
     monthly_income = total_invested * Decimal("0.006")
 
@@ -292,8 +282,11 @@ async def get_investment(
     user: User = Depends(get_current_user),
 ) -> InvestmentRead:
     """Get a single investment by ID."""
+    from sqlalchemy.orm import selectinload
     result = await db.execute(
-        select(Investment).where(
+        select(Investment)
+        .options(selectinload(Investment.property))
+        .where(
             Investment.id == investment_id,
             Investment.user_id == user.id,
         )
@@ -302,11 +295,6 @@ async def get_investment(
     if not investment:
         raise HTTPException(status_code=404, detail="Investment not found")
 
-    prop_result = await db.execute(
-        select(Property.title).where(Property.id == investment.property_id)
-    )
-    prop_row = prop_result.one_or_none()
     item = InvestmentRead.model_validate(investment)
-    if prop_row:
-        item.property_name = prop_row.title
+    item.property_name = investment.property.title if investment.property else None
     return item

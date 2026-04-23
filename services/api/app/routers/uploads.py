@@ -106,7 +106,7 @@ async def upload_opportunity_files(
             }
         )
 
-    await db.commit()
+    await db.flush()
     return results
 
 
@@ -139,7 +139,7 @@ async def upload_company_logo(
     url = get_public_url(key)
 
     company.logo_url = url
-    await db.commit()
+    await db.flush()
 
     return {"url": url}
 
@@ -168,7 +168,7 @@ async def delete_opportunity_media(
             pass  # S3 deletion is best-effort
 
     await db.delete(media)
-    await db.commit()
+    await db.flush()
     return {"deleted": True, "id": media_id}
 
 
@@ -245,7 +245,7 @@ async def admin_upload_opportunity_media(
             }
         )
 
-    await db.commit()
+    await db.flush()
     return results
 
 
@@ -271,7 +271,7 @@ async def update_opportunity_media(
     if sort_order is not None:
         media.sort_order = sort_order
 
-    await db.commit()
+    await db.flush()
     return {"id": str(media.id), "is_cover": media.is_cover, "sort_order": media.sort_order}
 
 
@@ -383,7 +383,7 @@ async def upload_opportunity_documents(
             }
         )
 
-    await db.commit()
+    await db.flush()
     return results
 
 
@@ -468,7 +468,7 @@ async def upload_assessment_document(
                 "subcategory": subcategory,
             }
         )
-    await db.commit()
+    await db.flush()
     return results
 
 

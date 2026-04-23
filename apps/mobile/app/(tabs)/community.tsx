@@ -190,6 +190,7 @@ export default function CommunityScreen() {
       {/* FAB */}
       <FadeInView delay={220}>
         <Pressable
+          onPress={() => router.push('/community/create')}
           className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center"
           style={{
             backgroundColor: isDark ? colors.gold : '#5B4FCF',

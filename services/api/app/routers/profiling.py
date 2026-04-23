@@ -71,7 +71,7 @@ async def record_vault_explorer(
         .on_conflict_do_nothing(constraint="uq_vault_explorer_user_vault")
     )
     await db.execute(stmt)
-    await db.commit()
+    await db.flush()
     return {"ok": True}
 
 
@@ -177,7 +177,7 @@ async def submit_vault_answers(
 
     # Recompute personality dimensions
     await compute_personality(db, user.id, payload.vault_type)
-    await db.commit()
+    await db.flush()
 
     return saved
 
@@ -381,7 +381,7 @@ async def create_opportunity_questions(
         created.append(ocq)
 
     await db.flush()
-    await db.commit()
+    await db.flush()
     return created
 
 
@@ -471,7 +471,7 @@ async def submit_application_answers(
     # Recompute match score
     _vault_type = opp.vault_type.value if hasattr(opp.vault_type, "value") else str(opp.vault_type)
     await compute_match_score(db, user.id, opp.id)
-    await db.commit()
+    await db.flush()
 
     return saved
 
@@ -498,7 +498,7 @@ async def get_my_match_score(
     if not ms:
         # Compute on-the-fly
         ms = await compute_match_score(db, user.id, opportunity_id)
-        await db.commit()
+        await db.flush()
 
     return ms
 
@@ -511,7 +511,7 @@ async def recompute_match_score(
 ):
     """Force recompute match score."""
     ms = await compute_match_score(db, user.id, opportunity_id)
-    await db.commit()
+    await db.flush()
     return ms
 
 

@@ -96,7 +96,7 @@ async def mark_read(
         )
 
     await db.execute(stmt)
-    await db.commit()
+    await db.flush()
     return {"status": "ok"}
 
 
@@ -141,7 +141,7 @@ async def send_enquiry(
         )
         db.add(notif)
 
-    await db.commit()
+    await db.flush()
     return {"status": "ok"}
 
 
@@ -187,6 +187,6 @@ async def update_notification_preferences(
     updates = payload.model_dump(exclude_none=True)
     merged = {**DEFAULT_NOTIFICATION_PREFS, **current, **updates}
     user.notification_preferences = merged
-    await db.commit()
+    await db.flush()
     await db.refresh(user)
     return user.notification_preferences

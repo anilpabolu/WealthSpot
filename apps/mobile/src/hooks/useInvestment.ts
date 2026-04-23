@@ -1,37 +1,8 @@
-/**
- * useInvestment – React Query hooks for investment flow.
- * Mirrors web's useInvestment.ts.
- */
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '../lib/api'
+import { apiGet, apiPost } from '@/lib/api'
+import type { Investment, InvestmentSummary } from '@wealthspot/types'
 
-export interface Investment {
-  id: string
-  propertyId: string
-  propertyTitle: string
-  propertyCity: string
-  propertyImage: string
-  amount: number
-  units: number
-  irr: number
-  status: string
-  paymentStatus: string
-  investedAt: string
-  maturityDate: string
-  currentValue: number
-  returns: number
-  returnPercentage: number
-}
-
-export interface InvestmentSummary {
-  totalInvested: number
-  currentValue: number
-  totalReturns: number
-  avgIrr: number
-  activeInvestments: number
-  propertiesCount: number
-}
+export type { Investment, InvestmentSummary }
 
 interface InvestmentInitiatePayload {
   propertyId: string
@@ -50,7 +21,7 @@ interface PaymentInitiateResponse {
 export function useMyInvestments() {
   return useQuery({
     queryKey: ['investments', 'mine'],
-    queryFn: () => apiGet<Investment[]>('/investments/mine'),
+    queryFn: () => apiGet<Investment[]>('/investments'),
     staleTime: 30_000,
   })
 }
@@ -76,7 +47,7 @@ export function useInitiateInvestment() {
 
   return useMutation({
     mutationFn: (payload: InvestmentInitiatePayload) =>
-      apiPost<PaymentInitiateResponse>('/investments/initiate', payload),
+      apiPost<PaymentInitiateResponse>('/investments', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] })
     },

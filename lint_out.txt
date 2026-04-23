@@ -1,0 +1,140 @@
+
+> wealthspot@1.0.0 lint
+> turbo run lint
+
+ΓÇó turbo 2.8.17
+ΓÇó Packages in scope: @wealthspot/tests, @wealthspot/types, @wealthspot/web, wealthspot-mobile
+ΓÇó Running lint in 4 packages
+ΓÇó Remote caching disabled
+@wealthspot/types:lint: cache hit, replaying logs 8ab7f93fbf23587d
+wealthspot-mobile:lint: cache hit, replaying logs d9a0516b0f0f907b
+@wealthspot/types:lint: 
+wealthspot-mobile:lint: 
+@wealthspot/types:lint: > @wealthspot/types@0.1.0 lint
+wealthspot-mobile:lint: > wealthspot-mobile@1.0.0 lint
+@wealthspot/types:lint: > tsc --noEmit
+wealthspot-mobile:lint: > eslint .
+@wealthspot/types:lint: 
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\app\(tabs)\index.tsx
+wealthspot-mobile:lint:   19:22  warning  'EmptyState' is defined but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\app\(tabs)\marketplace.tsx
+wealthspot-mobile:lint:   74:31  warning  'resetFilters' is assigned a value but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\app\(tabs)\portfolio.tsx
+wealthspot-mobile:lint:   7:10  warning  'Ionicons' is defined but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\app\(tabs)\profile.tsx
+wealthspot-mobile:lint:   30:11  warning  'percentage' is assigned a value but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\app\property\[slug].tsx
+wealthspot-mobile:lint:   7:32  warning  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\nativewind-env.d.ts
+wealthspot-mobile:lint:   29:27  warning  'ItemT' is defined but never used     @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint:   32:30  warning  'ItemT' is defined but never used     @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint:   32:37  warning  'SectionT' is defined but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\components\ui\FadeInView.tsx
+wealthspot-mobile:lint:   39:6  warning  React Hook useEffect has missing dependencies: 'delay', 'duration', 'offset', and 'opacity'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\components\ui\Toggle.tsx
+wealthspot-mobile:lint:   6:27  warning  'View' is defined but never used  @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\useAuth.ts
+wealthspot-mobile:lint:   35:6  warning  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\useControlCentre.ts
+wealthspot-mobile:lint:   114:27  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\usePortfolio.ts
+wealthspot-mobile:lint:   36:20  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   37:21  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   38:19  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\useProfiling.ts
+wealthspot-mobile:lint:    56:12  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   267:16  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\useProperties.ts
+wealthspot-mobile:lint:   120:14  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\hooks\useShield.ts
+wealthspot-mobile:lint:    9:23  warning  'apiPost' is defined but never used                          @typescript-eslint/no-unused-vars
+wealthspot-mobile:lint:   76:14  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\lib\api.ts
+wealthspot-mobile:lint:   46:20  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\services\bff\admin.bff.ts
+wealthspot-mobile:lint:   19:15  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   27:22  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   35:19  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\services\bff\community.bff.ts
+wealthspot-mobile:lint:   31:12  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\services\bff\dashboard.bff.ts
+@wealthspot/web:lint: cache hit, replaying logs 3d902949fc826f3c
+wealthspot-mobile:lint:   24:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint:   31:21  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\services\bff\kyc.bff.ts
+wealthspot-mobile:lint:   10:14  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: C:\Users\repos\WealthSpot\apps\mobile\src\services\bff\portfolio.bff.ts
+wealthspot-mobile:lint:   33:17  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+wealthspot-mobile:lint: 
+wealthspot-mobile:lint: Γ£û 29 problems (0 errors, 29 warnings)
+wealthspot-mobile:lint:   0 errors and 17 warnings potentially fixable with the `--fix` option.
+wealthspot-mobile:lint: 
+@wealthspot/web:lint: 
+@wealthspot/web:lint: > @wealthspot/web@1.0.0 lint
+@wealthspot/web:lint: > eslint .
+@wealthspot/web:lint: 
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\components\CompanyOnboardingModal.tsx
+@wealthspot/web:lint:   95:6  warning  React Hook useCallback has a missing dependency: 'snakeToCamelField'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\components\DiagnosticPanel.tsx
+@wealthspot/web:lint:   55:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint:   74:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\components\VaultComingSoonOverlay.tsx
+@wealthspot/web:lint:   29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\components\share\ShareModal.tsx
+@wealthspot/web:lint:   505:6  warning  React Hook useCallback has missing dependencies: 'loadCoverImage' and 'vaultGlow'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+@wealthspot/web:lint:   728:6  warning  React Hook useCallback has missing dependencies: 'loadCoverImage' and 'vaultGlow'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\components\ui\DataTable.tsx
+@wealthspot/web:lint:   89:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\ApprovalsPage.tsx
+@wealthspot/web:lint:   1067:9  warning  The 'approvals' logical expression could make the dependencies of useMemo Hook (at line 1077) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'approvals' in its own useMemo() Hook  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\BuilderInvestorsPage.tsx
+@wealthspot/web:lint:   13:9  warning  The 'investors' logical expression could make the dependencies of useMemo Hook (at line 18) change on every render. To fix this, wrap the initialization of 'investors' in its own useMemo() Hook  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\CommandControlPage.tsx
+@wealthspot/web:lint:   3163:9  warning  The 'opps' logical expression could make the dependencies of useEffect Hook (at line 3169) change on every render. To fix this, wrap the initialization of 'opps' in its own useMemo() Hook  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\SettingsPage.tsx
+@wealthspot/web:lint:   73:6  warning  React Hook useEffect has a missing dependency: 'validTabs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\VaultProfilingPage.tsx
+@wealthspot/web:lint:   99:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint: 
+@wealthspot/web:lint: C:\Users\repos\WealthSpot\apps\web\src\pages\VaultsPage.tsx
+@wealthspot/web:lint:   252:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint:   344:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+@wealthspot/web:lint: 
+@wealthspot/web:lint: Γ£û 14 problems (0 errors, 14 warnings)
+@wealthspot/web:lint: 
+
+ Tasks:    3 successful, 3 total
+Cached:    3 cached, 3 total
+  Time:    379ms >>> FULL TURBO
+

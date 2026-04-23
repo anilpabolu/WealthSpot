@@ -17,7 +17,7 @@ down_revision = "028_site_content"
 branch_labels = None
 depends_on = None
 
-_SQL = (Path(__file__).resolve().parent.parent.parent / "database" / "029_video_toggle_cms_seed.sql").read_text()
+_SQL = (Path(__file__).resolve().parent.parent.parent / "database" / "029_video_toggle_cms_seed.sql").read_text(encoding="utf-8")
 
 
 def upgrade() -> None:

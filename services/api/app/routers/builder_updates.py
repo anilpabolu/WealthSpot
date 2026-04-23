@@ -88,7 +88,7 @@ async def create_update(
     db.add(update)
     await db.flush()
     await db.refresh(update, attribute_names=["attachments", "creator"])
-    await db.commit()
+    await db.flush()
     return update
 
 
@@ -114,7 +114,7 @@ async def patch_update(
 
     for field, val in body.model_dump(exclude_unset=True).items():
         setattr(upd, field, val)
-    await db.commit()
+    await db.flush()
     await db.refresh(upd, attribute_names=["attachments", "creator"])
     return upd
 
@@ -143,7 +143,7 @@ async def delete_update(
             pass  # best-effort S3 cleanup
 
     await db.delete(upd)
-    await db.commit()
+    await db.flush()
 
 
 # ── Upload attachment ────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ async def upload_attachment(
         size_bytes=len(content),
     )
     db.add(att)
-    await db.commit()
+    await db.flush()
     await db.refresh(att)
     return att
 
@@ -217,4 +217,4 @@ async def delete_attachment(
         pass
 
     await db.delete(att)
-    await db.commit()
+    await db.flush()

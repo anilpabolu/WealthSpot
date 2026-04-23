@@ -1,18 +1,13 @@
-/**
- * useReferrals – referral stats & history hooks.
- * Mirrors web's useReferrals.ts.
- */
-
 import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '../lib/api'
-import { useUserStore } from '../stores/user.store'
+import { apiGet } from '@/lib/api'
+import { useUserStore } from '@/stores/user.store'
 
 export interface ReferralStats {
   referralCode: string
   referralLink: string
   totalReferrals: number
   successfulReferrals: number
-  totalRewards: number
+  totalRewards: number  // paise
 }
 
 export interface ReferralHistoryItem {

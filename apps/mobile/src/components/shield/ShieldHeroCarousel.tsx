@@ -10,7 +10,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import Animated, {
   FadeIn,
-  FadeOut,
   SlideInRight,
   SlideOutLeft,
   Layout,

@@ -210,7 +210,7 @@ async def record_repayment(
     if loan.amount_repaid >= loan.principal:
         loan.status = LoanStatus.REPAID
 
-    await db.commit()
+    await db.flush()
     await db.refresh(loan)
 
     return LoanRead.model_validate(loan)

@@ -1,10 +1,22 @@
 /**
- * useCommunity – React Query hooks for community interactions.
- * Mirrors web's useCommunity.ts.
+ * useCommunity – React Query hooks for all community interactions.
+ *
+ * Endpoints consumed
+ * ──────────────────
+ * GET  /community/posts            list posts (paginated, filtered)
+ * GET  /community/posts/:id        single post
+ * POST /community/posts            create post
+ * GET  /community/posts/:id/replies
+ * POST /community/posts/:id/replies
+ * POST /community/posts/:id/like
+ * POST /community/posts/:id/replies/:rid/like
+ * GET  /community/config           platform config (word limits)
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '../lib/api'
+import { apiGet, apiPost } from '@/lib/api'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export type PostType = 'discussion' | 'question' | 'insight' | 'poll' | 'announcement'
 
@@ -85,6 +97,8 @@ export interface CreateReplyPayload {
   body: string
 }
 
+// ── Query Keys ────────────────────────────────────────────────────────────────
+
 export const communityKeys = {
   all: ['community'] as const,
   posts: (filters: PostFilters) => ['community', 'posts', filters] as const,
@@ -93,6 +107,11 @@ export const communityKeys = {
   config: () => ['community', 'config'] as const,
 }
 
+// ── Hooks ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Paginated list of posts with optional filters.
+ */
 export function useCommunityPosts(filters: PostFilters = {}) {
   const params: Record<string, unknown> = {}
   if (filters.type && filters.type !== ('all' as PostType)) params.type = filters.type
@@ -108,6 +127,9 @@ export function useCommunityPosts(filters: PostFilters = {}) {
   })
 }
 
+/**
+ * Single post by id.
+ */
 export function useCommunityPost(id: string | undefined) {
   return useQuery<CommunityPost>({
     queryKey: communityKeys.post(id ?? ''),
@@ -116,6 +138,9 @@ export function useCommunityPost(id: string | undefined) {
   })
 }
 
+/**
+ * Replies for a post – only fetched when `enabled` is true (i.e. user expands).
+ */
 export function useCommunityReplies(postId: string, enabled = false) {
   return useQuery<CommunityReply[]>({
     queryKey: communityKeys.replies(postId),
@@ -124,14 +149,20 @@ export function useCommunityReplies(postId: string, enabled = false) {
   })
 }
 
+/**
+ * Platform community config (word limits).
+ */
 export function useCommunityConfig() {
   return useQuery<CommunityConfig>({
     queryKey: communityKeys.config(),
     queryFn: () => apiGet<CommunityConfig>('/community/config'),
-    staleTime: 5 * 60_000,
+    staleTime: 5 * 60_000, // 5 min
   })
 }
 
+/**
+ * Create a new post.
+ */
 export function useCreatePost() {
   const qc = useQueryClient()
   return useMutation<CommunityPost, Error, CreatePostPayload>({
@@ -149,6 +180,9 @@ export function useCreatePost() {
   })
 }
 
+/**
+ * Create a reply to a post.
+ */
 export function useCreateReply(postId: string) {
   const qc = useQueryClient()
   return useMutation<CommunityReply, Error, CreateReplyPayload>({
@@ -161,6 +195,9 @@ export function useCreateReply(postId: string) {
   })
 }
 
+/**
+ * Toggle like on a post with optimistic update.
+ */
 export function useLikePost(filters: PostFilters = {}) {
   const qc = useQueryClient()
 
@@ -175,6 +212,7 @@ export function useLikePost(filters: PostFilters = {}) {
       await qc.cancelQueries({ queryKey: key })
       const prev = qc.getQueryData<PaginatedPosts>(key)
 
+      // Optimistic update on the list
       if (prev) {
         qc.setQueryData<PaginatedPosts>(key, {
           ...prev,
@@ -204,6 +242,9 @@ export function useLikePost(filters: PostFilters = {}) {
   })
 }
 
+/**
+ * Toggle like on a reply with optimistic update.
+ */
 export function useLikeReply(postId: string) {
   const qc = useQueryClient()
 

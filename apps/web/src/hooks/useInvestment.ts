@@ -1,32 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/lib/api'
+import type { BffInvestment as Investment, BffInvestmentSummary as InvestmentSummary } from '@wealthspot/types'
 
-export interface Investment {
-  id: string
-  propertyId: string
-  propertyTitle: string
-  propertyCity: string
-  propertyImage: string
-  amount: number
-  units: number
-  irr: number
-  status: string
-  paymentStatus: string
-  investedAt: string
-  maturityDate: string
-  currentValue: number
-  returns: number
-  returnPercentage: number
-}
-
-export interface InvestmentSummary {
-  totalInvested: number
-  currentValue: number
-  totalReturns: number
-  avgIrr: number
-  activeInvestments: number
-  propertiesCount: number
-}
+export type { Investment, InvestmentSummary }
 
 interface InvestmentInitiatePayload {
   propertyId: string
