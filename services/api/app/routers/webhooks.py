@@ -5,6 +5,7 @@ Webhook router – Clerk, Razorpay callbacks.
 import hashlib
 import hmac
 import logging
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -255,6 +256,18 @@ async def razorpay_webhook(
             investment = result.scalar_one_or_none()
             if investment:
                 investment.status = InvestmentStatus.CANCELLED
+                # Roll back property aggregate stats
+                prop_result = await db.execute(
+                    select(Property).where(Property.id == investment.property_id)
+                )
+                prop = prop_result.scalar_one_or_none()
+                if prop:
+                    prop.raised_amount = max(
+                        Decimal("0"),
+                        (prop.raised_amount or Decimal("0")) - (investment.amount or Decimal("0")),
+                    )
+                    prop.sold_units = max(0, (prop.sold_units or 0) - (investment.units or 0))
+                    prop.investor_count = max(0, (prop.investor_count or 0) - 1)
                 await db.flush()
                 logger.info("Razorpay webhook: refunded investment %s", investment.id)
 

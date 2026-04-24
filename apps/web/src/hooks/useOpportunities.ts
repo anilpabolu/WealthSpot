@@ -64,6 +64,7 @@ export interface OpportunityItem {
   companyId: string | null
   investorCount: number
   launchDate: string | null
+  fundingOpenAt: string | null
   closingDate: string | null
   createdAt: string
   creator?: { id: string; fullName: string; avatarUrl: string | null }
@@ -138,11 +139,15 @@ export interface OpportunityCreatePayload {
   communityDetails?: Record<string, unknown>
   // Safe Vault
   safeVaultData?: Record<string, unknown>
+  // Funding schedule
+  fundingOpenAt?: string
+  closingDate?: string
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {
   status?: string
   closingDate?: string
+  fundingOpenAt?: string
   cancelInvestments?: boolean
 }
 

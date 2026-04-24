@@ -39,7 +39,21 @@ export function useCreateAppreciation(opportunityId: string) {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
       qc.invalidateQueries({ queryKey: ['opportunity'] })
       qc.invalidateQueries({ queryKey: ['portfolio'] })
-      qc.invalidateQueries({ queryKey: ['vault-wise-portfolio'] })
+      qc.invalidateQueries({ queryKey: ['vault-stats'] })
+    },
+  })
+}
+
+export function usePropertyAppreciation(propertyId: string) {
+  const qc = useQueryClient()
+  return useMutation<AppreciationEvent, Error, AppreciationCreatePayload>({
+    mutationFn: (payload) =>
+      apiPost<AppreciationEvent>(`/properties/${propertyId}/appreciate`, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['appreciation-history', propertyId] })
+      qc.invalidateQueries({ queryKey: ['properties'] })
+      qc.invalidateQueries({ queryKey: ['portfolio'] })
+      qc.invalidateQueries({ queryKey: ['vault-stats'] })
     },
   })
 }

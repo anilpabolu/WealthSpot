@@ -85,9 +85,11 @@ const VAULT_HERO_CONFIG: Record<
   },
 }
 
-function FilterSidebar() {
+function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
   const { filters, setFilter, resetFilters } = useMarketplaceStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isSafe = vaultParam === 'safe'
+  const isWealth = !vaultParam || vaultParam === 'wealth'
 
   const content = (
     <div className="space-y-6">
@@ -104,18 +106,42 @@ function FilterSidebar() {
         />
       </div>
 
-      {/* Asset Type */}
-      <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Asset Type</label>
-        <Select
-          value={filters.assetType}
-          onChange={(v) => setFilter('assetType', v)}
-          options={[
-            { value: '', label: 'All Types' },
-            ...Object.values(ASSET_TYPES).map((t) => ({ value: t, label: t.replace('_', ' ') })),
-          ]}
-        />
-      </div>
+      {/* Asset Type — Wealth Vault only */}
+      {isWealth && (
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Asset Type</label>
+          <Select
+            value={filters.assetType}
+            onChange={(v) => setFilter('assetType', v)}
+            options={[
+              { value: '', label: 'All Types' },
+              ...Object.values(ASSET_TYPES).map((t) => ({ value: t, label: t.replace('_', ' ') })),
+            ]}
+          />
+        </div>
+      )}
+
+      {/* Payout Frequency — Safe Vault only */}
+      {isSafe && (
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-theme-secondary mb-2 block">Payout Frequency</label>
+          <div className="flex flex-wrap gap-2">
+            {(['', 'monthly', 'quarterly', 'yearly'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter('payoutFrequency', f)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  filters.payoutFrequency === f
+                    ? 'bg-[#20E3B2] text-[#0D4A3A] font-bold'
+                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
+                }`}
+              >
+                {f === '' ? 'Any' : f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Status */}
       <div>
@@ -218,12 +244,17 @@ export default function MarketplacePage() {
 
   // Map display-level status filters to backend status values
   const STATUS_MAP: Record<string, string> = {
-    upcoming: 'approved,pending_approval',
+    upcoming: 'approved',
     live: 'active,funding',
     fully_funded: 'funded',
     deal_closed: 'closed,exited',
   }
+  // Public default: never expose draft/pending_approval to investors
+  // 'approved' = upcoming (funding_open_at in future) — must be included so
+  // approved-but-not-yet-active listings are visible on the vault pages.
+  const PUBLIC_STATUSES = 'approved,active,funding,funded,closed'
   const apiStatus = filters.status ? (STATUS_MAP[filters.status] ?? filters.status) : ''
+  const effectiveStatus = apiStatus || PUBLIC_STATUSES
   const apiFilters = { ...filters, status: apiStatus }
 
   const { data, isLoading } = useProperties(apiFilters)
@@ -272,15 +303,17 @@ export default function MarketplacePage() {
   const { isVaultEnabled } = useVaultConfig()
   const isVaultDisabled = vaultParam && !isVaultEnabled(vaultParam)
 
-  // Fetch all opportunities for the active vault (no status filter — show all with ribbons)
+  // Fetch all opportunities for the active vault — always filter to non-draft statuses
   const { data: oppsData } = useOpportunities(
     vaultParam
-      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }), city: filters.city || undefined, status: apiStatus || undefined }
-      : filters.city || apiStatus
-        ? { city: filters.city || undefined, status: apiStatus || undefined }
-        : undefined
+      ? { vaultType: vaultParam, ...(subtypeParam && { communitySubtype: subtypeParam }), city: filters.city || undefined, status: effectiveStatus }
+      : { city: filters.city || undefined, status: effectiveStatus }
   )
-  const opportunities = oppsData?.items ?? []
+  // Client-side filter for Safe Vault payout frequency (stored in JSONB safe_vault_data)
+  const opportunities = (oppsData?.items ?? []).filter((opp) => {
+    if (!filters.payoutFrequency) return true
+    return (opp.safeVaultData as { payout_frequency?: string } | null)?.payout_frequency === filters.payoutFrequency
+  })
 
   // Active community subtype filter (from URL or user toggle)
   const [communityFilter, setCommunityFilter] = useState(subtypeParam)
@@ -398,7 +431,7 @@ export default function MarketplacePage() {
         )}
 
         <div className="flex gap-8">
-          <FilterSidebar />
+          <FilterSidebar vaultParam={vaultParam} />
 
           <div className="flex-1 min-w-0">
             {/* Toolbar */}

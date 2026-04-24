@@ -5,6 +5,7 @@ export interface MarketplaceFilters {
   search: string
   city: string
   assetType: string
+  payoutFrequency: string
   minInvestment: [number, number]
   irrRange: [number, number]
   status: string
@@ -26,6 +27,7 @@ const DEFAULT_FILTERS: MarketplaceFilters = {
   search: '',
   city: '',
   assetType: '',
+  payoutFrequency: '',
   minInvestment: [10000, 5000000],
   irrRange: [8, 25],
   status: '',

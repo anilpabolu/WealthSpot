@@ -142,6 +142,7 @@ class OpportunityRead(BaseModel):
     company_id: uuid.UUID | None = None
     investor_count: int = 0
     launch_date: datetime | None = None
+    funding_open_at: datetime | None = None
     closing_date: datetime | None = None
     created_at: datetime
     updated_at: datetime
@@ -196,6 +197,9 @@ class OpportunityCreateRequest(BaseModel):
     # Safe Vault fields
     safe_vault_data: SafeVaultDataSchema | None = None
     project_phase: str | None = None
+    # Funding schedule
+    funding_open_at: datetime | None = None
+    closing_date: datetime | None = None
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -234,6 +238,8 @@ class OpportunityUpdateRequest(BaseModel):
     safe_vault_data: SafeVaultDataSchema | None = None
     # Lifecycle
     project_phase: str | None = None
+    # Funding schedule
+    funding_open_at: datetime | None = None
     closing_date: datetime | None = None
     status: str | None = None
     # Investment management (admin only)

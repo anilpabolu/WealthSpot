@@ -102,6 +102,18 @@ class PortfolioSummary(BaseModel):
     monthly_returns: list[MonthlyReturn] = []
 
 
+class PortfolioTransactionItem(BaseModel):
+    """Unified transaction row for both property-side (Transaction table) and
+    opportunity-side (OpportunityInvestment table) activity."""
+
+    id: uuid.UUID
+    type: str          # 'investment' | 'payout' | 'referral_bonus' | 'wealthpass'
+    amount: Decimal
+    property_title: str | None = None   # camelised → propertyTitle on the frontend
+    date: datetime
+    status: str                         # 'confirmed' | 'pending' | 'cancelled'
+
+
 class PortfolioProperty(BaseModel):
     property_id: uuid.UUID
     property_name: str
@@ -119,3 +131,39 @@ class PortfolioProperty(BaseModel):
     status: str
 
     model_config = {"from_attributes": True}
+
+
+class HoldingItem(BaseModel):
+    """Unified holding representation for both property and opportunity investments."""
+
+    id: uuid.UUID
+    investment_type: str  # 'property' | 'opportunity'
+    project_title: str
+    project_image: str | None = None
+    project_slug: str | None = None
+    vault_type: str  # wealth | safe | community
+    city: str | None = None
+    asset_type: str | None = None
+    invested_amount: float
+    current_value: float
+    returns: float
+    return_pct: float
+    irr: float | None = None
+    expected_irr: float | None = None
+    actual_irr: float | None = None
+    units: int = 1
+    invested_at: datetime
+    status: str
+    opportunity_id: uuid.UUID | None = None
+    payout_frequency: str | None = None
+    appreciation_pct: float = 0.0
+    original_unit_price: float | None = None
+    current_unit_price: float | None = None
+    target_amount: float | None = None
+    raised_amount: float | None = None
+    investor_count: int | None = None
+    description: str | None = None
+    address: str | None = None
+    founder_name: str | None = None
+    tagline: str | None = None
+    project_phase: str | None = None

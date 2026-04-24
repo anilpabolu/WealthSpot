@@ -7,9 +7,9 @@ import time
 from collections import defaultdict
 from typing import Any
 
-from fastapi import HTTPException, Request, status
+from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger(__name__)
 
@@ -90,9 +90,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             allowed, remaining = self._check_memory(client_ip)
 
         if not allowed:
-            raise HTTPException(
+            # Return a plain JSONResponse rather than raising HTTPException.
+            # Raising inside BaseHTTPMiddleware bypasses all outer middleware
+            # (including CORSMiddleware), resulting in responses with no
+            # Access-Control-Allow-Origin header.
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please try again later.",
+                content={"detail": "Rate limit exceeded. Please try again later."},
             )
 
         response = await call_next(request)

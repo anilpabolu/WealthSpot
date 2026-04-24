@@ -91,7 +91,7 @@ async def investment_summary(
     current_value = Decimal("0")
     property_ids = set()
     for inv in investments:
-        current_unit_price = inv.property.unit_price if inv.property else inv.unit_price
+        current_unit_price = (inv.property.current_unit_price or inv.property.unit_price) if inv.property else inv.unit_price
         current_value += inv.units * current_unit_price
         if inv.property_id:
             property_ids.add(inv.property_id)

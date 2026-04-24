@@ -110,6 +110,8 @@ export function useReviewApproval() {
       qc.invalidateQueries({ queryKey: ['platform-stats'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
       qc.invalidateQueries({ queryKey: ['community'] })
+      qc.invalidateQueries({ queryKey: ['portfolio'] })
+      qc.invalidateQueries({ queryKey: ['properties'] })
     },
   })
 }

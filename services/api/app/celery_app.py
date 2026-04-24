@@ -38,4 +38,8 @@ celery.conf.beat_schedule = {
         "task": "app.tasks.refresh_analytics_views",
         "schedule": crontab(minute="*/30"),  # Every 30 minutes
     },
+    "transition-opportunity-statuses": {
+        "task": "app.tasks.transition_opportunity_statuses",
+        "schedule": crontab(minute="*/15"),  # Every 15 minutes
+    },
 }

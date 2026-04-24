@@ -113,6 +113,14 @@ async def appreciate_opportunity(
 
     # Recalculate all investor returns proportionally
     total_invested = Decimal(str(opp.raised_amount or 0))
+    if total_invested > 0 and new_val < total_invested:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"New valuation (₹{float(new_val):,.2f}) cannot be less than total raised "
+                f"(₹{float(total_invested):,.2f}). Enter a value above the invested amount."
+            ),
+        )
     if total_invested > 0:
         appreciation_amount = new_val - total_invested
         result = await db.execute(
@@ -124,6 +132,8 @@ async def appreciate_opportunity(
         for inv in result.scalars().all():
             share = (Decimal(str(inv.amount)) / total_invested) * appreciation_amount
             inv.returns_amount = share.quantize(Decimal("0.01"))
+            # Invalidate cached XIRR so next fetch recalculates with new returns
+            cache_delete(make_cache_key("xirr", str(inv.user_id), "portfolio"))
 
     # Update actual_irr on opportunity
     if total_invested > 0:

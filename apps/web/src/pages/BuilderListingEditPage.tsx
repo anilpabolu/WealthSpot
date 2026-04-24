@@ -51,6 +51,8 @@ export default function BuilderListingEditPage() {
       city: opp.city ?? '',
       communityType: opp.communityType ?? '',
       collaborationType: opp.collaborationType ?? '',
+      fundingOpenAt: opp.fundingOpenAt ?? undefined,
+      closingDate: opp.closingDate ?? undefined,
     })
     setAddress({
       addressLine1: opp.addressLine1 ?? '',
@@ -65,7 +67,7 @@ export default function BuilderListingEditPage() {
     })
   }, [opp])
 
-  const handleChange = (key: keyof OpportunityUpdatePayload, value: string | number) => {
+  const handleChange = (key: keyof OpportunityUpdatePayload, value: string | number | undefined) => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -129,7 +131,7 @@ export default function BuilderListingEditPage() {
 
         <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <CompanySelector value={form.companyId} onChange={(cid) => handleChange('companyId', cid ?? '')} onRequestOnboard={() => setShowOnboarding(true)} vaultType={opp.vaultType} />
+            <CompanySelector value={form.companyId} onChange={(cid) => handleChange('companyId', cid ?? '')} onRequestOnboard={() => setShowOnboarding(true)} />
 
             {/* Common fields */}
             <div>
@@ -227,6 +229,36 @@ export default function BuilderListingEditPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {/* Funding schedule */}
+            {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Funding Opens
+                    <span className="ml-1 text-xs font-normal text-theme-secondary">(leave blank for immediately on approval)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={form.fundingOpenAt ? String(form.fundingOpenAt).slice(0, 10) : ''}
+                    onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Funding Deadline
+                    <span className="ml-1 text-xs font-normal text-theme-secondary">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={form.closingDate ? String(form.closingDate).slice(0, 10) : ''}
+                    onChange={(e) => handleChange('closingDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
             )}
 
             {/* Additional media */}

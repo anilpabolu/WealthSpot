@@ -23,13 +23,21 @@ const INITIAL: CompanyCreatePayload = {
   country: 'India',
 }
 
+const VAULT_LABELS: Record<string, string> = {
+  wealth: 'Wealth Vault',
+  safe: 'Safe Vault',
+  community: 'Community Vault',
+}
+
 interface Props {
   open: boolean
   onClose: () => void
   onSuccess?: (companyId: string) => void
+  /** Pre-selects and locks the vault category for the originating opportunity */
+  vaultType?: string
 }
 
-export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Props) {
+export default function CompanyOnboardingModal({ open, onClose, onSuccess, vaultType }: Props) {
   const [form, setForm] = useState<CompanyCreatePayload>(INITIAL)
   const [step, setStep] = useState<'form' | 'success'>('form')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -37,6 +45,13 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
   const createMutation = useCreateCompany()
   const { data: pincodeData } = usePincodeLookup(form.pincode ?? '')
   const { isVaultEnabled } = useVaultConfig()
+
+  // Pre-fill vault type from parent context when modal opens
+  useEffect(() => {
+    if (open && vaultType) {
+      setForm((prev) => ({ ...prev, vaultType }))
+    }
+  }, [open, vaultType])
 
   // Auto-dismiss toast after 5 seconds
   useEffect(() => {
@@ -161,7 +176,11 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
             </div>
             <div>
               <h2 className="font-display text-lg font-bold text-theme-primary">Company Onboarding 🏗️</h2>
-              <p className="text-xs text-theme-secondary">Register your company to create opportunities</p>
+              <p className="text-xs text-theme-secondary">
+                {vaultType && VAULT_LABELS[vaultType]
+                  ? <>Register your company for <span className="font-semibold text-primary">{VAULT_LABELS[vaultType]}</span> opportunities</>
+                  : 'Register your company to create opportunities'}
+              </p>
             </div>
           </div>
           <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors" aria-label="Close">

@@ -150,6 +150,7 @@ class Opportunity(Base):
     investor_count: Mapped[int] = mapped_column(Integer, default=0)
     # Timestamps
     launch_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    funding_open_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closing_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

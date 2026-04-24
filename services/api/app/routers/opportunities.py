@@ -6,6 +6,7 @@ import math
 import re
 import uuid as _uuid
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -827,6 +828,8 @@ async def create_opportunity(
         community_subtype=body.community_subtype,
         community_details=body.community_details,
         safe_vault_data=body.safe_vault_data,
+        funding_open_at=body.funding_open_at,
+        closing_date=body.closing_date,
     )
     db.add(opportunity)
     await db.flush()
@@ -966,6 +969,9 @@ async def update_opportunity(
                     )
                     .values(status=OppInvestmentStatus.CANCELLED)
                 )
+                # Roll back opportunity aggregate stats after bulk cancellation
+                opp.raised_amount = Decimal("0")
+                opp.investor_count = 0
 
     # Apply partial update
     for field_name, value in update_data.items():
@@ -973,6 +979,25 @@ async def update_opportunity(
             setattr(opp, field_name, _uuid.UUID(value))
         else:
             setattr(opp, field_name, value)
+
+    # If current_valuation was patched, recalculate derived fields
+    if "current_valuation" in update_data and update_data["current_valuation"] is not None:
+        new_val = Decimal(str(update_data["current_valuation"]))
+        total_invested = Decimal(str(opp.raised_amount or 0))
+        if total_invested > 0:
+            appreciation_amount = new_val - total_invested
+            inv_result = await db.execute(
+                select(OpportunityInvestment).where(
+                    OpportunityInvestment.opportunity_id == opp.id,
+                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+                )
+            )
+            for oi in inv_result.scalars().all():
+                share = (Decimal(str(oi.amount)) / total_invested) * appreciation_amount
+                oi.returns_amount = share.quantize(Decimal("0.01"))
+            opp.actual_irr = (
+                (new_val - total_invested) / total_invested * 100
+            ).quantize(Decimal("0.01"))
 
     await db.flush()
     await db.refresh(opp)

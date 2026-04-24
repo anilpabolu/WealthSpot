@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '@/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPut } from '@/lib/api'
 
 export interface PortfolioProperty {
   propertyId: string
@@ -147,5 +147,96 @@ export function usePropertyInvestmentDetail(propertyId: string | undefined) {
     queryFn: () => apiGet<PropertyInvestmentDetail>(`/portfolio/properties/${propertyId}`),
     enabled: !!propertyId,
     staleTime: 30_000,
+  })
+}
+
+/* ── Unified Holdings ────────────────────────────────────────────── */
+
+export interface HoldingItem {
+  id: string
+  investmentType: 'property' | 'opportunity'
+  projectTitle: string
+  projectImage: string | null
+  projectSlug: string | null
+  vaultType: string
+  city: string | null
+  assetType: string | null
+  investedAmount: number
+  currentValue: number
+  returns: number
+  returnPct: number
+  irr: number | null
+  expectedIrr: number | null
+  actualIrr: number | null
+  units: number
+  investedAt: string
+  status: string
+  opportunityId: string | null
+  payoutFrequency: string | null
+  appreciationPct: number
+  originalUnitPrice: number | null
+  currentUnitPrice: number | null
+  targetAmount: number | null
+  raisedAmount: number | null
+  investorCount: number | null
+  description: string | null
+  address: string | null
+  founderName: string | null
+  tagline: string | null
+  projectPhase: string | null
+}
+
+export function usePortfolioHoldings() {
+  return useQuery({
+    queryKey: ['portfolio', 'holdings'],
+    queryFn: () => apiGet<HoldingItem[]>('/portfolio/holdings'),
+    staleTime: 30_000,
+  })
+}
+
+/* ── Snapshot config ─────────────────────────────────────────────── */
+
+export interface SnapshotConfig {
+  sections: string[]
+}
+
+export function useSnapshotConfig() {
+  return useQuery({
+    queryKey: ['portfolio', 'snapshot-config'],
+    queryFn: () => apiGet<SnapshotConfig>('/portfolio/snapshot-config'),
+    staleTime: 5 * 60_000,
+  })
+}
+
+export function useUpdateSnapshotConfig() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sections: string[]) =>
+      apiPut<SnapshotConfig>('/portfolio/snapshot-config', { sections }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portfolio', 'snapshot-config'] })
+    },
+  })
+}
+
+/* ── Opportunity appreciation history ───────────────────────────── */
+
+export interface AppreciationHistoryItem {
+  id: string
+  mode: string
+  inputValue: number
+  oldValuation: number
+  newValuation: number
+  note: string | null
+  createdAt: string
+}
+
+export function useOpportunityAppreciationHistory(opportunityId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['appreciation-history', 'opportunity', opportunityId],
+    queryFn: () =>
+      apiGet<AppreciationHistoryItem[]>(`/opportunities/${opportunityId}/appreciation-history`),
+    enabled: !!opportunityId,
+    staleTime: 60_000,
   })
 }

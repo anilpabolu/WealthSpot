@@ -142,7 +142,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
     })
   }
 
-  const handleChange = (field: keyof OpportunityCreatePayload, value: string | number) => {
+  const handleChange = (field: keyof OpportunityCreatePayload, value: string | number | undefined) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -808,6 +808,36 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                 </>
               )}
 
+              {/* Funding schedule — shown for Wealth and Safe vault types */}
+              {(vaultType === 'wealth' || vaultType === 'safe') && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-theme-primary mb-1">
+                      Funding Opens
+                      <span className="ml-1 text-xs font-normal text-theme-secondary">(optional — leave blank for immediately)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={form.fundingOpenAt ? form.fundingOpenAt.slice(0, 10) : ''}
+                      onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                      className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-theme-primary mb-1">
+                      Funding Deadline
+                      <span className="ml-1 text-xs font-normal text-theme-secondary">(optional)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={form.closingDate ? form.closingDate.slice(0, 10) : ''}
+                      onChange={(e) => handleChange('closingDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                      className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Media upload — replaces cover image URL */}
               <MediaUploadZone images={mediaItems} onChange={setMediaItems} />
 
@@ -876,6 +906,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
       <CompanyOnboardingModal
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
+        vaultType={vaultType}
         onSuccess={(companyId) => {
           handleChange('companyId', companyId)
           setShowOnboarding(false)

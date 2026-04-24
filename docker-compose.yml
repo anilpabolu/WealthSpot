@@ -84,6 +84,7 @@ services:
       AWS_REGION: us-east-1
       S3_ENDPOINT_URL: http://minio:9000
       S3_PUBLIC_URL: http://localhost:9000/wealthspot-media
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
       # ENCRYPTION_KEY must be set in services/api/.env – never hardcode secrets
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

@@ -162,3 +162,62 @@ def refresh_analytics_views():
             logger.info("Analytics materialized views refreshed")
 
     asyncio.run(_refresh())
+
+
+# ── Opportunity lifecycle transitions ────────────────────────────────────────
+
+
+@shared_task
+def transition_opportunity_statuses():
+    """Auto-transition opportunity statuses based on funding dates.
+
+    - APPROVED  + funding_open_at <= now  → ACTIVE  (opens for investment)
+    - ACTIVE/FUNDING + closing_date < now → CLOSED  (deadline passed)
+    """
+    import asyncio
+    from datetime import UTC, datetime
+
+    from sqlalchemy import select
+
+    from app.core.database import async_session_factory
+    from app.models.opportunity import Opportunity, OpportunityStatus
+
+    async def _run():
+        async with async_session_factory() as session:
+            now = datetime.now(UTC)
+
+            # 1. APPROVED → ACTIVE when funding_open_at has arrived
+            result = await session.execute(
+                select(Opportunity).where(
+                    Opportunity.status == OpportunityStatus.APPROVED,
+                    Opportunity.funding_open_at.isnot(None),
+                    Opportunity.funding_open_at <= now,
+                )
+            )
+            opened = list(result.scalars().all())
+            for opp in opened:
+                opp.status = OpportunityStatus.ACTIVE
+                logger.info("Opportunity %s transitioned APPROVED → ACTIVE", opp.id)
+
+            # 2. ACTIVE / FUNDING → CLOSED when closing_date has passed
+            result2 = await session.execute(
+                select(Opportunity).where(
+                    Opportunity.status.in_([OpportunityStatus.ACTIVE, OpportunityStatus.FUNDING]),
+                    Opportunity.closing_date.isnot(None),
+                    Opportunity.closing_date < now,
+                )
+            )
+            closed = list(result2.scalars().all())
+            for opp in closed:
+                opp.status = OpportunityStatus.CLOSED
+                logger.info("Opportunity %s transitioned → CLOSED (deadline passed)", opp.id)
+
+            if opened or closed:
+                await session.commit()
+                logger.info(
+                    "Opportunity transitions: %d opened, %d closed",
+                    len(opened),
+                    len(closed),
+                )
+
+    asyncio.run(_run())

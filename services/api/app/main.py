@@ -97,7 +97,14 @@ app = FastAPI(
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────
-
+# Starlette's add_middleware prepends each entry, then builds the chain with
+# reversed(), so the LAST call here becomes the OUTERMOST layer (runs first on
+# every request, runs last on every response).
+# CORSMiddleware MUST be the outermost layer so it injects Access-Control-*
+# headers on ALL responses — including 4xx/5xx returned by inner middlewares.
+app.add_middleware(RateLimitMiddleware, max_requests=200, window_seconds=60)
+app.add_middleware(MetricsMiddleware)
+app.add_middleware(RequestIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -117,12 +124,24 @@ app.add_middleware(
     max_age=600,
 )
 
-app.add_middleware(RateLimitMiddleware, max_requests=200, window_seconds=60)
-app.add_middleware(MetricsMiddleware)
-app.add_middleware(RequestIdMiddleware)
-
 # Attach request-ID filter to root logger so all log records include request_id
 logging.getLogger().addFilter(RequestIdFilter())
+
+
+# ── Global exception handler ─────────────────────────────────────────────────
+# Catches unhandled exceptions from route handlers and returns a JSON 500 that
+# flows back through CORSMiddleware. Without this, Starlette's
+# ServerErrorMiddleware (which sits above all user middleware) would intercept
+# the exception and return a 500 without any Access-Control-* headers.
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logging.getLogger(__name__).exception(
+        "Unhandled exception on %s %s", request.method, request.url.path, exc_info=exc
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
 
 
 # ── Routers ──────────────────────────────────────────────────────────────────

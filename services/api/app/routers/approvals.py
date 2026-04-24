@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role
@@ -119,7 +120,15 @@ async def create_approval(
     )
     db.add(approval)
     await db.flush()
-    await db.refresh(approval)
+    refreshed = await db.execute(
+        select(ApprovalRequest)
+        .options(
+            joinedload(ApprovalRequest.requester),
+            joinedload(ApprovalRequest.reviewer),
+        )
+        .where(ApprovalRequest.id == approval.id)
+    )
+    approval = refreshed.unique().scalar_one()
     return ApprovalRead.model_validate(approval)
 
 
@@ -170,7 +179,14 @@ async def review_approval(
             )
             opp = opp_result.scalar_one_or_none()
             if opp and opp.status == OpportunityStatus.PENDING_APPROVAL:
-                opp.status = OpportunityStatus.APPROVED
+                # Auto-transition to ACTIVE so the opportunity is immediately live.
+                # Phase 2: when funding_open_at is set and is in the future,
+                # remain in APPROVED (upcoming) until the Celery beat task transitions it.
+                funding_open = getattr(opp, 'funding_open_at', None)
+                if funding_open and funding_open > datetime.now(UTC):
+                    opp.status = OpportunityStatus.APPROVED
+                else:
+                    opp.status = OpportunityStatus.ACTIVE
 
         # Sync linked company to verified
         if approval.resource_type == "company" and approval.resource_id:
@@ -318,7 +334,15 @@ async def review_approval(
     # Explicit commit to ensure all sync changes are persisted before the
     # response reaches the client (prevents race with frontend cache refetch).
     await db.flush()
-    await db.refresh(approval)
+    refreshed = await db.execute(
+        select(ApprovalRequest)
+        .options(
+            joinedload(ApprovalRequest.requester),
+            joinedload(ApprovalRequest.reviewer),
+        )
+        .where(ApprovalRequest.id == approval.id)
+    )
+    approval = refreshed.unique().scalar_one()
     return ApprovalRead.model_validate(approval)
 
 
