@@ -53,7 +53,7 @@ export interface UserProfileAnswer {
 
 export interface UserProfileAnswerBulk {
   vaultType: string
-  answers: Array<{ questionId: string; answerValue: unknown }>
+  answers: { questionId: string; answerValue: unknown }[]
 }
 
 export interface OpportunityCustomQuestion {
@@ -264,7 +264,7 @@ export function useSubmitApplicationAnswers() {
   return useMutation({
     mutationFn: (payload: {
       opportunityId: string
-      answers: Array<{ questionId: string; answerValue: unknown }>
+      answers: { questionId: string; answerValue: unknown }[]
     }) =>
       apiPost('/profiling/applications', {
         opportunity_id: payload.opportunityId,

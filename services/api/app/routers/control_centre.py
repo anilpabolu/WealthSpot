@@ -181,6 +181,27 @@ async def get_appearance_config(db: AsyncSession = Depends(get_db)) -> dict[str,
     }
 
 
+@router.get("/notifications/public")
+async def get_public_notifications_config(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Public endpoint: whitelisted notification settings safe for unauth clients."""
+    result = await db.execute(
+        select(PlatformConfig).where(
+            PlatformConfig.section == "notifications",
+            PlatformConfig.key == "toast_interval_ms",
+            PlatformConfig.is_active.is_(True),
+        )
+    )
+    row = result.scalar_one_or_none()
+    raw = row.value if row is not None else None
+    try:
+        toast_ms = int(raw) if raw is not None else 3000
+    except (TypeError, ValueError):
+        toast_ms = 3000
+    return {"toast_interval_ms": toast_ms}
+
+
 # ── Platform Config CRUD ─────────────────────────────────────────────────────
 
 

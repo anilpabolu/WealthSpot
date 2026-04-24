@@ -2,8 +2,6 @@
 Investment router – initiate, confirm payment, list.
 """
 
-import hashlib
-import hmac
 import logging
 import uuid
 from datetime import UTC, datetime
@@ -30,6 +28,7 @@ from app.schemas.investment import (
     TransactionRead,
 )
 from app.services.cache import cache_get, cache_set, make_cache_key
+from app.services.payment import verify_payment_signature
 from app.services.xirr import calculate_xirr
 
 router = APIRouter(prefix="/investments", tags=["investments"])
@@ -88,7 +87,7 @@ async def investment_summary(
     investments = list(result.scalars().all())
 
     total_invested = sum((inv.amount for inv in investments), Decimal("0"))
-    
+
     current_value = Decimal("0")
     property_ids = set()
     for inv in investments:
@@ -197,13 +196,11 @@ async def confirm_payment(
     if settings.razorpay_key_secret:
         if not body.razorpay_signature:
             raise HTTPException(status_code=400, detail="Payment signature is required")
-        sign_payload = f"{body.razorpay_order_id}|{body.razorpay_payment_id}"
-        expected = hmac.new(
-            settings.razorpay_key_secret.encode("utf-8"),
-            sign_payload.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
-        if not hmac.compare_digest(expected, body.razorpay_signature):
+        if not verify_payment_signature(
+            body.razorpay_order_id,
+            body.razorpay_payment_id,
+            body.razorpay_signature,
+        ):
             raise HTTPException(status_code=400, detail="Invalid payment signature")
 
     # Atomic: update investment + property in a savepoint

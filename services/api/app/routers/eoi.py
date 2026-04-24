@@ -46,7 +46,7 @@ async def submit_eoi(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> EOIRead:
-    """Submit an expression of interest for an opportunity."""
+    """Submit an expression of interest for an opportunity. Idempotent per (user, opportunity)."""
     # Verify opportunity exists and is active
     opp_result = await db.execute(
         select(Opportunity).where(Opportunity.id == _uuid.UUID(body.opportunity_id))
@@ -56,6 +56,22 @@ async def submit_eoi(
         raise HTTPException(status_code=404, detail="Opportunity not found")
     if opp.status.value == "closed":
         raise HTTPException(status_code=400, detail="This opportunity is closed")
+
+    # Idempotency: if this user already has an EOI for this opportunity, refresh and return it
+    # rather than creating a duplicate (avoids double-notifications and stale stage history).
+    existing_result = await db.execute(
+        select(ExpressionOfInterest).where(
+            ExpressionOfInterest.user_id == user.id,
+            ExpressionOfInterest.opportunity_id == opp.id,
+        )
+    )
+    existing = existing_result.scalar_one_or_none()
+    if existing:
+        from datetime import UTC, datetime
+        existing.updated_at = datetime.now(UTC)
+        await db.flush()
+        await db.refresh(existing)
+        return EOIRead.model_validate(existing)
 
     # Look up who referred this user (if anyone)
     ref_result = await db.execute(

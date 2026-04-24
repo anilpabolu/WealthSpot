@@ -26,11 +26,13 @@ UPLOADS = "/api/v1/uploads"
 async def _make_opportunity(creator: User) -> uuid.UUID:
     async with TestSessionFactory() as session:
         await session.execute(text("SET search_path TO test_ws"))
+        opp_id = uuid.uuid4()
         opp = Opportunity(
-            id=uuid.uuid4(),
+            id=opp_id,
             creator_id=creator.id,
             vault_type=VaultType.WEALTH,
             title="Upload-test opportunity",
+            slug=f"upload-test-{opp_id.hex[:8]}",
             city="Mumbai",
             target_amount=10_000_000,
             min_investment=500_000,

@@ -71,7 +71,7 @@ export default function MarketplaceScreen() {
   const vaultKey = (vault && vault in VAULT_HERO_CONFIG ? vault : 'wealth') as keyof typeof VAULT_HERO_CONFIG
   const hero = VAULT_HERO_CONFIG[vaultKey]
   const isCommunityVault = vault === 'community'
-  const { filters, setFilter, resetFilters } = useMarketplaceStore()
+  const { filters, setFilter } = useMarketplaceStore()
   const { isVaultEnabled } = useVaultConfig()
   const isVaultDisabled = vault ? !isVaultEnabled(vault) : false
   const [search, setSearch] = useState(filters.search ?? '')

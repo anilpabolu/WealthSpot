@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, apiGet, apiPost, apiPut } from '../lib/api'
+import { api, apiGet, apiPut } from '../lib/api'
 import type {
   AssessmentSummaryRead,
   ShieldMetrics,
@@ -73,7 +73,7 @@ export function useUploadAssessmentDocument() {
       category: string
       subcategory: string
       // Expo DocumentPicker returns { uri, name, mimeType, size }
-      files: Array<{ uri: string; name: string; mimeType?: string }>
+      files: { uri: string; name: string; mimeType?: string }[]
     }) => {
       const formData = new FormData()
       for (const f of files) {

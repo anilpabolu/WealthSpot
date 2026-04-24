@@ -2,6 +2,7 @@
  * NativeWind v4 type augmentation.
  * Adds `className` prop to all React Native core components.
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import 'react-native';
 
 declare module 'react-native' {
@@ -26,10 +27,10 @@ declare module 'react-native' {
   interface PressableProps {
     className?: string;
   }
-  interface FlatListProps<ItemT> {
+  interface FlatListProps<_ItemT> {
     className?: string;
   }
-  interface SectionListProps<ItemT, SectionT> {
+  interface SectionListProps<_ItemT, _SectionT> {
     className?: string;
   }
   interface SafeAreaViewProps {

@@ -7,13 +7,13 @@ import { apiGet, apiPost } from "../../lib/api";
 
 export interface KycStatusView {
   kycStatus: string;
-  documents: Array<{
+  documents: {
     id: string;
     documentType: string;
     verificationStatus: string;
     rejectionReason: string | null;
     createdAt: string;
-  }>;
+  }[];
   steps: {
     panUploaded: boolean;
     panVerified: boolean;

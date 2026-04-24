@@ -6,9 +6,11 @@ WORKDIR /app
 # Copy root workspace files
 COPY package.json package-lock.json* ./
 COPY packages/wealthspot-types ./packages/wealthspot-types
+COPY packages/wealthspot-api-client ./packages/wealthspot-api-client
 COPY apps/web ./apps/web
 
 RUN npm install --legacy-peer-deps
+RUN npm run build --workspace=@wealthspot/api-client
 RUN npm run build --workspace=apps/web
 
 # ── Production: serve with nginx ──────────────────────────
@@ -24,6 +26,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 COPY packages/wealthspot-types ./packages/wealthspot-types
+COPY packages/wealthspot-api-client ./packages/wealthspot-api-client
 COPY apps/web ./apps/web
 
 RUN npm install --legacy-peer-deps

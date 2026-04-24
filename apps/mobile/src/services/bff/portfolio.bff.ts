@@ -30,14 +30,14 @@ export interface PortfolioView {
     xirr: number | null;
   };
   holdings: PortfolioPropertyHolding[];
-  transactions: Array<{
+  transactions: {
     id: string;
     type: string;
     amount: number;
     description: string | null;
     propertyTitle: string;
     createdAt: string;
-  }>;
+  }[];
 }
 
 export const mobilePortfolioBff = {

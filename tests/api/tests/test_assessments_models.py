@@ -24,11 +24,13 @@ from tests.conftest import TestSessionFactory
 async def _make_opportunity(creator: User) -> uuid.UUID:
     async with TestSessionFactory() as session:
         await session.execute(text("SET search_path TO test_ws"))
+        opp_id = uuid.uuid4()
         opp = Opportunity(
-            id=uuid.uuid4(),
+            id=opp_id,
             creator_id=creator.id,
             vault_type=VaultType.WEALTH,
             title="Model-test opportunity",
+            slug=f"model-test-{opp_id.hex[:8]}",
             city="Chennai",
             target_amount=10_000_000,
             min_investment=500_000,
@@ -81,11 +83,12 @@ class TestOpportunityAssessmentModel:
             )
             session.add(row)
             await session.commit()
+            row_id = row.id
 
+        async with TestSessionFactory() as session:
+            await session.execute(text("SET search_path TO test_ws"))
             result = await session.execute(
-                select(OpportunityAssessment).where(
-                    OpportunityAssessment.id == row.id
-                )
+                select(OpportunityAssessment).where(OpportunityAssessment.id == row_id)
             )
             fresh = result.scalar_one()
             assert fresh.status == "not_started"
@@ -135,6 +138,8 @@ class TestOpportunityRiskFlagModel:
             session.add(flag)
             await session.commit()
 
+        async with TestSessionFactory() as session:
+            await session.execute(text("SET search_path TO test_ws"))
             result = await session.execute(
                 select(OpportunityRiskFlag).where(
                     OpportunityRiskFlag.opportunity_id == opp_id

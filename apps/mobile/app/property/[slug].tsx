@@ -4,7 +4,7 @@
  */
 
 import { View, Text, ScrollView, Pressable, Image, Dimensions, ActivityIndicator, Modal, Share, Linking } from 'react-native'
-import { useLocalSearchParams, Link, router } from 'expo-router'
+import { useLocalSearchParams, router } from 'expo-router'
 import { useState, useCallback, useEffect } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'

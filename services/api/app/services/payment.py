@@ -46,11 +46,21 @@ def verify_payment_signature(
     payment_id: str,
     signature: str,
 ) -> bool:
-    """Verify Razorpay payment signature."""
+    """Verify Razorpay payment-callback signature: HMAC-SHA256 of `${order_id}|${payment_id}`."""
     message = f"{order_id}|{payment_id}"
     expected = hmac.new(
-        settings.razorpay_key_secret.encode(),
-        message.encode(),
+        settings.razorpay_key_secret.encode("utf-8"),
+        message.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
+
+
+def verify_webhook_signature(body: bytes, signature: str) -> bool:
+    """Verify Razorpay webhook signature: HMAC-SHA256 of the raw request body."""
+    expected = hmac.new(
+        settings.razorpay_key_secret.encode("utf-8"),
+        body,
         hashlib.sha256,
     ).hexdigest()
     return hmac.compare_digest(expected, signature)

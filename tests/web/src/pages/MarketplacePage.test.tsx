@@ -114,8 +114,8 @@ describe('MarketplacePage', () => {
 
   it('renders hero section', () => {
     renderPage()
-    expect(screen.getByText('Marketplace')).toBeInTheDocument()
-    expect(screen.getByText('Property Marketplace')).toBeInTheDocument()
+    expect(screen.getAllByText('Wealth Vault').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Shield Certified/i).length).toBeGreaterThan(0)
   })
 
   it('renders property cards', () => {

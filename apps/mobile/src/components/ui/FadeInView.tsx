@@ -36,6 +36,7 @@ export function FadeInView({
   useEffect(() => {
     opacity.value = withDelay(delay, withTiming(1, { duration, easing: Easing.out(Easing.cubic) }))
     offset.value = withDelay(delay, withTiming(0, { duration, easing: Easing.out(Easing.cubic) }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const animatedStyle = useAnimatedStyle(() => ({

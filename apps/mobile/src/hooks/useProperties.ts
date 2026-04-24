@@ -117,7 +117,7 @@ export interface Property {
   referrerName: string
   referrerPhone: string
   referrerUserId: string
-  documents: Array<{ name: string; url: string; type: string }>
+  documents: { name: string; url: string; type: string }[]
   createdAt: string
 }
 

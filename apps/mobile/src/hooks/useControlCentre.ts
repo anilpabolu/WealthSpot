@@ -111,7 +111,7 @@ export function useUpdateUserRole() {
 export function useApprovalCategories() {
   return useQuery({
     queryKey: ['control-centre', 'approval-categories'],
-    queryFn: () => apiGet<Array<{ value: string; label: string }>>('/control-centre/approval-categories'),
+    queryFn: () => apiGet<{ value: string; label: string }[]>('/control-centre/approval-categories'),
     staleTime: 60_000,
   })
 }

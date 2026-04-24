@@ -7,7 +7,7 @@ import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
-import { useAppearanceConfig, useControlConfigs } from '@/hooks/useControlCentre'
+import { useAppearanceConfig, usePublicNotificationsConfig } from '@/hooks/useControlCentre'
 import { applyThemePalette, clearThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 import { ToastRibbon } from '@/components/ToastRibbon'
@@ -130,15 +130,14 @@ export default function App() {
   }, [appearance, theme])
 
   // Sync toast dismiss interval from DB config
-  const { data: notifConfigs } = useControlConfigs('notifications')
+  const { data: notifConfig } = usePublicNotificationsConfig()
   const setDismissInterval = useToastStore((s) => s.setDismissInterval)
   useEffect(() => {
-    const row = (notifConfigs ?? []).find((c) => c.key === 'toast_interval_ms')
-    if (row?.value) {
-      const ms = Number(row.value)
-      if (!isNaN(ms) && ms >= 1000) setDismissInterval(ms)
+    const ms = notifConfig?.toastIntervalMs
+    if (typeof ms === 'number' && !isNaN(ms) && ms >= 1000) {
+      setDismissInterval(ms)
     }
-  }, [notifConfigs, setDismissInterval])
+  }, [notifConfig, setDismissInterval])
 
   // Capture ?ref=CODE from URL and stash in localStorage for post-signup apply
   useEffect(() => {

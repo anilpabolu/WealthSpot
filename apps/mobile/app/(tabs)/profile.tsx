@@ -27,7 +27,7 @@ const MENU_ITEMS = [
 export default function ProfileScreen() {
   const { signOut } = useAuth()
   const { data: user } = useUserProfile()
-  const { percentage } = useProfileCompletion()
+  useProfileCompletion()
   const resolved = useThemeStore((s) => s.resolved)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
   const isDark = resolved === 'dark'

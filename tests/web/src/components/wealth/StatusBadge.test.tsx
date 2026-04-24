@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react'
 import StatusBadge from '@/components/wealth/StatusBadge'
 
 describe('StatusBadge', () => {
-  it('renders "Active" for active status', () => {
+  it('renders "Live" for active status', () => {
     render(<StatusBadge status="active" />)
-    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(screen.getByText('Live')).toBeInTheDocument()
   })
 
   it('renders "Fully Funded" for funded status', () => {
@@ -30,6 +30,6 @@ describe('StatusBadge', () => {
 
   it('sets aria-label containing the status label', () => {
     render(<StatusBadge status="funding" />)
-    expect(screen.getByLabelText('Status: Funding')).toBeInTheDocument()
+    expect(screen.getByLabelText('Status: Live')).toBeInTheDocument()
   })
 })

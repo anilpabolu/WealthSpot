@@ -28,13 +28,13 @@ export interface CommunityFeedView {
 
 export interface PostDetailView {
   post: CommunityFeedItem & { body: string };
-  replies: Array<{
+  replies: {
     id: string;
     body: string;
     upvotes: number;
     author: { id: string; fullName: string; avatarUrl: string | null };
     createdAt: string;
-  }>;
+  }[];
 }
 
 export const mobileCommunityBff = {

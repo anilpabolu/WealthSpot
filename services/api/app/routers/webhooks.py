@@ -16,6 +16,7 @@ from app.core.database import get_db
 from app.models.investment import Investment, InvestmentStatus
 from app.models.property import Property, PropertyStatus
 from app.models.user import User
+from app.services.payment import verify_webhook_signature
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
@@ -164,22 +165,15 @@ async def clerk_webhook(
 
 
 def _verify_razorpay_signature(body: bytes, signature: str) -> bool:
-    """Verify Razorpay webhook signature using HMAC-SHA256."""
-    secret = settings.razorpay_key_secret
-    if not secret:
+    """Verify Razorpay webhook signature, with dev-mode bypass when secret is unset."""
+    if not settings.razorpay_key_secret:
         if settings.app_env == "production":
             logger.error("RAZORPAY_KEY_SECRET not configured in production – rejecting webhook")
             return False
         logger.warning("RAZORPAY_KEY_SECRET not configured – skipping verification (dev only)")
         return True
 
-    expected = hmac.new(
-        secret.encode("utf-8"),
-        body,
-        hashlib.sha256,
-    ).hexdigest()
-
-    return hmac.compare_digest(expected, signature)
+    return verify_webhook_signature(body, signature)
 
 
 @router.post("/razorpay")

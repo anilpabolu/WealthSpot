@@ -21,14 +21,14 @@ export interface DashboardView {
     monthlyRentalIncome: number;
     propertiesCount: number;
   };
-  recentTransactions: Array<{
+  recentTransactions: {
     id: string;
     type: string;
     amount: number;
     description: string | null;
     createdAt: string;
-  }>;
-  activeProperties: Array<{
+  }[];
+  activeProperties: {
     id: string;
     slug: string;
     title: string;
@@ -37,7 +37,7 @@ export interface DashboardView {
     targetIrr: number;
     fundingPercentage: number;
     status: string;
-  }>;
+  }[];
   greeting: string;
 }
 

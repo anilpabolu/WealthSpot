@@ -447,52 +447,54 @@ async def compute_match_score(
     return ms
 
 
+_VAULT_DIMENSION_WEIGHTS: dict[str, dict[str, float]] = {
+    "wealth": {
+        "risk_appetite": 1.5,
+        "domain_expertise": 1.2,
+        "investment_capacity": 2.0,
+        "time_commitment": 0.3,
+        "network_strength": 0.5,
+        "creativity_score": 0.2,
+        "leadership_score": 0.3,
+        "collaboration_score": 0.5,
+    },
+    "community": {
+        "risk_appetite": 0.8,
+        "domain_expertise": 1.0,
+        "investment_capacity": 1.0,
+        "time_commitment": 1.8,
+        "network_strength": 1.5,
+        "creativity_score": 1.3,
+        "leadership_score": 1.5,
+        "collaboration_score": 2.0,
+    },
+    "safe": {
+        "risk_appetite": 1.5,
+        "domain_expertise": 1.3,
+        "investment_capacity": 1.8,
+        "time_commitment": 1.8,
+        "network_strength": 0.2,
+        "creativity_score": 0.2,
+        "leadership_score": 0.2,
+        "collaboration_score": 0.3,
+    },
+}
+
+_VAULT_WEIGHTS_DEFAULT: dict[str, float] = {
+    "risk_appetite": 1.8,
+    "domain_expertise": 1.5,
+    "investment_capacity": 1.5,
+    "time_commitment": 0.8,
+    "network_strength": 1.0,
+    "creativity_score": 0.5,
+    "leadership_score": 0.8,
+    "collaboration_score": 1.2,
+}
+
+
 def _vault_dimension_weights(vault_type: str) -> dict[str, float]:
     """Importance of each dimension varies by vault type."""
-    if vault_type == "wealth":
-        return {
-            "risk_appetite": 1.5,
-            "domain_expertise": 1.2,
-            "investment_capacity": 2.0,
-            "time_commitment": 0.3,
-            "network_strength": 0.5,
-            "creativity_score": 0.2,
-            "leadership_score": 0.3,
-            "collaboration_score": 0.5,
-        }
-    elif vault_type == "community":
-        return {
-            "risk_appetite": 0.8,
-            "domain_expertise": 1.0,
-            "investment_capacity": 1.0,
-            "time_commitment": 1.8,
-            "network_strength": 1.5,
-            "creativity_score": 1.3,
-            "leadership_score": 1.5,
-            "collaboration_score": 2.0,
-        }
-    elif vault_type == "safe":
-        return {
-            "risk_appetite": 1.5,
-            "domain_expertise": 1.3,
-            "investment_capacity": 1.8,
-            "time_commitment": 1.8,
-            "network_strength": 0.2,
-            "creativity_score": 0.2,
-            "leadership_score": 0.2,
-            "collaboration_score": 0.3,
-        }
-    else:  # opportunity
-        return {
-            "risk_appetite": 1.8,
-            "domain_expertise": 1.5,
-            "investment_capacity": 1.5,
-            "time_commitment": 0.8,
-            "network_strength": 1.0,
-            "creativity_score": 0.5,
-            "leadership_score": 0.8,
-            "collaboration_score": 1.2,
-        }
+    return _VAULT_DIMENSION_WEIGHTS.get(vault_type, _VAULT_WEIGHTS_DEFAULT)
 
 def _apply_opportunity_bonuses(
     score: float, opp: Opportunity, pd: PersonalityDimension, user: User | None

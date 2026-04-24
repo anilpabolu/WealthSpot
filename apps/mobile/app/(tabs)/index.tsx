@@ -16,7 +16,7 @@ import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useQueryClient } from '@tanstack/react-query'
 import { useThemeStore } from '@/stores/theme.store'
 import { getThemeColors } from '@/lib/theme'
-import { MetricCard, EmptyState, Badge, FadeInView } from '@/components/ui'
+import { MetricCard, Badge, FadeInView } from '@/components/ui'
 
 /* ─── Vault config ────────────────────────────────────────────────────── */
 

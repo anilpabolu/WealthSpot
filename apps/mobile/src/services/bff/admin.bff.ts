@@ -16,29 +16,29 @@ export interface AdminDashboardView {
     totalTransactions: number;
     kycPendingCount: number;
   };
-  pendingKyc: Array<{
+  pendingKyc: {
     userId: string;
     fullName: string;
     email: string;
     kycStatus: string;
     documentCount: number;
     submittedAt: string;
-  }>;
-  pendingProperties: Array<{
+  }[];
+  pendingProperties: {
     id: string;
     title: string;
     builderName: string;
     city: string;
     targetAmount: number;
     submittedAt: string;
-  }>;
-  recentActivity: Array<{
+  }[];
+  recentActivity: {
     action: string;
     resourceType: string;
     resourceId: string | null;
     actorName: string;
     createdAt: string;
-  }>;
+  }[];
 }
 
 export const mobileAdminBff = {

@@ -138,6 +138,9 @@ def cleanup_old_audit_logs():
                 {"cutoff": cutoff},
             )
             await session.commit()
+            logger.info("Archived audit logs older than %s", cutoff)
+
+    asyncio.run(_cleanup())
 
 
 # ── Analytics Tasks ─────────────────────────────────────────────────────────────────
@@ -159,6 +162,3 @@ def refresh_analytics_views():
             logger.info("Analytics materialized views refreshed")
 
     asyncio.run(_refresh())
-            logger.info("Archived audit logs older than %s", cutoff)
-
-    asyncio.run(_cleanup())

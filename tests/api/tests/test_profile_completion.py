@@ -283,10 +283,11 @@ class TestProfileFullFlow:
             "pincode": "500032",
         })
 
-        # Check — should be 80% (4/5 sections, missing verification)
+        # Check — should be 75% (3/4 sections, missing verification).
+        # Profile sections were consolidated from 5 to 4: personal/interests/address/verification.
         resp = await client.get(f"{PREFIX}/completion", headers=headers)
         data = resp.json()
-        assert data["profile_completion_pct"] == 80
+        assert data["profile_completion_pct"] == 75
         assert data["sections"]["verification"] is False
 
         # Verify email

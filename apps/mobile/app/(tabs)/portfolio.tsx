@@ -4,7 +4,6 @@
  */
 
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { formatINR } from '@/lib/formatters'
 import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfolio'

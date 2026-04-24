@@ -23,7 +23,6 @@ from app.models.user import User
 from app.schemas.investment import (
     AssetAllocation,
     CityDistribution,
-    MonthlyReturn,
     PortfolioProperty,
     PortfolioSummary,
     TransactionRead,
@@ -81,7 +80,6 @@ async def portfolio_summary(
     by_city: dict[str, tuple[int, Decimal]] = defaultdict(lambda: (0, Decimal("0")))
     property_ids_set: set = set()
     cities_set: set[str] = set()
-    irr_values: list[float] = []
 
     # Aggregate property-based investments
     if investments:

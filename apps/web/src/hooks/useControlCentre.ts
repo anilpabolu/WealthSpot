@@ -59,6 +59,15 @@ export function useAppearanceConfig() {
   })
 }
 
+export function usePublicNotificationsConfig() {
+  return useQuery({
+    queryKey: ['control-centre', 'notifications-public'],
+    queryFn: () =>
+      apiGet<{ toastIntervalMs: number }>('/control-centre/notifications/public'),
+    staleTime: 60_000,
+  })
+}
+
 export function useCreateConfig() {
   const qc = useQueryClient()
   return useMutation({

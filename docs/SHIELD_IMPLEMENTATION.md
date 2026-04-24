@@ -152,7 +152,7 @@ Schemas live in `services/api/app/schemas/assessment.py`.
 
 - `apps/web/src/lib/assessments.ts` — re-exports + lucide icon mapping.
 - `apps/web/src/components/shield/`
-  - `ShieldDot.tsx`, `ShieldTile.tsx`, `ShieldHeroStrip.tsx`, `ShieldInfoModal.tsx`
+  - `ShieldDot.tsx`, `ShieldHeroCarousel.tsx`, `ShieldInfoModal.tsx`
   - `ShieldSection.tsx` (opportunity detail page)
   - `ShieldDocLink.tsx` (gated doc download)
   - `BuilderShieldStep.tsx` (wizard step)
@@ -162,7 +162,7 @@ Schemas live in `services/api/app/schemas/assessment.py`.
 
 ### Surface edits
 
-1. **Marketplace hero** — add `<ShieldHeroStrip />` to `MarketplacePage`.
+1. **Marketplace hero** — add `<ShieldHeroCarousel />` to `MarketplacePage`.
 2. **Opportunity detail** — insert `<ShieldSection opportunityId={opp.id} />` above "Developer / Company".
 3. **Builder creation wizard** — add optional `'shield'` step in `BuilderListingNewPage`.
 4. **Builder listings table** — Shield progress chip column.
@@ -174,12 +174,12 @@ Schemas live in `services/api/app/schemas/assessment.py`.
 
 ## Frontend — mobile (`apps/mobile`)
 
-- `apps/mobile/src/components/shield/` — `ShieldDot`, `ShieldTile`, `ShieldSection`, `ShieldInfoSheet`.
+- `apps/mobile/src/components/shield/` — `ShieldDot`, `ShieldHeroCarousel`, `ShieldSection`, `ShieldInfoSheet`.
 - `apps/mobile/src/hooks/useShield.ts`
 - BFF edits: `marketplace.bff.ts`, `portfolio.bff.ts`.
 
 **Screen edits:**
-- `apps/mobile/app/(tabs)/marketplace.tsx` — horizontal Shield tile strip.
+- `apps/mobile/app/(tabs)/marketplace.tsx` — Shield hero carousel.
 - Opportunity detail — insert `<ShieldSection>`.
 - Builder listings — Shield progress chip.
 - Builder opportunity-create flow — optional Shield step with `expo-document-picker`.
@@ -223,7 +223,7 @@ Rollback: revert PR + `alembic downgrade -1`.
 
 ## Verification checklist
 
-1. **Hero** — marketplace shows 7-tile Shield strip; tile click opens modal.
+1. **Hero** — marketplace shows the Shield hero carousel; "Learn more" opens the info modal.
 2. **Builder flow** — optional Shield step; submit works with empty answers.
 3. **Admin review** — approve gated by completion; force-override works with reason.
 4. **Investor pre-EOI** — sensitive docs show 🔒 lock icon.

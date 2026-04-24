@@ -33,9 +33,9 @@ export interface PortfolioSummary {
   propertiesCount: number
   citiesCount: number
   monthlyIncome: number
-  assetAllocation: Array<{ type: string; percentage: number; value: number }>
-  cityDistribution: Array<{ city: string; percentage: number; value: number }>
-  monthlyReturns: Array<{ month: string; returns: number; invested: number }>
+  assetAllocation: { type: string; percentage: number; value: number }[]
+  cityDistribution: { city: string; percentage: number; value: number }[]
+  monthlyReturns: { month: string; returns: number; invested: number }[]
 }
 
 export interface RecentTransaction {

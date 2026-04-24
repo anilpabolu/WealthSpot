@@ -91,6 +91,26 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET_KEY must be set to a strong secret in production")
             if not self.encryption_key:
                 raise ValueError("ENCRYPTION_KEY must be set in production")
+
+            origins = self.cors_origin_list
+            if not origins:
+                raise ValueError(
+                    "CORS_ORIGINS must be set to one or more explicit origins in production"
+                )
+            if "*" in origins:
+                raise ValueError(
+                    "CORS_ORIGINS cannot include '*' in production "
+                    "(incompatible with allow_credentials=True)"
+                )
+            for origin in origins:
+                if "localhost" in origin or "127.0.0.1" in origin:
+                    raise ValueError(
+                        f"CORS_ORIGINS contains a development origin in production: {origin}"
+                    )
+                if not origin.startswith("https://"):
+                    raise ValueError(
+                        f"CORS_ORIGINS must use https:// in production: {origin}"
+                    )
         return self
 
 
