@@ -417,6 +417,40 @@ export interface ApprovalStats {
 
 // ── Opportunity ─────────────────────────────────────────────────────────────
 
+export interface SafeVaultMortgageAgreement {
+  enabled: boolean;
+  details?: string;
+  period_description?: string;
+}
+
+export interface SafeVaultReraRegistration {
+  enabled: boolean;
+  rera_number?: string;
+}
+
+export interface SafeVaultBuybackGuarantee {
+  enabled: boolean;
+  details?: string;
+}
+
+export interface SafeVaultLandRegistration {
+  enabled: boolean;
+  details?: string;
+}
+
+export interface SafeVaultConfig {
+  interest_rate: number;           // % per annum
+  payout_frequency: 'monthly' | 'quarterly' | 'yearly';
+  tenure_months?: number;
+  mortgage_agreement: SafeVaultMortgageAgreement;
+  legal_notarised_doc: boolean;
+  rera_registration: SafeVaultReraRegistration;
+  buyback_guarantee: SafeVaultBuybackGuarantee;
+  capital_protection: boolean;
+  collateral_details?: string;
+  land_registration: SafeVaultLandRegistration;
+}
+
 export interface Opportunity {
   id: string;
   creator_id: string;
@@ -444,6 +478,7 @@ export interface Opportunity {
   collaboration_type: string | null;
   community_subtype: string | null;
   community_details: Record<string, unknown> | null;
+  safe_vault_data: SafeVaultConfig | null;
   cover_image: string | null;
   gallery: string[] | null;
   documents: Record<string, unknown> | null;
@@ -490,6 +525,8 @@ export interface OpportunityCreate {
   collaboration_type?: string;
   community_subtype?: string;
   community_details?: Record<string, unknown>;
+  // Safe Vault fields
+  safe_vault_data?: SafeVaultConfig;
 }
 
 // ── Platform Config ─────────────────────────────────────────────────────────

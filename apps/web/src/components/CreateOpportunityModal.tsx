@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Select } from '@/components/ui'
-import { X, Rocket, Building2, Users, CheckCircle2, Loader2, Lock, Wallet, Handshake, ArrowLeft } from 'lucide-react'
+import { X, Building2, Users, CheckCircle2, Loader2, Lock, Wallet, Handshake, ArrowLeft, ShieldCheck } from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -10,6 +10,7 @@ import AddressDialog, { type AddressFields } from './AddressDialog'
 import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
 import { type CommunitySubtypeValue } from './CommunitySubtypeModal'
+import { useToastStore } from '@/stores/toastStore'
 
 const COMMUNITY_SUBTYPES = [
   {
@@ -40,11 +41,11 @@ const COMMUNITY_SUBTYPES = [
 
 const VAULT_OPTIONS = [
   { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5' },
-  { value: 'opportunity', label: 'Opportunity Vault', sublabel: 'Startups that go BRRR 🚀', icon: Rocket, color: 'border-violet-500 text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30' },
+  { value: 'safe', label: 'Safe Vault', sublabel: 'Fixed returns · Mortgage-backed 🔒', icon: ShieldCheck, color: 'border-teal-500 text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30' },
   { value: 'community', label: 'Community Vault', sublabel: 'Build together, win together 🐝', icon: Users, color: 'border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30' },
 ] as const
 
-const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
+const _STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
 const COLLABORATION_TYPES = ['Capital + Time', 'Capital Only', 'Time + Network', 'Full Collaboration']
 
@@ -89,6 +90,18 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
   const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: '', title: '' })
+  const [safeVaultData, setSafeVaultData] = useState<Record<string, unknown>>({
+    interest_rate: 0,
+    payout_frequency: 'monthly',
+    tenure_months: null,
+    mortgage_agreement: { enabled: false, details: '', period_description: '' },
+    legal_notarised_doc: false,
+    rera_registration: { enabled: false, rera_number: '' },
+    buyback_guarantee: { enabled: false, details: '' },
+    capital_protection: false,
+    collateral_details: '',
+    land_registration: { enabled: false, details: '' },
+  })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [address, setAddress] = useState<AddressFields>(EMPTY_ADDRESS)
   const [uploadProgress, setUploadProgress] = useState('')
@@ -145,6 +158,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
         communitySubtype,
         communityDetails: communityDetails as Record<string, unknown>,
       }),
+      ...(vaultType === 'safe' && { safeVaultData }),
     }
 
     try {
@@ -175,8 +189,10 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
       }
 
       setStep('success')
+      useToastStore.getState().addToast({ type: 'success', title: 'Opportunity launched!', message: 'Your listing has been submitted for review.' })
     } catch {
       setStep('form')
+      useToastStore.getState().addToast({ type: 'error', title: 'Launch failed', message: 'Something went wrong. Please try again.' })
     }
   }
 
@@ -186,6 +202,18 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
     setCommunitySubtype('')
     setCommunityDetails({})
     setForm({ vaultType: '', title: '' })
+    setSafeVaultData({
+      interest_rate: 0,
+      payout_frequency: 'monthly',
+      tenure_months: null,
+      mortgage_agreement: { enabled: false, details: '', period_description: '' },
+      legal_notarised_doc: false,
+      rera_registration: { enabled: false, rera_number: '' },
+      buyback_guarantee: { enabled: false, details: '' },
+      capital_protection: false,
+      collateral_details: '',
+      land_registration: { enabled: false, details: '' },
+    })
     setMediaItems([])
     setAddress(EMPTY_ADDRESS)
     createMutation.reset()
@@ -385,70 +413,120 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                 </>
               )}
 
-              {/* === Opportunity (Startup) Vault Fields === */}
-              {vaultType === 'opportunity' && (
+              {/* === Safe Vault Fields === */}
+              {vaultType === 'safe' && (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Industry *</label>
-                      <input
-                        required
-                        value={form.industry ?? ''}
-                        onChange={(e) => handleChange('industry', e.target.value)}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                        placeholder="e.g. FinTech, HealthTech"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Stage *</label>
-                      <Select
-                        value={form.stage ?? ''}
-                        onChange={(v) => handleChange('stage', v)}
-                        placeholder="Select stage"
-                        options={STARTUP_STAGES.map((s) => ({ value: s, label: s }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Founder Name</label>
-                      <input
-                        value={form.founderName ?? ''}
-                        onChange={(e) => handleChange('founderName', e.target.value)}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Pitch Deck URL</label>
-                      <input
-                        type="url"
-                        value={form.pitchDeckUrl ?? ''}
-                        onChange={(e) => handleChange('pitchDeckUrl', e.target.value)}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Returns configuration */}
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.targetAmount ?? ''}
-                        onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                      <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
+                      <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Interest Rate (% p.a.)</label>
+                      <input type="number" step="0.1" min={0} value={(safeVaultData.interest_rate as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Payout Frequency</label>
+                      <Select
+                        value={(safeVaultData.payout_frequency as string) ?? 'monthly'}
+                        onChange={(v) => setSafeVaultData((p) => ({ ...p, payout_frequency: v }))}
+                        options={[
+                          { value: 'monthly', label: 'Monthly' },
+                          { value: 'quarterly', label: 'Quarterly' },
+                          { value: 'yearly', label: 'Yearly' },
+                        ]}
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Tenure (months)</label>
+                      <input type="number" min={1} value={(safeVaultData.tenure_months as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. 24" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
-                      <Select
-                        value={form.city ?? ''}
-                        onChange={(v) => handleChange('city', v)}
-                        placeholder="Select city"
-                        options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))}
-                        searchable
-                      />
+                      <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">State</label>
+                      <input value={form.state ?? ''} onChange={(e) => handleChange('state', e.target.value)} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Maharashtra" />
+                    </div>
+                  </div>
+
+                  {/* Security Features */}
+                  <div className="border border-theme rounded-xl p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-theme-primary flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-500" /> Security Features</h4>
+
+                    {/* Mortgage Agreement */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={(safeVaultData.mortgage_agreement as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), enabled: e.target.checked } }))} className="rounded" />
+                        <span className="text-sm text-theme-primary">Mortgage Agreement</span>
+                      </label>
+                      {(safeVaultData.mortgage_agreement as { enabled: boolean }).enabled && (
+                        <div className="grid grid-cols-2 gap-2 ml-6">
+                          <input value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))} className="rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Property details" />
+                          <input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} className="rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Period (e.g. until RERA issued)" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Legal Notarised Doc */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={safeVaultData.legal_notarised_doc as boolean} onChange={(e) => setSafeVaultData((p) => ({ ...p, legal_notarised_doc: e.target.checked }))} className="rounded" />
+                      <span className="text-sm text-theme-primary">Legal / Notarised Document</span>
+                    </label>
+
+                    {/* RERA Registration */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={(safeVaultData.rera_registration as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), enabled: e.target.checked } }))} className="rounded" />
+                        <span className="text-sm text-theme-primary">RERA Registration</span>
+                      </label>
+                      {(safeVaultData.rera_registration as { enabled: boolean }).enabled && (
+                        <input value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="RERA number" />
+                      )}
+                    </div>
+
+                    {/* Buyback Guarantee */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={(safeVaultData.buyback_guarantee as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), enabled: e.target.checked } }))} className="rounded" />
+                        <span className="text-sm text-theme-primary">Buyback Guarantee</span>
+                      </label>
+                      {(safeVaultData.buyback_guarantee as { enabled: boolean }).enabled && (
+                        <input value={(safeVaultData.buyback_guarantee as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), details: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Buyback terms" />
+                      )}
+                    </div>
+
+                    {/* Capital Protection */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={safeVaultData.capital_protection as boolean} onChange={(e) => setSafeVaultData((p) => ({ ...p, capital_protection: e.target.checked }))} className="rounded" />
+                      <span className="text-sm text-theme-primary">Capital Protection</span>
+                    </label>
+
+                    {/* Collateral Details */}
+                    <div className="space-y-1">
+                      <label className="block text-sm text-theme-primary">Collateral Details (optional)</label>
+                      <input value={(safeVaultData.collateral_details as string) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, collateral_details: e.target.value }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Describe collateral assets" />
+                    </div>
+
+                    {/* Land Registration */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={(safeVaultData.land_registration as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), enabled: e.target.checked } }))} className="rounded" />
+                        <span className="text-sm text-theme-primary">Land Registration</span>
+                      </label>
+                      {(safeVaultData.land_registration as { enabled: boolean }).enabled && (
+                        <input value={(safeVaultData.land_registration as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), details: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Registration details" />
+                      )}
                     </div>
                   </div>
                 </>

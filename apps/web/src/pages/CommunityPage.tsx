@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { Select, EmptyState } from '@/components/ui'
 import MainLayout from '@/components/layout/MainLayout'
+import SEOHead from '@/components/SEOHead'
 import { useUserStore } from '@/stores/user.store'
 import { useContent } from '@/hooks/useSiteContent'
 import {
@@ -589,6 +590,12 @@ export default function CommunityPage() {
 
   return (
     <MainLayout>
+      <SEOHead
+        title="Community"
+        description="Join the WealthSpot community — discuss investments, discover co-investors, and collaborate on community vault projects."
+        path="/community"
+        noIndex={true}
+      />
       {/* Hero */}
       <div className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
         <div className="page-hero-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

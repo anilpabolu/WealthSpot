@@ -45,7 +45,7 @@ TEMPLATE_COLUMNS = [
     "collaboration_type",
 ]
 
-VAULT_TYPES = "wealth | opportunity | community"
+VAULT_TYPES = "wealth | safe | community"
 SAMPLE_ROW = [
     "Green Horizon Residency",
     "Premium living in tech corridor",
@@ -98,7 +98,7 @@ async def download_opportunity_template(
         "Total amount in INR",
         "Minimum per investor",
         "Expected IRR %",
-        "For opportunity vault",
+        "For safe vault",
         "Idea/MVP/Seed/Growth",
         "Founder name",
         "URL",
@@ -164,7 +164,7 @@ async def upload_opportunity_template(
             continue
 
         vault_type = (row.get("vault_type") or "wealth").strip().lower()
-        if vault_type not in ("wealth", "opportunity", "community"):
+        if vault_type not in ("wealth", "safe", "opportunity", "community"):
             errors.append(f"Row {idx}: Invalid vault_type '{vault_type}'")
             continue
 

@@ -288,7 +288,8 @@ export function MatchScoreFull({ score, vaultType }: { score: MatchScore; vaultT
 export function ProfilePrompt({ vaultType, className = '' }: { vaultType: string; className?: string }) {
   const vaultConfig: Record<string, { label: string; emoji: string; gradient: string; bg: string; border: string }> = {
     wealth: { label: 'Wealth', emoji: '🏛️', gradient: 'from-[#1B2A4A] to-[#D4AF37]', bg: 'bg-[#F5F0E1]/50', border: 'border-[#D4AF37]/30' },
-    opportunity: { label: 'Opportunity', emoji: '🚀', gradient: 'from-[#FF6B6B] to-[#20E3B2]', bg: 'bg-[#FFF0F0]/50', border: 'border-[#20E3B2]/30' },
+    safe: { label: 'Safe', emoji: '🔒', gradient: 'from-[#065F46] to-[#34D399]', bg: 'bg-[#ECFDF5]/50', border: 'border-[#34D399]/30' },
+    opportunity: { label: 'Safe', emoji: '🔒', gradient: 'from-[#065F46] to-[#34D399]', bg: 'bg-[#ECFDF5]/50', border: 'border-[#34D399]/30' },
     community: { label: 'Community', emoji: '🤝', gradient: 'from-[#D97706] to-[#065F46]', bg: 'bg-[#FFFBEB]/50', border: 'border-[#D97706]/30' },
   }
   const defaultVc = { label: 'Wealth', emoji: '🏛️', gradient: 'from-[#1B2A4A] to-[#D4AF37]', bg: 'bg-[#F5F0E1]/50', border: 'border-[#D4AF37]/30' }

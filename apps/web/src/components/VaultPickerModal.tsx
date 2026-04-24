@@ -6,13 +6,13 @@
  *  2. User picks a vault:
  *     - If DNA profiling is complete → navigate to result page
  *     - If profiling incomplete → show graceful message with CTA to start/continue profiling
- *     - If vault is "coming soon" (opportunity) → disabled state
+ *     - If vault is "coming soon" (safe/community) → disabled state
  */
 
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { Building2, Rocket, Users, X, Sparkles, Lock, ArrowRight } from 'lucide-react'
+import { Building2, ShieldCheck, Users, X, Sparkles, Lock, ArrowRight } from 'lucide-react'
 import { useOverallProgress } from '@/hooks/useProfiling'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import type { VaultProgressDetail } from '@/hooks/useProfiling'
@@ -34,14 +34,14 @@ const VAULT_OPTIONS = [
     emoji: '🏛️',
   },
   {
-    id: 'opportunity' as const,
-    title: 'Opportunity Vault',
-    icon: Rocket,
-    gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
-    accent: 'text-[#FF6B6B]',
-    bg: 'bg-[#FFF0F0] dark:bg-[#FF6B6B]/10',
-    border: 'border-[#20E3B2]/30',
-    emoji: '🚀',
+    id: 'safe' as const,
+    title: 'Safe Vault',
+    icon: ShieldCheck,
+    gradient: 'from-[#0D3B2E] via-[#1A5C46] to-[#0D3B2E]',
+    accent: 'text-[#065F46] dark:text-[#34D399]',
+    bg: 'bg-[#ECFDF5] dark:bg-[#34D399]/10',
+    border: 'border-[#34D399]/30',
+    emoji: '🔒',
   },
   {
     id: 'community' as const,

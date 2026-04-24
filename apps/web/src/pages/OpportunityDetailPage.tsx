@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
+import SEOHead from '@/components/SEOHead'
 import FundingBar from '@/components/wealth/FundingBar'
 import IrrBadge from '@/components/wealth/IrrBadge'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
@@ -448,6 +449,12 @@ export default function OpportunityDetailPage() {
 
   return (
     <MainLayout>
+      <SEOHead
+        title={opp.title}
+        description={opp.tagline ?? opp.description?.slice(0, 160) ?? 'Investment opportunity on WealthSpot'}
+        path={`/opportunity/${opp.slug}`}
+        type="article"
+      />
       <div className="page-section">
         <div className="page-section-container">
         {/* Breadcrumb */}

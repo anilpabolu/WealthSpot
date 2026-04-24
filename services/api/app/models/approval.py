@@ -25,6 +25,7 @@ class ApprovalCategory(str, PyEnum):
     ROLE_ASSIGNMENT = "role_assignment"
     PILLAR_ACCESS = "pillar_access"
     OPPORTUNITY_LISTING = "opportunity_listing"
+    SAFE_LISTING = "safe_listing"
     PROPERTY_LISTING = "property_listing"
     KYC_VERIFICATION = "kyc_verification"
     COMMUNITY_PROJECT = "community_project"

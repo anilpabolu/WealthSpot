@@ -28,6 +28,7 @@ interface VaultFeatureFlagUpdate {
 
 interface MyFeatureFlags {
   wealth: Record<string, boolean>
+  safe: Record<string, boolean>
   opportunity: Record<string, boolean>
   community: Record<string, boolean>
 }
@@ -67,7 +68,7 @@ export function useMyFeatures() {
  * Check if the current user can access a specific feature in a vault.
  * Returns { allowed, isLoading }.
  */
-export function useCanAccess(vaultType: 'wealth' | 'opportunity' | 'community', featureKey: string) {
+export function useCanAccess(vaultType: 'wealth' | 'safe' | 'opportunity' | 'community', featureKey: string) {
   const { data, isLoading } = useMyFeatures()
   const user = useUserStore((s) => s.user)
 
@@ -75,7 +76,7 @@ export function useCanAccess(vaultType: 'wealth' | 'opportunity' | 'community', 
   const isSuperAdmin = user?.roles?.includes('super_admin') ?? false
   if (isSuperAdmin) return { allowed: true, isLoading: false }
   if (isLoading || !data) return { allowed: false, isLoading: true }
-  const vault = data[vaultType] ?? {}
+  const vault = vaultType === 'safe' ? (data.safe ?? data.opportunity ?? {}) : (data[vaultType] ?? {})
   return { allowed: !!vault[featureKey], isLoading: false }
 }
 

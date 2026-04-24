@@ -22,7 +22,7 @@ import { MetricCard, EmptyState, Badge, FadeInView } from '@/components/ui'
 
 const VAULTS = [
   { key: 'wealth', emoji: '🏛️', label: 'Wealth', primary: '#1B2A4A', bg: '#F5F0E1', accent: '#D4AF37' },
-  { key: 'opportunity', emoji: '🚀', label: 'Opportunity', primary: '#FF6B6B', bg: '#FFF0F0', accent: '#20E3B2' },
+  { key: 'safe', emoji: '🔒', label: 'Safe', primary: '#0F766E', bg: '#F0FDFA', accent: '#5EEAD4' },
   { key: 'community', emoji: '🤝', label: 'Community', primary: '#D97706', bg: '#FFFBEB', accent: '#065F46' },
 ] as const
 
@@ -38,16 +38,16 @@ export default function HomeScreen() {
 
   // Profiling progress for each vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
-  const { data: opportunityProgress } = useProfilingProgress('opportunity')
+  const { data: safeProgress } = useProfilingProgress('safe')
   const { data: communityProgress } = useProfilingProgress('community')
 
   const progressMap: Record<string, number | undefined> = {
     wealth: wealthProgress?.completionPct,
-    opportunity: opportunityProgress?.completionPct,
+    safe: safeProgress?.completionPct,
     community: communityProgress?.completionPct,
   }
 
-  const anyComplete = wealthProgress?.isComplete || opportunityProgress?.isComplete || communityProgress?.isComplete
+  const anyComplete = wealthProgress?.isComplete || safeProgress?.isComplete || communityProgress?.isComplete
 
   const refreshing = featuredLoading
   const onRefresh = useCallback(() => {

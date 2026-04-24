@@ -39,13 +39,13 @@ const VAULT_HERO_CONFIG: Record<
     defaultSubtitle: 'Transparent, secure, Shield-verified opportunities.',
     shieldNote: 'Every listing is independently verified across 7 assessment layers.',
   },
-  opportunity: {
-    badge: 'Opportunity Vault',
-    gradientColors: ['#4A1B1B', '#7A2D2D', '#4A1B1B'],
-    accentDot: '#20E3B2',
-    accentText: '#20E3B2',
-    defaultTitle: 'Premium Opportunities',
-    defaultSubtitle: 'Curated startup & growth-stage investments.',
+  safe: {
+    badge: 'Safe Vault',
+    gradientColors: ['#042F2E', '#0F766E', '#042F2E'],
+    accentDot: '#5EEAD4',
+    accentText: '#5EEAD4',
+    defaultTitle: 'Safe Vault',
+    defaultSubtitle: 'Fixed returns backed by real estate & mortgage agreements.',
     shieldNote: 'Every listing is independently verified across 7 assessment layers.',
   },
   community: {
@@ -105,12 +105,12 @@ export default function MarketplaceScreen() {
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-4xl mb-3">🔒</Text>
           <Text className="text-lg font-bold text-center mb-2" style={{ color: colors.textPrimary }}>
-            {vault === 'community' ? 'Rallying the Tribe...' : 'The Launchpad is Being Built...'}
+            {vault === 'community' ? 'Rallying the Tribe...' : 'Safe Vault is Being Secured...'}
           </Text>
           <Text className="text-sm text-center" style={{ color: colors.textSecondary }}>
             {vault === 'community'
               ? 'Community Vault is coming soon. We\'re building something special for collaborative investing.'
-              : 'Opportunity Vault is coming soon. Premium startup opportunities are being curated.'}
+              : 'Safe Vault is coming soon. Fixed-return, mortgage-backed opportunities are being lined up.'}
           </Text>
         </View>
       ) : (

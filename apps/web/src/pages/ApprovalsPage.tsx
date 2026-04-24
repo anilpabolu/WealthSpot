@@ -29,6 +29,7 @@ import { useApprovalStore } from '@/stores/approval.store'
 import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useCompany, useUpdateCompany, type CompanyDetail } from '@/hooks/useCompanies'
 import { AdminShieldReviewPanel } from '@/components/shield/AdminShieldReviewPanel'
+import { useToastStore } from '@/stores/toastStore'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -38,7 +39,7 @@ const CATEGORIES = [
   { value: '', label: 'All Categories' },
   { value: 'role_assignment', label: 'Role Assignment' },
   { value: 'pillar_access', label: 'Pillar Access' },
-  { value: 'opportunity_listing', label: 'Opportunity Listing' },
+  { value: 'safe_listing', label: 'Safe Vault Listing' },
   { value: 'property_listing', label: 'Property Listing' },
   { value: 'kyc_verification', label: 'KYC Verification' },
   { value: 'community_project', label: 'Community Project' },
@@ -111,7 +112,7 @@ function ReviewModal({
 }) {
   const [note, setNote] = useState('')
   const [override, setOverride] = useState(false)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const addToast = useToastStore((s) => s.addToast)
   const review = useReviewApproval()
   const isOpportunityApprove =
     action === 'approve' && approval.resourceType === 'opportunity'
@@ -127,10 +128,10 @@ function ReviewModal({
       const msg = action === 'approve'
         ? 'Request approved successfully! Changes are now live.'
         : 'Request has been rejected.'
-      setToast({ type: 'success', message: msg })
-      setTimeout(() => onClose(), 2000)
+      addToast({ type: 'success', title: msg })
+      setTimeout(() => onClose(), 1500)
     } catch {
-      setToast({ type: 'error', message: 'Action failed. Please try again.' })
+      addToast({ type: 'error', title: 'Action failed. Please try again.' })
     }
   }
 
@@ -185,7 +186,7 @@ function ReviewModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={review.isPending || (action === 'reject' && !note.trim()) || !!toast}
+            disabled={review.isPending || (action === 'reject' && !note.trim())}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white transition-colors disabled:opacity-50 ${
               action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
             }`}
@@ -195,17 +196,7 @@ function ReviewModal({
           </button>
         </div>
 
-        {/* Toast */}
-        {toast && (
-          <div className={`mt-4 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
-            toast.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/40'
-              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40'
-          }`}>
-            {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-            {toast.message}
-          </div>
-        )}
+        {/* Toast handled by global ToastRibbon */}
       </div>
     </div>
   )
@@ -261,11 +252,9 @@ function EditOpportunityPanel({
     founderName: opportunity.founderName ?? '',
     communityType: opportunity.communityType ?? '',
     collaborationType: opportunity.collaborationType ?? '',
+    safeInterestRate: ((opportunity.safeVaultData as Record<string, unknown> | null)?.interest_rate as number | undefined)?.toString() ?? '',
+    safePayoutFrequency: ((opportunity.safeVaultData as Record<string, unknown> | null)?.payout_frequency as string | undefined) ?? 'monthly',
   })
-
-  const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }
 
   const handleSave = async () => {
     const data: Record<string, string | number | undefined> = {}
@@ -286,6 +275,16 @@ function EditOpportunityPanel({
     if (form.communityType !== (opportunity.communityType ?? '')) data.communityType = form.communityType
     if (form.collaborationType !== (opportunity.collaborationType ?? '')) data.collaborationType = form.collaborationType
 
+    // Safe Vault: rebuild safeVaultData with edited interest_rate / payout_frequency
+    if (vt === 'safe') {
+      const existing = (opportunity.safeVaultData as Record<string, unknown> | null) ?? {}
+      const newRate = form.safeInterestRate ? Number(form.safeInterestRate) : (existing.interest_rate as number | undefined)
+      const newFreq = form.safePayoutFrequency
+      if (newRate !== (existing.interest_rate as number | undefined) || newFreq !== (existing.payout_frequency as string | undefined)) {
+        (data as Record<string, unknown>).safeVaultData = { ...existing, interest_rate: newRate, payout_frequency: newFreq }
+      }
+    }
+
     if (Object.keys(data).length === 0) {
       onSaved()
       return
@@ -293,6 +292,10 @@ function EditOpportunityPanel({
 
     await updateMutation.mutateAsync({ id: opportunity.id, data })
     onSaved()
+  }
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   const vt = opportunity.vaultType
@@ -383,31 +386,30 @@ function EditOpportunityPanel({
       </div>
 
       {/* Vault-specific fields */}
-      {vt === 'opportunity' && (
-        <div className="grid grid-cols-3 gap-3">
+      {vt === 'safe' && (
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Industry</label>
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Interest Rate (% p.a.)</label>
             <input
-              value={form.industry}
-              onChange={(e) => handleChange('industry', e.target.value)}
+              type="number"
+              step="0.1"
+              min={0}
+              value={form.safeInterestRate}
+              onChange={(e) => handleChange('safeInterestRate', e.target.value)}
               className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Stage</label>
-            <input
-              value={form.stage}
-              onChange={(e) => handleChange('stage', e.target.value)}
-              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Founder</label>
-            <input
-              value={form.founderName}
-              onChange={(e) => handleChange('founderName', e.target.value)}
-              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            />
+            <label className="block text-xs font-medium text-theme-secondary mb-1">Payout Frequency</label>
+            <select
+              value={form.safePayoutFrequency}
+              onChange={(e) => handleChange('safePayoutFrequency', e.target.value)}
+              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-[var(--bg-surface)]"
+            >
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
           </div>
         </div>
       )}
@@ -811,7 +813,7 @@ function DetailPopup({ approval, onClose, onReview }: {
   onReview: (action: 'approve' | 'reject') => void
 }) {
   const [editMode, setEditMode] = useState(false)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const addToast = useToastStore((s) => s.addToast)
 
   const isOpportunityApproval = approval.resourceType === 'opportunity' && !!approval.resourceId
   const isCompanyApproval = approval.resourceType === 'company' && !!approval.resourceId
@@ -830,10 +832,10 @@ function DetailPopup({ approval, onClose, onReview }: {
     try {
       await review.mutateAsync({ id: approval.id, action: 'approve', reviewNote: 'Approved after editing details' })
       setEditMode(false)
-      setToast({ type: 'success', message: 'Details updated and request approved! Changes are now live.' })
-      setTimeout(() => onClose(), 2500)
+      addToast({ type: 'success', title: 'Details updated and request approved! Changes are now live.' })
+      setTimeout(() => onClose(), 1500)
     } catch {
-      setToast({ type: 'error', message: 'Approval failed. Please try again.' })
+      addToast({ type: 'error', title: 'Approval failed. Please try again.' })
     }
   }
 
@@ -985,20 +987,10 @@ function DetailPopup({ approval, onClose, onReview }: {
             <LifecycleControls opportunity={opportunity} />
           )}
 
-          {/* Toast notification */}
-          {toast && (
-            <div className={`rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ${
-              toast.type === 'success'
-                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/40'
-                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40'
-            }`}>
-              {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              {toast.message}
-            </div>
-          )}
+          {/* Toast handled by global ToastRibbon */}
 
           {/* Action buttons */}
-          {canAct && !editMode && !toast && (
+          {canAct && !editMode && (
             <div className="flex gap-3 pt-1">
               {isEditable && (
                 <button
@@ -1064,17 +1056,17 @@ function KanbanBoard({
   onSelectApproval: (a: Approval) => void
 }) {
   const { data, isLoading } = useAllApprovals(categoryFilter || undefined)
-  const approvals = data?.items ?? []
 
   // Group approvals by status
   const grouped = useMemo(() => {
+    const approvals = data?.items ?? []
     const map: Record<string, Approval[]> = {}
     for (const col of BOARD_COLUMNS) map[col.status] = []
     for (const a of approvals) {
       if (map[a.status]) map[a.status]!.push(a)
     }
     return map
-  }, [approvals])
+  }, [data?.items])
 
   if (isLoading) {
     return (

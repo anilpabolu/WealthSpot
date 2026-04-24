@@ -70,6 +70,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (tabParam && validTabs.includes(tabParam)) setActiveTab(tabParam)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabParam])
 
   return (

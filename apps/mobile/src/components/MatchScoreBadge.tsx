@@ -293,7 +293,8 @@ export function ProfilePrompt({
   const colors = getThemeColors(isDark)
   const config: Record<string, { label: string; emoji: string; primary: string; bg: string }> = {
     wealth: { label: 'Wealth', emoji: '🏛️', primary: '#1B2A4A', bg: '#F5F0E1' },
-    opportunity: { label: 'Opportunity', emoji: '🚀', primary: '#FF6B6B', bg: '#FFF0F0' },
+    safe: { label: 'Safe', emoji: '🔒', primary: '#0F766E', bg: '#F0FDFA' },
+    opportunity: { label: 'Safe', emoji: '🔒', primary: '#0F766E', bg: '#F0FDFA' },
     community: { label: 'Community', emoji: '🤝', primary: '#D97706', bg: '#FFFBEB' },
   }
   const vc = config[vaultType] ?? config.wealth!

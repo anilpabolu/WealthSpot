@@ -2,7 +2,7 @@ import { type ReactNode } from 'react'
 import { useCanAccess } from '@/hooks/useVaultFeatures'
 
 interface FeatureGateProps {
-  vault: 'wealth' | 'opportunity' | 'community'
+  vault: 'wealth' | 'safe' | 'opportunity' | 'community'
   feature: string
   children: ReactNode
   fallback?: ReactNode

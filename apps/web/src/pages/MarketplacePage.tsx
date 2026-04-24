@@ -1,4 +1,5 @@
 import { MainLayout } from '@/components/layout'
+import SEOHead from '@/components/SEOHead'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import FundingBar from '@/components/wealth/FundingBar'
@@ -54,19 +55,19 @@ const VAULT_HERO_CONFIG: Record<
       'Every listing passes through a rigorous 7-layer Shield review \u2014 from builder credibility to exit clauses \u2014 before it earns',
     cmsTag: 'wealth',
   },
-  opportunity: {
-    badge: 'Opportunity Vault',
-    leftGradient: 'from-[#4A1B1B] via-[#7A2D2D] to-[#4A1B1B]',
-    rightGradient: 'from-[#5C2020]/80 via-[#3D1A3D]/60 to-[#4A1B1B]',
-    mobileGradient: 'from-[#4A1B1B] via-[#7A2D2D] to-[#4A1B1B]',
-    separatorRgba: ['rgba(32,227,178,0.15)', 'rgba(255,107,107,0.08)'],
+  safe: {
+    badge: 'Safe Vault',
+    leftGradient: 'from-[#0D4A3A] via-[#145C47] to-[#0D4A3A]',
+    rightGradient: 'from-[#145C47]/80 via-[#0A3A2E]/60 to-[#0D4A3A]',
+    mobileGradient: 'from-[#0D4A3A] via-[#145C47] to-[#0D4A3A]',
+    separatorRgba: ['rgba(32,227,178,0.15)', 'rgba(32,227,178,0.08)'],
     accentDot: 'bg-[#20E3B2]',
     accentText: 'text-[#20E3B2]',
-    defaultTitle: 'Opportunity Vault',
-    defaultSubtitle: 'Premium startup investment opportunities curated for high-growth potential.',
+    defaultTitle: 'Safe Vault',
+    defaultSubtitle: 'Fixed-return investments secured by mortgage agreements and real property.',
     shieldNote:
-      'Every startup passes through a rigorous 7-layer Shield review \u2014 from founder credibility to exit strategy \u2014 before it earns',
-    cmsTag: 'opportunity',
+      'Every project passes through a rigorous 7-layer Shield review — from builder credibility to mortgage documentation — before it earns',
+    cmsTag: 'safe',
   },
   community: {
     badge: 'Community Vault',
@@ -309,6 +310,11 @@ export default function MarketplacePage() {
 
   return (
     <MainLayout>
+      <SEOHead
+        title="Marketplace"
+        description="Browse premium fractional real estate and investment opportunities on WealthSpot. Wealth, Safe, and Community Vaults."
+        path="/marketplace"
+      />
       {/* Hero — diagonal ribbon split (vault-aware) */}
       <div className="relative overflow-hidden bg-slate-900" style={{ minHeight: 340 }}>
         {/* Particle + Gradient overlays */}
@@ -361,6 +367,7 @@ export default function MarketplacePage() {
             background: `linear-gradient(135deg, transparent 30%, ${hero.separatorRgba[0]} 31%, ${hero.separatorRgba[1]} 32%, transparent 33%)`,
           }}
         />
+
       </div>
 
       <div className="page-section">

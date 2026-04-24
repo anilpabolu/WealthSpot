@@ -10,6 +10,42 @@ from pydantic import BaseModel, Field
 from app.models.opportunity import OpportunityStatus, VaultType
 
 
+class MortgageAgreementSchema(BaseModel):
+    enabled: bool = False
+    details: str | None = None
+    period_description: str | None = None
+
+
+class ReraRegistrationSchema(BaseModel):
+    enabled: bool = False
+    rera_number: str | None = None
+
+
+class BuybackGuaranteeSchema(BaseModel):
+    enabled: bool = False
+    details: str | None = None
+
+
+class LandRegistrationSchema(BaseModel):
+    enabled: bool = False
+    details: str | None = None
+
+
+class SafeVaultDataSchema(BaseModel):
+    """Per-project Safe Vault configuration."""
+
+    interest_rate: float = 0.0  # % per annum
+    payout_frequency: str = "monthly"  # monthly | quarterly | yearly
+    tenure_months: int | None = None
+    mortgage_agreement: MortgageAgreementSchema = MortgageAgreementSchema()
+    legal_notarised_doc: bool = False
+    rera_registration: ReraRegistrationSchema = ReraRegistrationSchema()
+    buyback_guarantee: BuybackGuaranteeSchema = BuybackGuaranteeSchema()
+    capital_protection: bool = False
+    collateral_details: str | None = None
+    land_registration: LandRegistrationSchema = LandRegistrationSchema()
+
+
 class OpportunityCreatorRead(BaseModel):
     id: uuid.UUID
     email: str
@@ -96,6 +132,7 @@ class OpportunityRead(BaseModel):
     collaboration_type: str | None = None
     community_subtype: str | None = None
     community_details: dict | None = None
+    safe_vault_data: SafeVaultDataSchema | None = None
     project_phase: str | None = None
     current_valuation: float | None = None
     cover_image: str | None = None
@@ -156,6 +193,8 @@ class OpportunityCreateRequest(BaseModel):
     collaboration_type: str | None = None
     community_subtype: str | None = None
     community_details: dict | None = None
+    # Safe Vault fields
+    safe_vault_data: SafeVaultDataSchema | None = None
     project_phase: str | None = None
 
 
@@ -191,6 +230,8 @@ class OpportunityUpdateRequest(BaseModel):
     collaboration_type: str | None = None
     community_subtype: str | None = None
     community_details: dict | None = None
+    # Safe Vault fields
+    safe_vault_data: SafeVaultDataSchema | None = None
     # Lifecycle
     project_phase: str | None = None
     closing_date: datetime | None = None
@@ -217,6 +258,14 @@ class VaultStatsResponse(BaseModel):
     co_investor_count: int = 0
     co_partner_count: int = 0
     platform_users_count: int = 0
+    # Safe Vault specific
+    listings_count: int = 0
+    avg_interest_rate: float | None = None
+    avg_tenure_months: float | None = None
+    mortgage_coverage_pct: float | None = None
+    # Community specific
+    avg_project_size: float | None = None
+    collaboration_rate: float | None = None
 
 
 # ── Builder investor / analytics schemas ────────────────────────────────────

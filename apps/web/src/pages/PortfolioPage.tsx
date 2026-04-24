@@ -51,12 +51,12 @@ const VAULT_META: Record<
     icon: Building2,
     accent: 'border-primary/30 bg-primary/5',
   },
-  opportunity: {
-    label: 'Opportunity Vault',
-    color: 'text-violet-600 dark:text-violet-400',
-    gradient: 'from-violet-500 to-violet-700',
+  safe: {
+    label: 'Safe Vault',
+    color: 'text-teal-600 dark:text-teal-400',
+    gradient: 'from-teal-500 to-emerald-700',
     icon: Rocket,
-    accent: 'border-violet-200 dark:border-violet-700/40 bg-violet-50 dark:bg-violet-900/30',
+    accent: 'border-teal-200 dark:border-teal-700/40 bg-teal-50 dark:bg-teal-900/30',
   },
   community: {
     label: 'Community Vault',
@@ -441,7 +441,7 @@ export default function PortfolioPage() {
   }
 
   const isLoading = summaryLoading || vaultLoading
-  const disabledVaultIds = ['opportunity', 'community'].filter((id) => !isVaultEnabled(id))
+  const disabledVaultIds = ['safe', 'community'].filter((id) => !isVaultEnabled(id))
 
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface">

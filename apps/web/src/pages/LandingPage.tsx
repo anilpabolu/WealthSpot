@@ -7,6 +7,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
 import ParticleCanvas from '@/components/ui/ParticleCanvas'
 import GradientMesh from '@/components/ui/GradientMesh'
+import SEOHead from '@/components/SEOHead'
 import {
   TrendingUp,
   Users,
@@ -275,9 +276,9 @@ function TheVaultsSection() {
       badge: 'Coming Soon',
       badgeColor: 'bg-amber-500/20 border-amber-500/40 text-amber-400',
       number: '03',
-      title: 'Opportunity Vault',
-      body: 'A future-focused layer for those who contribute more than money alone.',
-      italic: 'It is being designed for participants who bring expertise, time, strategic guidance, or influential networks into emerging opportunities.',
+      title: 'Safe Vault',
+      body: 'A fixed-return layer for those who want predictable income backed by real assets.',
+      italic: 'It is being designed for participants who prefer mortgage-backed security, structured payouts, and lower-volatility opportunities.',
     },
   ]
 
@@ -402,6 +403,11 @@ export default function LandingPage() {
 
   return (
     <MainLayout>
+      <SEOHead
+        title="Democratizing Premium Assets"
+        description="Invest in premium real estate fractionally starting from ₹10,000. Wealth Vault, Safe Vault, and Community Vault on WealthSpot."
+        path="/"
+      />
       {/* Hero (2-col with thesis) + metrics fill one viewport */}
       <div className="flex flex-col h-[calc(100vh-4rem)]">
         <HeroSection />

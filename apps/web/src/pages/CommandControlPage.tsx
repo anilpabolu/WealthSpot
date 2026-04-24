@@ -141,6 +141,7 @@ import {
 } from '@/hooks/useAppreciation'
 import ApprovalsPage from '@/pages/ApprovalsPage'
 import { applyThemePalette } from '@/lib/colorUtils'
+import { useToastStore } from '@/stores/toastStore'
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
@@ -422,6 +423,103 @@ function ConfigTab({ section, title }: { section: string; title: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Notifications Tab                                                  */
+/* ------------------------------------------------------------------ */
+
+function NotificationsTab() {
+  const { data: configs, isLoading } = useControlConfigs('notifications')
+  const updateConfig = useUpdateConfig()
+  const [localMs, setLocalMs] = useState<number>(3000)
+  const [saving, setSaving] = useState(false)
+  const addToast = useToastStore.getState().addToast
+
+  const row = (configs ?? []).find((c) => c.key === 'toast_interval_ms')
+
+  useEffect(() => {
+    if (row?.value) {
+      const ms = Number(row.value)
+      if (!isNaN(ms) && ms >= 500) setLocalMs(ms)
+    }
+  }, [row])
+
+  const handleSave = async () => {
+    if (!row) return
+    setSaving(true)
+    try {
+      await updateConfig.mutateAsync({ id: row.id, value: localMs })
+      useToastStore.getState().setDismissInterval(localMs)
+      addToast({ type: 'success', title: 'Notification settings saved', message: `Toasts will now auto-dismiss after ${localMs / 1000}s.` })
+    } catch {
+      addToast({ type: 'error', title: 'Save failed', message: 'Could not update notification settings.' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (isLoading) return <CenteredLoader />
+
+  return (
+    <div className="space-y-5">
+      <h2 className="font-display text-xl font-bold text-theme-primary">Notification Settings</h2>
+
+      {/* Toast interval setting */}
+      <div className="bg-[var(--bg-card)] rounded-xl border border-theme/60 px-5 py-5 space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-theme-primary">Toast Auto-Dismiss Interval</p>
+          <p className="text-xs text-theme-tertiary mt-0.5">How long notification toasts stay visible before auto-dismissing.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <input
+            type="range"
+            min={1000}
+            max={10000}
+            step={500}
+            value={localMs}
+            onChange={(e) => setLocalMs(Number(e.target.value))}
+            className="flex-1 accent-primary"
+          />
+          <div className="flex items-center gap-2 shrink-0">
+            <input
+              type="number"
+              min={1000}
+              max={10000}
+              step={500}
+              value={localMs}
+              onChange={(e) => setLocalMs(Math.max(500, Number(e.target.value)))}
+              className="w-24 rounded-lg border border-theme px-3 py-1.5 text-sm text-center focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            />
+            <span className="text-xs text-theme-tertiary">ms</span>
+          </div>
+        </div>
+        <p className="text-xs text-theme-secondary">Current: <strong>{(localMs / 1000).toFixed(1)}s</strong></p>
+      </div>
+
+      {/* Other configs (raw) */}
+      {(configs ?? []).filter((c) => c.key !== 'toast_interval_ms').map((cfg) => (
+        <div key={cfg.id} className="bg-[var(--bg-card)] rounded-xl border border-theme/60 px-5 py-4">
+          <p className="font-medium text-theme-primary text-sm">{cfg.key}</p>
+          {cfg.description && <p className="text-xs text-theme-tertiary mt-0.5">{cfg.description}</p>}
+          <p className="text-xs font-mono text-theme-secondary mt-1">
+            {typeof cfg.value === 'object' ? JSON.stringify(cfg.value) : String(cfg.value)}
+          </p>
+        </div>
+      ))}
+
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={saving || !row}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 transition-colors"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Save Settings
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Appearance Panel (light mode background color)                     */
 /* ------------------------------------------------------------------ */
 
@@ -561,7 +659,7 @@ const ADMIN_SECTIONS = [
 ]
 
 const VAULT_TOGGLE_ITEMS = [
-  { key: 'opportunity_vault_enabled', label: 'Opportunity Vault', emoji: '🚀', description: 'Startup & high-growth investment opportunities', icon: Rocket, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/30' },
+  { key: 'opportunity_vault_enabled', label: 'Safe Vault', emoji: '🔒', description: 'Fixed-return mortgage-backed investment opportunities', icon: ShieldCheck, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-900/30' },
   { key: 'community_vault_enabled', label: 'Community Vault', emoji: '🤝', description: 'Community-driven collaborative investments', icon: Users, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
 ]
 
@@ -841,7 +939,7 @@ function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-theme px-5 py-5">
-                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : <ConfigTab section={sec.key} title={sec.title} />}
+                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>
@@ -1029,7 +1127,7 @@ function CommMappingTab() {
             options={[
               { value: '', label: 'All Vaults' },
               { value: 'wealth', label: 'Wealth Vault' },
-              { value: 'opportunity', label: 'Opportunity Vault' },
+              { value: 'safe', label: 'Safe Vault' },
               { value: 'community', label: 'Community Vault' },
             ]}
           />
@@ -2544,7 +2642,7 @@ function SiteContentTab() {
 /*  Vault Feature Matrix Tab                                           */
 /* ------------------------------------------------------------------ */
 
-const VAULT_TYPES = ['wealth', 'opportunity', 'community'] as const
+const VAULT_TYPES = ['wealth', 'safe', 'community'] as const
 const ROLES = ['investor', 'builder', 'admin', 'super_admin'] as const
 const FEATURE_KEYS = [
   'view_vault', 'create_opportunity', 'invest', 'community_post',
@@ -2746,7 +2844,7 @@ function AdminInvitesTab() {
 /*  Vault Metrics Config Tab                                           */
 /* ------------------------------------------------------------------ */
 
-const VAULT_LABELS: Record<string, string> = { wealth: 'Wealth Vault', opportunity: 'Opportunity Vault', community: 'Community Vault' }
+const VAULT_LABELS: Record<string, string> = { wealth: 'Wealth Vault', safe: 'Safe Vault', community: 'Community Vault' }
 
 function VaultMetricsTab() {
   const { data: metricsConfig, isLoading: metricsLoading } = useVaultMetricsConfig()
@@ -2783,8 +2881,9 @@ function VaultMetricsTab() {
   const handleSave = async () => {
     if (!allConfigs) return
     setSaving(true)
+    const addToast = useToastStore.getState().addToast
     try {
-      const keyMap: Record<string, string> = { wealth: 'wealth_metrics', opportunity: 'opportunity_metrics', community: 'community_metrics' }
+      const keyMap: Record<string, string> = { wealth: 'wealth_metrics', safe: 'safe_metrics', community: 'community_metrics' }
       for (const vaultId of Object.keys(ALL_VAULT_METRICS)) {
         const config = allConfigs.find((c) => c.key === keyMap[vaultId])
         if (!config) continue
@@ -2793,6 +2892,9 @@ function VaultMetricsTab() {
       }
       queryClient.invalidateQueries({ queryKey: ['vault-metrics-config'] })
       queryClient.invalidateQueries({ queryKey: ['control-centre', 'configs'] })
+      addToast({ type: 'success', title: 'Vault metrics saved', message: 'Your metric selections are now live on the vault cards.' })
+    } catch {
+      addToast({ type: 'error', title: 'Save failed', message: 'Could not save vault metrics. Please try again.' })
     } finally {
       setSaving(false)
     }
@@ -2930,7 +3032,7 @@ function DealLifecycleTab() {
         >
           <option value="">All Vaults</option>
           <option value="wealth">Wealth</option>
-          <option value="opportunity">Opportunity</option>
+          <option value="safe">Safe</option>
           <option value="community">Community</option>
         </select>
         <select
@@ -3166,7 +3268,8 @@ function BuilderUpdatesTab() {
   // Sync default when opps load
   useEffect(() => {
     if (!selectedOppId && opps.length) setSelectedOppId(opps[0]?.id ?? '')
-  }, [opps, selectedOppId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oppsData?.items, selectedOppId])
 
   const { data: updates, isLoading } = useBuilderUpdates(selectedOppId || undefined)
   const createUpdate = useCreateBuilderUpdate(selectedOppId)

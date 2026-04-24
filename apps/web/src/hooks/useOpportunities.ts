@@ -56,6 +56,7 @@ export interface OpportunityItem {
   collaborationType: string | null
   communitySubtype: string | null
   communityDetails: Record<string, unknown> | null
+  safeVaultData: Record<string, unknown> | null
   projectPhase: string | null
   currentValuation: number | null
   coverImage: string | null
@@ -94,6 +95,14 @@ export interface VaultStats {
   coInvestorCount: number
   coPartnerCount: number
   platformUsersCount: number
+  // Safe Vault
+  listingsCount: number
+  avgInterestRate: number | null
+  avgTenureMonths: number | null
+  mortgageCoveragePct: number | null
+  // Community
+  avgProjectSize: number | null
+  collaborationRate: number | null
 }
 
 export interface OpportunityCreatePayload {
@@ -127,6 +136,8 @@ export interface OpportunityCreatePayload {
   collaborationType?: string
   communitySubtype?: string
   communityDetails?: Record<string, unknown>
+  // Safe Vault
+  safeVaultData?: Record<string, unknown>
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {
@@ -199,6 +210,7 @@ export function useCreateOpportunity() {
         collaboration_type: data.collaborationType,
         community_subtype: data.communitySubtype,
         community_details: data.communityDetails,
+        safe_vault_data: data.safeVaultData,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
@@ -236,6 +248,7 @@ export function useUpdateOpportunity() {
         ...(data.collaborationType !== undefined && { collaboration_type: data.collaborationType }),
         ...(data.communitySubtype !== undefined && { community_subtype: data.communitySubtype }),
         ...(data.communityDetails !== undefined && { community_details: data.communityDetails }),
+        ...(data.safeVaultData !== undefined && { safe_vault_data: data.safeVaultData }),
         ...(data.status !== undefined && { status: data.status }),
         ...(data.closingDate !== undefined && { closing_date: data.closingDate }),
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),

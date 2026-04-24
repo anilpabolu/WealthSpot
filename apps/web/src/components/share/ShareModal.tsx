@@ -502,6 +502,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     ctx.fillText('RERA Verified  ·  Secure Investments', W - 72, bottomY + 56)
 
     return canvas
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opportunity, referralCode])
 
   // ── Landscape Postcard (1200×630) ─────────────────────────────
@@ -725,6 +726,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     ctx.fillText('wealthspot.in  ·  RERA Verified  ·  Secure Investments', rX, bY)
 
     return canvas
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opportunity, referralCode])
 
   // ── Download dispatcher ────────────────────────────────────────

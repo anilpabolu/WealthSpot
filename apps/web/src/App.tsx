@@ -7,9 +7,11 @@ import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
-import { useAppearanceConfig } from '@/hooks/useControlCentre'
+import { useAppearanceConfig, useControlConfigs } from '@/hooks/useControlCentre'
 import { applyThemePalette, clearThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
+import { ToastRibbon } from '@/components/ToastRibbon'
+import { useToastStore } from '@/stores/toastStore'
 
 // Lazy-loaded route components
 const Landing = lazy(() => import('@/pages/LandingPage'))
@@ -127,6 +129,17 @@ export default function App() {
     }
   }, [appearance, theme])
 
+  // Sync toast dismiss interval from DB config
+  const { data: notifConfigs } = useControlConfigs('notifications')
+  const setDismissInterval = useToastStore((s) => s.setDismissInterval)
+  useEffect(() => {
+    const row = (notifConfigs ?? []).find((c) => c.key === 'toast_interval_ms')
+    if (row?.value) {
+      const ms = Number(row.value)
+      if (!isNaN(ms) && ms >= 1000) setDismissInterval(ms)
+    }
+  }, [notifConfigs, setDismissInterval])
+
   // Capture ?ref=CODE from URL and stash in localStorage for post-signup apply
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -169,6 +182,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <NotRegisteredBanner />
+      <ToastRibbon />
       {wsUser &&
         !wsUser.personaSelectedAt &&
         !['admin', 'super_admin'].includes(wsUser.primaryRole) &&

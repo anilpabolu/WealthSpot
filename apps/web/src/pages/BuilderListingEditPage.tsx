@@ -11,6 +11,7 @@ import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
 import CompanyOnboardingModal from '@/components/CompanyOnboardingModal'
 import { EmptyState } from '@/components/ui'
+import { useToastStore } from '@/stores/toastStore'
 
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
@@ -87,7 +88,9 @@ export default function BuilderListingEditPage() {
         if (videos.length > 0) await uploadMutation.mutateAsync({ opportunityId: id, files: videos })
       }
       navigate(`/portal/builder/listings/${id}`)
+      useToastStore.getState().addToast({ type: 'success', title: 'Listing updated', message: 'Your changes have been saved successfully.' })
     } catch {
+      useToastStore.getState().addToast({ type: 'error', title: 'Update failed', message: 'Could not save changes. Please try again.' })
       // error shown in UI
     } finally {
       setSaving(false)
@@ -163,8 +166,8 @@ export default function BuilderListingEditPage() {
               </>
             )}
 
-            {/* Opportunity (Startup) fields */}
-            {opp.vaultType === 'opportunity' && (
+            {/* Safe Vault fields */}
+            {opp.vaultType === 'safe' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

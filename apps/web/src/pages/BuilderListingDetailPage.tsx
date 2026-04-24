@@ -10,7 +10,7 @@ import { useOpportunity } from '@/hooks/useOpportunities'
 import { formatINRCompact, formatDate } from '@/lib/formatters'
 import { EmptyState } from '@/components/ui'
 import {
-  ArrowLeft, Edit, MapPin, Calendar, Users, Building2, Rocket,
+  ArrowLeft, Edit, MapPin, Calendar, Users, Building2, ShieldCheck,
   Eye, Loader2, IndianRupee, Target, TrendingUp, FileText,
 } from 'lucide-react'
 
@@ -37,8 +37,8 @@ export default function BuilderListingDetailPage() {
     )
   }
 
-  const VaultIcon = opp.vaultType === 'wealth' ? Building2 : opp.vaultType === 'opportunity' ? Rocket : Users
-  const vaultLabel = opp.vaultType === 'wealth' ? 'Wealth Vault' : opp.vaultType === 'opportunity' ? 'Opportunity Vault' : 'Community Vault'
+  const VaultIcon = opp.vaultType === 'wealth' ? Building2 : opp.vaultType === 'safe' ? ShieldCheck : Users
+  const vaultLabel = opp.vaultType === 'wealth' ? 'Wealth Vault' : opp.vaultType === 'safe' ? 'Safe Vault' : 'Community Vault'
   const fundingPct = opp.targetAmount ? Math.round((opp.raisedAmount / opp.targetAmount) * 100) : 0
   const images = opp.media?.filter((m) => m.mediaType === 'image') ?? []
   const documents = opp.media?.filter((m) => m.mediaType === 'document') ?? []

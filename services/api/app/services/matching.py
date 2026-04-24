@@ -139,6 +139,40 @@ ARCHETYPE_MAP: dict[str, list[dict[str, Any]]] = {
             ),
         },
     ],
+    "safe": [
+        {
+            "label": "The Fortifier",
+            "emoji": "🏰",
+            "description": "Capital preservation is your creed — you never compromise on security.",
+            "condition": lambda pd: (
+                float(pd.time_commitment or 0) > 65 and float(pd.risk_appetite or 0) < 40
+            ),
+        },
+        {
+            "label": "The Yield Hunter",
+            "emoji": "🎯",
+            "description": "Precision-driven — you know exactly how to optimise fixed income returns.",
+            "condition": lambda pd: (
+                float(pd.investment_capacity or 0) > 70 and float(pd.domain_expertise or 0) > 65
+            ),
+        },
+        {
+            "label": "The Steady Earner",
+            "emoji": "📊",
+            "description": "Patient, consistent, compounding — you let time do the heavy lifting.",
+            "condition": lambda pd: (
+                float(pd.time_commitment or 0) > 55 and float(pd.investment_capacity or 0) > 55
+            ),
+        },
+        {
+            "label": "The Analyst",
+            "emoji": "🔬",
+            "description": "Due diligence first — you scrutinise every deal before committing.",
+            "condition": lambda pd: (
+                float(pd.domain_expertise or 0) > 60 and float(pd.risk_appetite or 0) > 40
+            ),
+        },
+    ],
 }
 
 # Default fallback archetypes when no condition matches
@@ -157,6 +191,11 @@ DEFAULT_ARCHETYPES: dict[str, dict[str, str]] = {
         "label": "The Supporter",
         "emoji": "💫",
         "description": "Warm, willing, and ready to contribute — the heart of every community.",
+    },
+    "safe": {
+        "label": "The Safekeeper",
+        "emoji": "🔐",
+        "description": "Building your fixed income foundation — steady, secure, and growing.",
     },
 }
 
@@ -432,6 +471,17 @@ def _vault_dimension_weights(vault_type: str) -> dict[str, float]:
             "leadership_score": 1.5,
             "collaboration_score": 2.0,
         }
+    elif vault_type == "safe":
+        return {
+            "risk_appetite": 1.5,
+            "domain_expertise": 1.3,
+            "investment_capacity": 1.8,
+            "time_commitment": 1.8,
+            "network_strength": 0.2,
+            "creativity_score": 0.2,
+            "leadership_score": 0.2,
+            "collaboration_score": 0.3,
+        }
     else:  # opportunity
         return {
             "risk_appetite": 1.8,
@@ -443,7 +493,6 @@ def _vault_dimension_weights(vault_type: str) -> dict[str, float]:
             "leadership_score": 0.8,
             "collaboration_score": 1.2,
         }
-
 
 def _apply_opportunity_bonuses(
     score: float, opp: Opportunity, pd: PersonalityDimension, user: User | None

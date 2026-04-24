@@ -501,7 +501,7 @@ async def vault_wise_portfolio(
     grand_current += w_current
 
     # Opportunity + Community vaults
-    for vt in ["opportunity", "community"]:
+    for vt in ["safe", "community"]:
         a = vault_agg[vt]
         invested = a["invested"]
         returns = a["returns"]

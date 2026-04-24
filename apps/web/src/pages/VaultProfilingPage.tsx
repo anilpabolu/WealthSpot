@@ -55,22 +55,22 @@ const VAULT_THEMES = {
     illustration: '💎',
   },
   opportunity: {
-    name: 'Opportunity Vault',
-    gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
-    bgGradient: 'from-[#FFF0F0] via-[#FFF5F5] to-[#FFF0F0]',
+    name: 'Safe Vault',
+    gradient: 'from-[#0D3B2E] via-[#1A5C46] to-[#0D3B2E]',
+    bgGradient: 'from-[#ECFDF5] via-[#F0FDF4] to-[#ECFDF5]',
     cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
-    accent: 'text-[#FF6B6B] dark:text-[#20E3B2]',
-    accentHex: '#FF6B6B',
-    accentBg: 'bg-[#FF6B6B]',
-    ring: 'ring-[#20E3B2]',
-    progressBar: 'bg-gradient-to-r from-[#FF6B6B] to-[#20E3B2]',
-    selectedBorder: 'border-[#20E3B2]',
-    selectedBg: 'bg-[#D5F5EC] dark:bg-[#20E3B2]/15',
-    radarFill: 'rgba(32, 227, 178, 0.15)',
-    radarStroke: '#20E3B2',
-    emoji: '🚀',
-    tagline: 'Discover your startup investor persona',
-    illustration: '🦄',
+    accent: 'text-[#065F46] dark:text-[#34D399]',
+    accentHex: '#065F46',
+    accentBg: 'bg-[#065F46]',
+    ring: 'ring-[#34D399]',
+    progressBar: 'bg-gradient-to-r from-[#065F46] to-[#34D399]',
+    selectedBorder: 'border-[#34D399]',
+    selectedBg: 'bg-[#ECFDF5] dark:bg-[#34D399]/15',
+    radarFill: 'rgba(52, 211, 153, 0.15)',
+    radarStroke: '#34D399',
+    emoji: '🛡️',
+    tagline: 'Discover your fixed income investor profile',
+    illustration: '🔐',
   },
   community: {
     name: 'Community Vault',
@@ -90,12 +90,31 @@ const VAULT_THEMES = {
     tagline: 'Find your community superpower',
     illustration: '🌍',
   },
+  safe: {
+    name: 'Safe Vault',
+    gradient: 'from-[#0D3B2E] via-[#1A5C46] to-[#0D3B2E]',
+    bgGradient: 'from-[#ECFDF5] via-[#F0FDF4] to-[#ECFDF5]',
+    cardBg: 'bg-[var(--bg-card)] backdrop-blur-xl',
+    accent: 'text-[#065F46] dark:text-[#34D399]',
+    accentHex: '#065F46',
+    accentBg: 'bg-[#065F46]',
+    ring: 'ring-[#34D399]',
+    progressBar: 'bg-gradient-to-r from-[#065F46] to-[#34D399]',
+    selectedBorder: 'border-[#34D399]',
+    selectedBg: 'bg-[#ECFDF5] dark:bg-[#34D399]/15',
+    radarFill: 'rgba(52, 211, 153, 0.15)',
+    radarStroke: '#34D399',
+    emoji: '🛡️',
+    tagline: 'Discover your fixed income investor profile',
+    illustration: '🔐',
+  },
 } as const
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 /*  Illustration Map (emoji characters for each question illustration key)    */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ILLUSTRATION_MAP: Record<string, string> = {
   coins: '🪙',
   mountain: '⛰️',
@@ -461,7 +480,7 @@ function PersonalityRadar({ dimensions, radarFill, radarStroke, gridColor = '#D1
 export default function VaultProfilingPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const vaultType = (params.get('vault') || 'community') as keyof typeof VAULT_THEMES
+  const vaultType = (params.get('vault') || 'wealth') as keyof typeof VAULT_THEMES
   const theme = VAULT_THEMES[vaultType] || VAULT_THEMES.community
 
   const { data: questions = [], isLoading } = useVaultQuestions(vaultType)

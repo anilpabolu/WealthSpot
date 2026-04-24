@@ -10,7 +10,7 @@ export default function BuilderInvestorsPage() {
   const [search, setSearch] = useState('')
   const [oppFilter, setOppFilter] = useState('')
 
-  const investors = data?.investors ?? []
+  const investors = useMemo(() => data?.investors ?? [], [data?.investors])
   const oppOptions = useMemo(() => {
     const map = new Map<string, string>()
     investors.forEach((inv) => map.set(inv.opportunityId, inv.opportunityTitle))

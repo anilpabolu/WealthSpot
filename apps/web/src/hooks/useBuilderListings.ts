@@ -119,7 +119,7 @@ export function useBuilderListings() {
         title: opp.title,
         city: opp.city ?? '',
         micromarket: opp.locality ?? opp.addressLine1 ?? '',
-        assetType: opp.vaultType === 'wealth' ? 'Real Estate' : opp.vaultType === 'opportunity' ? 'Startup' : 'Community',
+        assetType: opp.vaultType === 'wealth' ? 'Real Estate' : opp.vaultType === 'safe' ? 'Fixed Income' : 'Community',
         status: mapped,
         irr: opp.expectedIrr ?? opp.targetIrr ?? 0,
         minInvest: opp.minInvestment ?? 0,

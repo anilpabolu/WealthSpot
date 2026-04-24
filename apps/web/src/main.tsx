@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ClerkProvider } from '@clerk/react'
 import * as Sentry from '@sentry/react'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
 import './index.css'
 
@@ -32,6 +33,7 @@ if (!rootElement) throw new Error('Root element not found')
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
+    <HelmetProvider>
     <ClerkProvider
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       afterSignOutUrl="/"
@@ -65,5 +67,6 @@ ReactDOM.createRoot(rootElement).render(
         </BrowserRouter>
       </QueryClientProvider>
     </ClerkProvider>
+    </HelmetProvider>
   </React.StrictMode>,
 )

@@ -28,7 +28,7 @@ export function useVaultConfig() {
   return {
     ...query,
     wealthEnabled: true,
-    opportunityEnabled: config?.opportunityVaultEnabled ?? false,
+    safeEnabled: config?.opportunityVaultEnabled ?? false,
     communityEnabled: config?.communityVaultEnabled ?? false,
     // Video toggles
     introVideosEnabled: config?.introVideosEnabled ?? true,
@@ -37,7 +37,7 @@ export function useVaultConfig() {
     reraDisplayEnabled: config?.reraDisplayEnabled ?? true,
     isVaultEnabled: (vaultId: string): boolean => {
       if (vaultId === 'wealth') return true
-      if (vaultId === 'opportunity') return config?.opportunityVaultEnabled ?? false
+      if (vaultId === 'safe') return config?.opportunityVaultEnabled ?? false
       if (vaultId === 'community') return config?.communityVaultEnabled ?? false
       return true
     },

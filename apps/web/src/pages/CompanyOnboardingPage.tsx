@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import { useCreateCompany, type CompanyCreatePayload } from '@/hooks/useCompanies'
 import { usePincodeLookup } from '@/hooks/usePincodes'
+import { useToastStore } from '@/stores/toastStore'
 
 const ENTITY_TYPES = [
   { value: 'private_limited', label: 'Private Limited' },
@@ -58,7 +59,9 @@ export default function CompanyOnboardingPage() {
     try {
       await createMutation.mutateAsync(form)
       setStep('success')
+      useToastStore.getState().addToast({ type: 'success', title: 'Company registered!', message: 'Your company profile is ready.' })
     } catch {
+      useToastStore.getState().addToast({ type: 'error', title: 'Registration failed', message: 'Please check your details and try again.' })
       // error
     }
   }
@@ -110,7 +113,7 @@ export default function CompanyOnboardingPage() {
                   <label className={labelClass}>Vault Category *</label>
                   <Select value={form.vaultType || ''} onChange={(v) => handleChange('vaultType', v)} placeholder="Select vault…" options={[
                     { value: 'wealth', label: 'Wealth Vault' },
-                    { value: 'opportunity', label: 'Opportunity Vault' },
+                    { value: 'safe', label: 'Safe Vault' },
                     { value: 'community', label: 'Community Vault' },
                   ]} />
                 </div>

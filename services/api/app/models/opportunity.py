@@ -30,7 +30,7 @@ def _enum_values(enum_cls: type[PyEnum]) -> Sequence[str]:
 
 class VaultType(str, PyEnum):
     WEALTH = "wealth"
-    OPPORTUNITY = "opportunity"
+    SAFE = "safe"
     COMMUNITY = "community"
 
 
@@ -126,6 +126,8 @@ class Opportunity(Base):
     community_details: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB
     )  # subtype-specific fields
+    # Safe Vault config (interest rate, payout frequency, tenure, security features)
+    safe_vault_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     # Project lifecycle phase
     project_phase: Mapped[str | None] = mapped_column(String(50))
     # Valuation (appreciation tracking)

@@ -29,7 +29,7 @@ import { ShieldDot } from './ShieldDot'
 const VAULT_FILTERS = [
   { value: '', label: 'All Vaults' },
   { value: 'wealth', label: 'Wealth Vault' },
-  { value: 'opportunity', label: 'Opportunity Vault' },
+  { value: 'safe', label: 'Safe Vault' },
   { value: 'community', label: 'Community Vault' },
 ]
 

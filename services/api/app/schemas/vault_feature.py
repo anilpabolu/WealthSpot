@@ -38,5 +38,6 @@ class MyFeatureFlags(BaseModel):
     """Flat map of feature_key → enabled, keyed by vault_type."""
 
     wealth: dict[str, bool] = {}
+    safe: dict[str, bool] = {}
     opportunity: dict[str, bool] = {}
     community: dict[str, bool] = {}

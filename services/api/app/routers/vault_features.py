@@ -75,10 +75,17 @@ async def get_my_features(
 
     out = MyFeatureFlags()
     for flag in flags:
-        vault_dict = getattr(out, flag.vault_type, None)
-        if vault_dict is not None:
-            # If feature already present (from another role), OR it (any-role-enables)
-            vault_dict[flag.feature_key] = True
+        vault_types = [flag.vault_type]
+        if flag.vault_type == "opportunity":
+            vault_types.append("safe")
+        elif flag.vault_type == "safe":
+            vault_types.append("opportunity")
+
+        for vault_type in vault_types:
+            vault_dict = getattr(out, vault_type, None)
+            if vault_dict is not None:
+                # If feature already present (from another role), OR it (any-role-enables)
+                vault_dict[flag.feature_key] = True
 
     return out
 

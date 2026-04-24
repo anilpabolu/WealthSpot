@@ -1,5 +1,5 @@
 import { useState, useMemo, type ReactNode } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, type LucideIcon } from 'lucide-react';
 import { EmptyState } from './EmptyState';
 
 export interface Column<T> {
@@ -18,7 +18,7 @@ interface DataTableProps<T> {
   keyExtractor: (row: T, index: number) => string | number;
   onRowClick?: (row: T) => void;
   emptyMessage?: string;
-  emptyIcon?: React.ComponentType<{ className?: string }>;
+  emptyIcon?: LucideIcon;
   compact?: boolean;
   stickyHeader?: boolean;
   className?: string;
@@ -86,7 +86,7 @@ export function DataTable<T>({
       <div className={`rounded-2xl border border-theme/60 bg-[var(--bg-card)] backdrop-blur-xl ${className}`}>
         <EmptyState
           message={emptyMessage}
-          icon={emptyIcon as any}
+          icon={emptyIcon}
           compact
         />
       </div>

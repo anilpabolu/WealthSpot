@@ -48,18 +48,18 @@ const VAULT_THEMES = {
     tagline: "Let's understand your investment DNA",
   },
   opportunity: {
-    name: 'Opportunity Vault',
-    gradient: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
-    accent: 'text-[#FF6B6B] dark:text-[#20E3B2]',
-    accentHex: '#FF6B6B',
-    accentBg: 'bg-[#FF6B6B]',
-    selectedBorder: 'border-[#20E3B2]',
-    selectedBg: 'bg-[#D5F5EC] dark:bg-[#20E3B2]/15',
-    progressBar: 'bg-gradient-to-r from-[#FF6B6B] to-[#20E3B2]',
-    radarFill: 'rgba(32, 227, 178, 0.15)',
-    radarStroke: '#20E3B2',
-    emoji: '🚀',
-    tagline: 'Discover your startup investor persona',
+    name: 'Safe Vault',
+    gradient: 'from-[#0D3B2E] via-[#1A5C46] to-[#0D3B2E]',
+    accent: 'text-[#065F46] dark:text-[#34D399]',
+    accentHex: '#065F46',
+    accentBg: 'bg-[#065F46]',
+    selectedBorder: 'border-[#34D399]',
+    selectedBg: 'bg-[#ECFDF5] dark:bg-[#34D399]/15',
+    progressBar: 'bg-gradient-to-r from-[#065F46] to-[#34D399]',
+    radarFill: 'rgba(52, 211, 153, 0.15)',
+    radarStroke: '#34D399',
+    emoji: '🛡️',
+    tagline: 'Discover your fixed income investor profile',
   },
   community: {
     name: 'Community Vault',
@@ -74,6 +74,20 @@ const VAULT_THEMES = {
     radarStroke: '#D97706',
     emoji: '🤝',
     tagline: 'Find your community superpower',
+  },
+  safe: {
+    name: 'Safe Vault',
+    gradient: 'from-[#0D3B2E] via-[#1A5C46] to-[#0D3B2E]',
+    accent: 'text-[#065F46] dark:text-[#34D399]',
+    accentHex: '#065F46',
+    accentBg: 'bg-[#065F46]',
+    selectedBorder: 'border-[#34D399]',
+    selectedBg: 'bg-[#ECFDF5] dark:bg-[#34D399]/15',
+    progressBar: 'bg-gradient-to-r from-[#065F46] to-[#34D399]',
+    radarFill: 'rgba(52, 211, 153, 0.15)',
+    radarStroke: '#34D399',
+    emoji: '🛡️',
+    tagline: 'Discover your fixed income investor profile',
   },
 } as const
 
@@ -211,7 +225,7 @@ interface QuestionScreen {
 /* ─── Main Modal ──────────────────────────────────────────────────────────── */
 
 export default function VaultProfilingModal({ vaultType, onClose }: { vaultType: string; onClose: () => void }) {
-  const vaultKey = (vaultType in VAULT_THEMES ? vaultType : 'community') as VaultKey
+  const vaultKey = (vaultType in VAULT_THEMES ? vaultType : 'wealth') as VaultKey
   const theme = VAULT_THEMES[vaultKey]
 
   const { data: questions = [], isLoading } = useVaultQuestions(vaultType)

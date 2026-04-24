@@ -6,14 +6,14 @@ const VAULT_COMING_SOON: Record<
   string,
   { emoji: string; headline: string; subtext: string; button: string; toast: string; toastSub: string; portfolioText: string }
 > = {
-  opportunity: {
-    emoji: '🚀',
-    headline: 'The launchpad is being built.\nBig things ahead.',
-    subtext: 'We\'re curating the boldest founders and hottest startups. Front-row seats, coming your way.',
+  safe: {
+    emoji: '🔒',
+    headline: 'Safe Vault is being secured.\nYour returns await.',
+    subtext: 'We\'re onboarding mortgage-backed, RERA-verified projects with fixed returns. Premium slots, opening soon.',
     button: 'Launching Soon — Stay Tuned!',
-    toast: 'Opportunity Vault is gearing up for liftoff 🚀',
-    toastSub: 'We\'re curating something extraordinary. Stay tuned!',
-    portfolioText: 'Your startup portfolio awaits. We\'re hand-picking the boldest founders for you.',
+    toast: 'Safe Vault is gearing up for launch 🔒',
+    toastSub: 'Fixed returns, mortgage-backed security. Stay tuned!',
+    portfolioText: 'Your fixed-yield portfolio awaits. Mortgage-backed projects with guaranteed returns — coming soon.',
   },
   community: {
     emoji: '🤝',
@@ -26,8 +26,9 @@ const VAULT_COMING_SOON: Record<
   },
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function getVaultComingSoonText(vaultId: string) {
-  return VAULT_COMING_SOON[vaultId] ?? VAULT_COMING_SOON.opportunity!
+  return VAULT_COMING_SOON[vaultId] ?? VAULT_COMING_SOON.safe!
 }
 
 /* ── Card Overlay ─────────────────────────────────────────────── */

@@ -23,13 +23,13 @@ import { EmptyState as UIEmptyState } from '@/components/ui'
 
 const VAULT_COLORS: Record<string, string> = {
   wealth: '#6366f1',
-  opportunity: '#f59e0b',
+  safe: '#0f766e',
   community: '#10b981',
 }
 
 const VAULT_LABELS: Record<string, string> = {
   wealth: 'Wealth Vault',
-  opportunity: 'Opportunity Vault',
+  safe: 'Safe Vault',
   community: 'Community Vault',
 }
 

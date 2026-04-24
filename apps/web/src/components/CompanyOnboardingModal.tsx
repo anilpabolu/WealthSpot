@@ -92,6 +92,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
     }
 
     return {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handlePincodeChange = useCallback((val: string) => {
@@ -195,7 +196,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess }: Pro
                   <label className={labelClass}>Vault Category *</label>
                   <Select value={form.vaultType || ''} onChange={(v) => handleChange('vaultType', v)} placeholder="Select vault…" options={[
                     { value: 'wealth', label: 'Wealth Vault' },
-                    { value: 'opportunity', label: isVaultEnabled('opportunity') ? 'Opportunity Vault' : 'Opportunity Vault (Coming Soon)', disabled: !isVaultEnabled('opportunity') },
+                    { value: 'safe', label: isVaultEnabled('safe') ? 'Safe Vault' : 'Safe Vault (Coming Soon)', disabled: !isVaultEnabled('safe') },
                     { value: 'community', label: isVaultEnabled('community') ? 'Community Vault' : 'Community Vault (Coming Soon)', disabled: !isVaultEnabled('community') },
                   ]} />
                   {errorMsg('vaultType')}

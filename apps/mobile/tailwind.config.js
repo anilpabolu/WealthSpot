@@ -44,6 +44,14 @@ module.exports = {
             dark: '#CC4848',
             muted: '#FF8E8E',
           },
+          safe: {
+            DEFAULT: '#0F766E',
+            primary: '#0F766E',
+            accent: '#5EEAD4',
+            light: '#F0FDFA',
+            dark: '#115E59',
+            muted: '#99F6E4',
+          },
           community: {
             DEFAULT: '#D97706',
             primary: '#D97706',

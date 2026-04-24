@@ -340,6 +340,65 @@ async def vault_stats(
     co_result = await db.execute(co_q)
     co_map = {row.community_subtype: int(row.cnt) for row in co_result.fetchall()}
 
+    # ── Safe Vault specific aggregations ─────────────────────────────
+    # avg_interest_rate, avg_tenure_months, mortgage_coverage_pct
+    # from safe_vault_data JSONB — only approved/active listings
+    safe_opps_q = (
+        select(Opportunity.safe_vault_data)
+        .where(
+            Opportunity.vault_type == VaultType.SAFE,
+            Opportunity.status.in_(active_statuses),
+            Opportunity.safe_vault_data.isnot(None),
+        )
+    )
+    safe_opps_result = await db.execute(safe_opps_q)
+    safe_data_rows = [row[0] for row in safe_opps_result.fetchall() if row[0]]
+    safe_count = len(safe_data_rows)
+    safe_interest_rates = [float(d["interest_rate"]) for d in safe_data_rows if "interest_rate" in d]
+    safe_tenures = [float(d["tenure_months"]) for d in safe_data_rows if "tenure_months" in d]
+    safe_mortgage_count = sum(
+        1 for d in safe_data_rows
+        if isinstance(d.get("mortgage_agreement"), dict) and d["mortgage_agreement"].get("enabled")
+    )
+    avg_interest_rate = round(sum(safe_interest_rates) / len(safe_interest_rates), 2) if safe_interest_rates else None
+    avg_tenure_months = round(sum(safe_tenures) / len(safe_tenures), 1) if safe_tenures else None
+    mortgage_coverage_pct = round((safe_mortgage_count / safe_count) * 100, 1) if safe_count > 0 else None
+
+    # ── Community Vault specific aggregations ────────────────────────
+    # avg_project_size = avg target_amount for community opps
+    # collaboration_rate = % community projects with >1 confirmed investor
+    comm_size_q = (
+        select(func.avg(Opportunity.target_amount).label("avg_size"))
+        .where(
+            Opportunity.vault_type == VaultType.COMMUNITY,
+            Opportunity.status.in_(active_statuses),
+            Opportunity.target_amount.isnot(None),
+        )
+    )
+    comm_size_result = await db.execute(comm_size_q)
+    comm_size_row = comm_size_result.fetchone()
+    avg_project_size = round(float(comm_size_row.avg_size), 2) if comm_size_row and comm_size_row.avg_size else None
+
+    # Count community opps with >1 distinct confirmed investor
+    comm_collab_q = (
+        select(
+            OpportunityInvestment.opportunity_id,
+            func.count(func.distinct(OpportunityInvestment.user_id)).label("inv_count"),
+        )
+        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
+        .where(
+            Opportunity.vault_type == VaultType.COMMUNITY,
+            Opportunity.status.in_(active_statuses),
+            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
+        )
+        .group_by(OpportunityInvestment.opportunity_id)
+    )
+    comm_collab_result = await db.execute(comm_collab_q)
+    comm_collab_rows = comm_collab_result.fetchall()
+    comm_total_opps = len(comm_collab_rows)
+    comm_collab_opps = sum(1 for r in comm_collab_rows if int(r.inv_count) > 1)
+    collaboration_rate = round((comm_collab_opps / comm_total_opps) * 100, 1) if comm_total_opps > 0 else None
+
     results = []
     for vt in VaultType:
         agg_row = agg_rows.get(vt)
@@ -364,6 +423,14 @@ async def vault_stats(
                 co_investor_count=co_map.get("co_investor", 0) if vt == VaultType.COMMUNITY else 0,
                 co_partner_count=co_map.get("co_partner", 0) if vt == VaultType.COMMUNITY else 0,
                 platform_users_count=platform_users_count,
+                # Safe Vault
+                listings_count=safe_count if vt == VaultType.SAFE else (int(agg_row.opp_count) if agg_row else 0),
+                avg_interest_rate=avg_interest_rate if vt == VaultType.SAFE else None,
+                avg_tenure_months=avg_tenure_months if vt == VaultType.SAFE else None,
+                mortgage_coverage_pct=mortgage_coverage_pct if vt == VaultType.SAFE else None,
+                # Community
+                avg_project_size=avg_project_size if vt == VaultType.COMMUNITY else None,
+                collaboration_rate=collaboration_rate if vt == VaultType.COMMUNITY else None,
             )
         )
 
@@ -720,7 +787,7 @@ async def create_opportunity(
     # Determine approval category based on vault type
     category_map = {
         VaultType.WEALTH: ApprovalCategory.PROPERTY_LISTING,
-        VaultType.OPPORTUNITY: ApprovalCategory.OPPORTUNITY_LISTING,
+        VaultType.SAFE: ApprovalCategory.SAFE_LISTING,
         VaultType.COMMUNITY: ApprovalCategory.COMMUNITY_PROJECT,
     }
 
@@ -759,6 +826,7 @@ async def create_opportunity(
         collaboration_type=body.collaboration_type,
         community_subtype=body.community_subtype,
         community_details=body.community_details,
+        safe_vault_data=body.safe_vault_data,
     )
     db.add(opportunity)
     await db.flush()
@@ -809,7 +877,7 @@ async def assign_role_for_opportunity(
     # Map vault type to suggested role
     role_map = {
         VaultType.WEALTH: UserRole.BUILDER,
-        VaultType.OPPORTUNITY: UserRole.FOUNDER,
+        VaultType.SAFE: UserRole.FOUNDER,
         VaultType.COMMUNITY: UserRole.COMMUNITY_LEAD,
     }
     target_role = role_map.get(opp.vault_type)

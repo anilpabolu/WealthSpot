@@ -62,7 +62,7 @@ async def record_vault_explorer(
 
     from app.models.vault_explorer import VaultExplorer
 
-    if vault_type not in ("wealth", "opportunity", "community"):
+    if vault_type not in ("wealth", "safe", "opportunity", "community"):
         raise HTTPException(status_code=400, detail="Invalid vault type")
 
     stmt = (
@@ -85,7 +85,7 @@ async def get_vault_questions(
     _user: User = Depends(get_current_user),
 ):
     """Get all active profiling questions for a vault type."""
-    if vault_type not in ("wealth", "opportunity", "community"):
+    if vault_type not in ("wealth", "safe", "opportunity", "community"):
         raise HTTPException(status_code=400, detail="Invalid vault type")
 
     stmt = (
@@ -110,7 +110,7 @@ async def submit_vault_answers(
     user: User = Depends(get_current_user),
 ):
     """Submit answers to vault profiling questions. Upserts."""
-    if payload.vault_type not in ("wealth", "opportunity", "community"):
+    if payload.vault_type not in ("wealth", "safe", "opportunity", "community"):
         raise HTTPException(status_code=400, detail="Invalid vault type")
 
     # Validate question IDs
@@ -262,7 +262,7 @@ async def get_overall_progress(
 
     profile_pct, _ = _calculate_completion(user)
 
-    vault_types = ["wealth", "opportunity", "community"]
+    vault_types = ["wealth", "safe", "community"]
     vaults: dict[str, VaultProgressDetail] = {}
 
     for vt in vault_types:

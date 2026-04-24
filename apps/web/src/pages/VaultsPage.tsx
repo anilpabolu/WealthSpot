@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import SEOHead from '@/components/SEOHead'
 import VaultProfilingModal from '@/components/VaultProfilingModal'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 import { useProfilingProgress, useOverallProgress, useRecordExplorer } from '@/hooks/useProfiling'
@@ -24,6 +25,9 @@ import {
   MapPin,
   Handshake,
   UserCheck,
+  ShieldCheck,
+  BarChart2,
+  CalendarClock,
   type LucideIcon,
 } from 'lucide-react'
 import CreateOpportunityModal from '@/components/CreateOpportunityModal'
@@ -39,7 +43,7 @@ import { getVaultComingSoonText } from '@/components/VaultComingSoonOverlay'
 /* Map vault/pillar IDs → app_videos section_tag */
 const VAULT_VIDEO_TAGS: Record<string, string> = {
   wealth: 'wealth_vault_intro',
-  opportunity: 'opportunity_vault_intro',
+  safe: 'safe_vault_intro',
   community: 'community_vault_intro',
 }
 const PILLAR_VIDEO_TAGS: Record<string, string> = {
@@ -75,24 +79,24 @@ const VAULTS = [
     emoji: '🏛️',
   },
   {
-    id: 'opportunity',
-    title: 'Opportunity Vault',
+    id: 'safe',
+    title: 'Safe Vault',
     icon: Rocket,
-    color: 'from-[#FF6B6B] via-[#FF8E8E] to-[#CC4848]',
-    accent: 'text-[#FF6B6B]',
+    color: 'from-[#0D4A3A] via-[#145C47] to-[#0A3A2E]',
+    accent: 'text-[#20E3B2]',
     accentHex: '#20E3B2',
-    bg: 'bg-[#FFF0F0]',
+    bg: 'bg-[#F0FBF8]',
     border: 'border-[#20E3B2]/20',
     hoverShadow: 'hover:shadow-vault-opportunity',
     borderLeft: 'border-l-[#20E3B2]',
-    infoBody: 'A future-focused layer for those who contribute more than money alone.',
-    infoItalic: 'It is being designed for participants who bring expertise, time, strategic guidance, or influential networks into emerging opportunities.',
-    risk: 'High',
-    riskColor: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
-    href: '/marketplace?vault=opportunity',
-    cta: 'Discover Startups',
+    infoBody: 'A fixed-return investment secured by mortgage agreements on real property. Earn interest monthly, quarterly, or yearly — backed by tangible assets.',
+    infoItalic: 'Designed for investors who want predictable yields with real-estate-grade security and zero equity risk.',
+    risk: 'Low–Moderate',
+    riskColor: 'text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30',
+    href: '/marketplace?vault=safe',
+    cta: 'Explore Safe Investments',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
-    emoji: '🚀',
+    emoji: '🔒',
   },
   {
     id: 'community',
@@ -236,7 +240,7 @@ function formatINRCompact(num: number): string {
 /* Default expected IRR per vault (shown when API returns null) */
 const DEFAULT_EXPECTED_IRR: Record<string, number> = {
   wealth: 14,
-  opportunity: 18,
+  safe: 12,
 }
 
 /* ------------------------------------------------------------------ */
@@ -246,9 +250,10 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
 type MetricDef = {
   label: string
   icon: LucideIcon
-  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number } | undefined, vaultId: string) => string
+  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null } | undefined, vaultId: string) => string
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
   total_invested: {
     label: 'Total Invested',
@@ -313,11 +318,6 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
     icon: UserCheck,
     resolve: (s) => (s ? s.coPartnerCount.toLocaleString('en-IN') : '—'),
   },
-  avg_project_size: {
-    label: 'Avg Project Size',
-    icon: Banknote,
-    resolve: (s) => (s?.avgTicketSize != null ? formatINRCompact(s.avgTicketSize) : '—'),
-  },
   cities_covered: {
     label: 'Cities Covered',
     icon: MapPin,
@@ -338,13 +338,44 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
     icon: Users,
     resolve: (s) => (s ? s.platformUsersCount.toLocaleString('en-IN') : '—'),
   },
+  listings_count: {
+    label: 'Listings',
+    icon: ShieldCheck,
+    resolve: (s) => (s ? s.listingsCount.toLocaleString('en-IN') : '—'),
+  },
+  avg_interest_rate: {
+    label: 'Avg Interest Rate',
+    icon: BarChart2,
+    resolve: (s) => (s?.avgInterestRate != null ? `${s.avgInterestRate}% p.a.` : '—'),
+  },
+  avg_tenure_months: {
+    label: 'Avg Tenure',
+    icon: CalendarClock,
+    resolve: (s) => (s?.avgTenureMonths != null ? `${s.avgTenureMonths} mo` : '—'),
+  },
+  mortgage_coverage_pct: {
+    label: 'Mortgage Backed',
+    icon: ShieldCheck,
+    resolve: (s) => (s?.mortgageCoveragePct != null ? `${s.mortgageCoveragePct}%` : '—'),
+  },
+  avg_project_size: {
+    label: 'Avg Project Size',
+    icon: Banknote,
+    resolve: (s) => (s?.avgProjectSize != null ? formatINRCompact(s.avgProjectSize) : '—'),
+  },
+  collaboration_rate: {
+    label: 'Collaboration Rate',
+    icon: Handshake,
+    resolve: (s) => (s?.collaborationRate != null ? `${s.collaborationRate}%` : '—'),
+  },
 }
 
 /* All available metric keys per vault (for admin UI) */
+// eslint-disable-next-line react-refresh/only-export-components
 export const ALL_VAULT_METRICS: Record<string, string[]> = {
-  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'properties_listed', 'min_investment', 'cities_covered'],
-  opportunity: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'startups_listed', 'avg_ticket_size', 'sectors_covered'],
-  community: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered'],
+  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'properties_listed', 'min_investment', 'cities_covered', 'expected_irr', 'actual_irr', 'avg_ticket_size'],
+  safe: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'listings_count', 'avg_interest_rate', 'avg_tenure_months', 'cities_covered', 'min_investment', 'mortgage_coverage_pct'],
+  community: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered', 'collaboration_rate'],
 }
 
 function VaultCard({
@@ -362,7 +393,7 @@ function VaultCard({
   onExplore,
 }: {
   vault: (typeof VAULTS)[number]
-  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number }
+  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null }
   opportunities: OpportunityItem[]
   profilingPct: number
   archetype?: string | null
@@ -571,17 +602,17 @@ export default function VaultsPage() {
 
   // Fetch profiling progress per vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
-  const { data: opportunityProgress } = useProfilingProgress('opportunity')
+  const { data: safeProgress } = useProfilingProgress('safe')
   const { data: communityProgress } = useProfilingProgress('community')
   const { data: overall } = useOverallProgress()
   const profilingMap: Record<string, number> = {
     wealth: wealthProgress?.completionPct ?? 0,
-    opportunity: opportunityProgress?.completionPct ?? 0,
+    safe: safeProgress?.completionPct ?? 0,
     community: communityProgress?.completionPct ?? 0,
   }
   const archetypeMap: Record<string, string | null> = {
     wealth: overall?.vaults.wealth?.archetype ?? null,
-    opportunity: overall?.vaults.opportunity?.archetype ?? null,
+    safe: overall?.vaults.safe?.archetype ?? null,
     community: overall?.vaults.community?.archetype ?? null,
   }
 
@@ -593,11 +624,11 @@ export default function VaultsPage() {
 
   // Fetch all opportunities per vault for vault-card mini-lists
   const { data: wealthOpps } = useOpportunities({ vaultType: 'wealth' })
-  const { data: opportunityOpps } = useOpportunities({ vaultType: 'opportunity' })
+  const { data: safeOpps } = useOpportunities({ vaultType: 'safe' })
   const { data: communityOpps } = useOpportunities({ vaultType: 'community' })
   const oppsMap: Record<string, OpportunityItem[]> = {
     wealth: wealthOpps?.items ?? [],
-    opportunity: opportunityOpps?.items ?? [],
+    safe: safeOpps?.items ?? [],
     community: communityOpps?.items ?? [],
   }
 
@@ -617,6 +648,12 @@ export default function VaultsPage() {
 
   return (
     <>
+    <SEOHead
+      title="Investment Vaults"
+      description="Explore WealthSpot's three investment vaults: Wealth Vault for real estate, Safe Vault for fixed-return mortgage-backed opportunities, and Community Vault for collaborative investing."
+      path="/vaults"
+      noIndex={true}
+    />
     <div className="min-h-screen flex flex-col bg-theme-surface">
       {/* Shared Navbar */}
       <Navbar />

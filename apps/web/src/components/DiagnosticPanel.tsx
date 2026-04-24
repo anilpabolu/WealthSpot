@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Terminal, X, Minimize2, Maximize2, Trash2, Copy, Check, Filter, ChevronDown, ChevronRight, Clipboard } from 'lucide-react'
 

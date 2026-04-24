@@ -126,14 +126,15 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
 
 # Default metrics per vault (used when no DB config exists yet)
 _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
-    "wealth": ["total_invested", "investor_count", "explorer_count", "properties_listed"],
-    "opportunity": ["total_invested", "investor_count", "explorer_count", "startups_listed"],
+    "wealth": ["total_invested", "investor_count", "explorer_count", "properties_listed", "expected_irr", "cities_covered"],
+    "safe": ["total_invested", "investor_count", "explorer_count", "listings_count", "avg_interest_rate", "avg_tenure_months"],
     "community": [
         "total_invested",
         "investor_count",
         "explorer_count",
         "projects_launched",
         "co_investors",
+        "cities_covered",
     ],
 }
 
@@ -157,7 +158,7 @@ async def get_vault_metrics_config(db: AsyncSession = Depends(get_db)) -> dict[s
 
     return {
         "wealth": _metrics("wealth_metrics", "wealth"),
-        "opportunity": _metrics("opportunity_metrics", "opportunity"),
+        "safe": _metrics("safe_metrics", "safe"),
         "community": _metrics("community_metrics", "community"),
     }
 
