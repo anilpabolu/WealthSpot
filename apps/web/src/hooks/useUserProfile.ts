@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '@/lib/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api, apiGet, apiDelete } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 
 export interface KycDocument {
@@ -15,6 +15,7 @@ export interface UserProfile {
   fullName?: string
   phone?: string
   avatarUrl?: string
+  avatarS3Key?: string
   role: string
   kycStatus: string
   referralCode?: string
@@ -24,6 +25,7 @@ export interface UserProfile {
   emailVerified?: boolean
   phoneVerified?: boolean
   profileCompletionPct?: number
+  hasInvestments: boolean
 }
 
 export function useUserProfile() {
@@ -33,5 +35,34 @@ export function useUserProfile() {
     queryFn: () => apiGet<UserProfile>('/auth/me'),
     enabled: isAuthenticated,
     staleTime: 60_000,
+  })
+}
+
+export function useUploadAvatar() {
+  const qc = useQueryClient()
+  return useMutation<{ avatarUrl: string; avatarS3Key: string }, Error, File>({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await api.post<{ avatarUrl: string; avatarS3Key: string }>(
+        '/uploads/avatar',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+      return res.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user', 'me'] })
+    },
+  })
+}
+
+export function useDeleteAvatar() {
+  const qc = useQueryClient()
+  return useMutation<void, Error, void>({
+    mutationFn: () => apiDelete('/uploads/avatar'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user', 'me'] })
+    },
   })
 }

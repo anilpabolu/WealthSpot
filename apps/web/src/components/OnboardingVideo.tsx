@@ -97,6 +97,14 @@ export default function OnboardingVideo({ mode, onComplete, onClose }: Onboardin
             >
               Retry
             </button>
+            {mode === 'onboarding' && (
+              <button
+                onClick={onComplete}
+                className="block mx-auto text-white/40 hover:text-white/70 text-sm"
+              >
+                Continue anyway
+              </button>
+            )}
             {onClose && (
               <button onClick={onClose} className="block mx-auto text-white/40 hover:text-white/70 text-sm">
                 Close

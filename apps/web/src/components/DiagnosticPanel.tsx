@@ -53,7 +53,6 @@ function traceId(): string {
 }
 
 /** Push a diagnostic log from anywhere in the app */
-// eslint-disable-next-line react-refresh/only-export-components
 export function diagLog(
   category: LogCategory,
   level: LogLevel,
@@ -73,7 +72,6 @@ export function diagLog(
 }
 
 /** Start an API trace — returns traceId and a done() callback */
-// eslint-disable-next-line react-refresh/only-export-components
 export function diagApiTrace(method: string, url: string) {
   const tid = traceId()
   const start = performance.now()

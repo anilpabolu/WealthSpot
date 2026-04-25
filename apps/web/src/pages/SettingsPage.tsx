@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import {
@@ -22,11 +22,12 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Select, Toggle, Badge, EmptyState } from '@/components/ui'
 import { useUser } from '@clerk/react'
-import { useUserProfile } from '@/hooks/useUserProfile'
+import { useUserProfile, useUploadAvatar, useDeleteAvatar } from '@/hooks/useUserProfile'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 import {
   useKycStatus,
@@ -137,35 +138,104 @@ export default function SettingsPage() {
 function ProfileTab() {
   const { user: clerkUser } = useUser()
   const { data: profile, isLoading } = useUserProfile()
+  const uploadAvatar = useUploadAvatar()
+  const deleteAvatar = useDeleteAvatar()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showAvatarModal, setShowAvatarModal] = useState(false)
 
   const displayName = profile?.fullName ?? clerkUser?.fullName ?? '—'
   const displayEmail = clerkUser?.primaryEmailAddress?.emailAddress ?? profile?.email ?? '—'
   const displayPhone = profile?.phone ?? clerkUser?.primaryPhoneNumber?.phoneNumber ?? ''
   const displayInitial = (displayName[0] ?? 'U').toUpperCase()
+  const avatarUrl = profile?.avatarUrl
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    uploadAvatar.mutate(file)
+    e.target.value = ''
+  }
+
+  const handleDeleteConfirm = () => {
+    if (!confirm('Delete your profile photo?')) return
+    deleteAvatar.mutate()
+    setShowAvatarModal(false)
+  }
+
+  const isBusy = uploadAvatar.isPending || deleteAvatar.isPending
 
   return (
     <div className="card p-6">
       <h2 className="section-title text-lg mb-6">Personal Information</h2>
 
-      {/* Avatar */}
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {/* Avatar section */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
-          {clerkUser?.imageUrl ? (
-            <img src={clerkUser.imageUrl} alt={displayName} className="w-20 h-20 rounded-full object-cover" />
+          {avatarUrl ? (
+            <button
+              onClick={() => setShowAvatarModal(true)}
+              className="rounded-full overflow-hidden w-20 h-20 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              title="View or change photo"
+            >
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            </button>
           ) : (
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
               {displayInitial}
             </div>
           )}
-          <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center shadow-md">
-            <Camera className="h-3.5 w-3.5" />
+          <button
+            onClick={() => avatarUrl ? setShowAvatarModal(true) : fileInputRef.current?.click()}
+            disabled={isBusy}
+            className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition disabled:opacity-50"
+            title={avatarUrl ? 'Change photo' : 'Upload photo'}
+          >
+            {isBusy ? (
+              <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            ) : (
+              <Camera className="h-3.5 w-3.5" />
+            )}
           </button>
         </div>
+
         <div>
           <p className="font-semibold text-theme-primary">{isLoading ? 'Loading…' : displayName}</p>
           <p className="text-sm text-theme-secondary">{displayEmail}</p>
+          {!avatarUrl && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isBusy}
+              className="mt-1.5 text-xs text-primary hover:underline disabled:opacity-50"
+            >
+              {uploadAvatar.isPending ? 'Uploading…' : '+ Upload profile photo'}
+            </button>
+          )}
+          {uploadAvatar.isError && (
+            <p className="mt-1 text-xs text-red-500">{(uploadAvatar.error as Error)?.message ?? 'Upload failed'}</p>
+          )}
         </div>
       </div>
+
+      {/* Avatar modal */}
+      {showAvatarModal && avatarUrl && (
+        <AvatarModal
+          avatarUrl={avatarUrl}
+          displayName={displayName}
+          isBusy={isBusy}
+          onUploadNew={() => { fileInputRef.current?.click(); setShowAvatarModal(false) }}
+          onDelete={handleDeleteConfirm}
+          onClose={() => setShowAvatarModal(false)}
+        />
+      )}
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
@@ -188,6 +258,66 @@ function ProfileTab() {
 
       <div className="mt-6 flex justify-end">
         <button className="btn-primary text-sm px-6">Save Changes</button>
+      </div>
+    </div>
+  )
+}
+
+function AvatarModal({
+  avatarUrl,
+  displayName,
+  isBusy,
+  onUploadNew,
+  onDelete,
+  onClose,
+}: {
+  avatarUrl: string
+  displayName: string
+  isBusy: boolean
+  onUploadNew: () => void
+  onDelete: () => void
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[var(--bg-surface)] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
+          <h3 className="font-semibold text-theme-primary">Profile Photo</h3>
+          <button onClick={onClose} className="text-theme-tertiary hover:text-theme-primary transition">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-6 flex justify-center bg-theme-surface">
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            className="w-48 h-48 rounded-full object-cover shadow-lg ring-4 ring-white/10"
+          />
+        </div>
+        <div className="px-5 py-4 flex flex-col gap-2 border-t border-theme">
+          <button
+            onClick={onUploadNew}
+            disabled={isBusy}
+            className="btn-primary text-sm py-2.5 w-full flex items-center justify-center gap-2"
+          >
+            <Camera className="h-4 w-4" />
+            Upload New Photo
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={isBusy}
+            className="w-full py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition flex items-center justify-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            {isBusy ? 'Removing…' : 'Delete Photo'}
+          </button>
+        </div>
       </div>
     </div>
   )

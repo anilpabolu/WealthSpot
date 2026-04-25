@@ -7,8 +7,9 @@ import { useUserStore } from '@/stores/user.store'
 import { cn } from '@/lib/utils'
 import {
   Check, Zap, Settings,
-  LogOut, ChevronRight, Sparkles,
+  LogOut, ChevronRight, Sparkles, Crown,
 } from 'lucide-react'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import VaultPickerModal from '@/components/VaultPickerModal'
 import PersonaSwitcher from '@/components/PersonaSwitcher'
 
@@ -28,6 +29,7 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   const storeUser = useUserStore((s) => s.user)
   const { data: completion, isLoading } = useProfileCompletionStatus()
   const { data: overall } = useOverallProgress()
+  const { data: profile } = useUserProfile()
 
   const [open, setOpen] = useState(false)
   const [showDnaPicker, setShowDnaPicker] = useState(false)
@@ -37,6 +39,7 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   const pct = completion?.profileCompletionPct ?? 0
   const isComplete = completion?.isComplete ?? false
   const isFullyProfiled = overall?.isFullyProfiled ?? false
+  const hasInvestments = profile?.hasInvestments ?? false
 
   // Close on outside click
   useEffect(() => {
@@ -60,7 +63,8 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
     return () => document.removeEventListener('keydown', handler)
   }, [open])
 
-  const avatarUrl = clerkUser?.imageUrl
+  // S3 avatar takes priority over Clerk's auto-generated avatar
+  const avatarUrl = profile?.avatarUrl ?? clerkUser?.imageUrl
   const displayName = storeUser?.name || clerkUser?.fullName || 'User'
   const displayEmail = storeUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || ''
 
@@ -188,10 +192,18 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
         <div className="relative" ref={menuRef}>
           <div className="relative">
             {AvatarButton}
-            {isFullyProfiled ? (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm pointer-events-none">
-                <Check className="h-2.5 w-2.5 text-white stroke-[3]" />
-              </span>
+            {isFullyProfiled || hasInvestments ? (
+              hasInvestments ? (
+                // Crown — user has made at least one confirmed investment
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 border-2 border-white shadow-sm pointer-events-none">
+                  <Crown className="h-2.5 w-2.5 text-yellow-900 stroke-[2.5]" />
+                </span>
+              ) : (
+                // Green tick — fully profiled, no investments yet
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm pointer-events-none">
+                  <Check className="h-2.5 w-2.5 text-white stroke-[3]" />
+                </span>
+              )
             ) : (
               <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 border-2 border-white shadow-sm pointer-events-none">
                 <Sparkles className="h-2 w-2 text-white" />

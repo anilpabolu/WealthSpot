@@ -15,9 +15,67 @@ from app.middleware.auth import get_current_user, require_super_admin
 from app.models.opportunity import Opportunity
 from app.models.opportunity_media import OpportunityMedia
 from app.models.user import User
-from app.services.s3 import delete_file, get_public_url, upload_file, upload_opportunity_media
+from app.services.s3 import delete_file, get_public_url, upload_avatar, upload_file, upload_opportunity_media
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
+
+ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@router.post("/avatar")
+async def upload_user_avatar(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Upload or replace the authenticated user's profile photo."""
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(status_code=400, detail="Avatar must be a JPEG, PNG, or WebP image")
+
+    content = await file.read()
+    if len(content) > MAX_AVATAR_SIZE:
+        raise HTTPException(status_code=400, detail="Image too large (max 5 MB)")
+
+    # Delete old avatar from S3 if one exists
+    if user.avatar_s3_key:
+        try:
+            await delete_file(user.avatar_s3_key)
+        except Exception:
+            pass  # Best-effort deletion
+
+    file_obj = io.BytesIO(content)
+    s3_key = await upload_avatar(
+        file=file_obj,
+        filename=file.filename or "avatar.jpg",
+        user_id=str(user.id),
+        content_type=content_type,
+    )
+    avatar_url = get_public_url(s3_key)
+
+    user.avatar_url = avatar_url
+    user.avatar_s3_key = s3_key
+    await db.flush()
+
+    return {"avatar_url": avatar_url, "avatar_s3_key": s3_key}
+
+
+@router.delete("/avatar", status_code=204)
+async def delete_user_avatar(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    """Delete the authenticated user's profile photo."""
+    if user.avatar_s3_key:
+        try:
+            await delete_file(user.avatar_s3_key)
+        except Exception:
+            pass  # Best-effort deletion
+
+    user.avatar_url = None
+    user.avatar_s3_key = None
+    await db.flush()
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/quicktime"}

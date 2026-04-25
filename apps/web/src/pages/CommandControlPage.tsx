@@ -2968,7 +2968,6 @@ const SNAPSHOT_SECTION_DEFS: { key: string; label: string; description: string }
 function SnapshotConfigTab() {
   const { data: config, isLoading } = useSnapshotConfig()
   const updateConfig = useUpdateSnapshotConfig()
-  const toast = useToastStore()
   const [selected, setSelected] = useState<Set<string> | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -2984,11 +2983,12 @@ function SnapshotConfigTab() {
 
   const handleSave = async () => {
     setSaving(true)
+    const addToast = useToastStore.getState().addToast
     try {
       await updateConfig.mutateAsync(Array.from(activeSections))
-      toast.success('Snapshot sections saved')
+      addToast({ type: 'success', title: 'Snapshot sections saved' })
     } catch {
-      toast.error('Failed to save snapshot config')
+      addToast({ type: 'error', title: 'Failed to save snapshot config' })
     } finally {
       setSaving(false)
     }

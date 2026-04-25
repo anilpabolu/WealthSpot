@@ -8,7 +8,7 @@ from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 
@@ -39,8 +39,6 @@ class PlatformConfig(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-
-    updater = relationship("User", lazy="joined")
 
     def __repr__(self) -> str:
         return f"<PlatformConfig {self.section}/{self.key}>"

@@ -67,6 +67,18 @@ async def upload_opportunity_media(
     return await upload_file(file, key, content_type)
 
 
+async def upload_avatar(
+    file: BinaryIO,
+    filename: str,
+    user_id: str,
+    content_type: str = "image/jpeg",
+) -> str:
+    """Upload a user profile photo to S3 and return the key."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    key = f"avatars/{user_id}/{uuid.uuid4().hex}.{ext}"
+    return await upload_file(file, key, content_type)
+
+
 async def upload_document(
     file: BinaryIO,
     filename: str,

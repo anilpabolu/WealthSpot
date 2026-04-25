@@ -332,6 +332,7 @@ class UserMeResponse(UserRead):
     email_verified: bool = False
     phone_verified: bool = False
     profile_completion_pct: int = 0
+    has_investments: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -339,9 +340,23 @@ class UserMeResponse(UserRead):
 @router.get("/me", response_model=UserMeResponse)
 async def get_me(
     user: User = Depends(get_current_user),
-) -> User:
+    db: AsyncSession = Depends(get_db),
+) -> UserMeResponse:
     """Return the authenticated user's full profile including KYC documents."""
-    return user
+    from sqlalchemy import func
+    from app.models.opportunity_investment import OpportunityInvestment
+
+    count_result = await db.execute(
+        select(func.count()).select_from(OpportunityInvestment).where(
+            OpportunityInvestment.user_id == user.id,
+            OpportunityInvestment.status == "confirmed",
+        )
+    )
+    has_investments = (count_result.scalar_one() or 0) > 0
+
+    response = UserMeResponse.model_validate(user)
+    response.has_investments = has_investments
+    return response
 
 
 @router.put("/me", response_model=UserMeResponse)

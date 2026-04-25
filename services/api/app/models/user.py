@@ -57,6 +57,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str | None] = mapped_column(String(20))
     avatar_url: Mapped[str | None] = mapped_column(Text)
+    avatar_s3_key: Mapped[str | None] = mapped_column(Text)
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, native_enum=False, length=20, values_callable=_enum_values),
         default=UserRole.INVESTOR,
