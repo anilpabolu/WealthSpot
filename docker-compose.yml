@@ -122,6 +122,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - ./services/api/app:/app/app  # hot-reload in dev
+      - ./services/api/alembic:/app/alembic  # pick up new migrations in dev
 
   # ── Vite Dev Server (Web) ──────────────────────────────────
   web:

@@ -15,6 +15,9 @@ vi.mock('@/components/OnboardingVideo', () => ({
     </div>
   ),
 }))
+vi.mock('@/hooks/useVaultConfig', () => ({
+  useVaultConfig: vi.fn(() => ({ introVideosEnabled: true })),
+}))
 
 const store: Record<string, string> = {}
 const mockLocalStorage = {

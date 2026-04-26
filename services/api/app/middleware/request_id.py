@@ -19,7 +19,9 @@ from contextvars import ContextVar
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
+
+_logger = logging.getLogger(__name__)
 
 # Context variable accessible from any coroutine in the same request scope.
 request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
@@ -47,6 +49,23 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         request_id_ctx.set(rid)
         request.state.request_id = rid
 
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:
+            # Catch here so CORSMiddleware (outermost) can still attach headers
+            # — otherwise Starlette's ServerErrorMiddleware short-circuits the
+            # response and the browser shows a misleading CORS error.
+            _logger.exception(
+                "Unhandled exception in route %s %s", request.method, request.url.path
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "code": "INTERNAL_ERROR",
+                    "request_id": rid,
+                },
+                headers={"X-Request-ID": rid},
+            )
         response.headers["X-Request-ID"] = rid
         return response

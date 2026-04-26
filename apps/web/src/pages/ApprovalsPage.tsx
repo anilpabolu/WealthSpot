@@ -112,12 +112,14 @@ function ReviewModal({
 }) {
   const [note, setNote] = useState('')
   const [override, setOverride] = useState(false)
+  const [assessmentIncomplete, setAssessmentIncomplete] = useState(false)
   const addToast = useToastStore((s) => s.addToast)
   const review = useReviewApproval()
   const isOpportunityApprove =
     action === 'approve' && approval.resourceType === 'opportunity'
 
   const handleSubmit = async () => {
+    setAssessmentIncomplete(false)
     try {
       await review.mutateAsync({
         id: approval.id,
@@ -130,8 +132,14 @@ function ReviewModal({
         : 'Request has been rejected.'
       addToast({ type: 'success', title: msg })
       setTimeout(() => onClose(), 1500)
-    } catch {
-      addToast({ type: 'error', title: 'Action failed. Please try again.' })
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: string } } }
+      if (axiosErr?.response?.status === 409 && axiosErr?.response?.data?.detail === 'ASSESSMENT_INCOMPLETE') {
+        setAssessmentIncomplete(true)
+        setOverride(true)
+      } else {
+        addToast({ type: 'error', title: 'Action failed. Please try again.' })
+      }
     }
   }
 
@@ -150,6 +158,14 @@ function ReviewModal({
         <p className="text-sm text-theme-secondary mb-3">
           <strong>{approval.title}</strong> — from {approval.requester?.fullName ?? 'Unknown'}
         </p>
+
+        {assessmentIncomplete && (
+          <div className="mb-3 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-[12px] text-red-700 dark:text-red-300">
+            <strong>Shield assessment incomplete.</strong> Not all sub-items are marked Passed or N/A.
+            The <em>Override Shield</em> checkbox below has been pre-ticked — add a note explaining why
+            you are overriding, then click Approve again.
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-theme-primary mb-1">
@@ -195,8 +211,6 @@ function ReviewModal({
             {action === 'approve' ? 'Approve' : 'Reject'}
           </button>
         </div>
-
-        {/* Toast handled by global ToastRibbon */}
       </div>
     </div>
   )

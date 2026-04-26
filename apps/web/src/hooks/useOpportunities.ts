@@ -187,6 +187,7 @@ export function useOpportunityBySlug(slug: string) {
 export function useCreateOpportunity() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Opportunity submitted for approval' },
     mutationFn: (data: OpportunityCreatePayload) =>
       apiPost<OpportunityItem>('/opportunities', {
         vault_type: data.vaultType,
@@ -226,6 +227,7 @@ export function useCreateOpportunity() {
 export function useUpdateOpportunity() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Opportunity updated' },
     mutationFn: ({ id, data }: { id: string; data: OpportunityUpdatePayload }) =>
       apiPatch<OpportunityItem>(`/opportunities/${id}`, {
         ...(data.title !== undefined && { title: data.title }),

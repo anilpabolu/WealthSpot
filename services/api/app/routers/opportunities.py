@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.exceptions import APIError
 from app.middleware.auth import get_current_user, get_optional_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
@@ -780,10 +781,26 @@ async def create_opportunity(
             "co_investor",
             "co_partner",
         ):
-            raise HTTPException(
+            raise APIError(
                 status_code=422,
-                detail="community_subtype is required for Community Vault (co_investor or co_partner)",
+                detail="Community vault requires a co-investor or co-partner subtype.",
+                code="COMMUNITY_SUBTYPE_REQUIRED",
             )
+
+    # Parse company UUID up front so we surface a clean 422 instead of a 500.
+    company_uuid: _uuid.UUID | None = None
+    if body.company_id:
+        try:
+            company_uuid = _uuid.UUID(body.company_id)
+        except (ValueError, AttributeError) as exc:
+            raise APIError(
+                status_code=422,
+                detail="Invalid company id.",
+                code="INVALID_COMPANY_ID",
+            ) from exc
+
+    # JSONB columns need plain dicts — Pydantic models do not auto-serialize.
+    safe_vault_payload = body.safe_vault_data.model_dump() if body.safe_vault_data else None
 
     # Determine approval category based on vault type
     category_map = {
@@ -814,7 +831,7 @@ async def create_opportunity(
         district=body.district,
         country=body.country,
         # Company
-        company_id=_uuid.UUID(body.company_id) if body.company_id else None,
+        company_id=company_uuid,
         # Financials
         target_amount=body.target_amount,
         min_investment=body.min_investment,
@@ -827,7 +844,7 @@ async def create_opportunity(
         collaboration_type=body.collaboration_type,
         community_subtype=body.community_subtype,
         community_details=body.community_details,
-        safe_vault_data=body.safe_vault_data,
+        safe_vault_data=safe_vault_payload,
         funding_open_at=body.funding_open_at,
         closing_date=body.closing_date,
     )
@@ -917,12 +934,18 @@ async def update_opportunity(
     user: User = Depends(get_current_user),
 ) -> OpportunityRead:
     """Update an opportunity. Allowed for creator or approver/admin/super_admin."""
-    result = await db.execute(
-        select(Opportunity).where(Opportunity.id == _uuid.UUID(opportunity_id))
-    )
+    try:
+        opp_uuid = _uuid.UUID(opportunity_id)
+    except (ValueError, AttributeError) as exc:
+        raise APIError(
+            status_code=422, detail="Invalid opportunity id.", code="INVALID_OPPORTUNITY_ID"
+        ) from exc
+    result = await db.execute(select(Opportunity).where(Opportunity.id == opp_uuid))
     opp = result.scalar_one_or_none()
     if not opp:
-        raise HTTPException(status_code=404, detail="Opportunity not found")
+        raise APIError(
+            status_code=404, detail="Opportunity not found.", code="OPPORTUNITY_NOT_FOUND"
+        )
 
     # Permission: creator can edit drafts/pending; approvers can edit pending
     is_creator = opp.creator_id == user.id
@@ -976,7 +999,12 @@ async def update_opportunity(
     # Apply partial update
     for field_name, value in update_data.items():
         if field_name == "company_id" and value:
-            setattr(opp, field_name, _uuid.UUID(value))
+            try:
+                setattr(opp, field_name, _uuid.UUID(value))
+            except (ValueError, AttributeError) as exc:
+                raise APIError(
+                    status_code=422, detail="Invalid company id.", code="INVALID_COMPANY_ID"
+                ) from exc
         else:
             setattr(opp, field_name, value)
 

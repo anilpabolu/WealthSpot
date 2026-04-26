@@ -10,12 +10,14 @@ _app_start_time = time.monotonic()
 
 import sentry_sdk
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Import all models so SQLAlchemy resolves relationship() string references
 import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from app.core.config import get_settings
+from app.core.exceptions import APIError
 from app.core.logging_config import setup_logging
 from app.middleware.metrics import MetricsMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -128,22 +130,6 @@ app.add_middleware(
 logging.getLogger().addFilter(RequestIdFilter())
 
 
-# ── Global exception handler ─────────────────────────────────────────────────
-# Catches unhandled exceptions from route handlers and returns a JSON 500 that
-# flows back through CORSMiddleware. Without this, Starlette's
-# ServerErrorMiddleware (which sits above all user middleware) would intercept
-# the exception and return a 500 without any Access-Control-* headers.
-@app.exception_handler(Exception)
-async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logging.getLogger(__name__).exception(
-        "Unhandled exception on %s %s", request.method, request.url.path, exc_info=exc
-    )
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"},
-    )
-
-
 # ── Routers ──────────────────────────────────────────────────────────────────
 
 API_PREFIX = "/api/v1"
@@ -181,16 +167,55 @@ app.include_router(appreciation.property_router, prefix=API_PREFIX)
 app.include_router(assessments.router, prefix=API_PREFIX)
 
 
-# ── Global exception handler ─────────────────────────────────────────────────
+# ── Global exception handlers ────────────────────────────────────────────────
+# Every handler returns a JSONResponse so the response flows back through the
+# middleware chain — CORSMiddleware (outermost) attaches Access-Control-* headers
+# even on error paths. The shape is always {"detail": str, "code": str | null}.
 
 _logger = logging.getLogger(__name__)
 
 
+@app.exception_handler(APIError)
+async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
+    """Application-defined errors with machine-readable codes."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "code": exc.code},
+        headers=exc.headers or None,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Pydantic validation errors — return a stable shape instead of FastAPI's default."""
+    errors = [
+        {
+            "field": ".".join(str(p) for p in e.get("loc", []) if p != "body"),
+            "message": e.get("msg", "Invalid value"),
+        }
+        for e in exc.errors()
+    ]
+    detail = errors[0]["message"] if errors else "Invalid request"
+    return JSONResponse(
+        status_code=422,
+        content={"detail": detail, "code": "VALIDATION_ERROR", "errors": errors},
+    )
+
+
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Return a proper JSON 500 instead of killing the connection."""
+    """Catch-all for unhandled exceptions — returns 500 with CORS headers preserved."""
     _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
-    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "code": "INTERNAL_ERROR",
+            "request_id": getattr(request.state, "request_id", None),
+        },
+    )
 
 
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -201,14 +226,18 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
     """Translate DB constraint violations into user-friendly 409 responses."""
     _logger.warning("IntegrityError on %s %s: %s", request.method, request.url.path, exc.orig)
     detail = "A record with this information already exists."
+    code = "INTEGRITY_ERROR"
     orig = str(exc.orig) if exc.orig else ""
     if "unique" in orig.lower() or "duplicate" in orig.lower():
         detail = "Duplicate entry — this record already exists."
+        code = "DUPLICATE_ENTRY"
     elif "foreign" in orig.lower():
         detail = "Referenced record not found."
+        code = "FOREIGN_KEY_VIOLATION"
     elif "check" in orig.lower():
         detail = "Value does not satisfy validation rules."
-    return JSONResponse(status_code=409, content={"detail": detail})
+        code = "CHECK_CONSTRAINT"
+    return JSONResponse(status_code=409, content={"detail": detail, "code": code})
 
 
 @app.exception_handler(OperationalError)
@@ -216,7 +245,11 @@ async def operational_error_handler(request: Request, exc: OperationalError) -> 
     """Handle database connectivity issues with a clear 503."""
     _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
     return JSONResponse(
-        status_code=503, content={"detail": "Service temporarily unavailable. Please try again."}
+        status_code=503,
+        content={
+            "detail": "Service temporarily unavailable. Please try again.",
+            "code": "DB_UNAVAILABLE",
+        },
     )
 
 

@@ -35,6 +35,7 @@ class AssessmentSubItemRead(BaseModel):
     documents: list[AssessmentDocumentRead] = Field(default_factory=list)
     builder_answer: dict[str, Any] | None = None
     reviewed_at: datetime | None = None
+    is_public: bool = True
 
 
 class AssessmentCategoryRead(BaseModel):
@@ -72,10 +73,15 @@ class AssessmentBulkItem(BaseModel):
     category_code: str
     subcategory_code: str
     builder_answer: dict[str, Any] | None = None
+    is_public: bool | None = None
 
 
 class AssessmentBulkUpdateRequest(BaseModel):
     items: list[AssessmentBulkItem]
+
+
+class AssessmentVisibilityRequest(BaseModel):
+    is_public: bool
 
 
 class AssessmentReviewRequest(BaseModel):

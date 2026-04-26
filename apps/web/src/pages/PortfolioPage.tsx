@@ -31,7 +31,6 @@ import {
   ArrowDownRight,
   IndianRupee,
   Clock,
-  PieChart,
   BarChart3,
   Loader2,
   Heart,
@@ -179,76 +178,95 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
   )
 }
 
-/* ── Simple Bar Chart ────────────────────────────────────────────── */
+/* ── Geographic Spread Panel ─────────────────────────────────────── */
 
-function AllocationChart({ data }: { data: Array<{ type: string; percentage: number; value: number }> }) {
-  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No allocation data yet.</p>
-  const total = data.reduce((s, d) => s + d.value, 0)
-  const colors = ['bg-primary', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
-
+function CityDistributionPanel({ data }: { data: Array<{ city: string; percentage: number; value: number }> }) {
+  if (!data || data.length === 0)
+    return <p className="text-sm text-theme-tertiary text-center py-6">No investment data available.</p>
   return (
     <div className="space-y-3">
-      {/* Stacked bar */}
-      <div className="h-4 rounded-full bg-theme-surface-hover overflow-hidden flex">
-        {data.map((d, i) => (
-          <div
-            key={d.type}
-            className={`${colors[i % colors.length]} transition-all`}
-            style={{ width: `${d.percentage}%` }}
-            title={`${d.type}: ${d.percentage}%`}
-          />
-        ))}
-      </div>
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4">
-        {data.map((d, i) => (
-          <div key={d.type} className="flex items-center gap-2 text-xs">
-            <div className={`h-2.5 w-2.5 rounded-full ${colors[i % colors.length]}`} />
-            <span className="text-theme-secondary">{d.type}</span>
-            <span className="font-mono font-semibold text-theme-primary">{d.percentage.toFixed(0)}%</span>
-            <span className="text-theme-tertiary">({formatINR(total > 0 ? d.value : 0)})</span>
+      {data.map((d, i) => (
+        <div key={`city-${i}`} className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="font-medium text-theme-primary flex items-center gap-1">
+              <MapPin className="h-3 w-3 text-theme-tertiary" />
+              {d.city}
+            </span>
+            <span className="text-theme-tertiary">
+              {d.percentage.toFixed(0)}% &middot; {formatINR(d.value)}
+            </span>
           </div>
-        ))}
-      </div>
+          <div className="h-2 rounded-full bg-theme-surface-hover overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${d.percentage}%` }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
 
-/* ── Monthly Returns Mini Bar Chart ──────────────────────────────── */
+/* ── IRR Breakdown Panel ─────────────────────────────────────────── */
 
-function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: number; invested: number }> }) {
-  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No monthly data yet.</p>
-  const maxVal = Math.max(...data.map((d) => Math.max(d.returns, d.invested)), 1)
-
+function IrrBreakdownPanel({ vaults, portfolioXirr }: { vaults: VaultPortfolioItem[]; portfolioXirr?: number }) {
+  if (!vaults || vaults.length === 0)
+    return <p className="text-sm text-theme-tertiary text-center py-6">IRR data unavailable.</p>
   return (
-    <div className="space-y-2">
-      <div className="flex items-end gap-1.5 h-32">
-        {data.slice(-12).map((d) => (
-          <div key={d.month} className="flex-1 flex flex-col items-center gap-0.5 justify-end h-full">
-            <div
-              className="w-full bg-emerald-400 rounded-t"
-              style={{ height: `${(d.returns / maxVal) * 100}%`, minHeight: d.returns > 0 ? '2px' : 0 }}
-              title={`Returns: ${formatINR(d.returns)}`}
-            />
-            <div
-              className="w-full bg-primary/30 rounded-t"
-              style={{ height: `${(d.invested / maxVal) * 100}%`, minHeight: d.invested > 0 ? '2px' : 0 }}
-              title={`Invested: ${formatINR(d.invested)}`}
-            />
+    <div className="space-y-4">
+      {vaults.map((v) => {
+        const meta = VAULT_META[v.vaultType]
+        const hasActual = v.actualIrr != null
+        return (
+          <div key={v.vaultType} className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  VAULT_BADGE[v.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'
+                }`}
+              >
+                {meta?.label ?? v.vaultType}
+              </span>
+              {v.opportunityCount > 0 && (
+                <span className="text-[10px] text-theme-tertiary">
+                  {v.opportunityCount} investment{v.opportunityCount !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg bg-theme-surface-hover px-3 py-2">
+                <p className="text-theme-tertiary mb-0.5">Expected IRR</p>
+                <p className={`font-mono font-bold ${meta?.color ?? 'text-theme-primary'}`}>
+                  {v.expectedIrr != null ? `${v.expectedIrr}%` : '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-theme-surface-hover px-3 py-2">
+                <p className="text-theme-tertiary mb-0.5">Actual XIRR</p>
+                <p
+                  className={`font-mono font-bold ${
+                    hasActual && v.actualIrr! > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-theme-secondary'
+                  }`}
+                >
+                  {hasActual ? `${v.actualIrr!.toFixed(1)}%` : '—'}
+                </p>
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-      <div className="flex gap-1.5 overflow-hidden">
-        {data.slice(-12).map((d) => (
-          <div key={d.month} className="flex-1 text-center">
-            <span className="text-[9px] text-theme-tertiary truncate block">{d.month}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-4 justify-center text-[10px] text-theme-tertiary">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Returns</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary/30" /> Invested</span>
-      </div>
+        )
+      })}
+      {portfolioXirr != null && (
+        <div className="pt-3 border-t border-theme flex justify-between items-center">
+          <span className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">Portfolio XIRR</span>
+          <span
+            className={`font-mono font-bold text-sm ${
+              portfolioXirr > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-theme-primary'
+            }`}
+          >
+            {portfolioXirr > 0 ? '+' : ''}{portfolioXirr.toFixed(1)}%
+          </span>
+        </div>
+      )}
     </div>
   )
 }
@@ -579,7 +597,7 @@ function HoldingDetailModal({
   return createPortal(modal, document.body)
 }
 
-/* ── Transaction Row ─────────────────────────────────────────────── */
+/* ── Unified Activity Feed ───────────────────────────────────────── */
 
 const TXN_COLORS: Record<string, string> = {
   investment: 'bg-primary/10 text-primary',
@@ -587,31 +605,6 @@ const TXN_COLORS: Record<string, string> = {
   referral_bonus: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
   wealthpass: 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400',
 }
-
-function TransactionRow({ t }: { t: RecentTransaction }) {
-  const color = TXN_COLORS[t.type] ?? 'bg-theme-surface-hover text-theme-secondary'
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-theme last:border-0">
-      <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold uppercase ${color}`}>
-        {t.type === 'investment' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-theme-primary truncate">{t.propertyTitle || t.type.replace('_', ' ')}</p>
-        <p className="text-xs text-theme-tertiary">{new Date(t.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-      </div>
-      <div className="text-right">
-        <p className={`text-sm font-mono font-bold ${t.type === 'investment' ? 'text-theme-primary' : 'text-emerald-600 dark:text-emerald-400'}`}>
-          {t.type === 'investment' ? '-' : '+'}{formatINR(t.amount)}
-        </p>
-        <Badge variant={t.status === 'confirmed' || t.status === 'completed' ? 'success' : 'warning'} size="xs">
-          {t.status}
-        </Badge>
-      </div>
-    </div>
-  )
-}
-
-/* ── Activity Row (liked, shared, etc.) ──────────────────────────── */
 
 const ACTIVITY_META: Record<string, { icon: typeof Heart; color: string; label: string }> = {
   liked: { icon: Heart, color: 'bg-red-50 dark:bg-red-900/30 text-red-500', label: 'Liked' },
@@ -621,12 +614,71 @@ const ACTIVITY_META: Record<string, { icon: typeof Heart; color: string; label: 
   eoi_submitted: { icon: FileCheck, color: 'bg-violet-50 dark:bg-violet-900/30 text-violet-500', label: 'Expressed Interest' },
 }
 
-function ActivityRow({ a, onClick }: { a: UserActivityItem; onClick?: () => void }) {
-  const meta = ACTIVITY_META[a.activityType] ?? { icon: Clock, color: 'bg-theme-surface-hover text-theme-secondary', label: a.activityType }
+type UnifiedActivityItem =
+  | { kind: 'financial'; data: RecentTransaction; date: Date }
+  | { kind: 'activity'; data: UserActivityItem; date: Date }
+
+function UnifiedActivityRow({
+  item,
+  onNavigate,
+}: {
+  item: UnifiedActivityItem
+  onNavigate?: (slug: string) => void
+}) {
+  if (item.kind === 'financial') {
+    const t = item.data
+    const isInvestment = t.type === 'investment'
+    const color = TXN_COLORS[t.type] ?? 'bg-theme-surface-hover text-theme-secondary'
+    return (
+      <div className="flex items-center gap-3 py-3 border-b border-theme last:border-0">
+        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${color}`}>
+          {isInvestment ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-theme-primary truncate">
+            {t.propertyTitle || t.type.replace(/_/g, ' ')}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-theme-tertiary">
+              {new Date(t.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </p>
+            {t.vaultType && (
+              <span
+                className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full ${
+                  VAULT_BADGE[t.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'
+                }`}
+              >
+                {VAULT_META[t.vaultType]?.label ?? t.vaultType}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="text-right">
+          <p
+            className={`text-sm font-mono font-bold ${
+              isInvestment ? 'text-theme-primary' : 'text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
+            {isInvestment ? '' : '+'}{formatINR(Math.abs(t.amount))}
+          </p>
+          <Badge variant={t.status === 'confirmed' || t.status === 'completed' ? 'success' : 'warning'} size="xs">
+            {t.status}
+          </Badge>
+        </div>
+      </div>
+    )
+  }
+
+  const a = item.data
+  const meta = ACTIVITY_META[a.activityType] ?? {
+    icon: Clock,
+    color: 'bg-theme-surface-hover text-theme-secondary',
+    label: a.activityType,
+  }
   const Icon = meta.icon
   return (
     <button
-      onClick={onClick}
+      onClick={a.resourceSlug && onNavigate ? () => onNavigate(a.resourceSlug!) : undefined}
       className="flex items-center gap-3 py-3 border-b border-theme last:border-0 w-full text-left hover:bg-theme-surface transition-colors"
     >
       <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${meta.color}`}>
@@ -635,7 +687,9 @@ function ActivityRow({ a, onClick }: { a: UserActivityItem; onClick?: () => void
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-theme-primary truncate">{a.resourceTitle}</p>
         <p className="text-xs text-theme-tertiary">
-          {a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+          {a.createdAt
+            ? new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : ''}
         </p>
       </div>
       <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${meta.color}`}>
@@ -662,12 +716,13 @@ function LoadingState() {
 export default function PortfolioPage() {
   const navigate = useNavigate()
   const [selectedHolding, setSelectedHolding] = useState<HoldingItem | null>(null)
+  const [activityPage, setActivityPage] = useState(0)
   const { data: summary, isLoading: summaryLoading } = usePortfolioSummary()
   const { data: holdings, isLoading: holdingsLoading } = usePortfolioHoldings()
   const { data: snapshotConfig } = useSnapshotConfig()
-  const { data: transactions, isLoading: txnLoading } = useRecentTransactions(10)
+  const { data: transactions, isLoading: txnLoading } = useRecentTransactions(20)
   const { data: vaultData, isLoading: vaultLoading } = useVaultWisePortfolio()
-  const { data: activities } = useUserActivities(10)
+  const { data: activities } = useUserActivities(15)
   const { isVaultEnabled } = useVaultConfig()
 
   // Investor gate: must have completed at least one vault's DNA
@@ -681,15 +736,14 @@ export default function PortfolioPage() {
   const heroTitle = useContent('portfolio', 'hero_title', 'The War Chest')
   const heroSubtitle = useContent('portfolio', 'hero_subtitle', 'Your empire-in-progress \u2014 every asset, every return, all in one place.')
   const sectionVaults = useContent('portfolio', 'section_vaults', 'Vault-Wise Breakdown')
-  const sectionAlloc = useContent('portfolio', 'section_alloc', 'Asset Allocation')
-  const sectionReturns = useContent('portfolio', 'section_returns', 'Monthly Returns')
+  const sectionAlloc = useContent('portfolio', 'section_alloc', 'Geographic Spread')
+  const sectionReturns = useContent('portfolio', 'section_returns', 'IRR Performance')
   const sectionHoldings = useContent('portfolio', 'section_holdings', 'Holdings')
   const sectionActivity = useContent('portfolio', 'section_activity', 'Recent Activity')
-  const sectionTxns = useContent('portfolio', 'section_txns', 'Recent Transactions')
   const emptyHoldings = useContent('portfolio', 'empty_holdings', 'No Holdings Yet')
   const emptyHoldingsMsg = useContent('portfolio', 'empty_holdings_msg', 'Start investing to see your portfolio here.')
-  const emptyTxns = useContent('portfolio', 'empty_txns', 'No Transactions')
-  const emptyTxnsMsg = useContent('portfolio', 'empty_txns_msg', 'No transactions yet.')
+  const emptyTxns = useContent('portfolio', 'empty_txns', 'No Activity Yet')
+  const emptyTxnsMsg = useContent('portfolio', 'empty_txns_msg', 'Your activity and transactions will appear here.')
 
   if (isInvestorRole && !progressLoading && !hasAnyDna) {
     return (
@@ -708,6 +762,22 @@ export default function PortfolioPage() {
       </div>
     )
   }
+
+  const unifiedFeed: UnifiedActivityItem[] = [
+    ...(transactions ?? []).map((t): UnifiedActivityItem => ({
+      kind: 'financial',
+      data: t,
+      date: new Date(t.date),
+    })),
+    ...(activities ?? []).map((a): UnifiedActivityItem => ({
+      kind: 'activity',
+      data: a,
+      date: new Date(a.createdAt),
+    })),
+  ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 50)
+
+  const PAGE_SIZE = 10
+  const visibleFeed = unifiedFeed.slice(0, (activityPage + 1) * PAGE_SIZE)
 
   const isLoading = summaryLoading || vaultLoading
   const disabledVaultIds = ['safe', 'community'].filter((id) => !isVaultEnabled(id))
@@ -791,22 +861,22 @@ export default function PortfolioPage() {
 
               {/* ── Charts Row ────────────────────────────────────── */}
               <section className="grid lg:grid-cols-2 gap-6">
-                {/* Asset Allocation */}
+                {/* Geographic Spread */}
                 <div className="card p-6">
                   <div className="flex items-center gap-2 mb-5">
-                    <PieChart className="h-5 w-5 text-theme-tertiary" />
+                    <MapPin className="h-5 w-5 text-theme-tertiary" />
                     <h3 className="section-title text-lg">{sectionAlloc}</h3>
                   </div>
-                  <AllocationChart data={summary?.assetAllocation ?? []} />
+                  <CityDistributionPanel data={summary?.cityDistribution ?? []} />
                 </div>
 
-                {/* Monthly Returns */}
+                {/* IRR Performance */}
                 <div className="card p-6">
                   <div className="flex items-center gap-2 mb-5">
-                    <BarChart3 className="h-5 w-5 text-theme-tertiary" />
+                    <TrendingUp className="h-5 w-5 text-theme-tertiary" />
                     <h3 className="section-title text-lg">{sectionReturns}</h3>
                   </div>
-                  <MonthlyReturnsChart data={summary?.monthlyReturns ?? []} />
+                  <IrrBreakdownPanel vaults={vaultData?.vaults ?? []} portfolioXirr={summary?.xirr} />
                 </div>
               </section>
 
@@ -840,33 +910,30 @@ export default function PortfolioPage() {
               )}
 
               {/* ── Recent Activity ───────────────────────────────── */}
-              {activities && activities.length > 0 && (
-                <section>
-                  <h2 className="section-title text-xl">{sectionActivity}</h2>
-                  <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-4">
-                    {activities.slice(0, 5).map((a) => (
-                      <ActivityRow
-                        key={a.id}
-                        a={a}
-                        onClick={a.resourceSlug ? () => navigate(`/opportunity/${a.resourceSlug}`) : undefined}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* ── Recent Transactions ────────────────────────────── */}
+              {/* Recent Activity (unified) */}
               <section>
-                <h2 className="section-title text-xl">{sectionTxns}</h2>
+                <h2 className="section-title text-xl">{sectionActivity}</h2>
                 {txnLoading ? (
                   <LoadingState />
-                ) : !transactions || transactions.length === 0 ? (
+                ) : unifiedFeed.length === 0 ? (
                   <EmptyState icon={Clock} title={emptyTxns} message={emptyTxnsMsg} />
                 ) : (
                   <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-4">
-                    {transactions.map((t) => (
-                      <TransactionRow key={t.id} t={t} />
+                    {visibleFeed.map((item) => (
+                      <UnifiedActivityRow
+                        key={`${item.kind}-${item.data.id}`}
+                        item={item}
+                        onNavigate={(slug) => navigate(`/opportunity/${slug}`)}
+                      />
                     ))}
+                    {visibleFeed.length < unifiedFeed.length && (
+                      <button
+                        onClick={() => setActivityPage((p) => p + 1)}
+                        className="mt-3 w-full text-xs font-medium text-theme-secondary hover:text-primary py-2 rounded-lg border border-theme hover:border-primary/40 transition-colors"
+                      >
+                        Load more ({unifiedFeed.length - visibleFeed.length} remaining)
+                      </button>
+                    )}
                   </div>
                 )}
               </section>

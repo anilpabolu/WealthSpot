@@ -4,12 +4,14 @@ import { fireEvent, render, screen } from '@testing-library/react'
 vi.mock('@/hooks/useShield', () => ({
   useOpportunityAssessments: vi.fn(),
   useReviewAssessment: vi.fn(),
+  useUpdateAssessmentVisibility: vi.fn(),
 }))
 
 import { AdminShieldReviewPanel } from '@/components/shield/AdminShieldReviewPanel'
 import {
   useOpportunityAssessments,
   useReviewAssessment,
+  useUpdateAssessmentVisibility,
 } from '@/hooks/useShield'
 
 const MOCK_SUMMARY = {
@@ -73,6 +75,10 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(useReviewAssessment).mockReturnValue({
     mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+  } as never)
+  vi.mocked(useUpdateAssessmentVisibility).mockReturnValue({
+    mutate: vi.fn(),
     isPending: false,
   } as never)
 })

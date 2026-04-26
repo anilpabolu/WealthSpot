@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role
 from app.models.investment import Investment, InvestmentStatus, Transaction
-from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
+from app.models.opportunity import Opportunity, VaultType
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.platform_config import PlatformConfig
 from app.models.property import Property
@@ -126,6 +126,10 @@ async def portfolio_summary(
         vt_val = opp.vault_type.value if hasattr(opp.vault_type, "value") else str(opp.vault_type)
         asset_label = _VAULT_TO_ASSET.get(vt_val, "Opportunities")
         by_asset[asset_label] += oi.amount
+        if opp.city:
+            cities_set.add(opp.city)
+            count, amt = by_city.get(opp.city, (0, Decimal("0")))
+            by_city[opp.city] = (count + 1, amt + oi.amount)
 
     monthly_income = total_invested * Decimal("0.006")
 
@@ -157,7 +161,9 @@ async def portfolio_summary(
     # City distribution
     city_dist = []
     for city, (count, amount) in by_city.items():
-        city_dist.append(CityDistribution(city=city, count=count, amount=amount))
+        pct = round(float(amount / total_invested * 100), 1) if total_invested else 0.0
+        city_dist.append(CityDistribution(city=city, count=count, value=amount, percentage=pct))
+    city_dist.sort(key=lambda x: x.value, reverse=True)
 
     # Monthly returns: group investments by invested month
     # Key: datetime(year, month, 1); value: (invested, returns)
@@ -339,6 +345,8 @@ async def portfolio_transactions(
                 property_title=opp.title,
                 date=oi.invested_at or oi.created_at,
                 status="confirmed" if oi.status == OppInvestmentStatus.CONFIRMED else oi.status.value,
+                vault_type=opp.vault_type.value if opp.vault_type else None,
+                opportunity_slug=opp.slug,
             )
         )
 
@@ -555,38 +563,30 @@ async def vault_wise_portfolio(
         agg["days_total"] += days
         agg["inv_count"] += 1
 
-    # 3. Global vault stats (for expected/actual IRR and investor counts)
-    active_statuses = [
-        OpportunityStatus.APPROVED,
-        OpportunityStatus.ACTIVE,
-        OpportunityStatus.FUNDING,
-        OpportunityStatus.FUNDED,
-    ]
-    irr_q = (
-        select(Opportunity.vault_type, func.avg(Opportunity.expected_irr).label("avg_irr"))
-        .where(Opportunity.expected_irr.isnot(None), Opportunity.status.in_(active_statuses))
-        .group_by(Opportunity.vault_type)
-    )
-    irr_result = await db.execute(irr_q)
-    irr_map = {
-        row.vault_type.value if isinstance(row.vault_type, VaultType) else row.vault_type: float(
-            row.avg_irr
-        )
-        for row in irr_result.all()
-        if row.avg_irr
-    }
+    # 3. Per-user, per-vault weighted-average IRR (from the user's own opp_rows)
+    irr_weighted: dict[str, float] = {}
+    irr_invested: dict[str, float] = {}
+    actual_irr_weighted: dict[str, float] = {}
+    actual_irr_invested: dict[str, float] = {}
+    for inv, opp in opp_rows:
+        vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        amt = float(inv.amount)
+        if opp.expected_irr is not None:
+            irr_weighted[vt_val] = irr_weighted.get(vt_val, 0.0) + amt * float(opp.expected_irr)
+            irr_invested[vt_val] = irr_invested.get(vt_val, 0.0) + amt
+        if opp.actual_irr is not None:
+            actual_irr_weighted[vt_val] = actual_irr_weighted.get(vt_val, 0.0) + amt * float(opp.actual_irr)
+            actual_irr_invested[vt_val] = actual_irr_invested.get(vt_val, 0.0) + amt
 
-    # Actual IRR per vault — average of opportunity.actual_irr for appreciated opps
-    actual_irr_q = (
-        select(Opportunity.vault_type, func.avg(Opportunity.actual_irr).label("avg_actual_irr"))
-        .where(Opportunity.actual_irr.isnot(None), Opportunity.status.in_(active_statuses))
-        .group_by(Opportunity.vault_type)
-    )
-    actual_irr_result = await db.execute(actual_irr_q)
+    irr_map = {
+        vt: round(irr_weighted[vt] / irr_invested[vt], 2)
+        for vt in irr_invested
+        if irr_invested[vt] > 0
+    }
     actual_irr_map = {
-        row.vault_type.value if isinstance(row.vault_type, VaultType) else row.vault_type: round(float(row.avg_actual_irr), 2)
-        for row in actual_irr_result.all()
-        if row.avg_actual_irr
+        vt: round(actual_irr_weighted[vt] / actual_irr_invested[vt], 2)
+        for vt in actual_irr_invested
+        if actual_irr_invested[vt] > 0
     }
 
     # Build vault items

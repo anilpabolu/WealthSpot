@@ -104,6 +104,7 @@ describe('BuilderShieldStep', () => {
         subcategoryCode: textSub.code,
         value: 'Pre-filled value',
         files: [],
+        isPublic: true,
       },
     }
     render(<BuilderShieldStep answers={answers} onChange={onChange} />)

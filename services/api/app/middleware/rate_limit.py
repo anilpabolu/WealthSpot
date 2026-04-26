@@ -2,6 +2,7 @@
 Rate limiting middleware with Redis backend (falls back to in-memory for local dev).
 """
 
+import asyncio
 import logging
 import time
 from collections import defaultdict
@@ -49,7 +50,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             logger.info("Rate limiter: using in-memory backend (Redis unavailable)")
 
     def _check_redis(self, client_ip: str) -> tuple[bool, int]:
-        """Check rate limit via Redis sorted set. Returns (allowed, remaining)."""
+        """Check rate limit via Redis sorted set. Returns (allowed, remaining).
+
+        NOTE: This is a synchronous method intentionally – it is always called
+        via asyncio.get_running_loop().run_in_executor() so it never blocks
+        the event loop.
+        """
         key = f"ratelimit:{client_ip}"
         now = time.time()
         cutoff = now - self.window_seconds
@@ -82,7 +88,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         if self._redis:
             try:
-                allowed, remaining = self._check_redis(client_ip)
+                # Run the synchronous Redis pipeline in a thread pool so it
+                # never blocks the asyncio event loop. Blocking the event loop
+                # here caused ERR_EMPTY_RESPONSE on concurrent requests during
+                # page load (later requests had their connections dropped while
+                # the loop was stalled on the Redis I/O).
+                loop = asyncio.get_running_loop()
+                allowed, remaining = await loop.run_in_executor(
+                    None, self._check_redis, client_ip
+                )
             except Exception:
                 # Redis error – fall back to memory
                 allowed, remaining = self._check_memory(client_ip)
@@ -99,7 +113,26 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Rate limit exceeded. Please try again later."},
             )
 
-        response = await call_next(request)
+        # Wrap call_next: if a route raises and the exception propagates back
+        # through this BaseHTTPMiddleware, Starlette's ServerErrorMiddleware
+        # (which sits ABOVE CORSMiddleware) returns a bare 500 with no CORS
+        # headers — the browser then reports a misleading CORS error.
+        try:
+            response = await call_next(request)
+        except Exception:
+            logger.exception(
+                "Unhandled exception in route %s %s", request.method, request.url.path
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "code": "INTERNAL_ERROR",
+                    "request_id": getattr(request.state, "request_id", None),
+                },
+            )
+
         response.headers["X-RateLimit-Limit"] = str(self.max_requests)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
         return response
+

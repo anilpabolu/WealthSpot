@@ -31,7 +31,7 @@ const DEFAULT_FILTERS: MarketplaceFilters = {
   status: '',
   sortBy: 'newest',
   page: 1,
-  pageSize: 12,
+  pageSize: 10,
 }
 
 export const useMarketplaceStore = create<MarketplaceState>()(

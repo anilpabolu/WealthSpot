@@ -96,6 +96,8 @@ async def investment_summary(
         if inv.property_id:
             property_ids.add(inv.property_id)
 
+    # 0.6 % per month is a conservative projected yield used until actual rental/income
+    # data is available per property. Displayed as "Est. Monthly Income" in the UI.
     monthly_income = total_invested * Decimal("0.006")
 
     # Compute real XIRR from cashflows (with Redis cache)

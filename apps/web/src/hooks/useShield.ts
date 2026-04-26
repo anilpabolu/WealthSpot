@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, apiDelete, apiGet, apiPost, apiPut } from '@/lib/api'
+import { api, apiDelete, apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import type {
   AssessmentSummaryRead,
   OpportunityRiskFlagRead,
@@ -27,11 +27,13 @@ export interface BulkAssessmentItem {
   categoryCode: string
   subcategoryCode: string
   builderAnswer?: Record<string, unknown> | null
+  isPublic?: boolean | null
 }
 
 export function useSaveAssessmentBulk() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Shield assessments saved' },
     mutationFn: ({
       opportunityId,
       items,
@@ -46,6 +48,7 @@ export function useSaveAssessmentBulk() {
             category_code: i.categoryCode,
             subcategory_code: i.subcategoryCode,
             builder_answer: i.builderAnswer ?? null,
+            is_public: i.isPublic ?? null,
           })),
         },
       ),
@@ -67,6 +70,7 @@ export interface ReviewAssessmentInput {
 export function useReviewAssessment() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Review recorded' },
     mutationFn: ({
       opportunityId,
       subcategoryCode,
@@ -159,6 +163,7 @@ export function useShieldMetrics(enabled = true) {
 export function useCreateRisk() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Risk flag added' },
     mutationFn: ({
       opportunityId,
       label,
@@ -183,6 +188,7 @@ export function useCreateRisk() {
 export function useDeleteRisk() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Risk flag removed' },
     mutationFn: ({
       opportunityId,
       riskId,
@@ -192,6 +198,29 @@ export function useDeleteRisk() {
     }) =>
       apiDelete<{ deleted: boolean; id: string }>(
         `/opportunities/${opportunityId}/risks/${riskId}`,
+      ),
+    onSuccess: (_d, { opportunityId }) => {
+      qc.invalidateQueries({ queryKey: assessmentsKey(opportunityId) })
+    },
+  })
+}
+
+export function useUpdateAssessmentVisibility() {
+  const qc = useQueryClient()
+  return useMutation({
+    meta: { successMessage: 'Visibility updated' },
+    mutationFn: ({
+      opportunityId,
+      subcategoryCode,
+      isPublic,
+    }: {
+      opportunityId: string
+      subcategoryCode: string
+      isPublic: boolean
+    }) =>
+      apiPatch<AssessmentSummaryRead>(
+        `/opportunities/${opportunityId}/assessments/${subcategoryCode}/visibility`,
+        { is_public: isPublic },
       ),
     onSuccess: (_d, { opportunityId }) => {
       qc.invalidateQueries({ queryKey: assessmentsKey(opportunityId) })

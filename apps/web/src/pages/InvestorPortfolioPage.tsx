@@ -33,7 +33,7 @@ function SummaryMetrics() {
         isLoading={isLoading}
       />
       <MetricCard
-        label="Monthly Income"
+        label="Est. Monthly Income"
         value={formatINRCompact(summary?.monthlyIncome ?? 0)}
         icon={<PieChart className="h-5 w-5 text-primary" />}
         isLoading={isLoading}

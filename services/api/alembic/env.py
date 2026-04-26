@@ -17,7 +17,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.core.config import get_settings
 from app.core.database import Base
 
-# Import all models so metadata is populated – needed for Base.metadata
+# Import ALL models so Base.metadata is fully populated –
+# required both for `alembic upgrade head` and for `autogenerate` to detect schema drift.
 import app.models.user as _user_models  # pyright: ignore[reportUnusedImport]
 import app.models.property as _property_models  # pyright: ignore[reportUnusedImport]
 import app.models.investment as _investment_models  # pyright: ignore[reportUnusedImport]
@@ -25,6 +26,28 @@ import app.models.community as _community_models  # pyright: ignore[reportUnused
 import app.models.approval as _approval_models  # pyright: ignore[reportUnusedImport]
 import app.models.opportunity as _opportunity_models  # pyright: ignore[reportUnusedImport]
 import app.models.platform_config as _platform_config_models  # pyright: ignore[reportUnusedImport]
+import app.models.admin_invite as _admin_invite_models  # pyright: ignore[reportUnusedImport]
+import app.models.appreciation_event as _appreciation_event_models  # pyright: ignore[reportUnusedImport]
+import app.models.app_video as _app_video_models  # pyright: ignore[reportUnusedImport]
+import app.models.builder_question as _builder_question_models  # pyright: ignore[reportUnusedImport]
+import app.models.builder_update as _builder_update_models  # pyright: ignore[reportUnusedImport]
+import app.models.comm_mapping as _comm_mapping_models  # pyright: ignore[reportUnusedImport]
+import app.models.company as _company_models  # pyright: ignore[reportUnusedImport]
+import app.models.eoi_stage_history as _eoi_stage_history_models  # pyright: ignore[reportUnusedImport]
+import app.models.expression_of_interest as _eoi_models  # pyright: ignore[reportUnusedImport]
+import app.models.notification as _notification_models  # pyright: ignore[reportUnusedImport]
+import app.models.opportunity_assessment as _opportunity_assessment_models  # pyright: ignore[reportUnusedImport]
+import app.models.opportunity_investment as _opportunity_investment_models  # pyright: ignore[reportUnusedImport]
+import app.models.opportunity_like as _opportunity_like_models  # pyright: ignore[reportUnusedImport]
+import app.models.opportunity_media as _opportunity_media_models  # pyright: ignore[reportUnusedImport]
+import app.models.pincode as _pincode_models  # pyright: ignore[reportUnusedImport]
+import app.models.profiling as _profiling_models  # pyright: ignore[reportUnusedImport]
+import app.models.property_referral as _property_referral_models  # pyright: ignore[reportUnusedImport]
+import app.models.role_group as _role_group_models  # pyright: ignore[reportUnusedImport]
+import app.models.site_content as _site_content_models  # pyright: ignore[reportUnusedImport]
+import app.models.user_point as _user_point_models  # pyright: ignore[reportUnusedImport]
+import app.models.vault_explorer as _vault_explorer_models  # pyright: ignore[reportUnusedImport]
+import app.models.vault_feature_flag as _vault_feature_flag_models  # pyright: ignore[reportUnusedImport]
 
 config = context.config
 settings = get_settings()

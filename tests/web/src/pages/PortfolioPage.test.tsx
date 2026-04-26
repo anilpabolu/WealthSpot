@@ -21,6 +21,9 @@ vi.mock('@/hooks/usePortfolio', () => ({
   usePortfolioProperties: vi.fn(),
   useRecentTransactions: vi.fn(),
   useVaultWisePortfolio: vi.fn(),
+  usePortfolioHoldings: vi.fn(),
+  useSnapshotConfig: vi.fn(),
+  useOpportunityAppreciationHistory: vi.fn(),
   type: {} as never,
 }))
 
@@ -50,7 +53,7 @@ vi.mock('@/stores/user.store', () => ({
 }))
 
 import PortfolioPage from '@/pages/PortfolioPage'
-import { usePortfolioSummary, usePortfolioProperties, useRecentTransactions, useVaultWisePortfolio } from '@/hooks/usePortfolio'
+import { usePortfolioSummary, usePortfolioProperties, useRecentTransactions, useVaultWisePortfolio, usePortfolioHoldings, useSnapshotConfig, useOpportunityAppreciationHistory } from '@/hooks/usePortfolio'
 import { useOverallProgress } from '@/hooks/useProfiling'
 
 describe('PortfolioPage', () => {
@@ -74,6 +77,18 @@ describe('PortfolioPage', () => {
     } as never)
     vi.mocked(useVaultWisePortfolio).mockReturnValue({
       data: { vaults: [{ vaultType: 'wealth', totalInvested: 500000, currentValue: 600000, returns: 100000, returnPct: 20, expectedIrr: 15, opportunityCount: 3, avgDurationDays: 180 }], grandTotalInvested: 500000, grandCurrentValue: 600000, grandReturns: 100000, grandReturnPct: 20 },
+      isLoading: false,
+    } as never)
+    vi.mocked(usePortfolioHoldings).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as never)
+    vi.mocked(useSnapshotConfig).mockReturnValue({
+      data: { sections: [] },
+      isLoading: false,
+    } as never)
+    vi.mocked(useOpportunityAppreciationHistory).mockReturnValue({
+      data: [],
       isLoading: false,
     } as never)
   })
@@ -112,6 +127,6 @@ describe('PortfolioPage', () => {
 
   it('renders recent transactions section', () => {
     renderPage()
-    expect(screen.getByText('Recent Transactions')).toBeInTheDocument()
+    expect(screen.getByText('Recent Activity')).toBeInTheDocument()
   })
 })

@@ -1,0 +1,2 @@
+ALTER TABLE opportunity_assessments
+  ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT TRUE;

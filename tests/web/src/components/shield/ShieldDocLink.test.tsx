@@ -39,7 +39,7 @@ describe('ShieldDocLink', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('renders a download link for unlocked documents with a direct URL', () => {
+  it('renders a download button for unlocked documents with a direct URL', () => {
     render(
       <ShieldDocLink
         opportunityId={OPP_ID}
@@ -53,9 +53,8 @@ describe('ShieldDocLink', () => {
         }}
       />,
     )
-    const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', 'https://cdn.example.com/valuation.pdf')
-    expect(link).toHaveAttribute('target', '_blank')
+    const btn = screen.getByRole('button')
+    expect(btn).toBeInTheDocument()
     expect(screen.getByText('valuation.pdf')).toBeInTheDocument()
     expect(screen.getByText('200 KB')).toBeInTheDocument()
   })
@@ -115,7 +114,7 @@ describe('ShieldDocLink', () => {
         }}
       />,
     )
-    fireEvent.click(screen.getByRole('link'))
+    fireEvent.click(screen.getByRole('button'))
     expect(mutateAsync).toHaveBeenCalledWith({
       opportunityId: OPP_ID,
       mediaId: 'doc-5',

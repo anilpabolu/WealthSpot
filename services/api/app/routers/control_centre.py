@@ -2,6 +2,7 @@
 Command Control Centre router – super-admin only platform configuration.
 """
 
+import logging
 import secrets
 import uuid as _uuid
 from datetime import UTC, datetime, timedelta
@@ -25,6 +26,7 @@ from app.schemas.platform_config import ConfigCreate, ConfigRead, ConfigUpdate
 from app.schemas.user import UserRead
 
 router = APIRouter(prefix="/control-centre", tags=["control-centre"])
+logger = logging.getLogger(__name__)
 
 
 # ── Public Platform Stats ────────────────────────────────────────────────────
@@ -169,16 +171,21 @@ async def get_vault_metrics_config(db: AsyncSession = Depends(get_db)) -> dict[s
 @router.get("/appearance")
 async def get_appearance_config(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """Public endpoint: returns appearance settings (theme colors, etc.)."""
-    result = await db.execute(
-        select(PlatformConfig).where(
-            PlatformConfig.section == "appearance",
-            PlatformConfig.is_active.is_(True),
+    _defaults: dict[str, Any] = {"light_mode_bg_color": "#FDFBF5"}
+    try:
+        result = await db.execute(
+            select(PlatformConfig).where(
+                PlatformConfig.section == "appearance",
+                PlatformConfig.is_active.is_(True),
+            )
         )
-    )
-    configs = {c.key: c.value for c in result.scalars().all()}
-    return {
-        "light_mode_bg_color": configs.get("light_mode_bg_color", "#FDFBF5"),
-    }
+        configs = {c.key: c.value for c in result.scalars().all()}
+        return {
+            "light_mode_bg_color": configs.get("light_mode_bg_color") or _defaults["light_mode_bg_color"],
+        }
+    except Exception:
+        logger.exception("get_appearance_config: DB error, returning defaults")
+        return _defaults
 
 
 @router.get("/notifications/public")
@@ -186,20 +193,24 @@ async def get_public_notifications_config(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Public endpoint: whitelisted notification settings safe for unauth clients."""
-    result = await db.execute(
-        select(PlatformConfig).where(
-            PlatformConfig.section == "notifications",
-            PlatformConfig.key == "toast_interval_ms",
-            PlatformConfig.is_active.is_(True),
-        )
-    )
-    row = result.scalar_one_or_none()
-    raw = row.value if row is not None else None
     try:
-        toast_ms = int(raw) if raw is not None else 3000
-    except (TypeError, ValueError):
-        toast_ms = 3000
-    return {"toast_interval_ms": toast_ms}
+        result = await db.execute(
+            select(PlatformConfig).where(
+                PlatformConfig.section == "notifications",
+                PlatformConfig.key == "toast_interval_ms",
+                PlatformConfig.is_active.is_(True),
+            )
+        )
+        row = result.scalars().first()
+        raw = row.value if row is not None else None
+        try:
+            toast_ms = int(raw) if raw is not None else 3000
+        except (TypeError, ValueError):
+            toast_ms = 3000
+        return {"toast_interval_ms": toast_ms}
+    except Exception:
+        logger.exception("get_public_notifications_config: DB error, returning defaults")
+        return {"toast_interval_ms": 3000}
 
 
 # ── Platform Config CRUD ─────────────────────────────────────────────────────

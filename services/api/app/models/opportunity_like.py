@@ -34,8 +34,8 @@ class OpportunityLike(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
-    opportunity = relationship("Opportunity", lazy="joined")
-    user = relationship("User", lazy="joined")
+    opportunity = relationship("Opportunity", lazy="select")
+    user = relationship("User", lazy="select")
 
 
 class UserActivity(Base):
@@ -70,4 +70,4 @@ class UserActivity(Base):
         default=lambda: datetime.now(UTC),
     )
 
-    user = relationship("User", lazy="joined")
+    user = relationship("User", lazy="select")

@@ -45,6 +45,8 @@ export interface RecentTransaction {
   propertyTitle: string
   date: string
   status: string
+  vaultType: string | null
+  opportunitySlug: string | null
 }
 
 export function usePortfolioSummary() {
@@ -211,6 +213,7 @@ export function useSnapshotConfig() {
 export function useUpdateSnapshotConfig() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Snapshot preferences saved' },
     mutationFn: (sections: string[]) =>
       apiPut<SnapshotConfig>('/portfolio/snapshot-config', { sections }),
     onSuccess: () => {

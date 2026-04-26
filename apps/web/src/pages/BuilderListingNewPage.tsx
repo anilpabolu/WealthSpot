@@ -20,7 +20,7 @@ import {
   useSaveAssessmentBulk,
   useUploadAssessmentDocument,
 } from '@/hooks/useShield'
-import { useToastStore } from '@/stores/toastStore'
+import { formatApiError } from '@/lib/apiError'
 
 const VAULT_OPTIONS = [
   { value: 'wealth', label: 'Wealth Vault', sublabel: 'Real estate that prints money 🏗️', icon: Building2, color: 'border-primary text-primary bg-primary/5' },
@@ -206,6 +206,7 @@ export default function BuilderListingNewPage() {
             categoryCode: a.categoryCode,
             subcategoryCode: a.subcategoryCode,
             builderAnswer: a.value ? { text: a.value } : null,
+            isPublic: a.isPublic,
           })),
         })
         const withFiles = answeredItems.filter((a) => a.files.length > 0)
@@ -220,10 +221,12 @@ export default function BuilderListingNewPage() {
         }
       }
       setStep('success')
-      useToastStore.getState().addToast({ type: 'success', title: 'Listing created!', message: 'Your new listing is now in review.' })
+      // Per-mutation success/error toasts are emitted by the global handler in
+      // main.tsx (see useCreateOpportunity / useSaveAssessmentBulk meta).
     } catch {
-      useToastStore.getState().addToast({ type: 'error', title: 'Listing creation failed', message: 'Please check the form and try again.' })
-      // mutation error handled by UI
+      // Roll back to the form step so the user can retry; the global mutation
+      // handler has already surfaced the formatted error toast.
+      setStep('shield')
     }
   }
 
@@ -629,7 +632,11 @@ export default function BuilderListingNewPage() {
                   {createMutation.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>) : '🚀 Submit listing'}
                 </button>
               </div>
-              {createMutation.isError && <p className="text-sm text-red-600 dark:text-red-400 text-center mt-2">Failed to submit. Please try again.</p>}
+              {createMutation.isError && (
+                <p className="text-sm text-red-600 dark:text-red-400 text-center mt-2">
+                  {formatApiError(createMutation.error).message}
+                </p>
+              )}
             </div>
           )}
 

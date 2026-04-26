@@ -11,7 +11,6 @@ import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
 import CompanyOnboardingModal from '@/components/CompanyOnboardingModal'
 import { EmptyState } from '@/components/ui'
-import { useToastStore } from '@/stores/toastStore'
 
 const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Growth']
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
@@ -31,7 +30,8 @@ export default function BuilderListingEditPage() {
   const [address, setAddress] = useState<AddressFields>({ addressLine1: '', addressLine2: '', landmark: '', locality: '', city: '', state: '', pincode: '', district: '', country: 'India' })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [saving, setSaving] = useState(false)
+  // Loading state is driven entirely by the mutations — no manual `saving` flag.
+  const isSaving = updateMutation.isPending || uploadMutation.isPending
 
   // Populate form when data loads
   useEffect(() => {
@@ -74,7 +74,6 @@ export default function BuilderListingEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!id) return
-    setSaving(true)
     try {
       const payload: OpportunityUpdatePayload = {
         ...form,
@@ -90,12 +89,10 @@ export default function BuilderListingEditPage() {
         if (videos.length > 0) await uploadMutation.mutateAsync({ opportunityId: id, files: videos })
       }
       navigate(`/portal/builder/listings/${id}`)
-      useToastStore.getState().addToast({ type: 'success', title: 'Listing updated', message: 'Your changes have been saved successfully.' })
+      // Success/error toasts come from the global mutation handler in main.tsx.
     } catch {
-      useToastStore.getState().addToast({ type: 'error', title: 'Update failed', message: 'Could not save changes. Please try again.' })
-      // error shown in UI
-    } finally {
-      setSaving(false)
+      // Stay on the page so the user can retry; toast already shown by the
+      // global handler.
     }
   }
 
@@ -272,8 +269,8 @@ export default function BuilderListingEditPage() {
               <button type="button" onClick={() => navigate(`/portal/builder/listings/${id}`)} className="px-4 py-2 text-sm font-medium text-theme-secondary hover:text-theme-primary transition-colors">
                 Cancel
               </button>
-              <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50">
-                {saving ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : (<><Save className="h-4 w-4" /> Save Changes</>)}
+              <button type="submit" disabled={isSaving} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50">
+                {isSaving ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : (<><Save className="h-4 w-4" /> Save Changes</>)}
               </button>
             </div>
             {updateMutation.isError && <p className="text-sm text-red-600 dark:text-red-400 text-center mt-2">Failed to save. Please try again.</p>}

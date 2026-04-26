@@ -8,7 +8,7 @@ import time
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, Response
+from starlette.responses import JSONResponse, PlainTextResponse, Response
 
 _logger = logging.getLogger("app.slow_requests")
 _SLOW_REQUEST_THRESHOLD = 2.0  # seconds
@@ -41,7 +41,29 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             return _metrics_response()
 
         start = time.perf_counter()
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:
+            # Keep the response inside the middleware chain so CORSMiddleware
+            # (outermost) attaches headers. Without this, the browser sees a
+            # CORS error instead of the real 500.
+            _logger.exception(
+                "Unhandled exception in route %s %s", request.method, request.url.path
+            )
+            duration = time.perf_counter() - start
+            label = _label(request.method, request.url.path, 500)
+            _request_count[label] = _request_count.get(label, 0) + 1
+            _request_errors[label] = _request_errors.get(label, 0) + 1
+            _request_duration_sum[label] = _request_duration_sum.get(label, 0.0) + duration
+            _request_duration_count[label] = _request_duration_count.get(label, 0) + 1
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "code": "INTERNAL_ERROR",
+                    "request_id": getattr(request.state, "request_id", None),
+                },
+            )
         duration = time.perf_counter() - start
 
         method = request.method

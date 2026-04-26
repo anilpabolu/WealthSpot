@@ -83,6 +83,7 @@ def calculate_xirr(
     cashflows: list[tuple[datetime, float | Decimal]],
     max_iterations: int = 100,
     tolerance: float = 1e-7,
+    guess: float | None = None,
 ) -> float | None:
     """
     Calculate Extended IRR from dated cashflows using Newton's method.
@@ -94,6 +95,7 @@ def calculate_xirr(
         cashflows: List of (date, amount) tuples. Negative = outflow, positive = inflow.
         max_iterations: Max Newton-Raphson iterations per guess.
         tolerance: Convergence tolerance.
+        guess: Optional starting guess for Newton-Raphson (tried first before defaults).
 
     Returns:
         Annualised rate as a percentage float (e.g., 12.5 for 12.5 %),
@@ -112,9 +114,12 @@ def calculate_xirr(
     min_date = min(dates)
     years = [(d - min_date).days / 365.25 for d in dates]
 
-    # Try multiple starting guesses — return first convergent result
-    for guess in _GUESSES:
-        rate = _newton_raphson(amounts, years, guess, max_iterations, tolerance)
+    # Build ordered list of guesses: caller-supplied first, then defaults
+    guesses_to_try = ([guess] if guess is not None else []) + _GUESSES
+
+    # Try each starting guess — return first convergent result
+    for g in guesses_to_try:
+        rate = _newton_raphson(amounts, years, g, max_iterations, tolerance)
         if rate is not None and -1.0 < rate < 1e6:
             result = round(rate * 100, 2)
             return min(result, _XIRR_CAP)

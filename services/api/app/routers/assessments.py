@@ -42,6 +42,7 @@ from app.schemas.assessment import (
     AssessmentReviewRequest,
     AssessmentSubItemRead,
     AssessmentSummaryRead,
+    AssessmentVisibilityRequest,
     OpportunityRiskFlagCreate,
     OpportunityRiskFlagRead,
 )
@@ -174,8 +175,11 @@ async def _load_summary(
         sub_reads: list[AssessmentSubItemRead] = []
         child_statuses: list[str] = []
         for sub in cat.sub_items:
-            total_slots += 1
             row = by_sub.get(sub.code)
+            is_pub = row.is_public if row else True
+            if not is_pub and not is_privileged:
+                continue
+            total_slots += 1
             status_val = row.status if row else AssessmentStatus.NOT_STARTED.value
             child_statuses.append(status_val)
             if status_val == AssessmentStatus.PASSED.value:
@@ -208,6 +212,7 @@ async def _load_summary(
                     documents=docs,
                     builder_answer=row.builder_answer if row else None,
                     reviewed_at=row.reviewed_at if row else None,
+                    is_public=is_pub,
                 )
             )
 
@@ -217,7 +222,7 @@ async def _load_summary(
                 code=cat.code,
                 status=_category_status_for(child_statuses),
                 passed_count=passed_in_cat,
-                total_count=len(cat.sub_items),
+                total_count=len(sub_reads),
                 sub_items=sub_reads,
             )
         )
@@ -302,6 +307,8 @@ async def bulk_save_assessments(
         ).scalar_one_or_none()
         if existing:
             existing.builder_answer = item.builder_answer
+            if item.is_public is not None:
+                existing.is_public = item.is_public
             # Once passed/flagged by admin we do not drop back to in_progress
             if existing.status == AssessmentStatus.NOT_STARTED.value:
                 existing.status = AssessmentStatus.IN_PROGRESS.value
@@ -313,6 +320,7 @@ async def bulk_save_assessments(
                     subcategory_code=item.subcategory_code,
                     status=AssessmentStatus.IN_PROGRESS.value,
                     builder_answer=item.builder_answer,
+                    is_public=item.is_public if item.is_public is not None else True,
                 )
             )
 
@@ -381,6 +389,51 @@ async def review_assessment(
             )
         )
 
+    await db.flush()
+    return await _load_summary(db, opp_id, reviewer)
+
+
+@router.patch(
+    "/{opportunity_id}/assessments/{subcategory_code}/visibility",
+    response_model=AssessmentSummaryRead,
+)
+async def update_assessment_visibility(
+    opportunity_id: str,
+    subcategory_code: str,
+    body: AssessmentVisibilityRequest,
+    db: AsyncSession = Depends(get_db),
+    reviewer: User = Depends(admin_dep),
+) -> AssessmentSummaryRead:
+    opp_id = _uuid.UUID(opportunity_id)
+    existing = (
+        await db.execute(
+            select(OpportunityAssessment).where(
+                OpportunityAssessment.opportunity_id == opp_id,
+                OpportunityAssessment.subcategory_code == subcategory_code,
+            )
+        )
+    ).scalar_one_or_none()
+    if existing:
+        existing.is_public = body.is_public
+    else:
+        cat_code: str | None = None
+        for cat in ASSESSMENT_CATEGORIES:
+            for s in cat.sub_items:
+                if s.code == subcategory_code:
+                    cat_code = cat.code
+                    break
+            if cat_code:
+                break
+        if cat_code is None:
+            raise HTTPException(status_code=400, detail="Unknown sub-item")
+        db.add(
+            OpportunityAssessment(
+                opportunity_id=opp_id,
+                category_code=cat_code,
+                subcategory_code=subcategory_code,
+                is_public=body.is_public,
+            )
+        )
     await db.flush()
     return await _load_summary(db, opp_id, reviewer)
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Paperclip } from 'lucide-react'
+import { ChevronDown, ChevronRight, Eye, EyeOff, Paperclip } from 'lucide-react'
 import {
   ASSESSMENT_CATEGORIES,
   iconForCategory,
@@ -11,6 +11,7 @@ export interface BuilderAnswer {
   subcategoryCode: string
   value: string
   files: File[]
+  isPublic: boolean
 }
 
 interface BuilderShieldStepProps {
@@ -89,6 +90,7 @@ function SubItemEditor({
 }) {
   const value = answer?.value ?? ''
   const files = answer?.files ?? []
+  const isPublicVal = answer?.isPublic ?? true
 
   function set(nextValue: string) {
     onChange({
@@ -96,6 +98,7 @@ function SubItemEditor({
       subcategoryCode: sub.code,
       value: nextValue,
       files,
+      isPublic: isPublicVal,
     })
   }
   function setFiles(next: File[]) {
@@ -104,6 +107,16 @@ function SubItemEditor({
       subcategoryCode: sub.code,
       value,
       files: next,
+      isPublic: isPublicVal,
+    })
+  }
+  function setIsPublic(next: boolean) {
+    onChange({
+      categoryCode: cat,
+      subcategoryCode: sub.code,
+      value,
+      files,
+      isPublic: next,
     })
   }
 
@@ -182,6 +195,21 @@ function SubItemEditor({
           )}
         </div>
       )}
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => setIsPublic(!isPublicVal)}
+          className={[
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] transition',
+            isPublicVal
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
+              : 'border-theme bg-theme-surface text-theme-tertiary',
+          ].join(' ')}
+        >
+          {isPublicVal ? <Eye size={12} /> : <EyeOff size={12} />}
+          <span>{isPublicVal ? 'Visible to investors' : 'Admin review only'}</span>
+        </button>
+      </div>
     </div>
   )
 }

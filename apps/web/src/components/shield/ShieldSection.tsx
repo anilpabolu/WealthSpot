@@ -23,7 +23,7 @@ interface ShieldSectionProps {
  * Renders collapsible category rows with glowing dots, reviewer notes,
  * evidence download links (gated), and a "Risks you should know" strip.
  */
-export function ShieldSection({ opportunityId, mode = 'public' }: ShieldSectionProps) {
+export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   const { data, isLoading } = useOpportunityAssessments(opportunityId)
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({})
 
@@ -120,7 +120,6 @@ export function ShieldSection({ opportunityId, mode = 'public' }: ShieldSectionP
                       key={sub.code}
                       opportunityId={opportunityId}
                       sub={sub}
-                      mode={mode}
                     />
                   ))}
                 </div>
@@ -163,12 +162,11 @@ export function ShieldSection({ opportunityId, mode = 'public' }: ShieldSectionP
 function SubItemRow({
   opportunityId,
   sub,
-  mode,
 }: {
   opportunityId: string
   sub: AssessmentSubItemRead
-  mode: 'public' | 'builder'
 }) {
+  const visibleDocs = sub.documents.filter((d) => !d.locked)
   return (
     <div className="px-5 py-3 bg-theme-card/60">
       <div className="flex items-start justify-between gap-3">
@@ -187,16 +185,16 @@ function SubItemRow({
               Reviewer: {sub.reviewerNote}
             </p>
           )}
-          {mode === 'builder' && !!sub.builderAnswer?.text && (
-            <p className="mt-1 text-[11px] text-theme-secondary">
+          {!!sub.builderAnswer?.text && (
+            <blockquote className="mt-1 pl-2 border-l-2 border-theme text-[11px] text-theme-secondary italic">
               Your answer: {String(sub.builderAnswer.text)}
-            </p>
+            </blockquote>
           )}
         </div>
       </div>
-      {sub.documents.length > 0 && (
+      {visibleDocs.length > 0 && (
         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {sub.documents.map((d) => (
+          {visibleDocs.map((d) => (
             <ShieldDocLink
               key={d.id}
               opportunityId={opportunityId}

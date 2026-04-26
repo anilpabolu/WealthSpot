@@ -79,6 +79,7 @@ describe('useSaveAssessmentBulk', () => {
             category_code: 'builder',
             subcategory_code: 'category_grade',
             builder_answer: { text: 'A' },
+            is_public: null,
           },
         ],
       },

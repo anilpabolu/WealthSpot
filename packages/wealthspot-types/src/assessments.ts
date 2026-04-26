@@ -361,6 +361,7 @@ export interface AssessmentSubItemRead {
   documents: AssessmentDocumentRead[];
   builderAnswer: Record<string, unknown> | null;
   reviewedAt: string | null;
+  isPublic: boolean;
 }
 
 export interface AssessmentDocumentRead {

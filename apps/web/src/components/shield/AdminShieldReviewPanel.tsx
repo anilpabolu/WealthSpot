@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, Flag, Loader2, MinusCircle, ShieldCheck } from 'lucide-react'
+import { Check, Eye, EyeOff, Flag, Loader2, MinusCircle, ShieldCheck } from 'lucide-react'
 import {
   ASSESSMENT_CATEGORIES,
   findCategory,
@@ -11,6 +11,7 @@ import {
 import {
   useOpportunityAssessments,
   useReviewAssessment,
+  useUpdateAssessmentVisibility,
 } from '@/hooks/useShield'
 import { ShieldDot } from './ShieldDot'
 import { ShieldDocLink } from './ShieldDocLink'
@@ -136,6 +137,7 @@ function AdminSubItemRow({
 }) {
   const spec = findSubItem(categoryCode, sub.code)
   const review = useReviewAssessment()
+  const visibility = useUpdateAssessmentVisibility()
   const [draftNote, setDraftNote] = useState(sub.reviewerNote ?? '')
   const [severity, setSeverity] = useState<'low' | 'medium' | 'high'>(
     sub.riskSeverity ?? 'medium',
@@ -174,6 +176,30 @@ function AdminSubItemRow({
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() =>
+            visibility.mutate({
+              opportunityId,
+              subcategoryCode: sub.code,
+              isPublic: !sub.isPublic,
+            })
+          }
+          disabled={visibility.isPending}
+          title={
+            sub.isPublic
+              ? 'Visible to investors — click to hide'
+              : 'Hidden from investors — click to show'
+          }
+          className={[
+            'shrink-0 p-1.5 rounded-lg border transition',
+            sub.isPublic
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
+              : 'border-theme bg-theme-surface text-theme-tertiary',
+          ].join(' ')}
+        >
+          {sub.isPublic ? <Eye size={14} /> : <EyeOff size={14} />}
+        </button>
       </div>
 
       {sub.builderAnswer && Object.keys(sub.builderAnswer).length > 0 && (

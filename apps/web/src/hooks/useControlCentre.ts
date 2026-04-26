@@ -55,7 +55,8 @@ export function useAppearanceConfig() {
     queryKey: ['control-centre', 'appearance'],
     queryFn: () =>
       apiGet<{ lightModeBgColor: string }>('/control-centre/appearance'),
-    staleTime: 60_000,
+    staleTime: 5 * 60_000, // 5 min — cosmetic config, refresh infrequently
+    retry: false,           // non-critical; don't flood server on transient failure
   })
 }
 
@@ -64,13 +65,15 @@ export function usePublicNotificationsConfig() {
     queryKey: ['control-centre', 'notifications-public'],
     queryFn: () =>
       apiGet<{ toastIntervalMs: number }>('/control-centre/notifications/public'),
-    staleTime: 60_000,
+    staleTime: 5 * 60_000, // 5 min — notification interval rarely changes
+    retry: false,           // non-critical; don't flood server on transient failure
   })
 }
 
 export function useCreateConfig() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Config created' },
     mutationFn: (data: { section: string; key: string; value: unknown; description?: string }) =>
       apiPost('/control-centre/configs', data),
     onSuccess: () => {
@@ -82,6 +85,7 @@ export function useCreateConfig() {
 export function useUpdateConfig() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'Config updated' },
     mutationFn: ({ id, ...data }: { id: string; value?: unknown; description?: string; isActive?: boolean }) =>
       apiPut(`/control-centre/configs/${id}`, {
         value: data.value,
@@ -112,6 +116,7 @@ export function useControlUsers(params?: { role?: string; search?: string; page?
 export function useUpdateUserRole() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { successMessage: 'User role updated' },
     mutationFn: ({ userId, role }: { userId: string; role: string }) =>
       apiPut(`/control-centre/users/${userId}/role`, { role }),
     onSuccess: () => {

@@ -1,4 +1,14 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
+
+vi.mock('react-native-mmkv', () => ({
+  MMKV: class {
+    private _store: Record<string, string> = {}
+    set(key: string, value: string) { this._store[key] = value }
+    getString(key: string) { return this._store[key] ?? undefined }
+    delete(key: string) { delete this._store[key] }
+  },
+}))
+
 import { useUserStore } from '@/stores/user.store'
 
 const testUser = {

@@ -78,7 +78,8 @@ class AssetAllocation(BaseModel):
 class CityDistribution(BaseModel):
     city: str
     count: int
-    amount: Decimal
+    value: Decimal
+    percentage: float
 
 
 class MonthlyReturn(BaseModel):
@@ -112,6 +113,8 @@ class PortfolioTransactionItem(BaseModel):
     property_title: str | None = None   # camelised → propertyTitle on the frontend
     date: datetime
     status: str                         # 'confirmed' | 'pending' | 'cancelled'
+    vault_type: str | None = None
+    opportunity_slug: str | None = None
 
 
 class PortfolioProperty(BaseModel):
