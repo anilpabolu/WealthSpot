@@ -161,9 +161,15 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Expected IRR</p>
-            <p className={`font-mono text-sm font-bold ${meta.color}`}>
-              {vault.expectedIrr != null ? `${vault.expectedIrr}%` : '—'}
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Current IRR</p>
+            <p className={`font-mono text-sm font-bold ${
+              vault.actualIrr != null && vault.actualIrr > 0
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : vault.actualIrr != null && vault.actualIrr < 0
+                ? 'text-red-500'
+                : meta.color
+            }`}>
+              {vault.actualIrr != null ? `${vault.actualIrr > 0 ? '+' : ''}${vault.actualIrr.toFixed(1)}%` : '—'}
             </p>
           </div>
         </div>
@@ -242,13 +248,15 @@ function IrrBreakdownPanel({ vaults, portfolioXirr }: { vaults: VaultPortfolioIt
                 </p>
               </div>
               <div className="rounded-lg bg-theme-surface-hover px-3 py-2">
-                <p className="text-theme-tertiary mb-0.5">Actual XIRR</p>
+                <p className="text-theme-tertiary mb-0.5">Current IRR</p>
                 <p
                   className={`font-mono font-bold ${
-                    hasActual && v.actualIrr! > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-theme-secondary'
+                    hasActual && v.actualIrr! > 0 ? 'text-emerald-600 dark:text-emerald-400'
+                    : hasActual && v.actualIrr! < 0 ? 'text-red-500'
+                    : 'text-theme-secondary'
                   }`}
                 >
-                  {hasActual ? `${v.actualIrr!.toFixed(1)}%` : '—'}
+                  {hasActual ? `${v.actualIrr! > 0 ? '+' : ''}${v.actualIrr!.toFixed(1)}%` : '—'}
                 </p>
               </div>
             </div>

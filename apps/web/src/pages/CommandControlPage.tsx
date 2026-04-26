@@ -1364,6 +1364,8 @@ const PIPELINE_COLORS: Record<string, { bg: string; border: string; text: string
 }
 
 function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdvance: (eoiId: string, to: string) => void; onRevert: (eoiId: string, to: string) => void; onShowUser: (user: EOIUser, label: string) => void }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
   const fmtDateTime = (iso: string) =>
@@ -1390,7 +1392,7 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdv
         </button>
       )}
 
-      {/* User info */}
+      {/* User info — always visible, with collapse toggle */}
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
           <User className="h-4 w-4 text-primary" />
@@ -1399,9 +1401,22 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdv
           <p className="text-sm font-semibold text-theme-primary truncate">{eoi.user?.fullName ?? 'Unknown'}</p>
           <p className="text-[11px] text-theme-tertiary">{fmtDate(eoi.createdAt)}</p>
         </div>
+        <button
+          onClick={() => setIsExpanded((v) => !v)}
+          className="p-1 rounded hover:bg-[var(--bg-surface-hover)] text-theme-tertiary hover:text-theme-primary transition-colors shrink-0"
+          title={isExpanded ? 'Collapse' : 'Expand'}
+        >
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
-      {/* Property */}
+      {/* Collapsible details */}
+      {isExpanded && (
+        <>
       <div className="flex items-center gap-2 p-2 bg-theme-surface rounded-lg">
         <Building2 className="h-4 w-4 text-theme-tertiary shrink-0" />
         <a
@@ -1539,6 +1554,8 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: { eoi: EOIItem; onAdv
           Move to {EOI_STATUS_LABELS[nextStatus] ?? nextStatus}
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
+      )}
+        </>
       )}
     </div>
   )

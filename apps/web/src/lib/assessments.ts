@@ -79,3 +79,24 @@ export function humanStatus(status: string): string {
       return 'Not started'
   }
 }
+
+/**
+ * Returns a three-state result label for a Shield sub-item status.
+ * passed → PASS, flagged → FAIL, everything else → PENDING
+ */
+export function resultLabel(status: string): 'PASS' | 'PENDING' | 'FAIL' {
+  if (status === 'passed') return 'PASS'
+  if (status === 'flagged') return 'FAIL'
+  return 'PENDING'
+}
+
+/**
+ * Returns Tailwind class names for the three-state result badge.
+ */
+export function resultColor(status: string): string {
+  if (status === 'passed')
+    return 'text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700'
+  if (status === 'flagged')
+    return 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700'
+  return 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
+}

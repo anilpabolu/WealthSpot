@@ -446,8 +446,13 @@ async def vault_stats(
 async def builder_investors(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
+    opportunity_id: _uuid.UUID | None = Query(None, description="Filter investors to a specific opportunity"),
 ) -> dict:
-    """Return all investors across the current user's opportunities."""
+    """Return all investors across the current user's opportunities.
+
+    When ``opportunity_id`` is provided the results are filtered to that
+    single opportunity (the caller must own it).
+    """
     from app.schemas.opportunity import BuilderInvestorItem, BuilderInvestorsResponse
 
     # Get all opportunity IDs owned by this user
@@ -459,6 +464,12 @@ async def builder_investors(
         return BuilderInvestorsResponse(
             investors=[], total_investors=0, total_invested=0
         ).model_dump()
+
+    # When a specific opportunity is requested, verify ownership and narrow scope
+    if opportunity_id is not None:
+        if opportunity_id not in opp_ids:
+            raise HTTPException(status_code=403, detail="Opportunity not found or access denied")
+        opp_ids = [opportunity_id]
 
     # Join investments + users + opportunities
     stmt = (

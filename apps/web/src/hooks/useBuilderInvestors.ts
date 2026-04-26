@@ -28,3 +28,15 @@ export function useBuilderInvestors() {
     staleTime: 30_000,
   })
 }
+
+export function useBuilderInvestorsByOpportunity(opportunityId: string | undefined) {
+  return useQuery({
+    queryKey: ['builder-investors', 'by-opportunity', opportunityId],
+    queryFn: () =>
+      apiGet<BuilderInvestorsData>('/opportunities/builder/investors', {
+        params: { opportunity_id: opportunityId },
+      }),
+    enabled: !!opportunityId,
+    staleTime: 30_000,
+  })
+}

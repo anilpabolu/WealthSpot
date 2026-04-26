@@ -563,31 +563,35 @@ async def vault_wise_portfolio(
         agg["days_total"] += days
         agg["inv_count"] += 1
 
-    # 3. Per-user, per-vault weighted-average IRR (from the user's own opp_rows)
+    # 3. Per-user, per-vault weighted-average expected IRR (from opportunity metadata)
     irr_weighted: dict[str, float] = {}
     irr_invested: dict[str, float] = {}
-    actual_irr_weighted: dict[str, float] = {}
-    actual_irr_invested: dict[str, float] = {}
     for inv, opp in opp_rows:
         vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
         amt = float(inv.amount)
         if opp.expected_irr is not None:
             irr_weighted[vt_val] = irr_weighted.get(vt_val, 0.0) + amt * float(opp.expected_irr)
             irr_invested[vt_val] = irr_invested.get(vt_val, 0.0) + amt
-        if opp.actual_irr is not None:
-            actual_irr_weighted[vt_val] = actual_irr_weighted.get(vt_val, 0.0) + amt * float(opp.actual_irr)
-            actual_irr_invested[vt_val] = actual_irr_invested.get(vt_val, 0.0) + amt
 
     irr_map = {
         vt: round(irr_weighted[vt] / irr_invested[vt], 2)
         for vt in irr_invested
         if irr_invested[vt] > 0
     }
-    actual_irr_map = {
-        vt: round(actual_irr_weighted[vt] / actual_irr_invested[vt], 2)
-        for vt in actual_irr_invested
-        if actual_irr_invested[vt] > 0
-    }
+
+    # 3b. Build per-vault cashflows for live XIRR computation
+    #     Outflow at invested_at; terminal inflow = current_value at now
+    vault_cashflows: dict[str, list[tuple[datetime, float]]] = {vt.value: [] for vt in VaultType}
+    # Property investments belong to wealth vault
+    for inv in prop_investments:
+        inv_date = inv.created_at or now
+        vault_cashflows["wealth"].append((inv_date, -float(inv.amount)))
+    # Opportunity investments per vault
+    for inv, opp in opp_rows:
+        vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        inv_date = inv.invested_at or inv.created_at or now
+        if vt_val in vault_cashflows:
+            vault_cashflows[vt_val].append((inv_date, -float(inv.amount)))
 
     # Build vault items
     vaults = []
@@ -603,6 +607,20 @@ async def vault_wise_portfolio(
     all_inv_count = len(prop_investments) + w["inv_count"]
     w_avg_days = (wealth_days_total + w["days_total"]) / all_inv_count if all_inv_count else 0
 
+    # Compute live XIRR per vault (outflows at invested_at, terminal inflow = current_value now)
+    live_xirr: dict[str, float | None] = {}
+    if vault_cashflows["wealth"]:
+        w_cf = vault_cashflows["wealth"] + [(now, w_current)]
+        if len(w_cf) >= 2:
+            live_xirr["wealth"] = calculate_xirr(w_cf)
+    for vt_name in ["safe", "community"]:
+        a_vt = vault_agg[vt_name]
+        cur_vt = a_vt["invested"] + a_vt["returns"]
+        if vault_cashflows[vt_name]:
+            cf = vault_cashflows[vt_name] + [(now, cur_vt)]
+            if len(cf) >= 2:
+                live_xirr[vt_name] = calculate_xirr(cf)
+
     vaults.append(
         VaultPortfolioItem(
             vault_type="wealth",
@@ -613,7 +631,7 @@ async def vault_wise_portfolio(
             opportunity_count=w_count,
             investor_count=all_inv_count,
             expected_irr=round(irr_map.get("wealth", 0), 2) if "wealth" in irr_map else None,
-            actual_irr=actual_irr_map.get("wealth"),
+            actual_irr=round(live_xirr["wealth"], 2) if live_xirr.get("wealth") is not None else None,
             avg_duration_days=round(w_avg_days, 0),
         )
     )
@@ -638,7 +656,7 @@ async def vault_wise_portfolio(
                 opportunity_count=len(a["count"]),
                 investor_count=a["inv_count"],
                 expected_irr=round(irr_map.get(vt, 0), 2) if vt in irr_map else None,
-                actual_irr=actual_irr_map.get(vt),
+                actual_irr=round(live_xirr[vt], 2) if live_xirr.get(vt) is not None else None,
                 avg_duration_days=round(avg_d, 0),
             )
         )

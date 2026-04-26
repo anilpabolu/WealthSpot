@@ -5,6 +5,8 @@ import {
   findCategory,
   humanStatus,
   iconForCategory,
+  resultColor,
+  resultLabel,
   type AssessmentSubItemRead,
 } from '@/lib/assessments'
 import { useOpportunityAssessments } from '@/hooks/useShield'
@@ -171,12 +173,17 @@ function SubItemRow({
     <div className="px-5 py-3 bg-theme-card/60">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <ShieldDot status={sub.status} size="sm" />
             <span className="text-[13px] font-medium text-theme-primary">
               {sub.label}
             </span>
-            <span className="text-[10px] uppercase tracking-wider text-theme-tertiary">
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${resultColor(sub.status)}`}
+            >
+              {resultLabel(sub.status)}
+            </span>
+            <span className="text-[10px] text-theme-tertiary">
               {humanStatus(sub.status)}
             </span>
           </div>
@@ -186,8 +193,9 @@ function SubItemRow({
             </p>
           )}
           {!!sub.builderAnswer?.text && (
-            <blockquote className="mt-1 pl-2 border-l-2 border-theme text-[11px] text-theme-secondary italic">
-              Your answer: {String(sub.builderAnswer.text)}
+            <blockquote className="mt-1.5 pl-3 border-l-2 border-primary/50 text-[11px] text-theme-primary bg-primary/5 rounded-r py-1">
+              <span className="text-theme-tertiary font-semibold">Builder answer: </span>
+              {String(sub.builderAnswer.text)}
             </blockquote>
           )}
         </div>
