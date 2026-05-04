@@ -14,9 +14,10 @@ The 7 categories and their sub-items live in shared TS/Py config
 so we intentionally do NOT seed any rows in this migration.
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "041_shield_assessments"
 down_revision = "040_vault_explorers"

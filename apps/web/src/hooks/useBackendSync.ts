@@ -16,6 +16,7 @@ import { apiPost, apiGet } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 import type { UserProfile } from '@/stores/user.store'
 import { diagLog } from '@/components/DiagnosticPanel'
+import { withRetry } from '@/lib/retry'
 
 interface LoginResponse {
   accessToken: string
@@ -99,7 +100,7 @@ export function useBackendSync() {
 
     try {
       // Step 1: Check if user exists in backend
-      const { exists } = await apiGet<{ exists: boolean }>(`/auth/check?email=${encodeURIComponent(email)}`)
+      const { exists } = await withRetry(() => apiGet<{ exists: boolean }>(`/auth/check?email=${encodeURIComponent(email)}`))
 
       if (!exists) {
         diagLog('auth', 'info', `${email} not found in backend. Auto-registering…`)
@@ -108,13 +109,13 @@ export function useBackendSync() {
       }
 
       // Step 2: Login to get backend JWT
-      const tokens = await apiPost<LoginResponse>('/auth/login', { email, full_name: fullName })
+      const tokens = await withRetry(() => apiPost<LoginResponse>('/auth/login', { email, full_name: fullName }))
       localStorage.setItem('ws_token', tokens.accessToken)
       localStorage.setItem('ws_refresh_token', tokens.refreshToken)
       setToken(tokens.accessToken)
 
       // Step 3: Fetch full profile (includes DB role)
-      const profile = await apiGet<MeResponse>('/auth/me')
+      const profile = await withRetry(() => apiGet<MeResponse>('/auth/me'))
       setUser({
         id: profile.id,
         email: profile.email,

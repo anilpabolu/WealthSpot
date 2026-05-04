@@ -177,10 +177,11 @@ async def builder_user() -> User:
 
 def auth_headers(user: User) -> dict[str, str]:
     """Generate Authorization header with a valid access token for the given user."""
-    token = create_access_token({"sub": str(user.id), "role": user.role.value})
+    token, _, _ = create_access_token({"sub": str(user.id), "role": user.role.value})
     return {"Authorization": f"Bearer {token}"}
 
 
 def refresh_token_for(user: User) -> str:
     """Generate a valid refresh token for the given user."""
-    return create_refresh_token({"sub": str(user.id)})
+    token, _, _ = create_refresh_token({"sub": str(user.id)})
+    return token

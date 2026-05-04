@@ -13,9 +13,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import create_access_token, create_refresh_token, decode_token
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    remaining_ttl,
+)
 from app.middleware.audit import log_audit_event
 from app.middleware.auth import get_current_user
+from app.middleware.rate_limit import route_limit
 from app.models.user import User, UserRole
 from app.schemas.user import (
     AddPersonaRequest,
@@ -27,6 +33,7 @@ from app.schemas.user import (
     UserRead,
     UserUpdate,
 )
+from app.services import token_store
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -73,7 +80,13 @@ async def register(
     return user
 
 
-@router.post("/login", response_model=TokenPair)
+@router.post(
+    "/login",
+    response_model=TokenPair,
+    dependencies=[
+        Depends(route_limit(name="auth.login", max_requests=10, window_seconds=60))
+    ],
+)
 async def login(
     body: UserCreate,
     db: AsyncSession = Depends(get_db),
@@ -93,13 +106,21 @@ async def login(
             detail="USER_NOT_REGISTERED",
         )
 
-    access = create_access_token({"sub": str(user.id), "role": user.role.value})
-    refresh = create_refresh_token({"sub": str(user.id)})
+    access, _, _ = create_access_token({"sub": str(user.id), "role": user.role.value})
+    refresh, refresh_jti, refresh_ttl = create_refresh_token({"sub": str(user.id)})
+    token_store.set_current_refresh(str(user.id), refresh_jti, refresh_ttl)
 
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
-@router.get("/check")
+@router.get(
+    "/check",
+    dependencies=[
+        # Tight cap to defeat email enumeration. 30/min per IP is enough
+        # for legit signup-flow probing.
+        Depends(route_limit(name="auth.check", max_requests=30, window_seconds=60))
+    ],
+)
 async def check_user_exists(
     email: str,
     db: AsyncSession = Depends(get_db),
@@ -109,12 +130,22 @@ async def check_user_exists(
     return {"exists": result.scalar_one_or_none() is not None}
 
 
-@router.post("/refresh", response_model=TokenPair)
+@router.post(
+    "/refresh",
+    response_model=TokenPair,
+    dependencies=[
+        Depends(route_limit(name="auth.refresh", max_requests=20, window_seconds=60))
+    ],
+)
 async def refresh_token(
     body: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ) -> TokenPair:
-    """Exchange a refresh token for a new token pair."""
+    """Exchange a refresh token for a new token pair (one-time-use rotation).
+
+    Reusing an old refresh token after rotation is treated as token theft and
+    invalidates all refresh tokens for the user.
+    """
     try:
         payload = decode_token(body.refresh_token)
         if payload.get("type") != "refresh":
@@ -123,16 +154,69 @@ async def refresh_token(
         raise HTTPException(status_code=401, detail="Invalid refresh token") from None
 
     user_id = payload["sub"]
+    presented_jti = payload.get("jti")
+
+    if token_store.is_revoked(presented_jti or ""):
+        raise HTTPException(status_code=401, detail="Refresh token revoked")
+
+    current_jti = token_store.get_current_refresh(user_id)
+    # If a current jti is recorded and the presented one doesn't match, this is
+    # a reuse → invalidate the entire session.
+    if current_jti is not None and presented_jti != current_jti:
+        token_store.clear_user_sessions(user_id)
+        raise HTTPException(status_code=401, detail="Refresh token reuse detected")
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
 
-    access = create_access_token({"sub": str(user.id), "role": user.role.value})
-    refresh = create_refresh_token({"sub": str(user.id)})
+    # Revoke the presented refresh-token jti for the rest of its lifetime.
+    if presented_jti:
+        token_store.revoke(presented_jti, remaining_ttl(payload))
 
-    return TokenPair(access_token=access, refresh_token=refresh)
+    access, _, _ = create_access_token({"sub": str(user.id), "role": user.role.value})
+    new_refresh, new_jti, new_ttl = create_refresh_token({"sub": str(user.id)})
+    token_store.set_current_refresh(str(user.id), new_jti, new_ttl)
+
+    return TokenPair(access_token=access, refresh_token=new_refresh)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    body: RefreshTokenRequest | None = None,
+    request: Request = None,  # type: ignore[assignment]
+    user: User = Depends(get_current_user),
+) -> None:
+    """Revoke the caller's access token (and the supplied refresh token if any).
+
+    Clients should call this on sign-out so a stolen token can't outlive the
+    session up to its natural expiry.
+    """
+    # Revoke the access token via the request's authorization header.
+    auth = request.headers.get("authorization", "") if request is not None else ""
+    if auth.lower().startswith("bearer "):
+        access = auth[7:].strip()
+        try:
+            payload = decode_token(access)
+            if payload.get("jti"):
+                token_store.revoke(payload["jti"], remaining_ttl(payload))
+        except Exception:
+            pass
+
+    # Revoke the supplied refresh token, if any.
+    if body and body.refresh_token:
+        try:
+            r_payload = decode_token(body.refresh_token)
+            if r_payload.get("jti"):
+                token_store.revoke(r_payload["jti"], remaining_ttl(r_payload))
+        except Exception:
+            pass
+
+    # Drop the user's "current refresh" pointer so any other refresh attempt
+    # still in flight will fail closed.
+    token_store.clear_user_sessions(str(user.id))
 
 
 # ── Persona Selection ────────────────────────────────────────────────────────
@@ -344,6 +428,7 @@ async def get_me(
 ) -> UserMeResponse:
     """Return the authenticated user's full profile including KYC documents."""
     from sqlalchemy import func
+
     from app.models.opportunity_investment import OpportunityInvestment
 
     count_result = await db.execute(
@@ -374,3 +459,54 @@ async def update_me(
         user.avatar_url = body.avatar_url
     await db.flush()
     return user
+
+
+# ── Audit-log self-query ─────────────────────────────────────────────────────
+
+
+class AuditEventOut(BaseModel):
+    """Sanitised view of an audit_logs row for the user's own activity feed."""
+
+    id: uuid.UUID
+    action: str
+    resource_type: str
+    resource_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    created_at: Any
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/me/audit", response_model=list[AuditEventOut])
+async def my_audit_log(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+) -> list[AuditEventOut]:
+    """Return the caller's own audit-log entries (most recent first).
+
+    Surfaces account activity (logins, persona changes, KYC submissions, etc.)
+    so users can see what's been done with their account. Sensitive payloads
+    (`old_value` / `new_value`) are intentionally excluded — those are kept
+    for admin forensics, not user-facing review.
+    """
+    from sqlalchemy import desc
+
+    from app.models.community import AuditLog
+
+    limit = max(1, min(limit, 200))
+    offset = max(0, offset)
+
+    rows = (
+        await db.execute(
+            select(AuditLog)
+            .where(AuditLog.actor_id == user.id)
+            .order_by(desc(AuditLog.created_at))
+            .limit(limit)
+            .offset(offset)
+        )
+    ).scalars().all()
+
+    return [AuditEventOut.model_validate(r) for r in rows]

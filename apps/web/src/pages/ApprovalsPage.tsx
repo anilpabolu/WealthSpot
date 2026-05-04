@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Select, Badge, EmptyState } from '@/components/ui'
+import { Select, Badge, EmptyState, Input, Textarea } from '@/components/ui'
 import {
   CheckCircle2,
   XCircle,
@@ -171,12 +171,11 @@ function ReviewModal({
           <label className="block text-sm font-medium text-theme-primary mb-1">
             {action === 'reject' ? 'Rejection Reason *' : 'Note (optional)'}
           </label>
-          <textarea
+          <Textarea
             rows={3}
             required={action === 'reject'}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
             placeholder={action === 'reject' ? 'Why is this being rejected?' : 'Add a note...'}
           />
         </div>
@@ -260,7 +259,6 @@ function EditOpportunityPanel({
     state: opportunity.state ?? '',
     targetAmount: opportunity.targetAmount?.toString() ?? '',
     minInvestment: opportunity.minInvestment?.toString() ?? '',
-    targetIrr: opportunity.targetIrr?.toString() ?? '',
     industry: opportunity.industry ?? '',
     stage: opportunity.stage ?? '',
     founderName: opportunity.founderName ?? '',
@@ -281,8 +279,6 @@ function EditOpportunityPanel({
       data.targetAmount = form.targetAmount ? Number(form.targetAmount) : undefined
     if (form.minInvestment !== (opportunity.minInvestment?.toString() ?? ''))
       data.minInvestment = form.minInvestment ? Number(form.minInvestment) : undefined
-    if (form.targetIrr !== (opportunity.targetIrr?.toString() ?? ''))
-      data.targetIrr = form.targetIrr ? Number(form.targetIrr) : undefined
     if (form.industry !== (opportunity.industry ?? '')) data.industry = form.industry
     if (form.stage !== (opportunity.stage ?? '')) data.stage = form.stage
     if (form.founderName !== (opportunity.founderName ?? '')) data.founderName = form.founderName
@@ -322,97 +318,25 @@ function EditOpportunityPanel({
       </div>
 
       {/* Common fields */}
-      <div>
-        <label className="block text-xs font-medium text-theme-secondary mb-1">Title *</label>
-        <input
-          value={form.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-theme-secondary mb-1">Tagline</label>
-        <input
-          value={form.tagline}
-          onChange={(e) => handleChange('tagline', e.target.value)}
-          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
-        <textarea
-          rows={3}
-          value={form.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
-        />
-      </div>
+      <Input label="Title *" value={form.title} onChange={(e) => handleChange('title', e.target.value)} />
+      <Input label="Tagline" value={form.tagline} onChange={(e) => handleChange('tagline', e.target.value)} />
+      <Textarea label="Description" rows={3} value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">City</label>
-          <input
-            value={form.city}
-            onChange={(e) => handleChange('city', e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">State</label>
-          <input
-            value={form.state}
-            onChange={(e) => handleChange('state', e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
+        <Input label="City" value={form.city} onChange={(e) => handleChange('city', e.target.value)} />
+        <Input label="State" value={form.state} onChange={(e) => handleChange('state', e.target.value)} />
       </div>
 
       {/* Financials */}
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Target Amount</label>
-          <input
-            type="number"
-            value={form.targetAmount}
-            onChange={(e) => handleChange('targetAmount', e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Min Investment</label>
-          <input
-            type="number"
-            value={form.minInvestment}
-            onChange={(e) => handleChange('minInvestment', e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Target IRR (%)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={form.targetIrr}
-            onChange={(e) => handleChange('targetIrr', e.target.value)}
-            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input label="Target Amount" type="number" prefix="₹" value={form.targetAmount} onChange={(e) => handleChange('targetAmount', e.target.value)} />
+        <Input label="Min Investment" type="number" prefix="₹" value={form.minInvestment} onChange={(e) => handleChange('minInvestment', e.target.value)} />
       </div>
 
       {/* Vault-specific fields */}
       {vt === 'safe' && (
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Interest Rate (% p.a.)</label>
-            <input
-              type="number"
-              step="0.1"
-              min={0}
-              value={form.safeInterestRate}
-              onChange={(e) => handleChange('safeInterestRate', e.target.value)}
-              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            />
-          </div>
+          <Input label="Interest Rate (% p.a.)" type="number" step="0.1" min={0} suffix="%" value={form.safeInterestRate} onChange={(e) => handleChange('safeInterestRate', e.target.value)} />
           <div>
             <label className="block text-xs font-medium text-theme-secondary mb-1">Payout Frequency</label>
             <select
@@ -429,22 +353,8 @@ function EditOpportunityPanel({
       )}
       {vt === 'community' && (
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Community Type</label>
-            <input
-              value={form.communityType}
-              onChange={(e) => handleChange('communityType', e.target.value)}
-              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-theme-secondary mb-1">Collaboration Type</label>
-            <input
-              value={form.collaborationType}
-              onChange={(e) => handleChange('collaborationType', e.target.value)}
-              className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            />
-          </div>
+          <Input label="Community Type" value={form.communityType} onChange={(e) => handleChange('communityType', e.target.value)} />
+          <Input label="Collaboration Type" value={form.collaborationType} onChange={(e) => handleChange('collaborationType', e.target.value)} />
         </div>
       )}
 
@@ -547,7 +457,6 @@ function EditCompanyPanel({
     onSaved()
   }
 
-  const inputClass = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
 
   return (
     <div className="space-y-4">
@@ -558,14 +467,8 @@ function EditCompanyPanel({
 
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Company Name *</label>
-          <input value={form.companyName} onChange={(e) => handleChange('companyName', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Brand Name</label>
-          <input value={form.brandName} onChange={(e) => handleChange('brandName', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="Company Name *" value={form.companyName} onChange={(e) => handleChange('companyName', e.target.value)} />
+        <Input label="Brand Name" value={form.brandName} onChange={(e) => handleChange('brandName', e.target.value)} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -579,97 +482,43 @@ function EditCompanyPanel({
             { value: 'proprietorship', label: 'Proprietorship' },
           ]} />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">CIN</label>
-          <input value={form.cin} onChange={(e) => handleChange('cin', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="CIN" value={form.cin} onChange={(e) => handleChange('cin', e.target.value)} />
       </div>
 
       {/* Legal */}
       <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">GSTIN</label>
-          <input value={form.gstin} onChange={(e) => handleChange('gstin', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">PAN</label>
-          <input value={form.pan} onChange={(e) => handleChange('pan', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">RERA Number</label>
-          <input value={form.reraNumber} onChange={(e) => handleChange('reraNumber', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="GSTIN" value={form.gstin} onChange={(e) => handleChange('gstin', e.target.value)} />
+        <Input label="PAN" value={form.pan} onChange={(e) => handleChange('pan', e.target.value)} />
+        <Input label="RERA Number" value={form.reraNumber} onChange={(e) => handleChange('reraNumber', e.target.value)} />
       </div>
 
       {/* Contact */}
-      <div>
-        <label className="block text-xs font-medium text-theme-secondary mb-1">Website</label>
-        <input value={form.website} onChange={(e) => handleChange('website', e.target.value)} className={inputClass} />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-theme-secondary mb-1">Description</label>
-        <textarea rows={2} value={form.description} onChange={(e) => handleChange('description', e.target.value)} className={`${inputClass} resize-none`} />
-      </div>
+      <Input label="Website" type="url" value={form.website} onChange={(e) => handleChange('website', e.target.value)} />
+      <Textarea label="Description" rows={2} value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
 
       <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Name</label>
-          <input value={form.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Email</label>
-          <input value={form.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Contact Phone</label>
-          <input value={form.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="Contact Name" value={form.contactName} onChange={(e) => handleChange('contactName', e.target.value)} />
+        <Input label="Contact Email" type="email" value={form.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} />
+        <Input label="Contact Phone" type="tel" value={form.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} />
       </div>
 
       {/* Address */}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Address Line 1</label>
-          <input value={form.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Address Line 2</label>
-          <input value={form.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="Address Line 1" value={form.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} />
+        <Input label="Address Line 2" value={form.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} />
       </div>
       <div className="grid grid-cols-4 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">City</label>
-          <input value={form.city} onChange={(e) => handleChange('city', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">State</label>
-          <input value={form.state} onChange={(e) => handleChange('state', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Pincode</label>
-          <input value={form.pincode} onChange={(e) => handleChange('pincode', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Country</label>
-          <input value={form.country} onChange={(e) => handleChange('country', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="City" value={form.city} onChange={(e) => handleChange('city', e.target.value)} />
+        <Input label="State" value={form.state} onChange={(e) => handleChange('state', e.target.value)} />
+        <Input label="Pincode" value={form.pincode} onChange={(e) => handleChange('pincode', e.target.value)} />
+        <Input label="Country" value={form.country} onChange={(e) => handleChange('country', e.target.value)} />
       </div>
 
       {/* Track Record */}
       <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Years in Business</label>
-          <input type="number" value={form.yearsInBusiness} onChange={(e) => handleChange('yearsInBusiness', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Projects Completed</label>
-          <input type="number" value={form.projectsCompleted} onChange={(e) => handleChange('projectsCompleted', e.target.value)} className={inputClass} />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-theme-secondary mb-1">Total Area Developed</label>
-          <input value={form.totalAreaDeveloped} onChange={(e) => handleChange('totalAreaDeveloped', e.target.value)} className={inputClass} />
-        </div>
+        <Input label="Years in Business" type="number" value={form.yearsInBusiness} onChange={(e) => handleChange('yearsInBusiness', e.target.value)} />
+        <Input label="Projects Completed" type="number" value={form.projectsCompleted} onChange={(e) => handleChange('projectsCompleted', e.target.value)} />
+        <Input label="Total Area Developed" value={form.totalAreaDeveloped} onChange={(e) => handleChange('totalAreaDeveloped', e.target.value)} />
       </div>
 
       {/* Actions */}
@@ -842,14 +691,28 @@ function DetailPopup({ approval, onClose, onReview }: {
 
   const review = useReviewApproval()
 
-  const handleSaveAndApprove = async () => {
+  const handleSaveAndApprove = async (forceOverride = false) => {
     try {
-      await review.mutateAsync({ id: approval.id, action: 'approve', reviewNote: 'Approved after editing details' })
+      await review.mutateAsync({
+        id: approval.id,
+        action: 'approve',
+        reviewNote: 'Approved after editing details',
+        override: forceOverride || undefined,
+      })
       setEditMode(false)
       addToast({ type: 'success', title: 'Details updated and request approved! Changes are now live.' })
       setTimeout(() => onClose(), 1500)
-    } catch {
-      addToast({ type: 'error', title: 'Approval failed. Please try again.' })
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: string } } }
+      if (
+        axiosErr?.response?.status === 409 &&
+        axiosErr?.response?.data?.detail === 'ASSESSMENT_INCOMPLETE'
+      ) {
+        addToast({ type: 'warning', title: 'Shield assessment incomplete — approving with override.' })
+        await handleSaveAndApprove(true)
+      } else {
+        addToast({ type: 'error', title: 'Approval failed. Please try again.' })
+      }
     }
   }
 

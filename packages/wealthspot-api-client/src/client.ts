@@ -36,6 +36,10 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
   let isRefreshing = false
   let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = []
 
+  // GET deduplication: if an identical in-flight GET exists, return it directly
+  // to prevent waterfall duplicates from React StrictMode or concurrent renders.
+  const inflight = new Map<string, Promise<unknown>>()
+
   const drainQueue = (token: string | null, error: unknown = null) => {
     refreshQueue.forEach(({ resolve, reject }) => {
       if (token) resolve(token)
@@ -132,18 +136,56 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         }
       }
 
-      // Diagnostics for non-401 errors
-      if (axErr.response) {
-        hooks.onResponseEnd?.(traceId, {
-          kind: 'error',
-          status: axErr.response.status,
-          detail: describeErrorBody(axErr.response.data),
-        })
-      } else {
-        hooks.onResponseEnd?.(traceId, {
-          kind: 'network-error',
-          message: axErr.message || 'Network error',
-        })
+      // 5xx / network-error / 429 retry with exponential backoff + jitter.
+      // We only retry HTTP methods that are safe to repeat; otherwise a single
+      // POST that succeeded on the server but returned a network error
+      // (or a transient 502 between the LB and origin) would be replayed and
+      // double-create state — e.g. confirm an investment twice.
+      const method = (originalRequest?.method ?? 'get').toLowerCase()
+      const isIdempotent =
+        method === 'get' || method === 'head' || method === 'options'
+      const isNetworkOrServer = !axErr.response || axErr.response.status >= 500
+      const isRateLimit = axErr.response?.status === 429
+      const cfg = originalRequest as
+        | (InternalAxiosRequestConfig & { _retryCount?: number; _suppressDiag?: boolean })
+        | undefined
+
+      if ((isNetworkOrServer || isRateLimit) && cfg && isIdempotent) {
+        const retryCount = cfg._retryCount ?? 0
+        const maxRetries = 3
+        if (retryCount < maxRetries) {
+          cfg._retryCount = retryCount + 1
+          // Tell the next pass not to re-emit a duplicate diagnostic for the
+          // same logical request — the original trace stays open until either
+          // success or the final retry fails.
+          cfg._suppressDiag = true
+          const retryAfterHeader =
+            (axErr.response?.headers?.['retry-after'] as string | undefined) ?? ''
+          const parsedRetryAfter = parseInt(retryAfterHeader, 10)
+          const baseMs = isRateLimit && Number.isFinite(parsedRetryAfter)
+            ? parsedRetryAfter * 1000
+            : 200 * Math.pow(2, retryCount) // 200ms → 400ms → 800ms
+          // Add ±25% jitter so a thundering herd doesn't sync-retry.
+          const jitter = baseMs * 0.25 * (Math.random() * 2 - 1)
+          await new Promise((r) => setTimeout(r, Math.max(0, baseMs + jitter)))
+          return api(cfg)
+        }
+      }
+
+      // Diagnostics — emit once per logical request.
+      if (!cfg?._suppressDiag) {
+        if (axErr.response) {
+          hooks.onResponseEnd?.(traceId, {
+            kind: 'error',
+            status: axErr.response.status,
+            detail: describeErrorBody(axErr.response.data),
+          })
+        } else {
+          hooks.onResponseEnd?.(traceId, {
+            kind: 'network-error',
+            message: axErr.message || 'Network error',
+          })
+        }
       }
 
       hooks.onResponseError?.(axErr)
@@ -154,8 +196,13 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
   return {
     api,
     apiGet: async <T>(url: string, cfg?: { params?: Record<string, unknown> }) => {
-      const response = await api.get<T>(url, cfg)
-      return response.data
+      const key = url + (cfg?.params ? '\0' + JSON.stringify(cfg.params) : '')
+      const existing = inflight.get(key)
+      if (existing) return existing as Promise<T>
+      const request = api.get<T>(url, cfg).then((r) => r.data)
+      inflight.set(key, request as Promise<unknown>)
+      void request.finally(() => inflight.delete(key))
+      return request
     },
     apiPost: async <T>(url: string, body?: unknown) => {
       const response = await api.post<T>(url, body)

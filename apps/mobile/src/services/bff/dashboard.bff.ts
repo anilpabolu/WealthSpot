@@ -34,7 +34,6 @@ export interface DashboardView {
     title: string;
     coverImage: string | null;
     city: string;
-    targetIrr: number;
     fundingPercentage: number;
     status: string;
   }[];

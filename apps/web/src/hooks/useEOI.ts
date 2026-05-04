@@ -98,6 +98,7 @@ export interface EOICreatePayload {
   bestTimeToContact?: string
   communicationConsent?: boolean
   additionalNotes?: string
+  selectedUnitConfig?: Record<string, unknown> | null
   answers?: { questionId: string; answerText: string | null }[]
 }
 
@@ -174,6 +175,7 @@ export function useSubmitEOI() {
         best_time_to_contact: data.bestTimeToContact,
         communication_consent: data.communicationConsent,
         additional_notes: data.additionalNotes,
+        selected_unit_config: data.selectedUnitConfig ?? null,
         answers: data.answers?.map(a => ({
           question_id: a.questionId,
           answer_text: a.answerText,
@@ -271,5 +273,53 @@ export function useUpdateEOIStatus() {
     mutationFn: ({ eoiId, newStatus }: { eoiId: string; newStatus: string }) =>
       apiPatch<EOIItem>(`/eoi/admin/${eoiId}/status`, { new_status: newStatus }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-eoi-pipeline'] }),
+  })
+}
+
+// ── EOI Form Options ────────────────────────────────────────────────────────
+
+export interface EOIFormOption {
+  id: string
+  fieldName: string
+  value: string
+  label: string
+  isActive: boolean
+  sortOrder: number
+}
+
+export interface EOIFormOptionsGrouped {
+  investment_timeline: EOIFormOption[]
+  funding_source: EOIFormOption[]
+  purpose: EOIFormOption[]
+  preferred_contact: EOIFormOption[]
+}
+
+export function useEOIFormOptions() {
+  return useQuery({
+    queryKey: ['eoi-form-options'],
+    queryFn: () => apiGet<EOIFormOptionsGrouped>('/eoi/form-options'),
+    staleTime: 60 * 60 * 1000, // 1 hour — rarely changes
+  })
+}
+
+export function useAdminEOIFormOptions() {
+  return useQuery({
+    queryKey: ['eoi-form-options-admin'],
+    queryFn: () => apiGet<Record<string, EOIFormOption[]>>('/eoi/admin/form-options'),
+  })
+}
+
+export function useUpdateEOIFormOption() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, isActive, sortOrder }: { id: string; isActive?: boolean; sortOrder?: number }) =>
+      apiPatch<EOIFormOption>(`/eoi/admin/form-options/${id}`, {
+        ...(isActive !== undefined && { is_active: isActive }),
+        ...(sortOrder !== undefined && { sort_order: sortOrder }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['eoi-form-options'] })
+      qc.invalidateQueries({ queryKey: ['eoi-form-options-admin'] })
+    },
   })
 }

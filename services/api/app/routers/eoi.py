@@ -14,6 +14,7 @@ from app.middleware.auth import get_current_user
 from app.models.builder_question import BuilderQuestion, EOIQuestionAnswer
 from app.models.comm_mapping import OpportunityCommMapping
 from app.models.community import Referral
+from app.models.eoi_form_option import EoiFormOption
 from app.models.eoi_stage_history import EoiStageHistory
 from app.models.expression_of_interest import EOIStatus, ExpressionOfInterest
 from app.models.notification import NotificationType
@@ -27,6 +28,9 @@ from app.schemas.eoi import (
     CommMappingCreate,
     CommMappingRead,
     EOICreate,
+    EOIFormOptionRead,
+    EOIFormOptionsGrouped,
+    EOIFormOptionUpdate,
     EOIRead,
     PaginatedEOIs,
 )
@@ -95,6 +99,7 @@ async def submit_eoi(
         best_time_to_contact=body.best_time_to_contact,
         communication_consent=body.communication_consent,
         additional_notes=body.additional_notes,
+        selected_unit_config=body.selected_unit_config,
         status=EOIStatus.SUBMITTED,
         referrer_id=referrer_id,
     )
@@ -531,6 +536,81 @@ async def create_comm_mapping(
     await db.flush()
     await db.refresh(mapping)
     return CommMappingRead.model_validate(mapping)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EOI Form Options
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/form-options", response_model=EOIFormOptionsGrouped)
+async def get_form_options(
+    db: AsyncSession = Depends(get_db),
+) -> EOIFormOptionsGrouped:
+    """Return active EOI form options grouped by field_name (public endpoint)."""
+    result = await db.execute(
+        select(EoiFormOption)
+        .where(EoiFormOption.is_active == True)  # noqa: E712
+        .order_by(EoiFormOption.field_name, EoiFormOption.sort_order)
+    )
+    options = result.scalars().all()
+    grouped: dict[str, list[EOIFormOptionRead]] = {
+        "investment_timeline": [],
+        "funding_source": [],
+        "purpose": [],
+        "preferred_contact": [],
+    }
+    for opt in options:
+        if opt.field_name in grouped:
+            grouped[opt.field_name].append(EOIFormOptionRead.model_validate(opt))
+    return EOIFormOptionsGrouped(**grouped)
+
+
+@router.get("/admin/form-options", response_model=dict[str, list[EOIFormOptionRead]])
+async def admin_get_form_options(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, list[EOIFormOptionRead]]:
+    """Admin: return ALL EOI form options (active and inactive) grouped by field_name."""
+    is_admin = user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN)
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    result = await db.execute(
+        select(EoiFormOption).order_by(EoiFormOption.field_name, EoiFormOption.sort_order)
+    )
+    options = result.scalars().all()
+    grouped: dict[str, list[EOIFormOptionRead]] = {}
+    for opt in options:
+        grouped.setdefault(opt.field_name, []).append(EOIFormOptionRead.model_validate(opt))
+    return grouped
+
+
+@router.patch("/admin/form-options/{option_id}", response_model=EOIFormOptionRead)
+async def admin_update_form_option(
+    option_id: str,
+    body: EOIFormOptionUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> EOIFormOptionRead:
+    """Admin: update is_active or sort_order of an EOI form option."""
+    is_admin = user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN)
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    result = await db.execute(
+        select(EoiFormOption).where(EoiFormOption.id == _uuid.UUID(option_id))
+    )
+    opt = result.scalar_one_or_none()
+    if not opt:
+        raise HTTPException(status_code=404, detail="Form option not found")
+
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(opt, field, value)
+
+    await db.flush()
+    await db.refresh(opt)
+    return EOIFormOptionRead.model_validate(opt)
 
 
 @router.delete("/comm-mappings/{mapping_id}")

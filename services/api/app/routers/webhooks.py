@@ -138,27 +138,27 @@ async def clerk_webhook(
     elif event_type == "user.updated":
         clerk_id = data.get("id", "")
         result = await db.execute(select(User).where(User.clerk_id == clerk_id))
-        user = result.scalar_one_or_none()
+        upd_user: User | None = result.scalar_one_or_none()
 
-        if user:
+        if upd_user:
             first = data.get("first_name", "")
             last = data.get("last_name", "")
             if first or last:
-                user.full_name = f"{first} {last}".strip()
+                upd_user.full_name = f"{first} {last}".strip()
             if data.get("image_url"):
-                user.avatar_url = data["image_url"]
+                upd_user.avatar_url = data["image_url"]
             if data.get("phone_numbers"):
-                user.phone = data["phone_numbers"][0].get("phone_number")
+                upd_user.phone = data["phone_numbers"][0].get("phone_number")
             await db.flush()
             logger.info("Clerk webhook: updated user clerk_id=%s", clerk_id)
 
     elif event_type == "user.deleted":
         clerk_id = data.get("id", "")
         result = await db.execute(select(User).where(User.clerk_id == clerk_id))
-        user = result.scalar_one_or_none()
+        user_del: User | None = result.scalar_one_or_none()
 
-        if user:
-            user.is_active = False
+        if user_del:
+            user_del.is_active = False
             await db.flush()
             logger.info("Clerk webhook: deactivated user clerk_id=%s", clerk_id)
 
@@ -166,13 +166,28 @@ async def clerk_webhook(
 
 
 def _verify_razorpay_signature(body: bytes, signature: str) -> bool:
-    """Verify Razorpay webhook signature, with dev-mode bypass when secret is unset."""
+    """Verify Razorpay webhook signature.
+
+    Production: always verify; reject if the secret is missing or signature
+    fails. Development: when RAZORPAY_ALLOW_UNSIGNED_DEV=true AND secret is
+    missing, log loudly and accept — useful for local sandbox testing only.
+    The config validator forbids RAZORPAY_ALLOW_UNSIGNED_DEV in production.
+    """
     if not settings.razorpay_key_secret:
-        if settings.app_env == "production":
-            logger.error("RAZORPAY_KEY_SECRET not configured in production – rejecting webhook")
-            return False
-        logger.warning("RAZORPAY_KEY_SECRET not configured – skipping verification (dev only)")
-        return True
+        if settings.app_env != "production" and settings.razorpay_allow_unsigned_dev:
+            logger.warning(
+                "RAZORPAY_KEY_SECRET unset and RAZORPAY_ALLOW_UNSIGNED_DEV=true — "
+                "accepting unverified webhook (dev only)"
+            )
+            return True
+        logger.error(
+            "Razorpay webhook rejected: secret not configured (env=%s)", settings.app_env
+        )
+        return False
+
+    if not signature:
+        logger.error("Razorpay webhook rejected: missing x-razorpay-signature header")
+        return False
 
     return verify_webhook_signature(body, signature)
 

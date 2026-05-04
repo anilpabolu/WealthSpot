@@ -13,7 +13,7 @@ celery = Celery(
     "wealthspot",
     broker=settings.celery_broker_url,
     backend=settings.redis_url,
-    include=["app.tasks"],
+    include=["app.tasks", "app.comm.tasks"],
 )
 
 celery.conf.update(
@@ -42,4 +42,13 @@ celery.conf.beat_schedule = {
         "task": "app.tasks.transition_opportunity_statuses",
         "schedule": crontab(minute="*/15"),  # Every 15 minutes
     },
+    "comm-dispatch-outbox": {
+        "task": "comm.dispatch_outbox_batch",
+        "schedule": settings.comm_outbox_poll_seconds,
+    },
+}
+
+celery.conf.task_routes = {
+    "comm.dispatch_outbox_batch": {"queue": "comm.orchestrator"},
+    "comm.orchestrate_event": {"queue": "comm.orchestrator"},
 }

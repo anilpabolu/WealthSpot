@@ -75,6 +75,11 @@ class PropertyUpdate(BaseModel):
     rental_yield: Decimal | None = None
     cover_image: str | None = None
     amenities: list[str] | None = None
+    property_type: str | None = None
+    price_per_sqft: Decimal | None = None
+    total_project_area_sqft: Decimal | None = None
+    property_specs: dict[str, Any] | None = None
+    property_amenities: list[str] | None = None
 
 
 class PropertyListItem(BaseModel):
@@ -130,6 +135,12 @@ class PropertyDetail(PropertyListItem):
     builder: BuilderRead | None = None
     launch_date: datetime | None = None
     updated_at: datetime
+    # Property specification fields
+    property_type: str | None = None
+    price_per_sqft: Decimal | None = None
+    total_project_area_sqft: Decimal | None = None
+    property_specs: dict[str, Any] | None = None
+    property_amenities: list[str] | None = None
 
     model_config = {"from_attributes": True}
 

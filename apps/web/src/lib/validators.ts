@@ -39,10 +39,9 @@ export const propertyFilterSchema = z.object({
   status: z.enum(['live', 'upcoming', 'fully_funded', 'closed']).optional(),
   city: z.string().optional(),
   assetType: z.enum(['residential', 'commercial', 'warehouse', 'data_center', 'hospitality']).optional(),
-  minXirr: z.number().min(0).max(100).optional(),
   budgetMax: z.number().positive().optional(),
   sort: z
-    .enum(['xirr_desc', 'launch_date_asc', 'raised_desc', 'featured_first'])
+    .enum(['launch_date_asc', 'raised_desc', 'featured_first'])
     .optional()
     .default('featured_first'),
   page: z.number().int().positive().optional().default(1),

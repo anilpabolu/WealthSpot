@@ -5,9 +5,11 @@ Revises: 013_vault
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
+from alembic import op
 from sql_utils import exec_sql_file
 
 revision: str = "014_indexes"

@@ -10,16 +10,36 @@
   ],
   "scripts": {
     "dev:web": "npm run dev --workspace=apps/web",
-    "build:web": "npm run build --workspace=apps/web",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
     "dev:api": "cd services/api && uvicorn app.main:app --reload --port 8000",
+    "dev:all": "concurrently -n api,web,mobile -c blue,green,magenta \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:mobile\"",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:mobile": "cd apps/mobile && npx expo export --platform all",
+    "build:packages": "npm run build --workspace=packages/wealthspot-types --workspace=packages/wealthspot-api-client",
     "lint": "turbo run lint",
+    "lint:web": "npm run lint --workspace=apps/web --if-present",
+    "lint:mobile": "npm run lint --workspace=apps/mobile",
+    "lint:api": "cd services/api && ruff check app/ && ruff format --check app/",
+    "lint:all": "npm run lint:api && npm run lint && npm run lint:mobile",
     "test": "npm run test --workspace=tests",
     "test:web": "npm run test:web --workspace=tests",
     "test:mobile": "npm run test:mobile --workspace=tests",
     "test:api": "npm run test:api --workspace=tests",
-    "test:e2e": "npm run test:web:e2e --workspace=tests"
+    "test:e2e": "npm run test:web:e2e --workspace=tests",
+    "test:all": "npm run test:api && npm run test:web && npm run test:mobile",
+    "clean": "turbo run clean && rimraf node_modules apps/*/node_modules packages/*/node_modules tests/node_modules",
+    "prepare": "husky || true"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx}": ["eslint --fix --max-warnings=0"],
+    "apps/mobile/**/*.{ts,tsx}": ["eslint --fix --max-warnings=0"],
+    "services/api/**/*.py": ["ruff check --fix", "ruff format"]
   },
   "devDependencies": {
+    "concurrently": "^9.0.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.2.0",
+    "rimraf": "^6.0.0",
     "turbo": "^2.0.0"
   }
 }

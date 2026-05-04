@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { PortalLayout } from '@/components/layout'
-import { Select } from '@/components/ui'
+import { Select, Input, Textarea } from '@/components/ui'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { useOpportunity, useUpdateOpportunity, type OpportunityUpdatePayload } from '@/hooks/useOpportunities'
+import { AMENITIES, AMENITY_CATEGORIES, PropertyType } from '@wealthspot/types'
+import type { AmenityCategory } from '@wealthspot/types'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { INDIAN_CITIES } from '@/lib/constants'
-import MediaUploadZone from '@/components/MediaUploadZone'
+import MediaUploadZone, { type MediaItem } from '@/components/MediaUploadZone'
 import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
 import CompanyOnboardingModal from '@/components/CompanyOnboardingModal'
@@ -16,9 +18,39 @@ const STARTUP_STAGES = ['Idea', 'MVP', 'Seed', 'Pre-Series A', 'Series A', 'Grow
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
 const COLLABORATION_TYPES = ['Capital + Time', 'Capital Only', 'Time + Network', 'Full Collaboration']
 
-const inputCls = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
-
-interface MediaItem { file: File; preview: string; type: 'image' | 'video' }
+/* ── Property spec constants ──────────────────────────────────────── */
+const PROPERTY_TYPE_OPTIONS = [
+  { value: PropertyType.FLAT, label: 'Flat / Apartment', icon: '🏢' },
+  { value: PropertyType.VILLA, label: 'Villa / Row House', icon: '🏡' },
+  { value: PropertyType.PLOT, label: 'Plot / Land', icon: '🏞️' },
+  { value: PropertyType.COMMERCIAL, label: 'Commercial', icon: '🏪' },
+  { value: PropertyType.WAREHOUSE, label: 'Warehouse', icon: '🏭' },
+  { value: PropertyType.MIXED_USE, label: 'Mixed Use', icon: '🏙️' },
+]
+const BHK_TYPES = ['Studio', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Penthouse', 'Duplex']
+const PLOT_TYPE_OPTIONS = ['Residential Plot', 'Commercial Plot', 'Industrial Plot', 'Agricultural Land', 'NA Plot']
+const POSSESSION_QUARTERS = [
+  'Ready to Move', 'Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025',
+  'Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026',
+  'Q1 2027', 'Q2 2027', 'Q3 2027', 'Q4 2027', 'Q4 2028+',
+]
+function sqftConversions(sqft: number) {
+  return {
+    sqft: sqft.toLocaleString('en-IN'),
+    sqyd: (sqft / 9).toFixed(1),
+    guntha: (sqft / 1089).toFixed(3),
+    acre: (sqft / 43560).toFixed(4),
+    bigha: (sqft / 27225).toFixed(4),
+  }
+}
+interface UnitConfigRow {
+  id: string; bhkType: string; carpetAreaSqft: string; superBuiltUpSqft: string
+  bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
+}
+interface PlotConfigRow { id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string }
+interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string }
+const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
+const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
 
 export default function BuilderListingEditPage() {
   const { id } = useParams<{ id: string }>()
@@ -30,6 +62,14 @@ export default function BuilderListingEditPage() {
   const [address, setAddress] = useState<AddressFields>({ addressLine1: '', addressLine2: '', landmark: '', locality: '', city: '', state: '', pincode: '', district: '', country: 'India' })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [showOnboarding, setShowOnboarding] = useState(false)
+  // ── Property specs state ───────────────────────────────────────────────
+  const [propertyType, setPropertyType] = useState<string>('')
+  const [unitConfigs, setUnitConfigs] = useState<UnitConfigRow[]>([{ ...DEFAULT_UNIT_CONFIG }])
+  const [plotConfigs, setPlotConfigs] = useState<PlotConfigRow[]>([{ ...DEFAULT_PLOT_CONFIG }])
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [pricePerSqftField, setPricePerSqftField] = useState<string>('')
+  const [totalProjectAreaSqftField, setTotalProjectAreaSqftField] = useState<string>('')
+  const [projectOverview, setProjectOverview] = useState<ProjectOverview>({ totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' })
   // Loading state is driven entirely by the mutations — no manual `saving` flag.
   const isSaving = updateMutation.isPending || uploadMutation.isPending
 
@@ -43,7 +83,6 @@ export default function BuilderListingEditPage() {
       companyId: opp.companyId ?? '',
       targetAmount: opp.targetAmount ?? undefined,
       minInvestment: opp.minInvestment ?? undefined,
-      targetIrr: opp.targetIrr ?? undefined,
       industry: opp.industry ?? '',
       stage: opp.stage ?? '',
       founderName: opp.founderName ?? '',
@@ -65,6 +104,48 @@ export default function BuilderListingEditPage() {
       district: opp.district ?? '',
       country: opp.country ?? 'India',
     })
+    // Pre-populate property specs
+    if (opp.property_type) {
+      setPropertyType(opp.property_type)
+      if (opp.price_per_sqft != null) setPricePerSqftField(String(opp.price_per_sqft))
+      if (opp.total_project_area_sqft != null) setTotalProjectAreaSqftField(String(opp.total_project_area_sqft))
+      if (opp.property_amenities) setSelectedAmenities(opp.property_amenities)
+      const specs = opp.property_specs as Record<string, unknown> | null
+      if (specs) {
+        setProjectOverview({
+          totalTowers: String(specs.total_towers ?? ''),
+          totalFloors: String(specs.total_floors ?? ''),
+          possessionQuarter: (specs.possession_date as string) ?? '',
+          reraNumber: (specs.rera_registration_number as string) ?? '',
+          landParcelSqft: String(specs.land_parcel_sqft ?? ''),
+        })
+        type RawUnitCfg = { bhk_type?: string; carpet_area_sqft?: number; super_built_up_sqft?: number; bathrooms?: number; balconies?: number; total_units?: number; price_per_sqft?: number }
+        const rawUnits = specs.unit_configurations as RawUnitCfg[] | undefined
+        if (rawUnits?.length) {
+          setUnitConfigs(rawUnits.map((u, i) => ({
+            id: String(i + 1),
+            bhkType: u.bhk_type ?? '',
+            carpetAreaSqft: u.carpet_area_sqft != null ? String(u.carpet_area_sqft) : '',
+            superBuiltUpSqft: u.super_built_up_sqft != null ? String(u.super_built_up_sqft) : '',
+            bathrooms: u.bathrooms != null ? String(u.bathrooms) : '',
+            balconies: u.balconies != null ? String(u.balconies) : '',
+            totalUnits: u.total_units != null ? String(u.total_units) : '',
+            pricePerSqft: u.price_per_sqft != null ? String(u.price_per_sqft) : '',
+          })))
+        }
+        type RawPlotCfg = { type?: string; area_sqft?: number; total_plots?: number; price_per_sqft?: number }
+        const rawPlots = specs.plot_configurations as RawPlotCfg[] | undefined
+        if (rawPlots?.length) {
+          setPlotConfigs(rawPlots.map((p, i) => ({
+            id: String(i + 1),
+            plotType: p.type ?? '',
+            areaSqft: p.area_sqft != null ? String(p.area_sqft) : '',
+            totalPlots: p.total_plots != null ? String(p.total_plots) : '',
+            pricePerSqft: p.price_per_sqft != null ? String(p.price_per_sqft) : '',
+          })))
+        }
+      }
+    }
   }, [opp])
 
   const handleChange = (key: keyof OpportunityUpdatePayload, value: string | number | undefined) => {
@@ -75,11 +156,62 @@ export default function BuilderListingEditPage() {
     e.preventDefault()
     if (!id) return
     try {
+      // Build property specs payload
+      let propertySpecsPayload: Record<string, unknown> | undefined
+      if (propertyType) {
+        const base: Record<string, unknown> = {
+          property_type: propertyType,
+          ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
+          ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
+          ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
+          ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
+          ...(projectOverview.landParcelSqft && { land_parcel_sqft: Number(projectOverview.landParcelSqft) }),
+        }
+        if (propertyType === PropertyType.PLOT) {
+          base.plot_configurations = plotConfigs
+            .filter((p) => p.plotType)
+            .map((p) => ({
+              type: p.plotType,
+              ...(p.areaSqft && { area_sqft: Number(p.areaSqft) }),
+              ...(p.totalPlots && { total_plots: Number(p.totalPlots) }),
+              ...(p.pricePerSqft && { price_per_sqft: Number(p.pricePerSqft) }),
+            }))
+        } else {
+          base.unit_configurations = unitConfigs
+            .filter((u) => u.bhkType)
+            .map((u) => ({
+              bhk_type: u.bhkType,
+              ...(u.carpetAreaSqft && { carpet_area_sqft: Number(u.carpetAreaSqft) }),
+              ...(u.superBuiltUpSqft && { super_built_up_sqft: Number(u.superBuiltUpSqft) }),
+              ...(u.bathrooms && { bathrooms: Number(u.bathrooms) }),
+              ...(u.balconies && { balconies: Number(u.balconies) }),
+              ...(u.totalUnits && { total_units: Number(u.totalUnits) }),
+              ...(u.pricePerSqft && { price_per_sqft: Number(u.pricePerSqft) }),
+            }))
+        }
+        propertySpecsPayload = base
+      }
+
+      // For unit_config investment mode, auto-compute target from configurations
+      const computedTarget = opp?.investment_mode === 'unit_config'
+        ? (propertyType === PropertyType.PLOT
+            ? plotConfigs.reduce((sum, p) => sum + (Number(p.totalPlots) || 0) * (Number(p.areaSqft) || 0) * (Number(p.pricePerSqft) || 0), 0)
+            : unitConfigs.reduce((sum, u) => sum + (Number(u.totalUnits) || 0) * (Number(u.carpetAreaSqft) || 0) * (Number(u.pricePerSqft) || 0), 0))
+        : undefined
+
       const payload: OpportunityUpdatePayload = {
         ...form,
+        ...(computedTarget && computedTarget > 0 && { targetAmount: computedTarget }),
         ...(opp?.vaultType === 'wealth' || opp?.vaultType === 'community'
           ? { addressLine1: address.addressLine1, addressLine2: address.addressLine2, landmark: address.landmark, locality: address.locality, city: address.city, state: address.state, pincode: address.pincode, district: address.district, country: address.country, address: [address.addressLine1, address.locality, address.city].filter(Boolean).join(', ') }
           : {}),
+        ...(propertyType && {
+          property_type: propertyType,
+          ...(pricePerSqftField && { price_per_sqft: Number(pricePerSqftField) }),
+          ...(totalProjectAreaSqftField && { total_project_area_sqft: Number(totalProjectAreaSqftField) }),
+          property_specs: propertySpecsPayload,
+          property_amenities: selectedAmenities,
+        }),
       }
       await updateMutation.mutateAsync({ id, data: payload })
       if (mediaItems.length > 0) {
@@ -131,37 +263,32 @@ export default function BuilderListingEditPage() {
             <CompanySelector value={form.companyId} onChange={(cid) => handleChange('companyId', cid ?? '')} onRequestOnboard={() => setShowOnboarding(true)} />
 
             {/* Common fields */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">Title *</label>
-              <input required value={form.title ?? ''} onChange={(e) => handleChange('title', e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">Tagline</label>
-              <input value={form.tagline ?? ''} onChange={(e) => handleChange('tagline', e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">Description</label>
-              <textarea rows={4} value={form.description ?? ''} onChange={(e) => handleChange('description', e.target.value)} className={`${inputCls} resize-none`} />
-            </div>
+            <Input label="Title *" required value={form.title ?? ''} onChange={(e) => handleChange('title', e.target.value)} />
+            <Input label="Tagline" value={form.tagline ?? ''} onChange={(e) => handleChange('tagline', e.target.value)} />
+            <Textarea label="Description" rows={4} value={form.description ?? ''} onChange={(e) => handleChange('description', e.target.value)} />
 
             {/* Wealth fields */}
             {opp.vaultType === 'wealth' && (
               <>
                 <AddressDialog value={address} onChange={setAddress} />
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                    <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                    <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Target IRR (%)</label>
-                    <input type="number" step="0.1" min={0} value={form.targetIrr ?? ''} onChange={(e) => handleChange('targetIrr', Number(e.target.value))} className={inputCls} />
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-theme-secondary">Investment Mode:</span>
+                  {opp.investment_mode === 'unit_config' ? (
+                    <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full">
+                      📐 Unit Configuration — target auto-computed
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-full">
+                      🏷️ Lumpsum
+                    </span>
+                  )}
                 </div>
+                {opp.investment_mode !== 'unit_config' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="Target Amount" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
+                    <Input label="Min Investment" type="number" min={0} prefix="₹" value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} />
+                  </div>
+                )}
               </>
             )}
 
@@ -169,30 +296,18 @@ export default function BuilderListingEditPage() {
             {opp.vaultType === 'safe' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Industry</label>
-                    <input value={form.industry ?? ''} onChange={(e) => handleChange('industry', e.target.value)} className={inputCls} />
-                  </div>
+                  <Input label="Industry" value={form.industry ?? ''} onChange={(e) => handleChange('industry', e.target.value)} />
                   <div>
                     <label className="block text-sm font-medium text-theme-primary mb-1">Stage</label>
                     <Select value={form.stage ?? ''} onChange={(v) => handleChange('stage', v)} placeholder="Select stage" options={STARTUP_STAGES.map((s) => ({ value: s, label: s }))} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Founder Name</label>
-                    <input value={form.founderName ?? ''} onChange={(e) => handleChange('founderName', e.target.value)} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Pitch Deck URL</label>
-                    <input type="url" value={form.pitchDeckUrl ?? ''} onChange={(e) => handleChange('pitchDeckUrl', e.target.value)} className={inputCls} />
-                  </div>
+                  <Input label="Founder Name" value={form.founderName ?? ''} onChange={(e) => handleChange('founderName', e.target.value)} />
+                  <Input label="Pitch Deck URL" type="url" value={form.pitchDeckUrl ?? ''} onChange={(e) => handleChange('pitchDeckUrl', e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                    <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                  </div>
+                  <Input label="Target Amount" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
                   <div>
                     <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
                     <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
@@ -216,14 +331,8 @@ export default function BuilderListingEditPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                    <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                    <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className={inputCls} />
-                  </div>
+                  <Input label="Target Amount" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
+                  <Input label="Min Investment" type="number" min={0} prefix="₹" value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} />
                 </div>
               </>
             )}
@@ -240,7 +349,7 @@ export default function BuilderListingEditPage() {
                     type="date"
                     value={form.fundingOpenAt ? String(form.fundingOpenAt).slice(0, 10) : ''}
                     onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                    className={inputCls}
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div>
@@ -252,10 +361,199 @@ export default function BuilderListingEditPage() {
                     type="date"
                     value={form.closingDate ? String(form.closingDate).slice(0, 10) : ''}
                     onChange={(e) => handleChange('closingDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                    className={inputCls}
+                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
+            )}
+
+            {/* Property Specs (Wealth & Safe) */}
+            {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+              <>
+                {/* Property Type Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-2">Property Type</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PROPERTY_TYPE_OPTIONS.map((opt) => (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() => setPropertyType(propertyType === opt.value ? '' : opt.value)}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                          propertyType === opt.value
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-theme bg-theme-surface text-theme-secondary hover:border-primary/40'
+                        }`}
+                      >
+                        <span>{opt.icon}</span>
+                        <span className="truncate">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {propertyType && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input label="Price per Sq.Ft (₹)" type="number" min={0} value={pricePerSqftField} onChange={(e) => setPricePerSqftField(e.target.value)} placeholder="e.g. 8500" prefix="₹" />
+                      <Input label="Total Project Area (Sq.Ft)" type="number" min={0} value={totalProjectAreaSqftField} onChange={(e) => setTotalProjectAreaSqftField(e.target.value)} placeholder="e.g. 120000" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
+                        <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
+                      </div>
+                      <Input label="RERA Number" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <Input label="Total Towers" type="number" min={1} value={projectOverview.totalTowers} onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))} placeholder="e.g. 4" />
+                      <Input label="Total Floors" type="number" min={1} value={projectOverview.totalFloors} onChange={(e) => setProjectOverview((p) => ({ ...p, totalFloors: e.target.value }))} placeholder="e.g. 18" />
+                      <Input label="Land Parcel (Sq.Ft)" type="number" min={0} value={projectOverview.landParcelSqft} onChange={(e) => setProjectOverview((p) => ({ ...p, landParcelSqft: e.target.value }))} placeholder="e.g. 10890" />
+                    </div>
+                    {projectOverview.landParcelSqft && Number(projectOverview.landParcelSqft) > 0 && (
+                      <div className="px-3 py-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <p className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 mb-1.5 uppercase tracking-wide">Area Conversions</p>
+                        {(() => {
+                          const c = sqftConversions(Number(projectOverview.landParcelSqft))
+                          return (
+                            <div className="grid grid-cols-5 gap-x-3">
+                              {([['sqft', c.sqft], ['sq.yd', c.sqyd], ['guntha', c.guntha], ['acre', c.acre], ['bigha', c.bigha]] as [string, string][]).map(([unit, val]) => (
+                                <div key={unit} className="text-xs">
+                                  <span className="font-medium text-blue-800 dark:text-blue-200">{val}</span>
+                                  <span className="text-blue-500 dark:text-blue-400 ml-1">{unit}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Unit Configurations */}
+                    {propertyType !== PropertyType.PLOT && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium text-theme-primary">
+                            {propertyType === PropertyType.WAREHOUSE ? 'Unit / Bay Configurations' : 'BHK / Unit Configurations'}
+                          </label>
+                          <button type="button" onClick={() => setUnitConfigs((p) => [...p, { id: String(Date.now()), bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }])} className="text-xs text-primary hover:underline">+ Add Config</button>
+                        </div>
+                        <div className="space-y-2">
+                          {unitConfigs.map((row, idx) => (
+                            <div key={row.id} className={`grid gap-1.5 items-end p-2.5 bg-theme-surface-hover rounded-lg relative ${opp.investment_mode === 'unit_config' ? 'grid-cols-8' : 'grid-cols-7'}`}>
+                              <div className="col-span-2">
+                                <p className="text-[10px] text-theme-tertiary mb-1">Type</p>
+                                <Select value={row.bhkType} onChange={(v) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, bhkType: v } : r)))} placeholder="BHK type" options={BHK_TYPES.map((t) => ({ value: t, label: t }))} />
+                              </div>
+                              {(['carpetAreaSqft', 'superBuiltUpSqft', 'bathrooms', 'balconies', 'totalUnits'] as const).map((field, fi) => (
+                                <div key={field}>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">{['Carpet sqft', 'SBA sqft', 'Baths', 'Balc.', 'Units'][fi]}</p>
+                                  <input type="number" min={0} value={row[field]} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, [field]: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" />
+                                </div>
+                              ))}
+                              {opp.investment_mode === 'unit_config' && (
+                                <div>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">₹/Sqft</p>
+                                  <input type="number" min={0} value={row.pricePerSqft} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 8500" />
+                                </div>
+                              )}
+                              {unitConfigs.length > 1 && (
+                                <button type="button" onClick={() => setUnitConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold">×</button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {opp.investment_mode === 'unit_config' && (() => {
+                          const total = unitConfigs.reduce((sum, u) => sum + (Number(u.totalUnits) || 0) * (Number(u.carpetAreaSqft) || 0) * (Number(u.pricePerSqft) || 0), 0)
+                          if (total <= 0) return null
+                          return (
+                            <div className="mt-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 rounded-lg">
+                              <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                                <span className="font-semibold">Computed Target: </span>
+                                ₹{(total / 1e7).toFixed(2)} Cr
+                              </p>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Plot Configurations */}
+                    {propertyType === PropertyType.PLOT && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium text-theme-primary">Plot Configurations</label>
+                          <button type="button" onClick={() => setPlotConfigs((p) => [...p, { id: String(Date.now()), plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }])} className="text-xs text-primary hover:underline">+ Add Plot Type</button>
+                        </div>
+                        <div className="space-y-2">
+                          {plotConfigs.map((row, idx) => (
+                            <div key={row.id} className="grid grid-cols-4 gap-1.5 items-start p-2.5 bg-theme-surface-hover rounded-lg relative">
+                              <div>
+                                <p className="text-[10px] text-theme-tertiary mb-1">Plot Type</p>
+                                <Select value={row.plotType} onChange={(v) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, plotType: v } : r)))} placeholder="Select" options={PLOT_TYPE_OPTIONS.map((t) => ({ value: t, label: t }))} />
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-theme-tertiary mb-1">Area (Sq.Ft)</p>
+                                <input type="number" min={0} value={row.areaSqft} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, areaSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 2178" />
+                                {row.areaSqft && Number(row.areaSqft) > 0 && <p className="text-[10px] text-theme-tertiary mt-0.5">{sqftConversions(Number(row.areaSqft)).sqyd} sqyd · {sqftConversions(Number(row.areaSqft)).guntha} guntha</p>}
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-theme-tertiary mb-1">Total Plots</p>
+                                <input type="number" min={0} value={row.totalPlots} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, totalPlots: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 50" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-theme-tertiary mb-1">₹/Sqft</p>
+                                <input type="number" min={0} value={row.pricePerSqft} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 3500" />
+                              </div>
+                              {plotConfigs.length > 1 && (
+                                <button type="button" onClick={() => setPlotConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold">×</button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {opp.investment_mode === 'unit_config' && (() => {
+                          const total = plotConfigs.reduce((sum, p) => sum + (Number(p.totalPlots) || 0) * (Number(p.areaSqft) || 0) * (Number(p.pricePerSqft) || 0), 0)
+                          if (total <= 0) return null
+                          return (
+                            <div className="mt-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 rounded-lg">
+                              <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                                <span className="font-semibold">Computed Target: </span>
+                                ₹{(total / 1e7).toFixed(2)} Cr
+                              </p>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Amenities */}
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-3">Amenities</label>
+                      <div className="space-y-3">
+                        {(Object.entries(AMENITY_CATEGORIES) as [AmenityCategory, string][]).map(([catKey, catLabel]) => {
+                          const catAmenities = AMENITIES.filter((a) => a.category === catKey)
+                          return (
+                            <div key={catKey}>
+                              <p className="text-[11px] font-semibold text-theme-tertiary uppercase tracking-wider mb-1.5">{catLabel}</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {catAmenities.map((a) => {
+                                  const isSel = selectedAmenities.includes(a.key)
+                                  return (
+                                    <button type="button" key={a.key} onClick={() => setSelectedAmenities((p) => (isSel ? p.filter((k) => k !== a.key) : [...p, a.key]))} className={`px-2.5 py-1 rounded-full border text-xs font-medium transition-all ${isSel ? 'border-primary bg-primary/10 text-primary' : 'border-theme text-theme-secondary hover:border-primary/50 hover:text-theme-primary'}`}>
+                                      {a.label}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {selectedAmenities.length > 0 && <p className="text-xs text-primary mt-2 font-medium">✓ {selectedAmenities.length} amenities selected</p>}
+                    </div>
+                  </>
+                )}
+              </>
             )}
 
             {/* Additional media */}

@@ -5,9 +5,11 @@ Revises: 012_opp_media
 Create Date: 2025-07-30
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
+from alembic import op
 from sql_utils import exec_sql_file
 
 revision: str = "013_vault"

@@ -12,9 +12,7 @@ export interface VaultSummaryItem {
   closedOpportunities: number
   totalTargetAmount: number
   totalRaisedAmount: number
-  avgTargetIrr: number
-  avgExpectedIrr: number
-  avgActualIrr: number
+
   uniqueCreators: number
   totalInvestors: number
   fundingPct: number
@@ -105,9 +103,7 @@ export interface TopOpportunityItem {
   state: string | null
   targetAmount: number | null
   raisedAmount: number
-  targetIrr: number | null
-  expectedIrr: number | null
-  actualIrr: number | null
+
   investorCount: number
   fundingPct: number
   companyName: string | null

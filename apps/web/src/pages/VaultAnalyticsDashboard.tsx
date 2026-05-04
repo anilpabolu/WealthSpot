@@ -308,17 +308,6 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
 
   const filteredVaults = selectedVault ? vs.vaults.filter(v => v.vaultType === selectedVault) : vs.vaults
 
-  // IRR comparison bar chart
-  const irrData = useMemo(() =>
-    vs.vaults.map(v => ({
-      name: VAULT_LABELS[v.vaultType] || v.vaultType,
-      'Target IRR': Number(v.avgTargetIrr),
-      'Expected IRR': Number(v.avgExpectedIrr),
-      'Actual IRR': Number(v.avgActualIrr),
-    })),
-    [vs.vaults],
-  )
-
   // Funding progress
   const fundingData = useMemo(() =>
     vs.vaults.map(v => ({
@@ -378,14 +367,7 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
                 <div className="text-theme-tertiary text-xs">Funding</div>
                 <div className="font-semibold text-theme-primary">{fmtPct(v.fundingPct)}</div>
               </div>
-              <div>
-                <div className="text-theme-tertiary text-xs">Target IRR</div>
-                <div className="font-semibold text-theme-primary">{fmtPct(v.avgTargetIrr)}</div>
-              </div>
-              <div>
-                <div className="text-theme-tertiary text-xs">Actual IRR</div>
-                <div className="font-semibold text-emerald-600 dark:text-emerald-400">{fmtPct(v.avgActualIrr)}</div>
-              </div>
+
             </div>
             {/* Mini progress bar */}
             <div className="mt-3">
@@ -405,24 +387,7 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="IRR Comparison by Vault">
-          {irrData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={irrData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}%`} tickLine={false} />
-                <Tooltip formatter={(v) => `${Number(v).toFixed(1)}%`} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Target IRR" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Expected IRR" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Actual IRR" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <EmptyState message="No IRR data" />}
-        </ChartCard>
-
+      <div className="grid grid-cols-1 gap-6">
         <ChartCard title="Funding Progress by Vault">
           {fundingData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -453,7 +418,6 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
                   <th className="pb-2 font-medium text-theme-secondary text-right">Raised</th>
                   <th className="pb-2 font-medium text-theme-secondary text-right">Target</th>
                   <th className="pb-2 font-medium text-theme-secondary text-right">Funding</th>
-                  <th className="pb-2 font-medium text-theme-secondary text-right">IRR</th>
                   <th className="pb-2 font-medium text-theme-secondary text-right">Investors</th>
                 </tr>
               </thead>
@@ -480,7 +444,6 @@ function VaultPerformanceTab({ data }: { data: FullAnalyticsResponse }) {
                         {fmtPct(o.fundingPct)}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right text-theme-secondary">{o.targetIrr ? fmtPct(o.targetIrr) : '—'}</td>
                     <td className="py-2.5 text-right text-theme-secondary">{o.investorCount}</td>
                   </tr>
                 ))}

@@ -18,6 +18,8 @@ import type {
   ApprovalPriority,
   VaultType,
   OpportunityStatus,
+  PropertyType,
+  InvestmentMode,
 } from "./enums";
 
 // ── User ────────────────────────────────────────────────────────────────────
@@ -131,7 +133,6 @@ export interface Property {
   unit_price: number;
   total_units: number;
   sold_units: number;
-  target_irr: number;
   rental_yield: number | null;
   area_sqft: number | null;
   bedrooms: number | null;
@@ -160,7 +161,6 @@ export interface PropertyListItem {
   target_amount: number;
   raised_amount: number;
   min_investment: number;
-  target_irr: number;
   rental_yield: number | null;
   investor_count: number;
   funding_percentage: number;
@@ -186,7 +186,6 @@ export interface PropertyCreate {
   min_investment: number;
   unit_price: number;
   total_units: number;
-  target_irr: number;
   rental_yield?: number;
   area_sqft?: number;
   bedrooms?: number;
@@ -206,7 +205,6 @@ export interface PropertyFilters {
   status?: PropertyStatus;
   min_amount?: number;
   max_amount?: number;
-  min_irr?: number;
   search?: string;
   page?: number;
   page_size?: number;
@@ -417,6 +415,126 @@ export interface ApprovalStats {
 
 // ── Opportunity ─────────────────────────────────────────────────────────────
 
+// --- Property Specification Types ---
+
+export interface UnitConfiguration {
+  type: string; // "Studio" | "1 BHK" | "2 BHK" | "3 BHK" | "4 BHK" | "Penthouse"
+  carpet_area_sqft?: number;
+  super_built_up_sqft?: number;
+  built_up_sqft?: number;
+  plot_area_sqyd?: number;
+  balconies?: number;
+  bathrooms?: number;
+  car_parks?: number;
+  floors?: number;
+  available_units?: number;
+  total_units?: number;
+  price_per_sqft?: number;
+}
+
+export interface PlotConfiguration {
+  type: string;
+  area_sqft: number;
+  area_sqyd?: number;
+  area_guntha?: number;
+  area_gunta?: number;
+  area_acre?: number;
+  area_bigha?: number;
+  available_plots?: number;
+  total_plots?: number;
+  price_per_sqft?: number;
+  price_per_sqyd?: number;
+}
+
+export interface AreaConversions {
+  sqft: number;
+  sqyd?: number;
+  guntha?: number;
+  gunta?: number;
+  acre?: number;
+  bigha?: number;
+  hectare?: number;
+}
+
+export interface PropertySpecsFlat {
+  property_type: "flat";
+  configurations: UnitConfiguration[];
+  total_units_in_project?: number;
+  total_floors?: number;
+  total_towers?: number;
+  land_parcel_area_sqft?: number;
+  project_total_area_sqft?: number;
+  possession_quarter?: string;
+  rera_number?: string;
+  launch_price_per_sqft?: number;
+  current_price_per_sqft?: number;
+  floor_plan_url?: string;
+}
+
+export interface PropertySpecsVilla {
+  property_type: "villa";
+  configurations: UnitConfiguration[];
+  total_units_in_project?: number;
+  project_total_area_acres?: number;
+  project_total_area_sqft?: number;
+  land_parcel_area_sqft?: number;
+  possession_quarter?: string;
+  rera_number?: string;
+  current_price_per_sqft?: number;
+}
+
+export interface PropertySpecsPlot {
+  property_type: "plot";
+  plot_configurations: PlotConfiguration[];
+  total_plots?: number;
+  project_total_area_sqft?: number;
+  project_total_area_acres?: number;
+  project_total_area_guntha?: number;
+  land_parcel_area_sqft?: number;
+  dtcp_approved?: boolean;
+  rera_number?: string;
+  facing_options?: string[];
+  conversion_display?: AreaConversions;
+}
+
+export interface PropertySpecsCommercial {
+  property_type: "commercial";
+  space_type?: string;
+  configurations: UnitConfiguration[];
+  total_units_in_project?: number;
+  car_parks_per_unit?: number;
+  project_total_area_sqft?: number;
+  rera_number?: string;
+  current_price_per_sqft?: number;
+}
+
+export interface PropertySpecsWarehouse {
+  property_type: "warehouse";
+  total_area_sqft?: number;
+  floor_height_ft?: number;
+  loading_docks?: number;
+  power_supply_kva?: number;
+  project_total_area_sqft?: number;
+  rera_number?: string;
+}
+
+export interface PropertySpecsMixedUse {
+  property_type: "mixed_use";
+  components?: string[];
+  residential_units?: number;
+  commercial_units?: number;
+  project_total_area_sqft?: number;
+  rera_number?: string;
+}
+
+export type PropertySpecs =
+  | PropertySpecsFlat
+  | PropertySpecsVilla
+  | PropertySpecsPlot
+  | PropertySpecsCommercial
+  | PropertySpecsWarehouse
+  | PropertySpecsMixedUse;
+
 export interface SafeVaultMortgageAgreement {
   enabled: boolean;
   details?: string;
@@ -467,9 +585,6 @@ export interface Opportunity {
   target_amount: number | null;
   raised_amount: number;
   min_investment: number | null;
-  target_irr: number | null;
-  expected_irr: number | null;
-  actual_irr: number | null;
   industry: string | null;
   stage: string | null;
   founder_name: string | null;
@@ -484,6 +599,14 @@ export interface Opportunity {
   documents: Record<string, unknown> | null;
   template_s3_key: string | null;
   template_data: Record<string, unknown> | null;
+  // Real-estate property specification fields
+  property_type: PropertyType | null;
+  price_per_sqft: number | null;
+  total_project_area_sqft: number | null;
+  property_specs: PropertySpecs | null;
+  property_amenities: string[] | null;
+  // Investment configuration mode (lumpsum vs unit_config)
+  investment_mode: InvestmentMode;
   investor_count: number;
   launch_date: string | null;
   created_at: string;
@@ -496,8 +619,6 @@ export interface VaultStats {
   total_invested: number;
   investor_count: number;
   opportunity_count: number;
-  expected_irr: number | null;
-  actual_irr: number | null;
   explorer_count: number;
   dna_investor_count: number;
 }
@@ -514,7 +635,6 @@ export interface OpportunityCreate {
   address?: string;
   target_amount?: number;
   min_investment?: number;
-  target_irr?: number;
   // Startup fields
   industry?: string;
   stage?: string;
@@ -527,6 +647,14 @@ export interface OpportunityCreate {
   community_details?: Record<string, unknown>;
   // Safe Vault fields
   safe_vault_data?: SafeVaultConfig;
+  // Real-estate property specification fields
+  property_type?: PropertyType;
+  price_per_sqft?: number;
+  total_project_area_sqft?: number;
+  property_specs?: PropertySpecs;
+  property_amenities?: string[];
+  // Investment configuration mode
+  investment_mode?: InvestmentMode;
 }
 
 // ── Platform Config ─────────────────────────────────────────────────────────

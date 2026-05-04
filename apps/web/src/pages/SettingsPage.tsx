@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Select, Toggle, Badge, EmptyState } from '@/components/ui'
+import { Select, Toggle, Badge, EmptyState, Input, Textarea } from '@/components/ui'
 import { useUser } from '@clerk/react'
 import { useUserProfile, useUploadAvatar, useDeleteAvatar } from '@/hooks/useUserProfile'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
@@ -373,14 +373,7 @@ function SecurityTab() {
         <h2 className="section-title text-lg mb-4">Change Password</h2>
         <div className="space-y-3 max-w-sm">
           {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
-            <div key={label}>
-              <label className="block text-sm font-medium text-theme-primary mb-1">{label}</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
-              />
-            </div>
+            <Input key={label} label={label} type="password" placeholder="••••••••" />
           ))}
           <button className="btn-primary text-sm px-6 mt-2">Update Password</button>
         </div>
@@ -446,26 +439,11 @@ function BankTab() {
         <div className="border border-theme rounded-xl p-4 mb-6 space-y-3">
           <h3 className="text-sm font-semibold text-theme-primary">Add New Bank Account</h3>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-theme-secondary mb-1">Account Holder Name</label>
-              <input value={form.accountHolderName} onChange={(e) => setForm({ ...form, accountHolderName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Full name as per bank" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-theme-secondary mb-1">Account Number</label>
-              <input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, '') })} className="w-full px-3 py-2 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Enter account number" maxLength={18} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-theme-secondary mb-1">IFSC Code</label>
-              <input value={form.ifscCode} onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })} className="w-full px-3 py-2 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC0001234" maxLength={11} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-theme-secondary mb-1">Bank Name</label>
-              <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="HDFC Bank" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-theme-secondary mb-1">Branch Name (Optional)</label>
-              <input value={form.branchName} onChange={(e) => setForm({ ...form, branchName: e.target.value })} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" placeholder="Branch name" />
-            </div>
+            <Input label="Account Holder Name" value={form.accountHolderName} onChange={(e) => setForm({ ...form, accountHolderName: e.target.value })} placeholder="Full name as per bank" />
+            <Input label="Account Number" value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, '') })} className="[&_input]:font-mono" placeholder="Enter account number" maxLength={18} />
+            <Input label="IFSC Code" value={form.ifscCode} onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })} className="[&_input]:font-mono [&_input]:uppercase" placeholder="HDFC0001234" maxLength={11} />
+            <Input label="Bank Name" value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} placeholder="HDFC Bank" />
+            <Input label="Branch Name (Optional)" value={form.branchName} onChange={(e) => setForm({ ...form, branchName: e.target.value })} placeholder="Branch name" />
             <div>
               <label className="block text-xs font-medium text-theme-secondary mb-1">Account Type</label>
               <Select value={form.accountType ?? 'savings'} onChange={(v) => setForm({ ...form, accountType: v })} options={[
@@ -794,37 +772,17 @@ function KycInlineForm({ onComplete }: { onComplete: () => void }) {
             Personal Details
           </h3>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-theme-primary mb-1 block">Full Name (as per PAN)</label>
-              <input {...register('fullName')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="Enter your full name" />
-              {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
-            </div>
-            <div>
-              <label className="text-sm font-medium text-theme-primary mb-1 block">PAN Number</label>
-              <input {...register('panNumber')} className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="ABCDE1234F" maxLength={10} />
-              {errors.panNumber && <p className="text-xs text-red-500 mt-1">{errors.panNumber.message}</p>}
-            </div>
+            <Input label="Full Name (as per PAN)" {...register('fullName')} placeholder="Enter your full name" errorText={errors.fullName?.message} />
+            <Input label="PAN Number" {...register('panNumber')} className="[&_input]:font-mono [&_input]:uppercase" placeholder="ABCDE1234F" maxLength={10} errorText={errors.panNumber?.message} />
             <div>
               <label className="text-sm font-medium text-theme-primary mb-1 block">Date of Birth</label>
               <input type="date" {...register('dateOfBirth')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
               {errors.dateOfBirth && <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>}
             </div>
-            <div>
-              <label className="text-sm font-medium text-theme-primary mb-1 block">Full Address</label>
-              <textarea {...register('address')} rows={2} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" placeholder="House no., Street, Area" />
-              {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>}
-            </div>
+            <Textarea label="Full Address" {...register('address')} rows={2} placeholder="House no., Street, Area" errorText={errors.address?.message} />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-theme-primary mb-1 block">City</label>
-                <input {...register('city')} className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="City" />
-                {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-theme-primary mb-1 block">Pincode</label>
-                <input {...register('pincode')} className="w-full px-3 py-2.5 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="560001" maxLength={6} />
-                {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode.message}</p>}
-              </div>
+              <Input label="City" {...register('city')} placeholder="City" errorText={errors.city?.message} />
+              <Input label="Pincode" {...register('pincode')} className="[&_input]:font-mono" placeholder="560001" maxLength={6} errorText={errors.pincode?.message} />
             </div>
           </div>
           <button onClick={handleStep1Next} disabled={submitDetails.isPending} className="btn-primary w-full py-3 inline-flex items-center justify-center gap-2 disabled:opacity-50">

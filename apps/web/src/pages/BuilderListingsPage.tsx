@@ -1,7 +1,7 @@
 import { PortalLayout } from '@/components/layout'
 import StatusBadge from '@/components/wealth/StatusBadge'
 import FundingBar from '@/components/wealth/FundingBar'
-import { formatINRCompact, formatPercent } from '@/lib/formatters'
+import { formatINRCompact } from '@/lib/formatters'
 import { Link } from 'react-router-dom'
 import { PlusCircle, Building2, Search, Eye, Edit, Trash2, Loader2, Users, X } from 'lucide-react'
 import { useState } from 'react'
@@ -202,6 +202,9 @@ export default function BuilderListingsPage() {
               { value: 'upcoming', label: 'Upcoming' },
               { value: 'funded', label: 'Funded' },
               { value: 'closed', label: 'Closed' },
+              { value: 'draft', label: 'Draft' },
+              { value: 'pending_approval', label: 'Pending Approval' },
+              { value: 'rejected', label: 'Rejected' },
             ]}
             className="w-44"
           />
@@ -247,13 +250,6 @@ export default function BuilderListingsPage() {
               headerClassName: 'text-center',
               className: 'text-center',
               render: (l) => <ShieldProgressChip opportunityId={l.id} />,
-            },
-            {
-              key: 'irr',
-              header: 'Target IRR',
-              headerClassName: 'text-right',
-              className: 'text-right font-mono font-semibold text-primary',
-              render: (l) => <>{formatPercent(l.irr)}</>,
             },
             {
               key: 'minInvest',

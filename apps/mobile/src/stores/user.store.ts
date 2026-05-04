@@ -1,10 +1,15 @@
 /**
  * User store (Zustand) – mirrors web's user.store.ts with all 8 roles.
+ *
+ * Tokens are NOT persisted here. They live only in expo-secure-store, wired
+ * through `apps/mobile/src/lib/api.ts`. Persisting tokens to MMKV would put
+ * them in plaintext on device.
  */
 
 import { create } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { MMKV } from 'react-native-mmkv'
+import * as SecureStore from 'expo-secure-store'
 import type { UserRole } from '../lib/constants'
 
 const storage = new MMKV()
@@ -43,11 +48,10 @@ export interface UserProfile {
 
 interface UserState {
   user: UserProfile | null
-  token: string | null
   isAuthenticated: boolean
   setUser: (user: UserProfile) => void
-  setToken: (token: string) => void
-  logout: () => void
+  setTokens: (access: string, refresh: string) => Promise<void>
+  logout: () => Promise<void>
   updateKycStatus: (status: string) => void
 }
 
@@ -56,17 +60,21 @@ export const useUserStore = create<UserState>()(
     persist(
       (set) => ({
         user: null,
-        token: null,
         isAuthenticated: false,
 
         setUser: (user) =>
           set({ user, isAuthenticated: true }),
 
-        setToken: (token) =>
-          set({ token }),
+        setTokens: async (access, refresh) => {
+          await SecureStore.setItemAsync('ws-token', access)
+          await SecureStore.setItemAsync('ws-refresh-token', refresh)
+        },
 
-        logout: () =>
-          set({ user: null, token: null, isAuthenticated: false }),
+        logout: async () => {
+          await SecureStore.deleteItemAsync('ws-token')
+          await SecureStore.deleteItemAsync('ws-refresh-token')
+          set({ user: null, isAuthenticated: false })
+        },
 
         updateKycStatus: (kycStatus) =>
           set((state) => ({
@@ -78,7 +86,6 @@ export const useUserStore = create<UserState>()(
         storage: createJSONStorage(() => mmkvZustandStorage),
         partialize: (state) => ({
           user: state.user,
-          token: state.token,
           isAuthenticated: state.isAuthenticated,
         }),
       }

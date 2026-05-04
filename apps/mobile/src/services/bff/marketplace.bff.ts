@@ -10,7 +10,6 @@ export interface MarketplaceFilters {
   status?: string;
   minAmount?: number;
   maxAmount?: number;
-  minIrr?: number;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -30,7 +29,6 @@ export interface MarketplaceCard {
   targetAmount: number;
   raisedAmount: number;
   minInvestment: number;
-  targetIrr: number;
   rentalYield: number | null;
   investorCount: number;
   fundingPercentage: number;
@@ -74,7 +72,6 @@ export const mobileMarketplaceBff = {
     if (filters.status) params.status = filters.status;
     if (filters.minAmount) params.min_amount = filters.minAmount;
     if (filters.maxAmount) params.max_amount = filters.maxAmount;
-    if (filters.minIrr) params.min_irr = filters.minIrr;
     if (filters.search) params.search = filters.search;
     if (filters.sortBy) params.sort_by = filters.sortBy;
     if (filters.sortOrder) params.sort_order = filters.sortOrder;

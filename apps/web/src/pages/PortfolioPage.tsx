@@ -7,6 +7,10 @@ import { EmptyState, Badge } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonPortfolioCard } from '@/components/VaultComingSoonOverlay'
+import VaultPickerModal from '@/components/VaultPickerModal'
+import { TransactionDetailsPopup } from '@/components/portfolio/TransactionDetailsPopup'
+import { ProjectUpdatesPopup } from '@/components/portfolio/ProjectUpdatesPopup'
+import { useBuilderUpdateUnreadCounts } from '@/hooks/useBuilderUpdates'
 import {
   usePortfolioSummary,
   usePortfolioHoldings,
@@ -29,18 +33,18 @@ import {
   Wallet,
   ArrowUpRight,
   ArrowDownRight,
-  IndianRupee,
   Clock,
-  BarChart3,
   Loader2,
   Heart,
   Share2,
   FileCheck,
-  Eye,
   X,
   ExternalLink,
   MapPin,
   Calendar,
+  FileText,
+  Bell,
+  CheckCircle2,
 } from 'lucide-react'
 
 /* ── Vault metadata ──────────────────────────────────────────────── */
@@ -126,9 +130,6 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
   const meta = VAULT_META[vault.vaultType]
   if (!meta) return null
   const Icon = meta.icon
-  const pct = vault.totalInvested > 0 ? vault.returnPct : 0
-  const isPositive = pct >= 0
-
   return (
     <div className={`rounded-xl border ${meta.accent} overflow-hidden`}>
       <div className={`bg-gradient-to-r ${meta.gradient} px-5 py-4`}>
@@ -147,138 +148,79 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
       <div className="p-5 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Invested</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Total Invested</p>
             <p className="font-mono text-sm font-bold text-theme-primary">{formatINR(vault.totalInvested)}</p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Current Value</p>
-            <p className="font-mono text-sm font-bold text-theme-primary">{formatINR(vault.currentValue)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Returns</p>
-            <p className={`font-mono text-sm font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-              {isPositive ? '+' : ''}{formatINR(vault.returns)} ({pct > 0 ? '+' : ''}{pct.toFixed(1)}%)
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Current IRR</p>
-            <p className={`font-mono text-sm font-bold ${
-              vault.actualIrr != null && vault.actualIrr > 0
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : vault.actualIrr != null && vault.actualIrr < 0
-                ? 'text-red-500'
-                : meta.color
-            }`}>
-              {vault.actualIrr != null ? `${vault.actualIrr > 0 ? '+' : ''}${vault.actualIrr.toFixed(1)}%` : '—'}
-            </p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Projects</p>
+            <p className="font-mono text-sm font-bold text-theme-primary">{vault.opportunityCount}</p>
           </div>
         </div>
-        {vault.avgDurationDays > 0 && (
-          <div className="flex items-center gap-2 text-xs text-theme-tertiary">
-            <Clock className="h-3.5 w-3.5" />
-            Avg. hold: {Math.round(vault.avgDurationDays)} days
-          </div>
-        )}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Avg. Duration</p>
+          <p className="font-mono text-sm font-bold text-theme-primary">
+            {vault.avgDurationDays ? `${Math.round(vault.avgDurationDays / 30)} mo` : '—'}
+          </p>
+        </div>
       </div>
     </div>
   )
 }
 
-/* ── Geographic Spread Panel ─────────────────────────────────────── */
 
-function CityDistributionPanel({ data }: { data: Array<{ city: string; percentage: number; value: number }> }) {
-  if (!data || data.length === 0)
-    return <p className="text-sm text-theme-tertiary text-center py-6">No investment data available.</p>
+
+
+/* ── Updates Bell Button ─────────────────────────────────────────── */
+
+function UpdatesBellButton({
+  unreadCount,
+  hasUpdates,
+  onClick,
+}: {
+  unreadCount: number
+  hasUpdates: boolean
+  onClick: () => void
+}) {
+  if (!hasUpdates) {
+    return (
+      <button
+        onClick={onClick}
+        className="inline-flex items-center gap-1 text-xs font-medium text-theme-tertiary hover:text-primary transition-colors"
+      >
+        <Bell className="h-3.5 w-3.5" />
+        Updates
+      </button>
+    )
+  }
+
+  if (unreadCount === 0) {
+    return (
+      <button
+        onClick={onClick}
+        className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+        title="All caught up"
+      >
+        <Bell className="h-3.5 w-3.5" />
+        <CheckCircle2 className="h-3 w-3" />
+      </button>
+    )
+  }
+
   return (
-    <div className="space-y-3">
-      {data.map((d, i) => (
-        <div key={`city-${i}`} className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="font-medium text-theme-primary flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-theme-tertiary" />
-              {d.city}
-            </span>
-            <span className="text-theme-tertiary">
-              {d.percentage.toFixed(0)}% &middot; {formatINR(d.value)}
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-theme-surface-hover overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${d.percentage}%` }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
+    <button
+      onClick={onClick}
+      className="relative inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+    >
+      <span className="relative">
+        <Bell className="h-3.5 w-3.5" />
+        <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-white text-[8px] font-bold leading-none">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      </span>
+      Updates
+    </button>
   )
 }
-
-/* ── IRR Breakdown Panel ─────────────────────────────────────────── */
-
-function IrrBreakdownPanel({ vaults, portfolioXirr }: { vaults: VaultPortfolioItem[]; portfolioXirr?: number }) {
-  if (!vaults || vaults.length === 0)
-    return <p className="text-sm text-theme-tertiary text-center py-6">IRR data unavailable.</p>
-  return (
-    <div className="space-y-4">
-      {vaults.map((v) => {
-        const meta = VAULT_META[v.vaultType]
-        const hasActual = v.actualIrr != null
-        return (
-          <div key={v.vaultType} className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  VAULT_BADGE[v.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'
-                }`}
-              >
-                {meta?.label ?? v.vaultType}
-              </span>
-              {v.opportunityCount > 0 && (
-                <span className="text-[10px] text-theme-tertiary">
-                  {v.opportunityCount} investment{v.opportunityCount !== 1 ? 's' : ''}
-                </span>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg bg-theme-surface-hover px-3 py-2">
-                <p className="text-theme-tertiary mb-0.5">Expected IRR</p>
-                <p className={`font-mono font-bold ${meta?.color ?? 'text-theme-primary'}`}>
-                  {v.expectedIrr != null ? `${v.expectedIrr}%` : '—'}
-                </p>
-              </div>
-              <div className="rounded-lg bg-theme-surface-hover px-3 py-2">
-                <p className="text-theme-tertiary mb-0.5">Current IRR</p>
-                <p
-                  className={`font-mono font-bold ${
-                    hasActual && v.actualIrr! > 0 ? 'text-emerald-600 dark:text-emerald-400'
-                    : hasActual && v.actualIrr! < 0 ? 'text-red-500'
-                    : 'text-theme-secondary'
-                  }`}
-                >
-                  {hasActual ? `${v.actualIrr! > 0 ? '+' : ''}${v.actualIrr!.toFixed(1)}%` : '—'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )
-      })}
-      {portfolioXirr != null && (
-        <div className="pt-3 border-t border-theme flex justify-between items-center">
-          <span className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">Portfolio XIRR</span>
-          <span
-            className={`font-mono font-bold text-sm ${
-              portfolioXirr > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-theme-primary'
-            }`}
-          >
-            {portfolioXirr > 0 ? '+' : ''}{portfolioXirr.toFixed(1)}%
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 
 /* ── Holding Row (responsive: card on mobile, table row on md+) ──── */
 
@@ -288,88 +230,124 @@ const VAULT_BADGE: Record<string, string> = {
   community: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400',
 }
 
-function HoldingRow({ h, onSnap }: { h: HoldingItem; onSnap: () => void }) {
-  const isPositive = h.returnPct >= 0
+const TXN_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  'Investment Done': { label: 'Investment Done', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
+  'Approvals Pending': { label: 'Approvals Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
+  'In Progress': { label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  'Cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' },
+}
 
+/* ── Holdings Table ──────────────────────────────────────────────── */
+
+function HoldingsTable({
+  holdings,
+  onSnap,
+  onTransactions,
+  onUpdates,
+  unreadCounts,
+  updateTotals,
+}: {
+  holdings: HoldingItem[]
+  onSnap: (h: HoldingItem) => void
+  onTransactions: (h: HoldingItem) => void
+  onUpdates: (h: HoldingItem) => void
+  unreadCounts: Record<string, number>
+  updateTotals: Record<string, number>
+}) {
   return (
-    <div className="group border border-theme rounded-lg bg-[var(--bg-surface)] px-4 py-3 hover:bg-theme-surface transition-colors">
-      {/* Mobile layout */}
-      <div className="flex items-start gap-3 md:hidden">
-        <div className="h-10 w-10 rounded-lg bg-theme-surface-hover overflow-hidden shrink-0">
-          {h.projectImage ? (
-            <img src={h.projectImage} alt="" className="h-full w-full object-cover" loading="lazy" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-theme-tertiary"><Building2 className="h-5 w-5" /></div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-theme-primary truncate">{h.projectTitle}</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full ${VAULT_BADGE[h.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'}`}>{h.vaultType}</span>
-            {h.city && <span className="text-xs text-theme-tertiary truncate">{h.city}</span>}
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <div>
-              <p className="text-xs text-theme-tertiary">Invested</p>
-              <p className="text-sm font-mono font-bold text-theme-primary">{formatINR(h.investedAmount)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-theme-tertiary">Current Value</p>
-              <p className="text-sm font-mono font-bold text-theme-primary">{formatINR(h.currentValue)}</p>
-              <p className={`text-xs font-mono ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                {isPositive ? '+' : ''}{h.returnPct.toFixed(1)}%
-              </p>
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={onSnap}
-          title="View snapshot"
-          className="p-1.5 rounded-lg hover:bg-primary/10 text-theme-tertiary hover:text-primary transition-colors"
-        >
-          <Eye className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Desktop layout */}
-      <div className="hidden md:grid md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-lg bg-theme-surface-hover overflow-hidden shrink-0">
-            {h.projectImage ? (
-              <img src={h.projectImage} alt="" className="h-full w-full object-cover" loading="lazy" />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center text-theme-tertiary"><Building2 className="h-4 w-4" /></div>
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-theme-primary truncate">{h.projectTitle}</p>
-            <p className="text-xs text-theme-tertiary truncate">{h.city ?? '—'}</p>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs text-theme-tertiary">Invested</p>
-          <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(h.investedAmount)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-theme-tertiary">Current Value</p>
-          <p className="text-sm font-mono font-semibold text-theme-primary">{formatINR(h.currentValue)}</p>
-          <p className={`text-xs font-mono ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-            {isPositive ? '+' : ''}{h.returnPct.toFixed(1)}%
-          </p>
-        </div>
-        <div>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${VAULT_BADGE[h.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'}`}>
-            {h.vaultType}
-          </span>
-        </div>
-        <button
-          onClick={onSnap}
-          title="View snapshot"
-          className="p-1.5 rounded-lg hover:bg-primary/10 text-theme-tertiary hover:text-primary transition-colors"
-        >
-          <Eye className="h-4 w-4" />
-        </button>
-      </div>
+    <div className="overflow-x-auto rounded-xl border border-theme">
+      <table className="w-full text-sm min-w-[750px]">
+        <thead className="bg-[var(--bg-surface)] border-b border-theme">
+          <tr>
+            <th className="text-left px-4 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Project</th>
+            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Invested Since</th>
+            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Amount</th>
+            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Sq Ft</th>
+            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Config</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Transactions</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Status</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Updates</th>
+          </tr>
+        </thead>
+        <tbody>
+          {holdings.map((h, idx) => {
+            const txnCfg = TXN_STATUS_CONFIG[h.transactionStatus] ?? { label: h.transactionStatus || '—', color: 'bg-[var(--bg-surface)] text-theme-secondary' }
+            const isLast = idx === holdings.length - 1
+            return (
+              <tr key={h.id} className={`${isLast ? '' : 'border-b border-theme/60'} hover:bg-[var(--bg-surface-hover)] transition-colors`}>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-theme-surface-hover overflow-hidden shrink-0">
+                      {h.projectImage ? (
+                        <img src={h.projectImage} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center"><Building2 className="h-4 w-4 text-theme-tertiary" /></div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <button
+                        onClick={() => onSnap(h)}
+                        className="font-medium text-theme-primary truncate max-w-[150px] block text-left hover:text-primary"
+                      >
+                        {h.projectTitle}
+                      </button>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full shrink-0 ${VAULT_BADGE[h.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'}`}>{h.vaultType}</span>
+                        {h.city && <span className="text-[10px] text-theme-tertiary truncate">{h.city}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-3 text-xs text-theme-secondary whitespace-nowrap">
+                  {new Date(h.investedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </td>
+                <td className="px-3 py-3 text-right font-mono font-semibold text-theme-primary whitespace-nowrap">
+                  {formatINR(h.investedAmount)}
+                </td>
+                <td className="px-3 py-3 text-right text-xs text-theme-secondary whitespace-nowrap">
+                  {h.sqft ? `${h.sqft.toLocaleString('en-IN')} sqft` : '—'}
+                </td>
+                <td className="px-3 py-3">
+                  {h.flatConfigurations.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {h.flatConfigurations.map((cfg) => (
+                        <span key={cfg} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">{cfg}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-theme-tertiary">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-3 text-center">
+                  <button
+                    onClick={() => onTransactions(h)}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    View
+                  </button>
+                </td>
+                <td className="px-3 py-3 text-center">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${txnCfg.color}`}>
+                    {txnCfg.label}
+                  </span>
+                </td>
+                <td className="px-3 py-3 text-center">
+                  {h.opportunityId ? (
+                    <UpdatesBellButton
+                      unreadCount={unreadCounts[h.opportunityId] ?? 0}
+                      hasUpdates={(updateTotals[h.opportunityId] ?? 0) > 0}
+                      onClick={() => onUpdates(h)}
+                    />
+                  ) : (
+                    <span className="text-xs text-theme-tertiary">—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -446,27 +424,6 @@ function HoldingDetailModal({
               </p>
             </div>
           </div>
-
-          {/* IRR section */}
-          {sections.includes('irr') && (
-            <div>
-              <h4 className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider mb-2">IRR Metrics</h4>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg bg-theme-surface px-3 py-2.5 text-center">
-                  <p className="text-[10px] text-theme-tertiary">Expected</p>
-                  <p className="text-sm font-mono font-bold text-theme-primary">{holding.expectedIrr != null ? `${holding.expectedIrr}%` : '—'}</p>
-                </div>
-                <div className="rounded-lg bg-theme-surface px-3 py-2.5 text-center">
-                  <p className="text-[10px] text-theme-tertiary">Actual</p>
-                  <p className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">{holding.actualIrr != null ? `${holding.actualIrr}%` : '—'}</p>
-                </div>
-                <div className="rounded-lg bg-theme-surface px-3 py-2.5 text-center">
-                  <p className="text-[10px] text-theme-tertiary">Appreciation</p>
-                  <p className="text-sm font-mono font-bold text-theme-primary">{holding.appreciationPct != null ? `${holding.appreciationPct >= 0 ? '+' : ''}${holding.appreciationPct.toFixed(1)}%` : '—'}</p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Property details */}
           {sections.includes('property_details') && (
@@ -724,7 +681,10 @@ function LoadingState() {
 export default function PortfolioPage() {
   const navigate = useNavigate()
   const [selectedHolding, setSelectedHolding] = useState<HoldingItem | null>(null)
+  const [selectedTxnHolding, setSelectedTxnHolding] = useState<HoldingItem | null>(null)
+  const [selectedUpdatesHolding, setSelectedUpdatesHolding] = useState<HoldingItem | null>(null)
   const [activityPage, setActivityPage] = useState(0)
+  const [showDnaPicker, setShowDnaPicker] = useState(false)
   const { data: summary, isLoading: summaryLoading } = usePortfolioSummary()
   const { data: holdings, isLoading: holdingsLoading } = usePortfolioHoldings()
   const { data: snapshotConfig } = useSnapshotConfig()
@@ -732,6 +692,18 @@ export default function PortfolioPage() {
   const { data: vaultData, isLoading: vaultLoading } = useVaultWisePortfolio()
   const { data: activities } = useUserActivities(15)
   const { isVaultEnabled } = useVaultConfig()
+
+  // Unread counts for bell badges
+  const holdingOpportunityIds = (holdings ?? []).map((h) => h.opportunityId).filter((id): id is string => !!id)
+  const { data: unreadCountsData } = useBuilderUpdateUnreadCounts(holdingOpportunityIds)
+  const unreadCounts: Record<string, number> = {}
+  const updateTotals: Record<string, number> = {}
+  if (unreadCountsData) {
+    for (const [id, counts] of Object.entries(unreadCountsData)) {
+      unreadCounts[id] = counts.unread
+      updateTotals[id] = counts.total
+    }
+  }
 
   // Investor gate: must have completed at least one vault's DNA
   const userRole = useUserStore((s) => s.user?.role)
@@ -744,8 +716,6 @@ export default function PortfolioPage() {
   const heroTitle = useContent('portfolio', 'hero_title', 'The War Chest')
   const heroSubtitle = useContent('portfolio', 'hero_subtitle', 'Your empire-in-progress \u2014 every asset, every return, all in one place.')
   const sectionVaults = useContent('portfolio', 'section_vaults', 'Vault-Wise Breakdown')
-  const sectionAlloc = useContent('portfolio', 'section_alloc', 'Geographic Spread')
-  const sectionReturns = useContent('portfolio', 'section_returns', 'IRR Performance')
   const sectionHoldings = useContent('portfolio', 'section_holdings', 'Holdings')
   const sectionActivity = useContent('portfolio', 'section_activity', 'Recent Activity')
   const emptyHoldings = useContent('portfolio', 'empty_holdings', 'No Holdings Yet')
@@ -763,10 +733,11 @@ export default function PortfolioPage() {
             title="Complete Your Profile First"
             message="You need to complete at least one vault's DNA profiling before accessing your portfolio."
             actionLabel="Go to Profiling"
-            onAction={() => navigate('/profiling')}
+            onAction={() => setShowDnaPicker(true)}
           />
         </main>
         <Footer />
+        <VaultPickerModal open={showDnaPicker} onClose={() => setShowDnaPicker(false)} />
       </div>
     )
   }
@@ -813,29 +784,11 @@ export default function PortfolioPage() {
             <>
               {/* ── Grand Summary Cards ───────────────────────────── */}
               <section>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <StatCard
                     label="Total Invested"
                     value={formatINR(vaultData?.grandTotalInvested ?? summary?.totalInvested ?? 0)}
                     icon={Wallet}
-                  />
-                  <StatCard
-                    label="Current Value"
-                    value={formatINR(vaultData?.grandCurrentValue ?? summary?.currentValue ?? 0)}
-                    icon={IndianRupee}
-                  />
-                  <StatCard
-                    label="Total Returns"
-                    value={formatINR(vaultData?.grandReturns ?? summary?.totalReturns ?? 0)}
-                    sub={`${(vaultData?.grandReturnPct ?? 0) > 0 ? '+' : ''}${(vaultData?.grandReturnPct ?? 0).toFixed(1)}%`}
-                    icon={TrendingUp}
-                    trend={(vaultData?.grandReturns ?? 0) >= 0 ? 'up' : 'down'}
-                  />
-                  <StatCard
-                    label="XIRR"
-                    value={summary?.xirr != null ? `${summary.xirr.toFixed(1)}%` : '—'}
-                    sub={summary?.propertiesCount ? `${summary.propertiesCount} properties · ${summary.citiesCount} cities` : undefined}
-                    icon={BarChart3}
                   />
                 </div>
               </section>
@@ -867,26 +820,7 @@ export default function PortfolioPage() {
                 </section>
               )}
 
-              {/* ── Charts Row ────────────────────────────────────── */}
-              <section className="grid lg:grid-cols-2 gap-6">
-                {/* Geographic Spread */}
-                <div className="card p-6">
-                  <div className="flex items-center gap-2 mb-5">
-                    <MapPin className="h-5 w-5 text-theme-tertiary" />
-                    <h3 className="section-title text-lg">{sectionAlloc}</h3>
-                  </div>
-                  <CityDistributionPanel data={summary?.cityDistribution ?? []} />
-                </div>
 
-                {/* IRR Performance */}
-                <div className="card p-6">
-                  <div className="flex items-center gap-2 mb-5">
-                    <TrendingUp className="h-5 w-5 text-theme-tertiary" />
-                    <h3 className="section-title text-lg">{sectionReturns}</h3>
-                  </div>
-                  <IrrBreakdownPanel vaults={vaultData?.vaults ?? []} portfolioXirr={summary?.xirr} />
-                </div>
-              </section>
 
               {/* ── Holdings ──────────────────────────────────────── */}
               <section>
@@ -901,11 +835,14 @@ export default function PortfolioPage() {
                 ) : !holdings || holdings.length === 0 ? (
                   <EmptyState icon={Building2} title={emptyHoldings} message={emptyHoldingsMsg} />
                 ) : (
-                  <div className="space-y-2">
-                    {holdings.map((h) => (
-                      <HoldingRow key={h.id} h={h} onSnap={() => setSelectedHolding(h)} />
-                    ))}
-                  </div>
+                  <HoldingsTable
+                    holdings={holdings}
+                    onSnap={(h) => setSelectedHolding(h)}
+                    onTransactions={(h) => setSelectedTxnHolding(h)}
+                    onUpdates={(h) => setSelectedUpdatesHolding(h)}
+                    unreadCounts={unreadCounts}
+                    updateTotals={updateTotals}
+                  />
                 )}
               </section>
 
@@ -914,6 +851,21 @@ export default function PortfolioPage() {
                   holding={selectedHolding}
                   sections={snapshotConfig?.sections ?? ['irr', 'appreciation_history', 'payout_schedule', 'documents', 'co_investors', 'property_details', 'timeline']}
                   onClose={() => setSelectedHolding(null)}
+                />
+              )}
+
+              {/* TransactionDetailsPopup */}
+              {selectedTxnHolding && (
+                <TransactionDetailsPopup
+                  holding={selectedTxnHolding}
+                  onClose={() => setSelectedTxnHolding(null)}
+                />
+              )}
+              {/* ProjectUpdatesPopup */}
+              {selectedUpdatesHolding && (
+                <ProjectUpdatesPopup
+                  holding={selectedUpdatesHolding}
+                  onClose={() => setSelectedUpdatesHolding(null)}
                 />
               )}
 

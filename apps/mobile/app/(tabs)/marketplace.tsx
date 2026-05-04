@@ -9,7 +9,7 @@ import { useState, useMemo } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { formatINR } from '@/lib/formatters'
-import { useProperties } from '@/hooks/useProperties'
+import { useProperties, type Property } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { EmptyState, Badge, Input, FadeInView } from '@/components/ui'
@@ -210,10 +210,10 @@ export default function MarketplaceScreen() {
       )}
 
       {/* Property Grid */}
-      <FlatList
+      <FlatList<Property>
         data={properties}
         numColumns={2}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: Property) => item.id}
         contentContainerStyle={{ padding: 16 }}
         columnWrapperStyle={{ gap: 16 }}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
@@ -275,7 +275,7 @@ export default function MarketplaceScreen() {
             />
           ) : null
         }
-        renderItem={({ item, index }) => (
+        renderItem={({ item, index }: { item: Property; index: number }) => (
           <FadeInView delay={220 + index * 40}>
             <Link href={`/property/${item.slug}`} asChild>
               <Pressable
@@ -311,10 +311,6 @@ export default function MarketplaceScreen() {
                   </Text>
                   <Text className="text-[10px]" style={{ color: colors.textTertiary }}>{item.city}</Text>
                   <View className="flex-row mt-2 gap-3">
-                    <View>
-                      <Text className="text-[9px]" style={{ color: colors.textTertiary }}>IRR</Text>
-                      <Text className="font-bold text-xs" style={{ color: '#10B981' }}>{item.targetIrr}%</Text>
-                    </View>
                     <View>
                       <Text className="text-[9px]" style={{ color: colors.textTertiary }}>Min</Text>
                       <Text className="font-bold text-xs" style={{ color: colors.textPrimary }}>{formatINR(item.minInvestment)}</Text>

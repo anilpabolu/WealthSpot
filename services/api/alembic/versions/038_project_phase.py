@@ -4,8 +4,9 @@ Revision ID: 038_project_phase
 Revises: 037_builder_updates
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "038_project_phase"
 down_revision = "037_builder_updates"

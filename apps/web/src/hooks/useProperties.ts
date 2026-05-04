@@ -16,7 +16,7 @@ interface ApiProperty {
   assetType: string
   coverImage?: string
   gallery?: string[]
-  targetIrr: number
+
   minInvestment: number
   unitPrice: number
   totalUnits: number
@@ -59,6 +59,12 @@ interface ApiProperty {
   launchDate?: string
   createdAt: string
   updatedAt?: string
+  // Property specification fields
+  propertyType?: string
+  pricePerSqft?: number
+  totalProjectAreaSqft?: number
+  propertySpecs?: Record<string, unknown>
+  propertyAmenities?: string[]
 }
 
 /** Frontend-friendly property shape used throughout the app */
@@ -91,7 +97,6 @@ export interface Property {
   assetType: string
   coverImage: string
   gallery: string[]
-  targetIrr: number
   minInvestment: number
   unitPrice: number
   totalUnits: number
@@ -115,6 +120,12 @@ export interface Property {
   referrerUserId: string
   documents: Array<{ name: string; url: string; type: string }>
   createdAt: string
+  // Property specification fields
+  propertyType?: string
+  pricePerSqft?: number
+  totalProjectAreaSqft?: number
+  propertySpecs?: Record<string, unknown>
+  propertyAmenities?: string[]
 }
 
 /** Map API property to the frontend Property shape */
@@ -130,7 +141,6 @@ function mapProperty(p: ApiProperty): Property {
     assetType: p.assetType,
     coverImage: p.coverImage ?? '/placeholder-property.svg',
     gallery: p.gallery ?? [],
-    targetIrr: Number(p.targetIrr),
     minInvestment: Number(p.minInvestment),
     unitPrice: Number(p.unitPrice),
     totalUnits: p.totalUnits,
@@ -170,6 +180,11 @@ function mapProperty(p: ApiProperty): Property {
     referrerUserId: p.referrerUserId ?? '',
     documents: [],
     createdAt: p.createdAt,
+    propertyType: p.propertyType,
+    pricePerSqft: p.pricePerSqft != null ? Number(p.pricePerSqft) : undefined,
+    totalProjectAreaSqft: p.totalProjectAreaSqft != null ? Number(p.totalProjectAreaSqft) : undefined,
+    propertySpecs: p.propertySpecs,
+    propertyAmenities: p.propertyAmenities,
   }
 }
 
@@ -200,8 +215,6 @@ export function useProperties(filters: MarketplaceFilters) {
           asset_type: filters.assetType || undefined,
           min_investment_min: filters.minInvestment[0],
           min_investment_max: filters.minInvestment[1],
-          irr_min: filters.irrRange[0],
-          irr_max: filters.irrRange[1],
           status: filters.status || undefined,
           sort_by: filters.sortBy,
           page: filters.page,

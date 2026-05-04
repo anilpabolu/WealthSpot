@@ -128,6 +128,20 @@ class Opportunity(Base):
     )  # subtype-specific fields
     # Safe Vault config (interest rate, payout frequency, tenure, security features)
     safe_vault_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Investment configuration mode: 'lumpsum' (builder sets target+min) or 'unit_config' (derived from unit/plot rows)
+    investment_mode: Mapped[str | None] = mapped_column(String(20), default="lumpsum")
+    # Real-estate property type (flat | villa | plot | commercial | warehouse | mixed_use)
+    property_type: Mapped[str | None] = mapped_column(String(30), index=True)
+    # Per-sqft rate (representative listed rate, stored for quick display)
+    price_per_sqft: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    # Total land/construction footprint (sqft)
+    total_project_area_sqft: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
+    # Discriminated JSONB blob (shape varies by property_type — unit configs, areas, etc.)
+    property_specs: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Selected amenity keys from the master amenity list
+    property_amenities: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    # Combined cost estimate for all amenities (e.g. ₹50,000 per unit)
+    amenity_cost_estimate: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
     # Project lifecycle phase
     project_phase: Mapped[str | None] = mapped_column(String(50))
     # Valuation (appreciation tracking)
@@ -184,6 +198,13 @@ class Opportunity(Base):
         back_populates="opportunity",
         lazy="selectin",
         order_by="BuilderUpdate.created_at.desc()",
+    )
+    opportunity_documents = relationship(
+        "OpportunityDocument",
+        back_populates="opportunity",
+        lazy="selectin",
+        order_by="OpportunityDocument.created_at",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

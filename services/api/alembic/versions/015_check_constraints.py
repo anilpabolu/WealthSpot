@@ -5,7 +5,9 @@ Revises: 014_indexes
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
 from alembic import op
 
 revision: str = "015_checks"

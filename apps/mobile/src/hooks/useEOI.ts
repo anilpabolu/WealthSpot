@@ -84,6 +84,7 @@ export interface EOICreatePayload {
   bestTimeToContact?: string
   communicationConsent?: boolean
   additionalNotes?: string
+  selectedUnitConfig?: Record<string, unknown> | null
   answers?: { questionId: string; answerText: string | null }[]
 }
 
@@ -112,6 +113,7 @@ export function useSubmitEOI() {
         best_time_to_contact: data.bestTimeToContact,
         communication_consent: data.communicationConsent,
         additional_notes: data.additionalNotes,
+        selected_unit_config: data.selectedUnitConfig ?? null,
         answers: data.answers?.map(a => ({
           question_id: a.questionId,
           answer_text: a.answerText,
@@ -161,4 +163,30 @@ export const EOI_STATUS_LABELS: Record<string, string> = {
   deal_in_progress: 'Deal in Progress',
   payment_done: 'Payment Done',
   deal_completed: 'Deal Completed',
+}
+
+// ── EOI Form Options ────────────────────────────────────────────────────────
+
+export interface EOIFormOption {
+  id: string
+  fieldName: string
+  value: string
+  label: string
+  isActive: boolean
+  sortOrder: number
+}
+
+export interface EOIFormOptionsGrouped {
+  investment_timeline: EOIFormOption[]
+  funding_source: EOIFormOption[]
+  purpose: EOIFormOption[]
+  preferred_contact: EOIFormOption[]
+}
+
+export function useEOIFormOptions() {
+  return useQuery({
+    queryKey: ['eoi-form-options'],
+    queryFn: () => apiGet<EOIFormOptionsGrouped>('/eoi/form-options'),
+    staleTime: 60 * 60 * 1000,
+  })
 }

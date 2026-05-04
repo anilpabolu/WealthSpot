@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Import all models so SQLAlchemy resolves relationship() string references
-import app.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
+from app import models as _models_init  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from app.core.config import get_settings
 from app.core.exceptions import APIError
 from app.core.logging_config import setup_logging
@@ -32,9 +32,11 @@ from app.routers import (
     auth,
     bank_details,
     builder_updates,
+    comm,
     community,
     companies,
     control_centre,
+    devices,
     eoi,
     investments,
     kyc,
@@ -44,6 +46,7 @@ from app.routers import (
     pincodes,
     points,
     portfolio,
+    portfolio_transactions,
     profile,
     profiling,
     properties,
@@ -142,6 +145,7 @@ app.include_router(community.router, prefix=API_PREFIX)
 app.include_router(referrals.router, prefix=API_PREFIX)
 app.include_router(lender.router, prefix=API_PREFIX)
 app.include_router(notifications.router, prefix=API_PREFIX)
+app.include_router(devices.router, prefix=API_PREFIX)
 app.include_router(webhooks.router, prefix=API_PREFIX)
 app.include_router(approvals.router, prefix=API_PREFIX)
 app.include_router(opportunities.router, prefix=API_PREFIX)
@@ -156,6 +160,8 @@ app.include_router(kyc.router, prefix=API_PREFIX)
 app.include_router(bank_details.router, prefix=API_PREFIX)
 app.include_router(eoi.router, prefix=API_PREFIX)
 app.include_router(portfolio.router, prefix=API_PREFIX)
+app.include_router(portfolio_transactions.router, prefix=API_PREFIX)
+app.include_router(portfolio_transactions.builder_router, prefix=API_PREFIX)
 app.include_router(app_videos.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(profiling.router, prefix=API_PREFIX)
@@ -165,6 +171,7 @@ app.include_router(builder_updates.router, prefix=API_PREFIX)
 app.include_router(appreciation.router, prefix=API_PREFIX)
 app.include_router(appreciation.property_router, prefix=API_PREFIX)
 app.include_router(assessments.router, prefix=API_PREFIX)
+app.include_router(comm.router, prefix=API_PREFIX)
 
 
 # ── Global exception handlers ────────────────────────────────────────────────
@@ -254,6 +261,30 @@ async def operational_error_handler(request: Request, exc: OperationalError) -> 
 
 
 # ── Health ───────────────────────────────────────────────────────────────────
+
+
+@app.get("/live")
+async def live() -> dict[str, str]:
+    """Liveness probe — returns immediately, no dep checks.
+
+    Use as the k8s livenessProbe. If this responds, the process is alive;
+    if it doesn't, the orchestrator should restart the pod. /ready (below)
+    is the right probe for "should this pod receive traffic?".
+    """
+    return {"status": "alive"}
+
+
+@app.get("/ready")
+async def ready() -> JSONResponse:
+    """Readiness probe — runs the same deep checks as /health.
+
+    Returns 200 only when the API can serve real traffic (DB + Redis OK);
+    503 otherwise so the k8s readinessProbe drains the pod from rotation
+    when a dependency goes down.
+    """
+    payload = await health()
+    code = 200 if payload.get("status") == "ok" else 503
+    return JSONResponse(status_code=code, content=payload)
 
 
 @app.get("/health")

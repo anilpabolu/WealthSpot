@@ -5,6 +5,7 @@ import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react
 import { ClerkProvider } from '@clerk/react'
 import * as Sentry from '@sentry/react'
 import { HelmetProvider } from 'react-helmet-async'
+import posthog from 'posthog-js'
 import App from './App'
 import { formatApiError } from './lib/apiError'
 import { useToastStore } from './stores/toastStore'
@@ -17,6 +18,17 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     tracesSampleRate: 0.2,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
+  })
+}
+
+if (import.meta.env.VITE_POSTHOG_KEY) {
+  posthog.init(import.meta.env.VITE_POSTHOG_KEY as string, {
+    api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://app.posthog.com',
+    // Autocapture is disabled by default; opt in per component with posthog.capture()
+    autocapture: false,
+    capture_pageview: true,
+    persistence: 'localStorage+cookie',
+    disable_session_recording: import.meta.env.MODE !== 'production',
   })
 }
 

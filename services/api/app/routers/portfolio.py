@@ -29,7 +29,6 @@ from app.schemas.investment import (
     PortfolioProperty,
     PortfolioSummary,
     PortfolioTransactionItem,
-    TransactionRead,
 )
 from app.services.cache import cache_get, cache_set, make_cache_key
 from app.services.xirr import calculate_xirr
@@ -137,7 +136,7 @@ async def portfolio_summary(
     xirr_cache_key = make_cache_key("xirr", str(user.id), "portfolio")
     xirr_value = cache_get(xirr_cache_key)
     if xirr_value is None:
-        cashflows: list[tuple[datetime, float]] = []
+        cashflows: list[tuple[datetime, float | Decimal]] = []
         for inv in investments:
             inv_date = inv.created_at or datetime.now(UTC)
             cashflows.append((inv_date, -float(inv.amount)))
@@ -313,7 +312,7 @@ async def portfolio_transactions(
         "refund": "payout",
         "fee": "investment",
     }
-    for txn, inv, prop in txn_result.all():
+    for txn, _inv, prop in txn_result.all():
         items.append(
             PortfolioTransactionItem(
                 id=txn.id,
@@ -631,7 +630,7 @@ async def vault_wise_portfolio(
             opportunity_count=w_count,
             investor_count=all_inv_count,
             expected_irr=round(irr_map.get("wealth", 0), 2) if "wealth" in irr_map else None,
-            actual_irr=round(live_xirr["wealth"], 2) if live_xirr.get("wealth") is not None else None,
+            actual_irr=round(live_xirr.get("wealth") or 0.0, 2) if live_xirr.get("wealth") is not None else None,
             avg_duration_days=round(w_avg_days, 0),
         )
     )
@@ -639,8 +638,8 @@ async def vault_wise_portfolio(
     grand_current += w_current
 
     # Opportunity + Community vaults
-    for vt in ["safe", "community"]:
-        a = vault_agg[vt]
+    for vt_str in ["safe", "community"]:
+        a = vault_agg[vt_str]
         invested = a["invested"]
         returns = a["returns"]
         current = invested + returns
@@ -648,15 +647,15 @@ async def vault_wise_portfolio(
 
         vaults.append(
             VaultPortfolioItem(
-                vault_type=vt,
+                vault_type=vt_str,
                 total_invested=invested,
                 current_value=current,
                 returns=returns,
                 return_pct=round(returns / invested * 100, 2) if invested else 0,
                 opportunity_count=len(a["count"]),
                 investor_count=a["inv_count"],
-                expected_irr=round(irr_map.get(vt, 0), 2) if vt in irr_map else None,
-                actual_irr=round(live_xirr[vt], 2) if live_xirr.get(vt) is not None else None,
+                expected_irr=round(irr_map.get(vt_str, 0), 2) if vt_str in irr_map else None,
+                actual_irr=round(live_xirr.get(vt_str) or 0.0, 2) if live_xirr.get(vt_str) is not None else None,
                 avg_duration_days=round(avg_d, 0),
             )
         )
@@ -685,6 +684,25 @@ _SNAPSHOT_DEFAULT_SECTIONS = [
     "property_details",
     "timeline",
 ]
+
+
+def _extract_specs(property_specs: dict | None) -> tuple[float | None, list[str]]:
+    """Extract sqft and flat_configurations from property_specs JSONB."""
+    if not property_specs:
+        return None, []
+    unit_cfgs = property_specs.get("unit_configurations", [])
+    if not isinstance(unit_cfgs, list):
+        return None, []
+    sqft: float | None = None
+    bhk_types: list[str] = []
+    for cfg in unit_cfgs:
+        if isinstance(cfg, dict):
+            if sqft is None:
+                sqft = cfg.get("carpet_area_sqft") or cfg.get("super_built_up_sqft") or None
+            bhk = cfg.get("bhk_type")
+            if bhk and bhk not in bhk_types:
+                bhk_types.append(bhk)
+    return sqft, bhk_types
 
 
 @router.get("/holdings", response_model=list[HoldingItem])
@@ -739,7 +757,7 @@ async def portfolio_holdings(
                     id=first_inv.id,
                     investment_type="property",
                     project_title=prop.title,
-                    project_image=prop.images[0] if getattr(prop, "images", None) else None,
+                    project_image=prop.cover_image,
                     project_slug=None,
                     vault_type="wealth",
                     city=prop.city,
@@ -806,6 +824,18 @@ async def portfolio_holdings(
         # Appreciation percentage equals investor's return pct (Model 2)
         appreciation_pct_opp = return_pct
 
+        # Map investment status to human-readable transaction status
+        txn_status_map = {
+            "confirmed": "Investment Done",
+            "payment_done": "Approvals Pending",
+            "pending": "In Progress",
+            "cancelled": "Cancelled",
+        }
+        txn_status = txn_status_map.get(inv.status.value if hasattr(inv.status, "value") else str(inv.status), "In Progress")
+
+        # Extract sqft and flat configurations from property_specs JSONB
+        specs_sqft, flat_cfgs = _extract_specs(opp.property_specs)
+
         items.append(
             HoldingItem(
                 id=inv.id,
@@ -837,6 +867,9 @@ async def portfolio_holdings(
                 founder_name=opp.founder_name,
                 tagline=opp.tagline,
                 project_phase=opp.project_phase,
+                sqft=specs_sqft,
+                flat_configurations=flat_cfgs,
+                transaction_status=txn_status,
             )
         )
 

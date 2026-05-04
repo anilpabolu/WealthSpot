@@ -5,10 +5,12 @@ Revises: 015_checks
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
 
 from alembic import op
-import sqlalchemy as sa
 
 revision: str = "016_company_vault_type"
 down_revision: Union[str, None] = "015_checks"

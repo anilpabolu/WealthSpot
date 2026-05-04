@@ -9,7 +9,9 @@ so no DDL change is needed — the new 'archived' value is handled
 at the application layer.  This migration exists as a checkpoint.
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
 from alembic import op
 
 revision: str = "034_opportunity_archived_status"

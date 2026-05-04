@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPut } from '@/lib/api'
+import { apiGet, apiPost, apiPut } from '@/lib/api'
 
 export interface PortfolioProperty {
   propertyId: string
@@ -28,8 +28,7 @@ export interface PortfolioSummary {
   currentValue: number
   totalReturns: number
   unrealizedGains: number
-  avgIrr: number
-  xirr: number
+
   propertiesCount: number
   citiesCount: number
   monthlyIncome: number
@@ -167,9 +166,6 @@ export interface HoldingItem {
   currentValue: number
   returns: number
   returnPct: number
-  irr: number | null
-  expectedIrr: number | null
-  actualIrr: number | null
   units: number
   investedAt: string
   status: string
@@ -186,6 +182,9 @@ export interface HoldingItem {
   founderName: string | null
   tagline: string | null
   projectPhase: string | null
+  sqft: number | null
+  flatConfigurations: string[]
+  transactionStatus: string
 }
 
 export function usePortfolioHoldings() {
@@ -241,5 +240,108 @@ export function useOpportunityAppreciationHistory(opportunityId: string | null |
       apiGet<AppreciationHistoryItem[]>(`/opportunities/${opportunityId}/appreciation-history`),
     enabled: !!opportunityId,
     staleTime: 60_000,
+  })
+}
+
+/* ── Transaction records ─────────────────────────────────────────── */
+
+export interface TransactionRecord {
+  id: string
+  amount: number
+  transactionDate: string
+  referenceNumber: string | null
+  description: string | null
+  hasAcknowledgement: boolean
+  ocrRawText: string | null
+  createdAt: string
+}
+
+export interface CreateTransactionBody {
+  amount: number
+  transactionDate: string
+  referenceNumber?: string
+  description?: string
+}
+
+export function useHoldingTransactionRecords(holdingId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['portfolio', 'transactions', 'holding', holdingId],
+    queryFn: () => apiGet<TransactionRecord[]>(`/portfolio/holdings/${holdingId}/transactions`),
+    enabled: !!holdingId,
+    staleTime: 30_000,
+  })
+}
+
+export function useCreateTransactionRecord(holdingId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateTransactionBody) =>
+      apiPost<TransactionRecord>(`/portfolio/holdings/${holdingId}/transactions`, {
+        amount: body.amount,
+        transaction_date: body.transactionDate,
+        reference_number: body.referenceNumber || undefined,
+        description: body.description || undefined,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portfolio', 'transactions', 'holding', holdingId] })
+    },
+  })
+}
+
+export function useUploadAcknowledgement(holdingId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      const { api } = await import('@/lib/api')
+      const resp = await api.post<TransactionRecord>(
+        `/portfolio/holdings/${holdingId}/transactions/upload-ack`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+      return resp.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portfolio', 'transactions', 'holding', holdingId] })
+    },
+  })
+}
+
+export function useAcknowledgementUrl(holdingId: string, recordId: string | null) {
+  return useQuery({
+    queryKey: ['portfolio', 'ack-url', holdingId, recordId],
+    queryFn: () =>
+      apiGet<{ url: string; expiresIn: number }>(
+        `/portfolio/holdings/${holdingId}/transactions/${recordId}/acknowledgement`
+      ),
+    enabled: !!recordId,
+    staleTime: 4 * 60_000, // 4 min (URL expires in 5)
+  })
+}
+
+export function useBuilderInvestorTransactions(opportunityId: string | null, investorUserId: string | null) {
+  return useQuery({
+    queryKey: ['builder', 'investor-transactions', opportunityId, investorUserId],
+    queryFn: () =>
+      apiGet<TransactionRecord[]>(`/opportunities/${opportunityId}/investors/${investorUserId}/transactions`),
+    enabled: !!opportunityId && !!investorUserId,
+    staleTime: 30_000,
+  })
+}
+
+export function useBuilderAcknowledgementUrl(
+  opportunityId: string | null,
+  investorUserId: string | null,
+  recordId: string | null
+) {
+  return useQuery({
+    queryKey: ['builder', 'ack-url', opportunityId, investorUserId, recordId],
+    queryFn: () =>
+      apiGet<{ url: string; expiresIn: number }>(
+        `/opportunities/${opportunityId}/investors/${investorUserId}/transactions/${recordId}/acknowledgement`
+      ),
+    enabled: !!opportunityId && !!investorUserId && !!recordId,
+    staleTime: 4 * 60_000,
   })
 }

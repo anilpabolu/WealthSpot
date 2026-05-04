@@ -1,6 +1,20 @@
-import { useState } from 'react'
-import { Select } from '@/components/ui'
-import { X, Building2, Users, CheckCircle2, Loader2, Lock, Wallet, Handshake, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Select, Input, Textarea } from '@/components/ui'
+import {
+  X, Building2, Users, Loader2, Lock, Wallet, Handshake, ArrowLeft, ShieldCheck,
+  Waves, Dumbbell, Footprints, Bike, Target, Wind, CircleDot, Crosshair,
+  Star, Gamepad2, Heart, Sparkles, Flower2, Trees, Music, Film, PartyPopper, Flag, PawPrint,
+  Camera, Phone, Shield, Monitor, Flame, KeyRound, TriangleAlert, UserCheck,
+  Zap, ArrowUp, Car, ParkingSquare, BatteryCharging, Sun, Droplets, Wifi, Shirt, Bell, Package,
+  Home, ScanEye,
+  Building2 as Building2Icon, Layout, BookOpen, Briefcase, Sprout,
+  Cross, Baby, HeartPulse, Pill, Stethoscope,
+  Recycle, Lightbulb, Leaf, Award,
+  ShoppingCart, CreditCard, Coffee, Utensils, Scissors,
+  Train, Bus, GraduationCap, Plane, Route, Store,
+  AlertCircle,
+  type LucideIcon,
+} from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -11,6 +25,8 @@ import CompanySelector from './CompanySelector'
 import CompanyOnboardingModal from './CompanyOnboardingModal'
 import { type CommunitySubtypeValue } from './CommunitySubtypeModal'
 import { useToastStore } from '@/stores/toastStore'
+import { AMENITIES, AMENITY_CATEGORIES, PropertyType } from '@wealthspot/types'
+import type { AmenityCategory } from '@wealthspot/types'
 
 const COMMUNITY_SUBTYPES = [
   {
@@ -65,6 +81,133 @@ const PARTNER_SKILLS = [
   'HR & Talent', 'Domain Expertise', 'Other',
 ]
 
+/* ── Property spec constants ──────────────────────────────────────── */
+const PROPERTY_TYPE_OPTIONS = [
+  { value: PropertyType.FLAT, label: 'Flat / Apartment', icon: '🏢' },
+  { value: PropertyType.VILLA, label: 'Villa / Row House', icon: '🏡' },
+  { value: PropertyType.PLOT, label: 'Plot / Land', icon: '🏞️' },
+  { value: PropertyType.COMMERCIAL, label: 'Commercial', icon: '🏪' },
+  { value: PropertyType.WAREHOUSE, label: 'Warehouse', icon: '🏭' },
+  { value: PropertyType.MIXED_USE, label: 'Mixed Use', icon: '🏙️' },
+]
+
+// BHK type options per property type
+const BHK_TYPES_RESIDENTIAL = ['Studio', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Penthouse', 'Duplex']
+const BHK_TYPES_COMMERCIAL = ['Office Unit', 'Retail Unit', 'Showroom', 'Studio Office', 'Co-working Bay', 'Whole Floor', 'Other']
+const BHK_TYPES_WAREHOUSE = ['Small Bay (< 5000 sqft)', 'Medium Bay (5–20k sqft)', 'Large Bay (> 20k sqft)', 'Cold Storage Unit', 'Mezzanine Unit', 'Other']
+const BHK_TYPES_MIXED = [...BHK_TYPES_RESIDENTIAL, 'Office Unit', 'Retail Unit', 'Other']
+
+function getBhkTypes(pt: string) {
+  if (pt === PropertyType.COMMERCIAL) return BHK_TYPES_COMMERCIAL
+  if (pt === PropertyType.WAREHOUSE) return BHK_TYPES_WAREHOUSE
+  if (pt === PropertyType.MIXED_USE) return BHK_TYPES_MIXED
+  return BHK_TYPES_RESIDENTIAL
+}
+
+const PLOT_TYPE_OPTIONS = ['Residential Plot', 'Commercial Plot', 'Industrial Plot', 'Agricultural Land', 'NA Plot']
+function generatePossessionQuarters(): string[] {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentQ = Math.ceil((now.getMonth() + 1) / 3)
+  const quarters: string[] = ['Ready to Move']
+  for (let y = currentYear; y <= currentYear + 5; y++) {
+    const startQ = y === currentYear ? currentQ : 1
+    for (let q = startQ; q <= 4; q++) {
+      quarters.push(`Q${q} ${y}`)
+    }
+  }
+  return quarters
+}
+const POSSESSION_QUARTERS = generatePossessionQuarters()
+
+// Which spec fields to show per property type
+interface PropertyFieldConfig {
+  showPossessionQuarter: boolean
+  showRera: boolean
+  showTotalTowers: boolean
+  showTotalFloors: boolean
+  showUnitConfig: boolean
+  showPlotConfig: boolean
+  unitConfigLabel: string
+}
+const PROPERTY_FIELD_CONFIG: Record<string, PropertyFieldConfig> = {
+  [PropertyType.FLAT]:       { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'BHK / Unit Configurations' },
+  [PropertyType.VILLA]:      { showPossessionQuarter: true,  showRera: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Villa / Row House Configurations' },
+  [PropertyType.PLOT]:       { showPossessionQuarter: false, showRera: false, showTotalTowers: false, showTotalFloors: false, showUnitConfig: false, showPlotConfig: true,  unitConfigLabel: '' },
+  [PropertyType.COMMERCIAL]: { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+  [PropertyType.WAREHOUSE]:  { showPossessionQuarter: true,  showRera: false, showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Bay / Unit Configurations' },
+  [PropertyType.MIXED_USE]:  { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+}
+
+// Amenity categories allowed per property type
+const PROPERTY_AMENITY_CATEGORIES: Record<string, AmenityCategory[]> = {
+  [PropertyType.FLAT]:       ['lifestyle', 'security', 'convenience', 'community', 'healthcare', 'green', 'retail', 'connectivity'],
+  [PropertyType.VILLA]:      ['lifestyle', 'security', 'convenience', 'community', 'healthcare', 'green', 'retail', 'connectivity'],
+  [PropertyType.PLOT]:       ['security', 'green', 'connectivity'],
+  [PropertyType.COMMERCIAL]: ['security', 'convenience', 'community', 'retail', 'connectivity'],
+  [PropertyType.WAREHOUSE]:  ['security', 'convenience', 'connectivity'],
+  [PropertyType.MIXED_USE]:  ['lifestyle', 'security', 'convenience', 'community', 'healthcare', 'green', 'retail', 'connectivity'],
+}
+
+// Amenity keys to exclude for specific property types (granular overrides)
+const AMENITY_EXCLUDE_BY_TYPE: Record<string, string[]> = {
+  [PropertyType.COMMERCIAL]: ['kids_play_area', 'kids_pool', 'pet_park', 'yoga_deck', 'servant_quarters', 'senior_citizen_zone', 'creche_daycare'],
+  [PropertyType.WAREHOUSE]:  ['kids_play_area', 'kids_pool', 'pet_park', 'yoga_deck', 'servant_quarters', 'high_speed_lifts', 'concierge'],
+  [PropertyType.VILLA]:      ['high_speed_lifts'],
+  [PropertyType.PLOT]:       [],
+}
+
+// Static icon map — maps amenity icon names to Lucide components
+const AMENITY_ICON_MAP: Record<string, LucideIcon> = {
+  Waves, Dumbbell, Footprints, Bike, Target, Wind, CircleDot, Crosshair,
+  Star, Gamepad2, Heart, Sparkles, Flower2, Trees, Music, Film, PartyPopper, Flag, PawPrint,
+  Camera, Phone, Shield, Monitor, Flame, KeyRound, TriangleAlert, UserCheck,
+  Zap, ArrowUp, Car, ParkingSquare, BatteryCharging, Sun, Droplets, Wifi, Shirt, Bell, Package,
+  Home, ScanEye, AlertCircle,
+  Layout, BookOpen, Briefcase, Sprout,
+  Cross, Baby, HeartPulse, Pill, Stethoscope,
+  Recycle, Lightbulb, Leaf, Award,
+  ShoppingCart, CreditCard, Coffee, Utensils, Scissors,
+  Train, Bus, GraduationCap, Plane, Route, Store,
+  // aliased names used in amenities.ts
+  Lock,
+  Building2: Building2Icon,
+  Activity: AlertCircle,
+}
+const LAND_UNITS = [
+  { value: 'sqft',  label: 'Sq.Ft',   factor: 1 },
+  { value: 'sqyd',  label: 'Sq.Yd',   factor: 9 },
+  { value: 'guntha',label: 'Guntha',  factor: 1089 },
+  { value: 'acres', label: 'Acres',   factor: 43560 },
+  { value: 'bigha', label: 'Bigha',   factor: 27225 },
+] as const
+type LandUnit = typeof LAND_UNITS[number]['value']
+
+function sqftConversions(sqft: number) {
+  return {
+    sqft: sqft.toLocaleString('en-IN'),
+    sqyd: (sqft / 9).toFixed(1),
+    guntha: (sqft / 1089).toFixed(3),
+    acre: (sqft / 43560).toFixed(4),
+    bigha: (sqft / 27225).toFixed(4),
+  }
+}
+
+interface UnitConfigRow {
+  id: string; bhkType: string; carpetAreaSqft: string; superBuiltUpSqft: string
+  bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
+}
+interface PlotConfigRow {
+  id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string
+}
+interface ProjectOverview {
+  totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string
+}
+
+const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
+const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
+const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' }
+
 type CommunityDetailsState = Record<string, string | number | string[]>
 
 interface MediaItem {
@@ -84,7 +227,7 @@ const EMPTY_ADDRESS: AddressFields = {
 }
 
 export default function CreateOpportunityModal({ open, onClose }: Props) {
-  const [step, setStep] = useState<'vault' | 'community-subtype' | 'form' | 'uploading' | 'success'>('vault')
+  const [step, setStep] = useState<'vault' | 'community-subtype' | 'form' | 'uploading'>('vault')
   const [vaultType, setVaultType] = useState('')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
@@ -105,11 +248,46 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const [address, setAddress] = useState<AddressFields>(EMPTY_ADDRESS)
   const [uploadProgress, setUploadProgress] = useState('')
   const [showOnboarding, setShowOnboarding] = useState(false)
+  // ── Property specs state ────────────────────────────────────────────────
+  const [propertyType, setPropertyType] = useState<string>('')
+  const [unitConfigs, setUnitConfigs] = useState<UnitConfigRow[]>([{ ...DEFAULT_UNIT_CONFIG }])
+  const [plotConfigs, setPlotConfigs] = useState<PlotConfigRow[]>([{ ...DEFAULT_PLOT_CONFIG }])
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [pricePerSqftField, setPricePerSqftField] = useState<string>('')
+  const [totalProjectAreaSqft, setTotalProjectAreaSqft] = useState<string>('')
+  const [projectOverview, setProjectOverview] = useState<ProjectOverview>({ ...DEFAULT_PROJECT_OVERVIEW })
+  const [submitAttempted, setSubmitAttempted] = useState(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [investmentMode, setInvestmentMode] = useState<'lumpsum' | 'unit_config' | ''>('')
+  const [landParcelUnit, setLandParcelUnit] = useState<LandUnit>('sqft')
+  const [landParcelRawValue, setLandParcelRawValue] = useState<string>('')
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
   const { isVaultEnabled } = useVaultConfig()
 
+  // Reset amenities and unit/plot configs when property type changes
+  useEffect(() => {
+    setSelectedAmenities([])
+    setUnitConfigs([{ ...DEFAULT_UNIT_CONFIG }])
+    setPlotConfigs([{ ...DEFAULT_PLOT_CONFIG }])
+    setProjectOverview({ ...DEFAULT_PROJECT_OVERVIEW })
+    setInvestmentMode('')
+    setLandParcelUnit('sqft')
+    setLandParcelRawValue('')
+  }, [propertyType])
+
+  // Auto-compute lumpsum target from price/sqft × total area
+  useEffect(() => {
+    if (investmentMode === 'lumpsum' && pricePerSqftField && totalProjectAreaSqft) {
+      const computed = Number(pricePerSqftField) * Number(totalProjectAreaSqft)
+      if (computed > 0) setForm((prev) => ({ ...prev, targetAmount: computed }))
+    }
+  }, [pricePerSqftField, totalProjectAreaSqft, investmentMode])
+
   if (!open) return null
+
+  // Helper: returns true when submitAttempted and that field has an error
+  const fe = (key: string) => submitAttempted && !!formErrors[key]
 
   const handleVaultSelect = (vault: string) => {
     setVaultType(vault)
@@ -146,8 +324,168 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  const validateForm = (): Record<string, string> => {
+    const errors: Record<string, string> = {}
+    if (!form.title?.trim()) errors.title = 'Required'
+    if (!form.tagline?.trim()) errors.tagline = 'Required'
+    if (!form.description?.trim()) errors.description = 'Required'
+
+    if (vaultType === 'wealth' || vaultType === 'safe') {
+      if (!propertyType) errors.propertyType = 'Required'
+      if (!pricePerSqftField) errors.pricePerSqft = 'Required'
+      if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
+
+      if (propertyType) {
+        const fc = PROPERTY_FIELD_CONFIG[propertyType]
+        if (fc) {
+          if (fc.showPossessionQuarter && !projectOverview.possessionQuarter) errors.possessionQuarter = 'Required'
+          if (fc.showRera && !projectOverview.reraNumber) errors.reraNumber = 'Required'
+          if (fc.showTotalFloors && !projectOverview.totalFloors) errors.totalFloors = 'Required'
+          if (!projectOverview.landParcelSqft) errors.landParcelSqft = 'Required'
+
+          // Unit/plot config validation only applies when configs are shown
+          const showConfigs = vaultType === 'safe' || investmentMode === 'unit_config'
+          if (showConfigs) {
+            if (fc.showUnitConfig) {
+              const hasValidUnit = unitConfigs.some((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
+              if (!hasValidUnit) errors.unitConfig = 'At least one complete unit config required'
+              // In unit_config mode each row also needs a price
+              if (investmentMode === 'unit_config') {
+                const hasPrice = unitConfigs.some((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits && u.pricePerSqft)
+                if (!hasPrice) errors.unitConfig = 'At least one complete unit config with ₹/sqft pricing required'
+              }
+            }
+            if (fc.showPlotConfig) {
+              const hasValidPlot = plotConfigs.some((p) => p.plotType && p.areaSqft && p.totalPlots)
+              if (!hasValidPlot) errors.plotConfig = 'At least one complete plot config required'
+              if (investmentMode === 'unit_config') {
+                const hasPrice = plotConfigs.some((p) => p.plotType && p.areaSqft && p.totalPlots && p.pricePerSqft)
+                if (!hasPrice) errors.plotConfig = 'At least one complete plot config with ₹/sqft pricing required'
+              }
+            }
+          }
+
+          const allowedCats = PROPERTY_AMENITY_CATEGORIES[propertyType] ?? []
+          const excludeKeys = AMENITY_EXCLUDE_BY_TYPE[propertyType] ?? []
+          const availableAmenities = AMENITIES.filter(
+            (a) => allowedCats.includes(a.category) && !excludeKeys.includes(a.key)
+          )
+          if (availableAmenities.length > 0 && selectedAmenities.length === 0) {
+            errors.amenities = 'Select at least one amenity'
+          }
+        }
+      }
+
+      if (!form.fundingOpenAt) errors.fundingOpenAt = 'Required'
+
+      if (vaultType === 'wealth') {
+        if (!investmentMode) {
+          errors.investmentMode = 'Select an investment configuration mode'
+        } else if (investmentMode === 'lumpsum') {
+          if (!form.targetAmount) errors.targetAmount = 'Required'
+          if (!form.minInvestment) errors.minInvestment = 'Required'
+        }
+        // unit_config: target is auto-computed; no min required
+      }
+      if (vaultType === 'safe') {
+        if (!form.targetAmount) errors.targetAmount = 'Required'
+        if (!form.minInvestment) errors.minInvestment = 'Required'
+        if (!(safeVaultData.interest_rate as number)) errors.interestRate = 'Required'
+        if (!safeVaultData.tenure_months) errors.tenureMonths = 'Required'
+      }
+    }
+
+    if (vaultType === 'community') {
+      if (!form.communityType) errors.communityType = 'Required'
+      if (!form.collaborationType) errors.collaborationType = 'Required'
+      if (communitySubtype === 'co_investor') {
+        if (!form.targetAmount) errors.targetAmount = 'Required'
+        if (!form.minInvestment) errors.minInvestment = 'Required'
+        if (!communityDetails.investmentTenure) errors.investmentTenure = 'Required'
+        if (!communityDetails.revenueModel) errors.revenueModel = 'Required'
+        if (!communityDetails.legalStructure) errors.legalStructure = 'Required'
+        if (!communityDetails.riskLevel) errors.riskLevel = 'Required'
+        if (!communityDetails.projectedTimeline) errors.projectedTimeline = 'Required'
+      }
+      if (communitySubtype === 'co_partner') {
+        if (!form.targetAmount) errors.targetAmount = 'Required'
+        if (!communityDetails.equityShare) errors.equityShare = 'Required'
+        if (!communityDetails.timeCommitment) errors.timeCommitment = 'Required'
+        if (!communityDetails.partnershipDuration) errors.partnershipDuration = 'Required'
+        if (!((communityDetails.requiredSkills as string[])?.length)) errors.requiredSkills = 'Required'
+        if (!communityDetails.partnerRole) errors.partnerRole = 'Required'
+        if (!communityDetails.decisionAuthority) errors.decisionAuthority = 'Required'
+        if (!communityDetails.keyResponsibilities) errors.keyResponsibilities = 'Required'
+      }
+    }
+
+    return errors
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitAttempted(true)
+
+    const errors = validateForm()
+    setFormErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      useToastStore.getState().addToast({
+        type: 'error',
+        title: 'Required fields missing',
+        message: 'Please fill all required information before submitting.',
+      })
+      return
+    }
+
+    // Build property specs
+    let propertySpecsPayload: Record<string, unknown> | undefined
+    if (propertyType) {
+      const base: Record<string, unknown> = {
+        property_type: propertyType,
+        ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
+        ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
+        ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
+        ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
+        ...(projectOverview.landParcelSqft && { land_parcel_sqft: Number(projectOverview.landParcelSqft) }),
+      }
+      if (propertyType === PropertyType.PLOT) {
+        base.plot_configurations = plotConfigs
+          .filter((p) => p.plotType)
+          .map((p) => ({
+            type: p.plotType,
+            ...(p.areaSqft && { area_sqft: Number(p.areaSqft) }),
+            ...(p.totalPlots && { total_plots: Number(p.totalPlots) }),
+            ...(p.pricePerSqft && { price_per_sqft: Number(p.pricePerSqft) }),
+          }))
+      } else {
+        base.unit_configurations = unitConfigs
+          .filter((u) => u.bhkType)
+          .map((u) => ({
+            bhk_type: u.bhkType,
+            ...(u.carpetAreaSqft && { carpet_area_sqft: Number(u.carpetAreaSqft) }),
+            ...(u.superBuiltUpSqft && { super_built_up_sqft: Number(u.superBuiltUpSqft) }),
+            ...(u.bathrooms && { bathrooms: Number(u.bathrooms) }),
+            ...(u.balconies && { balconies: Number(u.balconies) }),
+            ...(u.totalUnits && { total_units: Number(u.totalUnits) }),
+            ...(u.pricePerSqft && { price_per_sqft: Number(u.pricePerSqft) }),
+          }))
+      }
+      propertySpecsPayload = base
+    }
+
+    // For unit_config mode, derive targetAmount from configs; clear minInvestment
+    let unitConfigTargetAmount: number | undefined
+    if (vaultType === 'wealth' && investmentMode === 'unit_config' && propertyType) {
+      if (propertyType === PropertyType.PLOT) {
+        unitConfigTargetAmount = plotConfigs
+          .filter((p) => p.plotType && p.areaSqft && p.totalPlots)
+          .reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
+      } else {
+        unitConfigTargetAmount = unitConfigs
+          .filter((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
+          .reduce((sum, u) => sum + Number(u.totalUnits) * Number(u.carpetAreaSqft) * Number(u.pricePerSqft || 0), 0)
+      }
+    }
 
     // Merge address into form
     const payload: OpportunityCreatePayload = {
@@ -158,6 +496,17 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
         communityDetails: communityDetails as Record<string, unknown>,
       }),
       ...(vaultType === 'safe' && { safeVaultData }),
+      ...(propertyType && {
+        property_type: propertyType,
+        ...(pricePerSqftField && { price_per_sqft: Number(pricePerSqftField) }),
+        ...(totalProjectAreaSqft && { total_project_area_sqft: Number(totalProjectAreaSqft) }),
+        property_specs: propertySpecsPayload,
+        ...(selectedAmenities.length > 0 && { property_amenities: selectedAmenities }),
+      }),
+      // Investment mode
+      ...(vaultType === 'wealth' && investmentMode && { investmentMode: investmentMode as 'lumpsum' | 'unit_config' }),
+      // For unit_config: override target with computed value, clear minInvestment
+      ...(unitConfigTargetAmount !== undefined && { targetAmount: unitConfigTargetAmount, minInvestment: undefined }),
     }
 
     try {
@@ -187,8 +536,15 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
         }
       }
 
-      setStep('success')
-      useToastStore.getState().addToast({ type: 'success', title: 'Opportunity launched!', message: 'Your listing has been submitted for review.' })
+      const vaultLabel = VAULT_OPTIONS.find((v) => v.value === vaultType)?.label ?? 'Vault'
+      const communityLabel = communitySubtype === 'co_investor' ? 'Co-Investor' : communitySubtype === 'co_partner' ? 'Co-Partner' : ''
+      const displayLabel = communityLabel ? `${vaultLabel} (${communityLabel})` : vaultLabel
+      useToastStore.getState().addToast({
+        type: 'success',
+        title: 'Submitted for Approval 🚀',
+        message: `Your ${displayLabel} listing is now in our review queue. We'll carefully evaluate every detail and notify you the moment it gets the green light. ✨`,
+      })
+      handleClose()
     } catch {
       setStep('form')
       useToastStore.getState().addToast({ type: 'error', title: 'Launch failed', message: 'Something went wrong. Please try again.' })
@@ -215,6 +571,18 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
     })
     setMediaItems([])
     setAddress(EMPTY_ADDRESS)
+    setPropertyType('')
+    setUnitConfigs([{ ...DEFAULT_UNIT_CONFIG }])
+    setPlotConfigs([{ ...DEFAULT_PLOT_CONFIG }])
+    setSelectedAmenities([])
+    setPricePerSqftField('')
+    setTotalProjectAreaSqft('')
+    setProjectOverview({ ...DEFAULT_PROJECT_OVERVIEW })
+    setSubmitAttempted(false)
+    setFormErrors({})
+    setInvestmentMode('')
+    setLandParcelUnit('sqft')
+    setLandParcelRawValue('')
     createMutation.reset()
     uploadMutation.reset()
     onClose()
@@ -233,7 +601,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
             {step === 'community-subtype' && '🤝 Community Vault — Choose Type'}
             {step === 'form' && `${VAULT_OPTIONS.find((v) => v.value === vaultType)?.label} Details`}
             {step === 'uploading' && '🚀 Launching...'}
-            {step === 'success' && '🎉 You Did It!'}
+
           </h2>
           <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors" aria-label="Close">
             <X className="h-5 w-5 text-theme-secondary" />
@@ -340,34 +708,34 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
               />
 
               {/* Common fields */}
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Title *</label>
-                <input
-                  required
-                  value={form.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
-                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  placeholder="Give your opportunity a compelling title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Tagline</label>
-                <input
-                  value={form.tagline ?? ''}
-                  onChange={(e) => handleChange('tagline', e.target.value)}
-                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  placeholder="A short catchy line — make it irresistible"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Description</label>
-                <textarea
+              <Input
+                label="Title *"
+                required
+                value={form.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Give your opportunity a compelling title"
+                errorText={fe('title') ? 'Title is required' : undefined}
+              />
+              <Input
+                label="Tagline *"
+                value={form.tagline ?? ''}
+                onChange={(e) => handleChange('tagline', e.target.value)}
+                placeholder="A short catchy line — make it irresistible"
+                errorText={fe('tagline') ? 'Tagline is required' : undefined}
+              />
+              <div className="relative">
+                <Textarea
+                  label="Description *"
                   rows={3}
                   value={form.description ?? ''}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
                   placeholder="Tell the story — what makes this opportunity a no-brainer?"
                 />
+                {fe('description') && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> Description is required
+                  </p>
+                )}
               </div>
 
               {/* === Wealth Vault Fields === */}
@@ -375,40 +743,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                 <>
                   {/* Address dialog with pincode auto-fill */}
                   <AddressDialog value={address} onChange={setAddress} />
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.targetAmount ?? ''}
-                        onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.minInvestment ?? ''}
-                        onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target IRR (%)</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min={0}
-                        value={form.targetIrr ?? ''}
-                        onChange={(e) => handleChange('targetIrr', Number(e.target.value))}
-                        className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                  </div>
+                  {/* Target / min inputs rendered inside the property specs section, mode-dependent */}
                 </>
               )}
 
@@ -417,18 +752,34 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                 <>
                   {/* Returns configuration */}
                   <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                      <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                      <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Interest Rate (% p.a.)</label>
-                      <input type="number" step="0.1" min={0} value={(safeVaultData.interest_rate as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                    </div>
+                    <Input
+                      label="Target Amount (₹) *"
+                      type="number"
+                      min={0}
+                      value={form.targetAmount ?? ''}
+                      onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                      prefix="₹"
+                      errorText={fe('targetAmount') ? 'Required' : undefined}
+                    />
+                    <Input
+                      label="Min Investment (₹) *"
+                      type="number"
+                      min={0}
+                      value={form.minInvestment ?? ''}
+                      onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
+                      prefix="₹"
+                      errorText={fe('minInvestment') ? 'Required' : undefined}
+                    />
+                    <Input
+                      label="Interest Rate (% p.a.) *"
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={(safeVaultData.interest_rate as number) ?? ''}
+                      onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))}
+                      suffix="%"
+                      errorText={fe('interestRate') ? 'Required' : undefined}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -443,20 +794,28 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         ]}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Tenure (months)</label>
-                      <input type="number" min={1} value={(safeVaultData.tenure_months as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. 24" />
-                    </div>
+                    <Input
+                      label="Tenure (months) *"
+                      type="number"
+                      min={1}
+                      value={(safeVaultData.tenure_months as number) ?? ''}
+                      onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))}
+                      placeholder="e.g. 24"
+                      suffix=" mo."
+                      errorText={fe('tenureMonths') ? 'Required' : undefined}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
                       <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">State</label>
-                      <input value={form.state ?? ''} onChange={(e) => handleChange('state', e.target.value)} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Maharashtra" />
-                    </div>
+                    <Input
+                      label="State"
+                      value={form.state ?? ''}
+                      onChange={(e) => handleChange('state', e.target.value)}
+                      placeholder="e.g. Maharashtra"
+                    />
                   </div>
 
                   {/* Security Features */}
@@ -471,8 +830,16 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                       </label>
                       {(safeVaultData.mortgage_agreement as { enabled: boolean }).enabled && (
                         <div className="grid grid-cols-2 gap-2 ml-6">
-                          <input value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))} className="rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Property details" />
-                          <input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} className="rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Period (e.g. until RERA issued)" />
+                          <Input
+                            value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''}
+                            onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))}
+                            placeholder="Property details"
+                          />
+                          <Input
+                            value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''}
+                            onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))}
+                            placeholder="Period (e.g. until RERA issued)"
+                          />
                         </div>
                       )}
                     </div>
@@ -490,7 +857,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         <span className="text-sm text-theme-primary">RERA Registration</span>
                       </label>
                       {(safeVaultData.rera_registration as { enabled: boolean }).enabled && (
-                        <input value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="RERA number" />
+                        <Input
+                          className="ml-6 w-[calc(100%-1.5rem)]"
+                          value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''}
+                          onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))}
+                          placeholder="RERA number"
+                        />
                       )}
                     </div>
 
@@ -501,7 +873,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         <span className="text-sm text-theme-primary">Buyback Guarantee</span>
                       </label>
                       {(safeVaultData.buyback_guarantee as { enabled: boolean }).enabled && (
-                        <input value={(safeVaultData.buyback_guarantee as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), details: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Buyback terms" />
+                        <Input
+                          className="ml-6 w-[calc(100%-1.5rem)]"
+                          value={(safeVaultData.buyback_guarantee as { details: string }).details ?? ''}
+                          onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), details: e.target.value } }))}
+                          placeholder="Buyback terms"
+                        />
                       )}
                     </div>
 
@@ -512,10 +889,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                     </label>
 
                     {/* Collateral Details */}
-                    <div className="space-y-1">
-                      <label className="block text-sm text-theme-primary">Collateral Details (optional)</label>
-                      <input value={(safeVaultData.collateral_details as string) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, collateral_details: e.target.value }))} className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Describe collateral assets" />
-                    </div>
+                    <Input
+                      label="Collateral Details (optional)"
+                      value={(safeVaultData.collateral_details as string) ?? ''}
+                      onChange={(e) => setSafeVaultData((p) => ({ ...p, collateral_details: e.target.value }))}
+                      placeholder="Describe collateral assets"
+                    />
 
                     {/* Land Registration */}
                     <div className="space-y-2">
@@ -524,7 +903,12 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         <span className="text-sm text-theme-primary">Land Registration</span>
                       </label>
                       {(safeVaultData.land_registration as { enabled: boolean }).enabled && (
-                        <input value={(safeVaultData.land_registration as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), details: e.target.value } }))} className="ml-6 w-[calc(100%-1.5rem)] rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary outline-none" placeholder="Registration details" />
+                        <Input
+                          className="ml-6 w-[calc(100%-1.5rem)]"
+                          value={(safeVaultData.land_registration as { details: string }).details ?? ''}
+                          onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), details: e.target.value } }))}
+                          placeholder="Registration details"
+                        />
                       )}
                     </div>
                   </div>
@@ -544,6 +928,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         placeholder="Select type"
                         options={COMMUNITY_TYPES.map((t) => ({ value: t, label: t }))}
                       />
+                      {fe('communityType') && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">Collaboration *</label>
@@ -553,6 +940,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         placeholder="Select collaboration"
                         options={COLLABORATION_TYPES.map((t) => ({ value: t, label: t }))}
                       />
+                      {fe('collaborationType') && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                      )}
                     </div>
                   </div>
 
@@ -569,52 +959,45 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                   {communitySubtype === 'co_investor' && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹) *</label>
-                          <input
-                            type="number"
-                            required
-                            min={0}
-                            value={form.targetAmount ?? ''}
-                            onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                            placeholder="Total capital needed"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment per Co-Investor (₹) *</label>
-                          <input
-                            type="number"
-                            required
-                            min={0}
-                            value={form.minInvestment ?? ''}
-                            onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          />
-                        </div>
+                        <Input
+                          label="Target Amount (₹) *"
+                          type="number"
+                          required
+                          min={0}
+                          value={form.targetAmount ?? ''}
+                          onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                          placeholder="Total capital needed"
+                          prefix="₹"
+                          errorText={fe('targetAmount') ? 'Required' : undefined}
+                        />
+                        <Input
+                          label="Min Investment per Co-Investor (₹) *"
+                          type="number"
+                          required
+                          min={0}
+                          value={form.minInvestment ?? ''}
+                          onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
+                          prefix="₹"
+                          errorText={fe('minInvestment') ? 'Required' : undefined}
+                        />
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Max Co-Investors</label>
-                          <input
-                            type="number"
-                            min={1}
-                            value={(communityDetails.maxInvestors as number) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('maxInvestors', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Expected Returns (%)</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min={0}
-                            value={(communityDetails.expectedReturns as number) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('expectedReturns', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          />
-                        </div>
+                        <Input
+                          label="Max Co-Investors"
+                          type="number"
+                          min={1}
+                          value={(communityDetails.maxInvestors as number) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('maxInvestors', Number(e.target.value))}
+                        />
+                        <Input
+                          label="Expected Returns (%)"
+                          type="number"
+                          step="0.1"
+                          min={0}
+                          value={(communityDetails.expectedReturns as number) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('expectedReturns', Number(e.target.value))}
+                          suffix="%"
+                        />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Investment Tenure *</label>
                           <Select
@@ -623,6 +1006,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={INVESTMENT_TENURES.map((t) => ({ value: t, label: t }))}
                           />
+                          {fe('investmentTenure') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -634,6 +1020,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={REVENUE_MODELS.map((m) => ({ value: m, label: m }))}
                           />
+                          {fe('revenueModel') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Legal Structure *</label>
@@ -643,6 +1032,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={LEGAL_STRUCTURES.map((l) => ({ value: l, label: l }))}
                           />
+                          {fe('legalStructure') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -654,6 +1046,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={RISK_LEVELS.map((r) => ({ value: r, label: r }))}
                           />
+                          {fe('riskLevel') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Projected Timeline *</label>
@@ -663,18 +1058,18 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={TIMELINE_OPTIONS.map((t) => ({ value: t, label: t }))}
                           />
+                          {fe('projectedTimeline') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">Exit Strategy</label>
-                        <textarea
-                          rows={2}
-                          value={(communityDetails.exitStrategy as string) ?? ''}
-                          onChange={(e) => handleCommunityDetailChange('exitStrategy', e.target.value)}
-                          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
-                          placeholder="How and when can investors exit? (e.g., buyback, secondary sale)"
-                        />
-                      </div>
+                      <Textarea
+                        label="Exit Strategy"
+                        rows={2}
+                        value={(communityDetails.exitStrategy as string) ?? ''}
+                        onChange={(e) => handleCommunityDetailChange('exitStrategy', e.target.value)}
+                        placeholder="How and when can investors exit? (e.g., buyback, secondary sale)"
+                      />
                     </>
                   )}
 
@@ -682,43 +1077,39 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                   {communitySubtype === 'co_partner' && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Total Project Cost (₹) *</label>
-                          <input
-                            type="number"
-                            required
-                            min={0}
-                            value={form.targetAmount ?? ''}
-                            onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Capital from Partner (₹)</label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={(communityDetails.capitalFromPartner as number) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('capitalFromPartner', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                            placeholder="Can be ₹0 if skill-only"
-                          />
-                        </div>
+                        <Input
+                          label="Total Project Cost (₹) *"
+                          type="number"
+                          required
+                          min={0}
+                          value={form.targetAmount ?? ''}
+                          onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                          prefix="₹"
+                          errorText={fe('targetAmount') ? 'Required' : undefined}
+                        />
+                        <Input
+                          label="Capital from Partner (₹)"
+                          type="number"
+                          min={0}
+                          value={(communityDetails.capitalFromPartner as number) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('capitalFromPartner', Number(e.target.value))}
+                          placeholder="Can be ₹0 if skill-only"
+                          prefix="₹"
+                        />
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Equity / Profit Share (%) *</label>
-                          <input
-                            type="number"
-                            required
-                            step="0.1"
-                            min={0}
-                            max={100}
-                            value={(communityDetails.equityShare as number) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('equityShare', Number(e.target.value))}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                          />
-                        </div>
+                        <Input
+                          label="Equity / Profit Share (%) *"
+                          type="number"
+                          required
+                          step="0.1"
+                          min={0}
+                          max={100}
+                          value={(communityDetails.equityShare as number) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('equityShare', Number(e.target.value))}
+                          suffix="%"
+                          errorText={fe('equityShare') ? 'Required' : undefined}
+                        />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Time Commitment *</label>
                           <Select
@@ -727,6 +1118,9 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={TIME_COMMITMENTS.map((t) => ({ value: t, label: t }))}
                           />
+                          {fe('timeCommitment') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Partnership Duration *</label>
@@ -736,12 +1130,18 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={PARTNERSHIP_DURATIONS.map((d) => ({ value: d, label: d }))}
                           />
+                          {fe('partnershipDuration') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                       </div>
 
                       {/* Required skills multi-select */}
                       <div>
                         <label className="block text-sm font-medium text-theme-primary mb-2">Required Skills *</label>
+                        {fe('requiredSkills') && (
+                          <p className="text-xs text-red-500 mb-2 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Select at least one skill</p>
+                        )}
                         <div className="flex flex-wrap gap-2">
                           {PARTNER_SKILLS.map((skill) => {
                             const selected = ((communityDetails.requiredSkills as string[]) ?? []).includes(skill)
@@ -762,16 +1162,14 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Partner Role / Title *</label>
-                          <input
-                            required
-                            value={(communityDetails.partnerRole as string) ?? ''}
-                            onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)}
-                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                            placeholder="e.g. Co-Founder, Operations Head"
-                          />
-                        </div>
+                        <Input
+                          label="Partner Role / Title *"
+                          required
+                          value={(communityDetails.partnerRole as string) ?? ''}
+                          onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)}
+                          placeholder="e.g. Co-Founder, Operations Head"
+                          errorText={fe('partnerRole') ? 'Required' : undefined}
+                        />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Decision Making Authority *</label>
                           <Select
@@ -780,62 +1178,613 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             placeholder="Select"
                             options={DECISION_AUTHORITIES.map((d) => ({ value: d, label: d }))}
                           />
+                          {fe('decisionAuthority') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">Key Responsibilities *</label>
-                        <textarea
-                          required
-                          rows={2}
-                          value={(communityDetails.keyResponsibilities as string) ?? ''}
-                          onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)}
-                          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
-                          placeholder="What will the partner be responsible for day-to-day?"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">What the Partner Gets</label>
-                        <textarea
-                          rows={2}
-                          value={(communityDetails.partnerBenefits as string) ?? ''}
-                          onChange={(e) => handleCommunityDetailChange('partnerBenefits', e.target.value)}
-                          className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
-                          placeholder="e.g. 20% equity, monthly stipend, co-branding rights"
-                        />
-                      </div>
+                      <Textarea
+                        label="Key Responsibilities *"
+                        required
+                        rows={2}
+                        value={(communityDetails.keyResponsibilities as string) ?? ''}
+                        onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)}
+                        placeholder="What will the partner be responsible for day-to-day?"
+                        errorText={fe('keyResponsibilities') ? 'Required' : undefined}
+                      />
+                      <Textarea
+                        label="What the Partner Gets"
+                        rows={2}
+                        value={(communityDetails.partnerBenefits as string) ?? ''}
+                        onChange={(e) => handleCommunityDetailChange('partnerBenefits', e.target.value)}
+                        placeholder="e.g. 20% equity, monthly stipend, co-branding rights"
+                      />
                     </>
                   )}
                 </>
               )}
 
-              {/* Funding schedule — shown for Wealth and Safe vault types */}
+              {/* === Property Specs (Wealth & Safe) === */}
               {(vaultType === 'wealth' || vaultType === 'safe') && (
-                <div className="grid grid-cols-2 gap-4">
+                <>
+                  {/* Property Type Selector */}
                   <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">
-                      Funding Opens
-                      <span className="ml-1 text-xs font-normal text-theme-secondary">(optional — leave blank for immediately)</span>
+                    <label className="block text-sm font-medium text-theme-primary mb-2">
+                      Property Type <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="date"
-                      value={form.fundingOpenAt ? form.fundingOpenAt.slice(0, 10) : ''}
-                      onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                      className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    />
+                    <div className={`grid grid-cols-3 gap-2 rounded-xl ${fe('propertyType') ? 'ring-2 ring-red-400 p-1' : ''}`}>
+                      {PROPERTY_TYPE_OPTIONS.map((opt) => (
+                        <button
+                          type="button"
+                          key={opt.value}
+                          onClick={() => setPropertyType(propertyType === opt.value ? '' : opt.value)}
+                          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                            propertyType === opt.value
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-theme bg-theme-surface text-theme-secondary hover:border-primary/40'
+                          }`}
+                        >
+                          <span>{opt.icon}</span>
+                          <span className="truncate">{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {fe('propertyType') && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" /> Property type is required
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">
-                      Funding Deadline
-                      <span className="ml-1 text-xs font-normal text-theme-secondary">(optional)</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={form.closingDate ? form.closingDate.slice(0, 10) : ''}
-                      onChange={(e) => handleChange('closingDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                      className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    />
-                  </div>
-                </div>
+
+                  {/* 🏗️ Project Overview — visible as soon as property type is set */}
+                  {propertyType && (() => {
+                    const fc = (PROPERTY_FIELD_CONFIG[propertyType] ?? PROPERTY_FIELD_CONFIG[PropertyType.FLAT])!
+                    return (
+                      <div className="rounded-xl border border-theme p-4 space-y-4">
+                        <h4 className="text-sm font-semibold text-theme-primary flex items-center gap-2">
+                          🏗️ Project Overview
+                        </h4>
+
+                        {/* Possession Quarter + RERA */}
+                        <div className={`grid gap-4 ${(fc.showPossessionQuarter && fc.showRera) ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                          {fc.showPossessionQuarter && (
+                            <div>
+                              <label className="block text-sm font-medium text-theme-primary mb-1">
+                                Possession Quarter <span className="text-red-500">*</span>
+                              </label>
+                              <Select
+                                value={projectOverview.possessionQuarter}
+                                onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))}
+                                placeholder="Select quarter"
+                                options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))}
+                              />
+                              {fe('possessionQuarter') && (
+                                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3" /> Required
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {fc.showRera && (
+                            <Input
+                              label="RERA Number *"
+                              value={projectOverview.reraNumber}
+                              onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))}
+                              placeholder="e.g. MH/12345"
+                              errorText={fe('reraNumber') ? 'Required' : undefined}
+                            />
+                          )}
+                        </div>
+
+                        {/* Towers + Floors */}
+                        {(fc.showTotalTowers || fc.showTotalFloors) && (
+                          <div className={`grid gap-4 ${fc.showTotalTowers ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            {fc.showTotalTowers && (
+                              <Input
+                                label="Total Towers"
+                                type="number"
+                                min={1}
+                                value={projectOverview.totalTowers}
+                                onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))}
+                                placeholder="e.g. 4"
+                              />
+                            )}
+                            {fc.showTotalFloors && (
+                              <Input
+                                label="Total Floors *"
+                                type="number"
+                                min={1}
+                                value={projectOverview.totalFloors}
+                                onChange={(e) => setProjectOverview((p) => ({ ...p, totalFloors: e.target.value }))}
+                                placeholder="e.g. 18"
+                                errorText={fe('totalFloors') ? 'Required' : undefined}
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        {/* Land Parcel with unit dropdown */}
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">
+                            Land Parcel <span className="text-red-500">*</span>
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={landParcelRawValue}
+                              onChange={(e) => {
+                                setLandParcelRawValue(e.target.value)
+                                const unit = LAND_UNITS.find((u) => u.value === landParcelUnit)!
+                                const sqft = e.target.value ? String(Number(e.target.value) * unit.factor) : ''
+                                setProjectOverview((p) => ({ ...p, landParcelSqft: sqft }))
+                              }}
+                              placeholder="e.g. 1.5"
+                              className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-[var(--bg-surface)] ${fe('landParcelSqft') ? 'border-red-400' : 'border-theme'}`}
+                            />
+                            <Select
+                              value={landParcelUnit}
+                              onChange={(v) => {
+                                const newUnit = v as LandUnit
+                                setLandParcelUnit(newUnit)
+                                const unit = LAND_UNITS.find((u) => u.value === newUnit)!
+                                const sqft = landParcelRawValue ? String(Number(landParcelRawValue) * unit.factor) : ''
+                                setProjectOverview((p) => ({ ...p, landParcelSqft: sqft }))
+                              }}
+                              options={LAND_UNITS.map((u) => ({ value: u.value, label: u.label }))}
+                            />
+                          </div>
+                          {projectOverview.landParcelSqft && Number(projectOverview.landParcelSqft) > 0 && landParcelUnit !== 'sqft' && (
+                            <p className="text-[11px] text-theme-tertiary mt-1">
+                              ≈ {Number(projectOverview.landParcelSqft).toLocaleString('en-IN')} sq.ft
+                            </p>
+                          )}
+                          {fe('landParcelSqft') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" /> Required
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Investment Mode selector — Wealth Vault only, shown after property type chosen */}
+                  {vaultType === 'wealth' && propertyType && (
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-2">
+                        Investment Configuration <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setInvestmentMode('lumpsum')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${
+                            investmentMode === 'lumpsum'
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-theme bg-[var(--bg-surface)] hover:border-primary/40'
+                          }`}
+                        >
+                          <div className="text-xl mb-1">🏷️</div>
+                          <div className="font-semibold text-sm text-theme-primary">Lumpsum</div>
+                          <div className="text-xs text-theme-secondary mt-0.5 leading-snug">
+                            Set a fixed total target &amp; minimum ticket size for investors
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInvestmentMode('unit_config')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${
+                            investmentMode === 'unit_config'
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-theme bg-[var(--bg-surface)] hover:border-primary/40'
+                          }`}
+                        >
+                          <div className="text-xl mb-1">📐</div>
+                          <div className="font-semibold text-sm text-theme-primary">Unit Configuration</div>
+                          <div className="text-xs text-theme-secondary mt-0.5 leading-snug">
+                            Add unit / plot rows — total investment auto-computed
+                          </div>
+                        </button>
+                      </div>
+                      {fe('investmentMode') && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" /> Select an investment configuration mode
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 💰 Investment Details — visible once investmentMode (or safe vault) */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
+                    const fc = (PROPERTY_FIELD_CONFIG[propertyType] ?? PROPERTY_FIELD_CONFIG[PropertyType.FLAT])!
+                    return (
+                      <div className="rounded-xl border border-theme p-4 space-y-4">
+                        <h4 className="text-sm font-semibold text-theme-primary">💰 Investment Details</h4>
+
+                        {/* Price per sqft + total area */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input
+                            label="Price per Sq.Ft (₹) *"
+                            type="number"
+                            min={0}
+                            value={pricePerSqftField}
+                            onChange={(e) => setPricePerSqftField(e.target.value)}
+                            placeholder="e.g. 8500"
+                            prefix="₹"
+                            errorText={fe('pricePerSqft') ? 'Required' : undefined}
+                          />
+                          <Input
+                            label="Total Project Area (Sq.Ft) *"
+                            type="number"
+                            min={0}
+                            value={totalProjectAreaSqft}
+                            onChange={(e) => setTotalProjectAreaSqft(e.target.value)}
+                            placeholder="e.g. 120000"
+                            errorText={fe('totalProjectArea') ? 'Required' : undefined}
+                          />
+                        </div>
+
+                        {/* Lumpsum: computed cost banner + editable target + min */}
+                        {vaultType === 'wealth' && investmentMode === 'lumpsum' && (() => {
+                          const computed = pricePerSqftField && totalProjectAreaSqft
+                            ? Number(pricePerSqftField) * Number(totalProjectAreaSqft)
+                            : 0
+                          const crore = computed / 1e7
+                          const lakh = computed / 1e5
+                          const display = computed > 0
+                            ? crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                            : null
+                          return (
+                            <>
+                              {display && (
+                                <div className="px-3 py-2.5 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wide">Estimated Project Cost</p>
+                                    <p className="text-xs text-theme-secondary">Price/sqft × Total area</p>
+                                  </div>
+                                  <div className="text-lg font-bold text-primary">{display}</div>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-2 gap-4">
+                                <Input
+                                  label="Target Amount (₹) *"
+                                  type="number"
+                                  min={0}
+                                  value={form.targetAmount ?? ''}
+                                  onChange={(e) => handleChange('targetAmount', Number(e.target.value))}
+                                  prefix="₹"
+                                  errorText={fe('targetAmount') ? 'Required' : undefined}
+                                />
+                                <Input
+                                  label="Min Investment per Investor (₹) *"
+                                  type="number"
+                                  min={0}
+                                  value={form.minInvestment ?? ''}
+                                  onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
+                                  prefix="₹"
+                                  errorText={fe('minInvestment') ? 'Required' : undefined}
+                                />
+                              </div>
+                            </>
+                          )
+                        })()}
+
+                        {/* Unit Configurations — shown for Safe vault always, or Wealth in unit_config mode */}
+                        {fc.showUnitConfig && (vaultType === 'safe' || investmentMode === 'unit_config') && (
+                          <div>
+                            <div className={`flex items-center justify-between mb-2 ${fe('unitConfig') ? 'ring-1 ring-red-400 rounded-lg p-2' : ''}`}>
+                              <label className="text-sm font-medium text-theme-primary">
+                                {fc.unitConfigLabel} <span className="text-red-500">*</span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setUnitConfigs((p) => [...p, { id: String(Date.now()), bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }])}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                + Add Config
+                              </button>
+                            </div>
+                            {fe('unitConfig') && (
+                              <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {investmentMode === 'unit_config'
+                                  ? 'At least one complete config with ₹/sqft pricing required'
+                                  : 'At least one complete config required (type, carpet area and units)'}
+                              </p>
+                            )}
+                            <div className="space-y-2">
+                              {unitConfigs.map((row, idx) => (
+                                <div key={row.id} className={`grid ${investmentMode === 'unit_config' ? 'grid-cols-8' : 'grid-cols-7'} gap-1.5 items-end p-2.5 bg-theme-surface-hover rounded-lg relative`}>
+                                  <div className="col-span-2">
+                                    <p className="text-[10px] text-theme-tertiary mb-1">Type</p>
+                                    <Select
+                                      value={row.bhkType}
+                                      onChange={(v) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, bhkType: v } : r)))}
+                                      placeholder="Select type"
+                                      options={getBhkTypes(propertyType).map((t) => ({ value: t, label: t }))}
+                                    />
+                                  </div>
+                                  {(['carpetAreaSqft', 'superBuiltUpSqft', 'bathrooms', 'balconies', 'totalUnits'] as const).map((field, fi) => (
+                                    <div key={field}>
+                                      <p className="text-[10px] text-theme-tertiary mb-1">
+                                        {['Carpet sqft', 'SBA sqft', 'Baths', 'Balc.', 'Units'][fi]}
+                                      </p>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={row[field]}
+                                        onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, [field]: e.target.value } : r)))}
+                                        className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]"
+                                      />
+                                    </div>
+                                  ))}
+                                  {/* ₹/sqft — unit_config mode only */}
+                                  {investmentMode === 'unit_config' && (
+                                    <div>
+                                      <p className="text-[10px] text-theme-tertiary mb-1">₹/sqft</p>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={row.pricePerSqft}
+                                        onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))}
+                                        className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]"
+                                        placeholder="e.g. 8500"
+                                      />
+                                    </div>
+                                  )}
+                                  {unitConfigs.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setUnitConfigs((p) => p.filter((_, i) => i !== idx))}
+                                      className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {/* Computed total strip — unit_config mode only */}
+                            {investmentMode === 'unit_config' && (() => {
+                              const total = unitConfigs
+                                .filter((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
+                                .reduce((sum, u) => sum + Number(u.totalUnits) * Number(u.carpetAreaSqft) * Number(u.pricePerSqft || 0), 0)
+                              if (total === 0) return null
+                              const crore = total / 1e7
+                              const lakh = total / 1e5
+                              const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                              return (
+                                <div className="mt-3 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-between">
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Total Investment (auto-computed)</p>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ units × carpet area × ₹/sqft across all rows</p>
+                                  </div>
+                                  <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{display}</div>
+                                </div>
+                              )
+                            })()}
+                          </div>
+                        )}
+
+                        {/* Plot Configurations — shown for Safe vault always, or Wealth in unit_config mode */}
+                        {fc.showPlotConfig && (vaultType === 'safe' || investmentMode === 'unit_config') && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-sm font-medium text-theme-primary">
+                                Plot Configurations <span className="text-red-500">*</span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setPlotConfigs((p) => [...p, { id: String(Date.now()), plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }])}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                + Add Plot Type
+                              </button>
+                            </div>
+                            {fe('plotConfig') && (
+                              <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" /> At least one complete plot config required
+                              </p>
+                            )}
+                            <div className="space-y-2">
+                              {plotConfigs.map((row, idx) => (
+                                <div key={row.id} className="grid grid-cols-4 gap-1.5 items-start p-2.5 bg-theme-surface-hover rounded-lg relative">
+                                  <div>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">Plot Type</p>
+                                    <Select
+                                      value={row.plotType}
+                                      onChange={(v) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, plotType: v } : r)))}
+                                      placeholder="Select"
+                                      options={PLOT_TYPE_OPTIONS.map((t) => ({ value: t, label: t }))}
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">Area (Sq.Ft)</p>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={row.areaSqft}
+                                      onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, areaSqft: e.target.value } : r)))}
+                                      className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]"
+                                      placeholder="e.g. 2178"
+                                    />
+                                    {row.areaSqft && Number(row.areaSqft) > 0 && (
+                                      <p className="text-[10px] text-theme-tertiary mt-0.5">
+                                        {sqftConversions(Number(row.areaSqft)).sqyd} sqyd · {sqftConversions(Number(row.areaSqft)).guntha} guntha
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">Total Plots</p>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={row.totalPlots}
+                                      onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, totalPlots: e.target.value } : r)))}
+                                      className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]"
+                                      placeholder="e.g. 50"
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">₹/Sqft</p>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={row.pricePerSqft}
+                                      onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))}
+                                      className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]"
+                                      placeholder="e.g. 3500"
+                                    />
+                                  </div>
+                                  {plotConfigs.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPlotConfigs((p) => p.filter((_, i) => i !== idx))}
+                                      className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {/* Computed total strip for plots — unit_config mode only */}
+                            {investmentMode === 'unit_config' && (() => {
+                              const total = plotConfigs
+                                .filter((p) => p.plotType && p.areaSqft && p.totalPlots)
+                                .reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
+                              if (total === 0) return null
+                              const crore = total / 1e7
+                              const lakh = total / 1e5
+                              const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                              return (
+                                <div className="mt-3 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-between">
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Total Investment (auto-computed)</p>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ plots × area × ₹/sqft across all plot types</p>
+                                  </div>
+                                  <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{display}</div>
+                                </div>
+                              )
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  {/* 📅 Funding Schedule — visible when investmentMode set (or safe vault) */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                    <div className="rounded-xl border border-theme p-4 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-theme-primary">📅 Funding Schedule</h4>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">Important</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">
+                            Funding Opens <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={form.fundingOpenAt ? form.fundingOpenAt.slice(0, 10) : ''}
+                            onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                            className={`w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none ${fe('fundingOpenAt') ? 'border-red-400' : 'border-theme'}`}
+                          />
+                          {fe('fundingOpenAt') && (
+                            <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" /> Required
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">
+                            Funding Deadline
+                            <span className="ml-1 text-xs font-normal text-theme-secondary">(optional)</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={form.closingDate ? form.closingDate.slice(0, 10) : ''}
+                            onChange={(e) => handleChange('closingDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-theme-tertiary flex items-center gap-1.5">
+                        <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+                        Status auto-transitions to Active once approvals are complete &amp; Funding Opens date is reached.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* ✨ Amenities */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
+                    const allowedCats = PROPERTY_AMENITY_CATEGORIES[propertyType] ?? []
+                    const excludeKeys = AMENITY_EXCLUDE_BY_TYPE[propertyType] ?? []
+                    const visibleCategories = (Object.entries(AMENITY_CATEGORIES) as [AmenityCategory, string][])
+                      .filter(([catKey]) => allowedCats.includes(catKey))
+                    if (visibleCategories.length === 0) return null
+                    return (
+                      <div className={`rounded-xl border-2 p-4 ${fe('amenities') ? 'border-red-400' : 'border-theme'}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-sm font-semibold text-theme-primary">
+                            ✨ Amenities <span className="text-red-500">*</span>
+                          </label>
+                          {selectedAmenities.length > 0 && (
+                            <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
+                              ✓ {selectedAmenities.length} selected
+                            </span>
+                          )}
+                        </div>
+                        {fe('amenities') && (
+                          <p className="text-xs text-red-500 mb-3 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" /> Select at least one amenity
+                          </p>
+                        )}
+                        <div className="space-y-4">
+                          {visibleCategories.map(([catKey, catLabel]) => {
+                            const catAmenities = AMENITIES.filter(
+                              (a) => a.category === catKey && !excludeKeys.includes(a.key)
+                            )
+                            if (catAmenities.length === 0) return null
+                            return (
+                              <div key={catKey}>
+                                <p className="text-[10px] font-bold text-theme-tertiary uppercase tracking-widest mb-2 pb-1 border-b border-theme">
+                                  {catLabel}
+                                </p>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  {catAmenities.map((a) => {
+                                    const isSel = selectedAmenities.includes(a.key)
+                                    const IconComp = AMENITY_ICON_MAP[a.icon] ?? AlertCircle
+                                    return (
+                                      <button
+                                        type="button"
+                                        key={a.key}
+                                        onClick={() => setSelectedAmenities((p) => (isSel ? p.filter((k) => k !== a.key) : [...p, a.key]))}
+                                        className={`relative flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs font-medium transition-all text-left ${
+                                          isSel
+                                            ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                                            : 'border-theme text-theme-secondary hover:border-primary/50 hover:bg-theme-surface-hover hover:text-theme-primary'
+                                        }`}
+                                      >
+                                        <IconComp className={`h-3.5 w-3.5 shrink-0 ${isSel ? 'text-primary' : 'text-theme-tertiary'}`} />
+                                        <span className="truncate leading-tight">{a.label}</span>
+                                        {isSel && (
+                                          <span className="absolute top-0.5 right-0.5 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-primary text-white text-[8px] font-bold">✓</span>
+                                        )}
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </>
               )}
 
               {/* Media upload — replaces cover image URL */}
@@ -884,21 +1833,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
           )}
 
           {/* Step 3: Success */}
-          {step === 'success' && (
-            <div className="text-center py-8">
-              <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-              <h3 className="font-display text-xl font-bold text-theme-primary mb-2">Opportunity Launched! 🎯</h3>
-              <p className="text-sm text-theme-secondary max-w-sm mx-auto mb-6">
-                Your opportunity is live and breathing. An approval ticket has been created — you'll get a nudge once the gatekeepers give the green signal.
-              </p>
-              <button
-                onClick={handleClose}
-                className="px-6 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          )}
+
         </div>
       </div>
 

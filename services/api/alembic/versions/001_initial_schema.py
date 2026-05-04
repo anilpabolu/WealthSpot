@@ -1,16 +1,17 @@
 """Initial schema – all 10 tables
 
 Revision ID: 001_initial
-Revises: 
+Revises:
 Create Date: 2025-07-08
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
-
 
 # revision identifiers, used by Alembic.
 revision: str = "001_initial"

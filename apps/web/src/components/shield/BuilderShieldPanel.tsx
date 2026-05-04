@@ -22,6 +22,7 @@ import {
   type BulkAssessmentItem,
 } from '@/hooks/useShield'
 import { ShieldDot } from './ShieldDot'
+import { Input, Textarea } from '@/components/ui'
 
 interface Props {
   opportunityId: string
@@ -275,17 +276,17 @@ function SubItemEditor({
           ))}
         </div>
       ) : spec.inputType === 'number' ? (
-        <input
+        <Input
           type="number"
-          className="input w-full text-sm mt-1"
+          className="mt-1"
           value={value}
           disabled={locked}
           onChange={(e) => onChange(spec.code, e.target.value)}
           placeholder="Enter a number"
         />
       ) : (
-        <textarea
-          className="input w-full text-sm mt-1"
+        <Textarea
+          className="mt-1"
           rows={2}
           value={value}
           disabled={locked}

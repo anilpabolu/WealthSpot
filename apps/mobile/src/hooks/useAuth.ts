@@ -28,7 +28,7 @@ interface MeResponse {
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(true)
-  const { isAuthenticated, setUser, setToken, logout } = useUserStore()
+  const { isAuthenticated, setUser, logout } = useUserStore()
 
   useEffect(() => {
     checkAuth()
@@ -42,7 +42,6 @@ export function useAuth() {
         setIsLoading(false)
         return
       }
-      setToken(token)
       const user = await apiGet<MeResponse>('/auth/me')
       setUser({
         id: user.id,
@@ -61,18 +60,14 @@ export function useAuth() {
         createdAt: user.createdAt ?? '',
       })
     } catch {
-      await SecureStore.deleteItemAsync('ws-token')
-      await SecureStore.deleteItemAsync('ws-refresh-token')
-      logout()
+      await logout()
     } finally {
       setIsLoading(false)
     }
   }
 
   const signOut = useCallback(async () => {
-    await SecureStore.deleteItemAsync('ws-token')
-    await SecureStore.deleteItemAsync('ws-refresh-token')
-    logout()
+    await logout()
   }, [logout])
 
   return { isLoading, isAuthenticated, signOut, checkAuth }

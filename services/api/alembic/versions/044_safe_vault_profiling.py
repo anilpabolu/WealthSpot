@@ -9,8 +9,9 @@ Changes:
 - Insert 10 Safe Vault-specific fixed income profiling questions across 3 categories
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
 from alembic import op
 

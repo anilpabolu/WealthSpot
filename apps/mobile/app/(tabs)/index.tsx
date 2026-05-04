@@ -60,7 +60,6 @@ export default function HomeScreen() {
     { label: 'Portfolio', value: portfolio ? formatINRCompact(portfolio.currentValue) : '—' },
     { label: 'Properties', value: portfolio ? String(portfolio.propertiesCount) : '—' },
     { label: 'Monthly', value: portfolio ? formatINRCompact(portfolio.monthlyIncome) : '—' },
-    { label: 'XIRR', value: portfolio?.xirr ? `${portfolio.xirr.toFixed(1)}%` : '—' },
   ]
 
   return (
@@ -170,10 +169,6 @@ export default function HomeScreen() {
                 <Text className="text-sm mt-0.5" style={{ color: colors.textSecondary }}>{property.city}</Text>
 
                 <View className="flex-row items-center mt-3 gap-4">
-                  <View>
-                    <Text className="text-[10px] uppercase" style={{ color: colors.textTertiary }}>IRR</Text>
-                    <Text className="font-bold" style={{ color: '#10B981' }}>{property.targetIrr}%</Text>
-                  </View>
                   <View>
                     <Text className="text-[10px] uppercase" style={{ color: colors.textTertiary }}>Min Invest</Text>
                     <Text className="font-bold" style={{ color: colors.textPrimary }}>{formatINR(property.minInvestment)}</Text>

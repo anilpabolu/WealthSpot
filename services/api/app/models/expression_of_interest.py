@@ -18,7 +18,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -71,6 +71,8 @@ class ExpressionOfInterest(Base):
         nullable=False,
         index=True,
     )
+    # Selected unit / BHK configuration the investor is interested in
+    selected_unit_config: Mapped[dict | None] = mapped_column(JSONB)
     # Referrer tracking
     referrer_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),

@@ -11,10 +11,12 @@ Create Date: 2026-04-19
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
 
 from alembic import op
-import sqlalchemy as sa
 
 revision: str = "042_property_appreciation"
 down_revision: Union[str, None] = "041_shield_assessments"

@@ -471,7 +471,7 @@ export default function MarketplacePage() {
             >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
-                    <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" targetIrr={0} minInvestment={0} raised={0} target={0} />
+                    <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" minInvestment={0} raised={0} target={0} />
                   ))
                 : (
                   <>
@@ -519,13 +519,26 @@ export default function MarketplacePage() {
                                 <MapPin className="h-3.5 w-3.5" /> {opp.city}{opp.state ? `, ${opp.state}` : ''}
                               </p>
                             )}
+                            {/* Property spec chips */}
+                            {(opp.property_type || opp.price_per_sqft) && (
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {opp.property_type && (
+                                  <span className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-semibold rounded-md capitalize">{opp.property_type.replace(/_/g, ' ')}</span>
+                                )}
+                                {opp.property_specs && (opp.property_specs.unit_configurations as unknown[])?.length ? (
+                                  (opp.property_specs.unit_configurations as Array<{ bhk_type: string }>).slice(0, 3).map((u) => (
+                                    <span key={u.bhk_type} className="px-2 py-0.5 bg-theme-surface border border-theme text-[10px] font-medium text-theme-secondary rounded-md">{u.bhk_type}</span>
+                                  ))
+                                ) : null}
+                                {opp.price_per_sqft != null && (
+                                  <span className="ml-auto text-[10px] font-bold text-theme-primary">₹{opp.price_per_sqft.toLocaleString('en-IN')}/sqft</span>
+                                )}
+                              </div>
+                            )}
                             {opp.targetAmount != null && (
                               <FundingBar raised={opp.raisedAmount ?? 0} target={opp.targetAmount} showLabels={false} />
                             )}
                             <div className="flex items-center justify-between text-xs pt-1">
-                              {opp.targetIrr != null && (
-                                <span className="font-mono font-semibold text-primary">{opp.targetIrr}% IRR</span>
-                              )}
                               {opp.minInvestment != null && (
                                 <span className="font-mono text-theme-secondary">{formatINR(opp.minInvestment)} min</span>
                               )}
@@ -553,7 +566,6 @@ export default function MarketplacePage() {
                         coverImage={p.coverImage}
                         gallery={p.gallery}
                         videoUrl={p.videoUrl}
-                        targetIrr={p.targetIrr}
                         minInvestment={p.minInvestment}
                         raised={p.raised}
                         target={p.target}

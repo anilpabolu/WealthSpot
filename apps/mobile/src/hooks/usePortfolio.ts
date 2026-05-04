@@ -10,7 +10,6 @@ export interface PortfolioProperty {
   investedAmount: number
   currentValue: number
   units: number
-  irr: number
   returnPercentage: number
   investmentCount: number
   originalUnitPrice: number
@@ -28,8 +27,6 @@ export interface PortfolioSummary {
   currentValue: number
   totalReturns: number
   unrealizedGains: number
-  avgIrr: number
-  xirr: number
   propertiesCount: number
   citiesCount: number
   monthlyIncome: number
@@ -83,10 +80,6 @@ export interface VaultPortfolioItem {
   returns: number
   returnPct: number
   opportunityCount: number
-  investorCount: number
-  expectedIrr: number | null
-  actualIrr: number | null
-  avgDurationDays: number
 }
 
 export interface VaultPortfolioResponse {

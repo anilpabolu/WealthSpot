@@ -2,73 +2,16 @@
  * Marketplace BFF – Property listing, filtering, & detail aggregation
  */
 
+import type {
+  MarketplaceFilters,
+  MarketplaceCard,
+  MarketplaceView,
+  PropertyDetailView,
+} from "@wealthspot/types";
 import { apiGet } from "../../lib/api";
 
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export interface MarketplaceFilters {
-  city?: string;
-  asset_type?: string;
-  status?: string;
-  min_amount?: number;
-  max_amount?: number;
-  min_irr?: number;
-  search?: string;
-  page?: number;
-  page_size?: number;
-  sort_by?: string;
-  sort_order?: "asc" | "desc";
-}
-
-export interface MarketplaceCard {
-  id: string;
-  slug: string;
-  title: string;
-  tagline: string | null;
-  asset_type: string;
-  status: string;
-  city: string;
-  cover_image: string | null;
-  target_amount: number;
-  raised_amount: number;
-  min_investment: number;
-  target_irr: number;
-  rental_yield: number | null;
-  investor_count: number;
-  funding_percentage: number;
-}
-
-export interface MarketplaceView {
-  properties: MarketplaceCard[];
-  total: number;
-  page: number;
-  total_pages: number;
-  filters_applied: MarketplaceFilters;
-}
-
-export interface PropertyDetailView {
-  property: MarketplaceCard & {
-    description: string | null;
-    address: string | null;
-    latitude: number | null;
-    longitude: number | null;
-    area_sqft: number | null;
-    bedrooms: number | null;
-    possession_date: string | null;
-    rera_id: string | null;
-    gallery: string[] | null;
-    documents: Record<string, unknown> | null;
-    amenities: string[] | null;
-    launch_date: string | null;
-  };
-  builder: {
-    company_name: string;
-    rera_number: string | null;
-    verified: boolean;
-    logo_url: string | null;
-  };
-  similarProperties: MarketplaceCard[];
-}
+// Re-export for consumers that import from this module directly
+export type { MarketplaceFilters, MarketplaceCard, MarketplaceView, PropertyDetailView };
 
 // ── BFF Service ───────────────────────────────────────────────────────────
 
@@ -77,25 +20,32 @@ export const marketplaceBff = {
    * Fetch paginated & filtered marketplace listings.
    */
   async getListings(filters: MarketplaceFilters = {}): Promise<MarketplaceView> {
-    const params = { ...filters };
-    // Clean undefined values
-    Object.keys(params).forEach((k) => {
-      if (params[k as keyof typeof params] === undefined) delete params[k as keyof typeof params];
-    });
+    // Map camelCase filter keys to snake_case API query params
+    const params: Record<string, unknown> = {};
+    if (filters.city !== undefined) params.city = filters.city;
+    if (filters.assetType !== undefined) params.asset_type = filters.assetType;
+    if (filters.status !== undefined) params.status = filters.status;
+    if (filters.minAmount !== undefined) params.min_amount = filters.minAmount;
+    if (filters.maxAmount !== undefined) params.max_amount = filters.maxAmount;
+    if (filters.search !== undefined) params.search = filters.search;
+    if (filters.page !== undefined) params.page = filters.page;
+    if (filters.pageSize !== undefined) params.page_size = filters.pageSize;
+    if (filters.sortBy !== undefined) params.sort_by = filters.sortBy;
+    if (filters.sortOrder !== undefined) params.sort_order = filters.sortOrder;
 
     const result = await apiGet<{
       items: MarketplaceCard[];
       total: number;
       page: number;
-      total_pages: number;
+      totalPages: number;
     }>("/properties", { params });
 
     return {
       properties: result.items,
       total: result.total,
       page: result.page,
-      total_pages: result.total_pages,
-      filters_applied: filters,
+      totalPages: result.totalPages,
+      filtersApplied: filters,
     };
   },
 

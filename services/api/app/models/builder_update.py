@@ -6,7 +6,7 @@ property/opportunity updates posted by builders or admins.
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text
+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -75,3 +75,33 @@ class BuilderUpdateAttachment(Base):
 
     def __repr__(self) -> str:
         return f"<BuilderUpdateAttachment {self.filename!r}>"
+
+
+class BuilderUpdateReadReceipt(Base):
+    """Tracks which users have read which builder updates."""
+
+    __tablename__ = "builder_update_reads"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    update_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("builder_updates.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    read_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "update_id", name="uq_builder_update_reads_user_update"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<BuilderUpdateReadReceipt user={self.user_id} update={self.update_id}>"

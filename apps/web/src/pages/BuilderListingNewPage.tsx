@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PortalLayout } from '@/components/layout'
-import { Select } from '@/components/ui'
+import { Select, Input, Textarea } from '@/components/ui'
 import { Building2, Users, Loader2, ArrowLeft, Wallet, Handshake, ShieldCheck } from 'lucide-react'
 import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
+import { AMENITIES, AMENITY_CATEGORIES, PropertyType } from '@wealthspot/types'
+import type { AmenityCategory } from '@wealthspot/types'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { INDIAN_CITIES } from '@/lib/constants'
@@ -67,6 +69,59 @@ const PARTNER_SKILLS = [
   'HR & Talent', 'Domain Expertise', 'Other',
 ]
 
+/* ── Property spec constants ──────────────────────────────────────── */
+const PROPERTY_TYPE_OPTIONS = [
+  { value: PropertyType.FLAT, label: 'Flat / Apartment', icon: '🏢' },
+  { value: PropertyType.VILLA, label: 'Villa / Row House', icon: '🏡' },
+  { value: PropertyType.PLOT, label: 'Plot / Land', icon: '🏞️' },
+  { value: PropertyType.COMMERCIAL, label: 'Commercial', icon: '🏪' },
+  { value: PropertyType.WAREHOUSE, label: 'Warehouse', icon: '🏭' },
+  { value: PropertyType.MIXED_USE, label: 'Mixed Use', icon: '🏙️' },
+]
+const BHK_TYPES = ['Studio', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Penthouse', 'Duplex']
+const PLOT_TYPE_OPTIONS = ['Residential Plot', 'Commercial Plot', 'Industrial Plot', 'Agricultural Land', 'NA Plot']
+function generatePossessionQuarters(): string[] {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentQ = Math.ceil((now.getMonth() + 1) / 3)
+  const quarters: string[] = ['Ready to Move']
+  for (let y = currentYear; y <= currentYear + 5; y++) {
+    const startQ = y === currentYear ? currentQ : 1
+    for (let q = startQ; q <= 4; q++) {
+      quarters.push(`Q${q} ${y}`)
+    }
+  }
+  return quarters
+}
+const POSSESSION_QUARTERS = generatePossessionQuarters()
+const LAND_UNITS = [
+  { value: 'sqft',  label: 'Sq.Ft',   factor: 1 },
+  { value: 'sqyd',  label: 'Sq.Yd',   factor: 9 },
+  { value: 'guntha',label: 'Guntha',  factor: 1089 },
+  { value: 'acres', label: 'Acres',   factor: 43560 },
+  { value: 'bigha', label: 'Bigha',   factor: 27225 },
+] as const
+type LandUnit = typeof LAND_UNITS[number]['value']
+
+function sqftConversions(sqft: number) {
+  return {
+    sqft: sqft.toLocaleString('en-IN'),
+    sqyd: (sqft / 9).toFixed(1),
+    guntha: (sqft / 1089).toFixed(3),
+    acre: (sqft / 43560).toFixed(4),
+    bigha: (sqft / 27225).toFixed(4),
+  }
+}
+interface UnitConfigRow {
+  id: string; bhkType: string; carpetAreaSqft: string; superBuiltUpSqft: string
+  bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
+}
+interface PlotConfigRow { id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string }
+interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string }
+const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
+const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
+const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' }
+
 type CommunityDetailsState = Record<string, string | number | string[]>
 
 interface MediaItem {
@@ -79,8 +134,6 @@ const EMPTY_ADDRESS: AddressFields = {
   addressLine1: '', addressLine2: '', landmark: '', locality: '',
   city: '', state: '', pincode: '', district: '', country: 'India',
 }
-
-const inputCls = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
 
 export default function BuilderListingNewPage() {
   const navigate = useNavigate()
@@ -106,6 +159,17 @@ export default function BuilderListingNewPage() {
   const [address, setAddress] = useState<AddressFields>(EMPTY_ADDRESS)
   const [uploadProgress, setUploadProgress] = useState('')
   const [showOnboarding, setShowOnboarding] = useState(false)
+  // ── Property specs state ───────────────────────────────────────────────
+  const [propertyType, setPropertyType] = useState<string>('')
+  const [unitConfigs, setUnitConfigs] = useState<UnitConfigRow[]>([{ ...DEFAULT_UNIT_CONFIG }])
+  const [plotConfigs, setPlotConfigs] = useState<PlotConfigRow[]>([{ ...DEFAULT_PLOT_CONFIG }])
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [pricePerSqftField, setPricePerSqftField] = useState<string>('')
+  const [totalProjectAreaSqftField, setTotalProjectAreaSqftField] = useState<string>('')
+  const [projectOverview, setProjectOverview] = useState<ProjectOverview>({ ...DEFAULT_PROJECT_OVERVIEW })
+  const [investmentMode, setInvestmentMode] = useState<'lumpsum' | 'unit_config' | ''>('')
+  const [landParcelUnit, setLandParcelUnit] = useState<LandUnit>('sqft')
+  const [landParcelRawValue, setLandParcelRawValue] = useState<string>('')
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
   const saveShield = useSaveAssessmentBulk()
@@ -115,6 +179,14 @@ export default function BuilderListingNewPage() {
   const handleChange = (key: keyof OpportunityCreatePayload, value: string | number) => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
+
+  // Auto-compute lumpsum target from price/sqft × total area
+  useEffect(() => {
+    if (investmentMode === 'lumpsum' && pricePerSqftField && totalProjectAreaSqftField) {
+      const computed = Number(pricePerSqftField) * Number(totalProjectAreaSqftField)
+      if (computed > 0) handleChange('targetAmount', computed)
+    }
+  }, [pricePerSqftField, totalProjectAreaSqftField, investmentMode])
 
   const handleCommunityDetailChange = (key: string, value: string | number | string[]) => {
     setCommunityDetails((prev) => ({ ...prev, [key]: value }))
@@ -150,6 +222,56 @@ export default function BuilderListingNewPage() {
   }
 
   const finalSubmit = async () => {
+    // Build property specs payload
+    let propertySpecsPayload: Record<string, unknown> | undefined
+    if (propertyType) {
+      const base: Record<string, unknown> = {
+        property_type: propertyType,
+        ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
+        ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
+        ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
+        ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
+        ...(projectOverview.landParcelSqft && { land_parcel_sqft: Number(projectOverview.landParcelSqft) }),
+      }
+      if (propertyType === PropertyType.PLOT) {
+        base.plot_configurations = plotConfigs
+          .filter((p) => p.plotType)
+          .map((p) => ({
+            type: p.plotType,
+            ...(p.areaSqft && { area_sqft: Number(p.areaSqft) }),
+            ...(p.totalPlots && { total_plots: Number(p.totalPlots) }),
+            ...(p.pricePerSqft && { price_per_sqft: Number(p.pricePerSqft) }),
+          }))
+      } else {
+        base.unit_configurations = unitConfigs
+          .filter((u) => u.bhkType)
+          .map((u) => ({
+            bhk_type: u.bhkType,
+            ...(u.carpetAreaSqft && { carpet_area_sqft: Number(u.carpetAreaSqft) }),
+            ...(u.superBuiltUpSqft && { super_built_up_sqft: Number(u.superBuiltUpSqft) }),
+            ...(u.bathrooms && { bathrooms: Number(u.bathrooms) }),
+            ...(u.balconies && { balconies: Number(u.balconies) }),
+            ...(u.totalUnits && { total_units: Number(u.totalUnits) }),
+            ...(u.pricePerSqft && { price_per_sqft: Number(u.pricePerSqft) }),
+          }))
+      }
+      propertySpecsPayload = base
+    }
+
+    // For unit_config mode, derive targetAmount from configs; clear minInvestment
+    let unitConfigTargetAmount: number | undefined
+    if (vaultType === 'wealth' && investmentMode === 'unit_config' && propertyType) {
+      if (propertyType === PropertyType.PLOT) {
+        unitConfigTargetAmount = plotConfigs
+          .filter((p) => p.plotType && p.areaSqft && p.totalPlots)
+          .reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
+      } else {
+        unitConfigTargetAmount = unitConfigs
+          .filter((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
+          .reduce((sum, u) => sum + Number(u.totalUnits) * Number(u.carpetAreaSqft) * Number(u.pricePerSqft || 0), 0)
+      }
+    }
+
     const payload: OpportunityCreatePayload = {
       ...form,
       ...(vaultType === 'wealth' || vaultType === 'community'
@@ -175,6 +297,17 @@ export default function BuilderListingNewPage() {
           }
         : {}),
       ...(vaultType === 'safe' ? { safeVaultData } : {}),
+      ...(propertyType && {
+        property_type: propertyType,
+        ...(pricePerSqftField && { price_per_sqft: Number(pricePerSqftField) }),
+        ...(totalProjectAreaSqftField && { total_project_area_sqft: Number(totalProjectAreaSqftField) }),
+        property_specs: propertySpecsPayload,
+        ...(selectedAmenities.length > 0 && { property_amenities: selectedAmenities }),
+      }),
+      // Investment mode
+      ...(vaultType === 'wealth' && investmentMode && { investmentMode: investmentMode as 'lumpsum' | 'unit_config' }),
+      // For unit_config: override target with computed value, clear minInvestment
+      ...(unitConfigTargetAmount !== undefined && { targetAmount: unitConfigTargetAmount, minInvestment: undefined }),
     }
     try {
       const created = await createMutation.mutateAsync(payload)
@@ -312,37 +445,15 @@ export default function BuilderListingNewPage() {
               />
 
               {/* Common fields */}
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Title *</label>
-                <input required value={form.title} onChange={(e) => handleChange('title', e.target.value)} className={inputCls} placeholder="Give your opportunity a compelling title" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Tagline</label>
-                <input value={form.tagline ?? ''} onChange={(e) => handleChange('tagline', e.target.value)} className={inputCls} placeholder="A short catchy line — make it irresistible" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Description</label>
-                <textarea rows={3} value={form.description ?? ''} onChange={(e) => handleChange('description', e.target.value)} className={`${inputCls} resize-none`} placeholder="Tell the story — what makes this opportunity a no-brainer?" />
-              </div>
+              <Input label="Title *" required value={form.title} onChange={(e) => handleChange('title', e.target.value)} placeholder="Give your opportunity a compelling title" />
+              <Input label="Tagline" value={form.tagline ?? ''} onChange={(e) => handleChange('tagline', e.target.value)} placeholder="A short catchy line — make it irresistible" />
+              <Textarea label="Description" rows={3} value={form.description ?? ''} onChange={(e) => handleChange('description', e.target.value)} placeholder="Tell the story — what makes this opportunity a no-brainer?" />
 
               {/* Wealth Vault Fields */}
               {vaultType === 'wealth' && (
                 <>
                   <AddressDialog value={address} onChange={setAddress} />
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                      <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                      <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target IRR (%)</label>
-                      <input type="number" step="0.1" min={0} value={form.targetIrr ?? ''} onChange={(e) => handleChange('targetIrr', Number(e.target.value))} className={inputCls} />
-                    </div>
-                  </div>
+                  {/* Target / min inputs rendered inside the property specs section, mode-dependent */}
                 </>
               )}
 
@@ -350,38 +461,23 @@ export default function BuilderListingNewPage() {
               {vaultType === 'safe' && (
                 <>
                   <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹)</label>
-                      <input type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment (₹)</label>
-                      <input type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Interest Rate (% p.a.)</label>
-                      <input type="number" step="0.1" min={0} value={(safeVaultData.interest_rate as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))} className={inputCls} />
-                    </div>
+                    <Input label="Target Amount" type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} prefix="₹" />
+                    <Input label="Min Investment" type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} prefix="₹" />
+                    <Input label="Interest Rate (p.a.)" type="number" step="0.1" min={0} value={(safeVaultData.interest_rate as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))} suffix="%" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">Payout Frequency</label>
                       <Select value={(safeVaultData.payout_frequency as string) ?? 'monthly'} onChange={(v) => setSafeVaultData((p) => ({ ...p, payout_frequency: v }))} options={[{ value: 'monthly', label: 'Monthly' }, { value: 'quarterly', label: 'Quarterly' }, { value: 'yearly', label: 'Yearly' }]} />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">Tenure (months)</label>
-                      <input type="number" min={1} value={(safeVaultData.tenure_months as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))} className={inputCls} placeholder="e.g. 24" />
-                    </div>
+                    <Input label="Tenure" type="number" min={1} value={(safeVaultData.tenure_months as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))} suffix=" mo." placeholder="e.g. 24" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
                       <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-theme-primary mb-1">State</label>
-                      <input value={form.state ?? ''} onChange={(e) => handleChange('state', e.target.value)} className={inputCls} placeholder="e.g. Maharashtra" />
-                    </div>
+                    <Input label="State" value={form.state ?? ''} onChange={(e) => handleChange('state', e.target.value)} placeholder="e.g. Maharashtra" />
                   </div>
 
                   {/* Security Features */}
@@ -394,8 +490,8 @@ export default function BuilderListingNewPage() {
                     </label>
                     {(safeVaultData.mortgage_agreement as { enabled: boolean }).enabled && (
                       <div className="grid grid-cols-2 gap-2 ml-6">
-                        <input value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))} className={inputCls} placeholder="Property details" />
-                        <input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} className={inputCls} placeholder="Period (e.g. until RERA issued)" />
+                        <Input value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))} placeholder="Property details" />
+                        <Input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} placeholder="Period (e.g. until RERA issued)" />
                       </div>
                     )}
 
@@ -409,7 +505,7 @@ export default function BuilderListingNewPage() {
                       <span className="text-sm text-theme-primary">RERA Registration</span>
                     </label>
                     {(safeVaultData.rera_registration as { enabled: boolean }).enabled && (
-                      <input value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))} className={`ml-6 ${inputCls}`} placeholder="RERA number" />
+                      <Input className="ml-6" value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))} placeholder="RERA number" />
                     )}
 
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -417,7 +513,7 @@ export default function BuilderListingNewPage() {
                       <span className="text-sm text-theme-primary">Buyback Guarantee</span>
                     </label>
                     {(safeVaultData.buyback_guarantee as { enabled: boolean }).enabled && (
-                      <input value={(safeVaultData.buyback_guarantee as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), details: e.target.value } }))} className={`ml-6 ${inputCls}`} placeholder="Buyback terms" />
+                      <Input className="ml-6" value={(safeVaultData.buyback_guarantee as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), details: e.target.value } }))} placeholder="Buyback terms" />
                     )}
 
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -425,17 +521,14 @@ export default function BuilderListingNewPage() {
                       <span className="text-sm text-theme-primary">Capital Protection</span>
                     </label>
 
-                    <div className="space-y-1">
-                      <label className="block text-sm text-theme-primary">Collateral Details (optional)</label>
-                      <input value={(safeVaultData.collateral_details as string) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, collateral_details: e.target.value }))} className={inputCls} placeholder="Describe collateral assets" />
-                    </div>
+                    <Input label="Collateral Details (optional)" value={(safeVaultData.collateral_details as string) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, collateral_details: e.target.value }))} placeholder="Describe collateral assets" />
 
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={(safeVaultData.land_registration as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), enabled: e.target.checked } }))} className="rounded" />
                       <span className="text-sm text-theme-primary">Land Registration</span>
                     </label>
                     {(safeVaultData.land_registration as { enabled: boolean }).enabled && (
-                      <input value={(safeVaultData.land_registration as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), details: e.target.value } }))} className={`ml-6 ${inputCls}`} placeholder="Registration details" />
+                      <Input className="ml-6" value={(safeVaultData.land_registration as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, land_registration: { ...(p.land_registration as object), details: e.target.value } }))} placeholder="Registration details" />
                     )}
                   </div>
                 </>
@@ -466,24 +559,12 @@ export default function BuilderListingNewPage() {
                   {communitySubtype === 'co_investor' && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Target Amount (₹) *</label>
-                          <input type="number" required min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} placeholder="Total capital needed" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Min Investment per Co-Investor (₹) *</label>
-                          <input type="number" required min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} className={inputCls} />
-                        </div>
+                        <Input label="Target Amount *" type="number" required min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} prefix="₹" placeholder="Total capital needed" />
+                        <Input label="Min Investment per Co-Investor *" type="number" required min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} prefix="₹" />
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Max Co-Investors</label>
-                          <input type="number" min={1} value={(communityDetails.maxInvestors as number) ?? ''} onChange={(e) => handleCommunityDetailChange('maxInvestors', Number(e.target.value))} className={inputCls} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Expected Returns (%)</label>
-                          <input type="number" step="0.1" min={0} value={(communityDetails.expectedReturns as number) ?? ''} onChange={(e) => handleCommunityDetailChange('expectedReturns', Number(e.target.value))} className={inputCls} />
-                        </div>
+                        <Input label="Max Co-Investors" type="number" min={1} value={(communityDetails.maxInvestors as number) ?? ''} onChange={(e) => handleCommunityDetailChange('maxInvestors', Number(e.target.value))} />
+                        <Input label="Expected Returns" type="number" step="0.1" min={0} value={(communityDetails.expectedReturns as number) ?? ''} onChange={(e) => handleCommunityDetailChange('expectedReturns', Number(e.target.value))} suffix="%" />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Investment Tenure *</label>
                           <Select value={(communityDetails.investmentTenure as string) ?? ''} onChange={(v) => handleCommunityDetailChange('investmentTenure', v)} placeholder="Select" options={INVESTMENT_TENURES.map((t) => ({ value: t, label: t }))} />
@@ -509,10 +590,7 @@ export default function BuilderListingNewPage() {
                           <Select value={(communityDetails.projectedTimeline as string) ?? ''} onChange={(v) => handleCommunityDetailChange('projectedTimeline', v)} placeholder="Select" options={TIMELINE_OPTIONS.map((t) => ({ value: t, label: t }))} />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">Exit Strategy</label>
-                        <textarea rows={2} value={(communityDetails.exitStrategy as string) ?? ''} onChange={(e) => handleCommunityDetailChange('exitStrategy', e.target.value)} className={`${inputCls} resize-none`} placeholder="How and when can investors exit?" />
-                      </div>
+                      <Textarea label="Exit Strategy" rows={2} value={(communityDetails.exitStrategy as string) ?? ''} onChange={(e) => handleCommunityDetailChange('exitStrategy', e.target.value)} placeholder="How and when can investors exit?" />
                     </>
                   )}
 
@@ -520,20 +598,11 @@ export default function BuilderListingNewPage() {
                   {communitySubtype === 'co_partner' && (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Total Project Cost (₹) *</label>
-                          <input type="number" required min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} className={inputCls} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Capital from Partner (₹)</label>
-                          <input type="number" min={0} value={(communityDetails.capitalFromPartner as number) ?? ''} onChange={(e) => handleCommunityDetailChange('capitalFromPartner', Number(e.target.value))} className={inputCls} placeholder="Can be ₹0 if skill-only" />
-                        </div>
+                        <Input label="Total Project Cost *" type="number" required min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} prefix="₹" />
+                        <Input label="Capital from Partner" type="number" min={0} value={(communityDetails.capitalFromPartner as number) ?? ''} onChange={(e) => handleCommunityDetailChange('capitalFromPartner', Number(e.target.value))} prefix="₹" placeholder="Can be ₹0 if skill-only" />
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Equity / Profit Share (%) *</label>
-                          <input type="number" required step="0.1" min={0} max={100} value={(communityDetails.equityShare as number) ?? ''} onChange={(e) => handleCommunityDetailChange('equityShare', Number(e.target.value))} className={inputCls} />
-                        </div>
+                        <Input label="Equity / Profit Share *" type="number" required step="0.1" min={0} max={100} value={(communityDetails.equityShare as number) ?? ''} onChange={(e) => handleCommunityDetailChange('equityShare', Number(e.target.value))} suffix="%" />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Time Commitment *</label>
                           <Select value={(communityDetails.timeCommitment as string) ?? ''} onChange={(v) => handleCommunityDetailChange('timeCommitment', v)} placeholder="Select" options={TIME_COMMITMENTS.map((t) => ({ value: t, label: t }))} />
@@ -557,24 +626,380 @@ export default function BuilderListingNewPage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-theme-primary mb-1">Partner Role / Title *</label>
-                          <input required value={(communityDetails.partnerRole as string) ?? ''} onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)} className={inputCls} placeholder="e.g. Co-Founder, Operations Head" />
-                        </div>
+                        <Input label="Partner Role / Title *" required value={(communityDetails.partnerRole as string) ?? ''} onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)} placeholder="e.g. Co-Founder, Operations Head" />
                         <div>
                           <label className="block text-sm font-medium text-theme-primary mb-1">Decision Authority *</label>
                           <Select value={(communityDetails.decisionAuthority as string) ?? ''} onChange={(v) => handleCommunityDetailChange('decisionAuthority', v)} placeholder="Select" options={DECISION_AUTHORITIES.map((d) => ({ value: d, label: d }))} />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">Key Responsibilities *</label>
-                        <textarea required rows={2} value={(communityDetails.keyResponsibilities as string) ?? ''} onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)} className={`${inputCls} resize-none`} placeholder="What will the partner be responsible for day-to-day?" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-theme-primary mb-1">What the Partner Gets</label>
-                        <textarea rows={2} value={(communityDetails.partnerBenefits as string) ?? ''} onChange={(e) => handleCommunityDetailChange('partnerBenefits', e.target.value)} className={`${inputCls} resize-none`} placeholder="e.g. 20% equity, monthly stipend, co-branding rights" />
-                      </div>
+                      <Textarea label="Key Responsibilities *" required rows={2} value={(communityDetails.keyResponsibilities as string) ?? ''} onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)} placeholder="What will the partner be responsible for day-to-day?" />
+                      <Textarea label="What the Partner Gets" rows={2} value={(communityDetails.partnerBenefits as string) ?? ''} onChange={(e) => handleCommunityDetailChange('partnerBenefits', e.target.value)} placeholder="e.g. 20% equity, monthly stipend, co-branding rights" />
                     </>
+                  )}
+                </>
+              )}
+
+              {/* Property Specs (Wealth & Safe) */}
+              {(vaultType === 'wealth' || vaultType === 'safe') && (
+                <>
+                  {/* Property Type Selector */}
+                  <div>
+                    <label className="block text-sm font-medium text-theme-primary mb-2">Property Type <span className="text-red-500">*</span></label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PROPERTY_TYPE_OPTIONS.map((opt) => (
+                        <button
+                          type="button"
+                          key={opt.value}
+                          onClick={() => {
+                            const next = propertyType === opt.value ? '' : opt.value
+                            setPropertyType(next)
+                            if (next !== propertyType) {
+                              setInvestmentMode('')
+                              setLandParcelUnit('sqft')
+                              setLandParcelRawValue('')
+                            }
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                            propertyType === opt.value
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-theme bg-theme-surface text-theme-secondary hover:border-primary/40'
+                          }`}
+                        >
+                          <span>{opt.icon}</span>
+                          <span className="truncate">{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 🏗️ Project Overview — visible as soon as property type is set */}
+                  {propertyType && (() => {
+                    const PFCFG: Record<string, { showPossessionQuarter: boolean; showRera: boolean; showTotalTowers: boolean; showTotalFloors: boolean }> = {
+                      flat:       { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
+                      villa:      { showPossessionQuarter: true,  showRera: true,  showTotalTowers: false, showTotalFloors: true  },
+                      plot:       { showPossessionQuarter: false, showRera: false, showTotalTowers: false, showTotalFloors: false },
+                      commercial: { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
+                      warehouse:  { showPossessionQuarter: true,  showRera: false, showTotalTowers: false, showTotalFloors: true  },
+                      mixed_use:  { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
+                    }
+                    const DEFAULT_FC = { showPossessionQuarter: true, showRera: true, showTotalTowers: true, showTotalFloors: true }
+                    const fc = PFCFG[propertyType] ?? DEFAULT_FC
+                    return (
+                      <div className="rounded-xl border border-theme p-4 space-y-4">
+                        <h4 className="text-sm font-semibold text-theme-primary">🏗️ Project Overview</h4>
+
+                        {(fc.showPossessionQuarter || fc.showRera) && (
+                          <div className={`grid gap-4 ${fc.showPossessionQuarter && fc.showRera ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            {fc.showPossessionQuarter && (
+                              <div>
+                                <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
+                                <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
+                              </div>
+                            )}
+                            {fc.showRera && (
+                              <Input label="RERA Number" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
+                            )}
+                          </div>
+                        )}
+
+                        {(fc.showTotalTowers || fc.showTotalFloors) && (
+                          <div className={`grid gap-4 ${fc.showTotalTowers ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            {fc.showTotalTowers && (
+                              <Input label="Total Towers" type="number" min={1} value={projectOverview.totalTowers} onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))} placeholder="e.g. 4" />
+                            )}
+                            {fc.showTotalFloors && (
+                              <Input label="Total Floors" type="number" min={1} value={projectOverview.totalFloors} onChange={(e) => setProjectOverview((p) => ({ ...p, totalFloors: e.target.value }))} placeholder="e.g. 18" />
+                            )}
+                          </div>
+                        )}
+
+                        {/* Land Parcel with unit dropdown */}
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">Land Parcel</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={landParcelRawValue}
+                              onChange={(e) => {
+                                setLandParcelRawValue(e.target.value)
+                                const unit = LAND_UNITS.find((u) => u.value === landParcelUnit)!
+                                const sqft = e.target.value ? String(Number(e.target.value) * unit.factor) : ''
+                                setProjectOverview((p) => ({ ...p, landParcelSqft: sqft }))
+                              }}
+                              placeholder="e.g. 1.5"
+                              className="flex-1 rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-[var(--bg-surface)]"
+                            />
+                            <Select
+                              value={landParcelUnit}
+                              onChange={(v) => {
+                                const newUnit = v as LandUnit
+                                setLandParcelUnit(newUnit)
+                                const unit = LAND_UNITS.find((u) => u.value === newUnit)!
+                                const sqft = landParcelRawValue ? String(Number(landParcelRawValue) * unit.factor) : ''
+                                setProjectOverview((p) => ({ ...p, landParcelSqft: sqft }))
+                              }}
+                              options={LAND_UNITS.map((u) => ({ value: u.value, label: u.label }))}
+                            />
+                          </div>
+                          {projectOverview.landParcelSqft && Number(projectOverview.landParcelSqft) > 0 && landParcelUnit !== 'sqft' && (
+                            <p className="text-[11px] text-theme-tertiary mt-1">≈ {Number(projectOverview.landParcelSqft).toLocaleString('en-IN')} sq.ft</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Investment Mode selector — Wealth Vault only, shown after property type chosen */}
+                  {vaultType === 'wealth' && propertyType && (
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-2">
+                        Investment Configuration <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setInvestmentMode('lumpsum')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${
+                            investmentMode === 'lumpsum'
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-theme bg-[var(--bg-surface)] hover:border-primary/40'
+                          }`}
+                        >
+                          <div className="text-xl mb-1">🏷️</div>
+                          <div className="font-semibold text-sm text-theme-primary">Lumpsum</div>
+                          <div className="text-xs text-theme-secondary mt-0.5 leading-snug">
+                            Set a fixed total target &amp; minimum ticket size for investors
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInvestmentMode('unit_config')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${
+                            investmentMode === 'unit_config'
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-theme bg-[var(--bg-surface)] hover:border-primary/40'
+                          }`}
+                        >
+                          <div className="text-xl mb-1">📐</div>
+                          <div className="font-semibold text-sm text-theme-primary">Unit Configuration</div>
+                          <div className="text-xs text-theme-secondary mt-0.5 leading-snug">
+                            Add unit / plot rows — total investment auto-computed
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 💰 Investment Details — visible once investmentMode (or safe vault) */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                    <div className="rounded-xl border border-theme p-4 space-y-4">
+                      <h4 className="text-sm font-semibold text-theme-primary">💰 Investment Details</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input label="Price per Sq.Ft (₹)" type="number" min={0} value={pricePerSqftField} onChange={(e) => setPricePerSqftField(e.target.value)} placeholder="e.g. 8500" prefix="₹" />
+                        <Input label="Total Project Area (Sq.Ft)" type="number" min={0} value={totalProjectAreaSqftField} onChange={(e) => setTotalProjectAreaSqftField(e.target.value)} placeholder="e.g. 120000" />
+                      </div>
+                      {/* Lumpsum computed cost banner + editable target + min (Wealth vault only) */}
+                      {vaultType === 'wealth' && investmentMode === 'lumpsum' && (() => {
+                        const computed = pricePerSqftField && totalProjectAreaSqftField
+                          ? Number(pricePerSqftField) * Number(totalProjectAreaSqftField) : 0
+                        const crore = computed / 1e7
+                        const lakh = computed / 1e5
+                        const display = computed > 0 ? (crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`) : null
+                        return (
+                          <>
+                            {display && (
+                              <div className="px-3 py-2.5 bg-primary/5 rounded-lg flex items-center justify-between">
+                                <div>
+                                  <p className="text-[11px] font-semibold text-primary uppercase tracking-wide">Computed Project Cost</p>
+                                  <p className="text-xs text-theme-secondary">Price/sqft × Total Area</p>
+                                </div>
+                                <div className="text-lg font-bold text-primary">{display}</div>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <Input label="Target Amount (₹) *" type="number" min={0} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} prefix="₹" />
+                              <Input label="Min Investment per Investor (₹) *" type="number" min={0} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} prefix="₹" />
+                            </div>
+                          </>
+                        )
+                      })()}
+
+                      {/* Unit Configurations — Safe always, Wealth in unit_config mode only */}
+                      {propertyType !== PropertyType.PLOT && (vaultType === 'safe' || investmentMode === 'unit_config') && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-theme-primary">
+                              {propertyType === PropertyType.WAREHOUSE ? 'Unit / Bay Configurations' : 'BHK / Unit Configurations'}
+                            </label>
+                            <button type="button" onClick={() => setUnitConfigs((p) => [...p, { id: String(Date.now()), bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }])} className="text-xs text-primary hover:underline">+ Add Config</button>
+                          </div>
+                          <div className="space-y-2">
+                            {unitConfigs.map((row, idx) => (
+                              <div key={row.id} className={`grid ${investmentMode === 'unit_config' ? 'grid-cols-8' : 'grid-cols-7'} gap-1.5 items-end p-2.5 bg-theme-surface-hover rounded-lg relative`}>
+                                <div className="col-span-2">
+                                  <p className="text-[10px] text-theme-tertiary mb-1">Type</p>
+                                  <Select value={row.bhkType} onChange={(v) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, bhkType: v } : r)))} placeholder="BHK type" options={BHK_TYPES.map((t) => ({ value: t, label: t }))} />
+                                </div>
+                                {(['carpetAreaSqft', 'superBuiltUpSqft', 'bathrooms', 'balconies', 'totalUnits'] as const).map((field, fi) => (
+                                  <div key={field}>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">{['Carpet sqft', 'SBA sqft', 'Baths', 'Balc.', 'Units'][fi]}</p>
+                                    <input type="number" min={0} value={row[field]} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, [field]: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" />
+                                  </div>
+                                ))}
+                                {/* ₹/sqft — unit_config mode only */}
+                                {investmentMode === 'unit_config' && (
+                                  <div>
+                                    <p className="text-[10px] text-theme-tertiary mb-1">₹/sqft</p>
+                                    <input type="number" min={0} value={row.pricePerSqft} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 8500" />
+                                  </div>
+                                )}
+                                {unitConfigs.length > 1 && (
+                                  <button type="button" onClick={() => setUnitConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold">×</button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Computed total strip — unit_config mode only */}
+                          {investmentMode === 'unit_config' && (() => {
+                            const total = unitConfigs
+                              .filter((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
+                              .reduce((sum, u) => sum + Number(u.totalUnits) * Number(u.carpetAreaSqft) * Number(u.pricePerSqft || 0), 0)
+                            if (total === 0) return null
+                            const crore = total / 1e7
+                            const lakh = total / 1e5
+                            const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                            return (
+                              <div className="mt-3 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-between">
+                                <div>
+                                  <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Total Investment (auto-computed)</p>
+                                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ units × carpet area × ₹/sqft</p>
+                                </div>
+                                <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{display}</div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
+
+                      {/* Plot Configurations — Safe always, Wealth in unit_config mode only */}
+                      {propertyType === PropertyType.PLOT && (vaultType === 'safe' || investmentMode === 'unit_config') && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-theme-primary">Plot Configurations</label>
+                            <button type="button" onClick={() => setPlotConfigs((p) => [...p, { id: String(Date.now()), plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }])} className="text-xs text-primary hover:underline">+ Add Plot Type</button>
+                          </div>
+                          <div className="space-y-2">
+                            {plotConfigs.map((row, idx) => (
+                              <div key={row.id} className="grid grid-cols-4 gap-1.5 items-start p-2.5 bg-theme-surface-hover rounded-lg relative">
+                                <div>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">Plot Type</p>
+                                  <Select value={row.plotType} onChange={(v) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, plotType: v } : r)))} placeholder="Select" options={PLOT_TYPE_OPTIONS.map((t) => ({ value: t, label: t }))} />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">Area (Sq.Ft)</p>
+                                  <input type="number" min={0} value={row.areaSqft} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, areaSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 2178" />
+                                  {row.areaSqft && Number(row.areaSqft) > 0 && <p className="text-[10px] text-theme-tertiary mt-0.5">{sqftConversions(Number(row.areaSqft)).sqyd} sqyd · {sqftConversions(Number(row.areaSqft)).guntha} guntha</p>}
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">Total Plots</p>
+                                  <input type="number" min={0} value={row.totalPlots} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, totalPlots: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 50" />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-theme-tertiary mb-1">₹/Sqft</p>
+                                  <input type="number" min={0} value={row.pricePerSqft} onChange={(e) => setPlotConfigs((p) => p.map((r, i) => (i === idx ? { ...r, pricePerSqft: e.target.value } : r)))} className="w-full rounded border border-theme px-1.5 py-1.5 text-xs focus:border-primary outline-none bg-[var(--bg-surface)]" placeholder="e.g. 3500" />
+                                </div>
+                                {plotConfigs.length > 1 && (
+                                  <button type="button" onClick={() => setPlotConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 hover:bg-red-200 text-xs font-bold">×</button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Computed total strip — unit_config mode only */}
+                          {investmentMode === 'unit_config' && (() => {
+                            const total = plotConfigs
+                              .filter((p) => p.plotType && p.areaSqft && p.totalPlots)
+                              .reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
+                            if (total === 0) return null
+                            const crore = total / 1e7
+                            const lakh = total / 1e5
+                            const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                            return (
+                              <div className="mt-3 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-between">
+                                <div>
+                                  <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Total Investment (auto-computed)</p>
+                                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ plots × area × ₹/sqft</p>
+                                </div>
+                                <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{display}</div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
+
+                      {/* Amenities is now in its own section below */}
+                    </div>
+                  )}
+
+                  {/* 📅 Funding Schedule */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                    <div className="rounded-xl border border-theme p-4 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-theme-primary">📅 Funding Schedule</h4>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-semibold uppercase tracking-wide">⚠️ Important</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">
+                            Funding Opens <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={form.fundingOpenAt ?? ''}
+                            onChange={(e) => handleChange('fundingOpenAt', e.target.value)}
+                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-[var(--bg-surface)]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-theme-primary mb-1">Funding Deadline <span className="text-xs text-theme-tertiary">(optional)</span></label>
+                          <input
+                            type="date"
+                            value={form.closingDate ?? ''}
+                            onChange={(e) => handleChange('closingDate', e.target.value)}
+                            className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-[var(--bg-surface)]"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-theme-tertiary">ℹ️ Status auto-transitions to <strong>Active</strong> once approvals complete &amp; Funding Opens date is reached.</p>
+                    </div>
+                  )}
+
+                  {/* ✨ Amenities */}
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-3">✨ Amenities</label>
+                      <div className="space-y-3">
+                        {(Object.entries(AMENITY_CATEGORIES) as [AmenityCategory, string][]).map(([catKey, catLabel]) => {
+                          const catAmenities = AMENITIES.filter((a) => a.category === catKey)
+                          return (
+                            <div key={catKey}>
+                              <p className="text-[11px] font-semibold text-theme-tertiary uppercase tracking-wider mb-1.5">{catLabel}</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {catAmenities.map((a) => {
+                                  const isSel = selectedAmenities.includes(a.key)
+                                  return (
+                                    <button type="button" key={a.key} onClick={() => setSelectedAmenities((p) => (isSel ? p.filter((k) => k !== a.key) : [...p, a.key]))} className={`px-2.5 py-1 rounded-full border text-xs font-medium transition-all ${isSel ? 'border-primary bg-primary/10 text-primary' : 'border-theme text-theme-secondary hover:border-primary/50 hover:text-theme-primary'}`}>
+                                      {a.label}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {selectedAmenities.length > 0 && <p className="text-xs text-primary mt-2 font-medium">✓ {selectedAmenities.length} amenities selected</p>}
+                    </div>
                   )}
                 </>
               )}

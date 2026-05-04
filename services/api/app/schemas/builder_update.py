@@ -49,4 +49,5 @@ class BuilderUpdateRead(BaseModel):
     attachments: list[BuilderUpdateAttachmentRead] = []
     created_at: datetime
     updated_at: datetime
+    is_read: bool = False
     model_config = {"from_attributes": True}

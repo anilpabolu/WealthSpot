@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     # ── Razorpay ─────────────────────────────────────────
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""
+    # Dev-only escape hatch: when ENVIRONMENT=development AND this is true,
+    # webhook signature verification is logged-and-allowed instead of failing.
+    # Always false in production (enforced by validator below).
+    razorpay_allow_unsigned_dev: bool = False
+
+    # ── CAPTCHA (hCaptcha / Turnstile) ───────────────────
+    captcha_provider: str = ""  # "hcaptcha" | "turnstile" | "" (disabled)
+    captcha_secret: str = ""
+    captcha_threshold: int = 3  # failed OTP attempts before CAPTCHA required
 
     # ── Business Rules ───────────────────────────────────
     referral_reward_paise: int = 25000  # ₹250 in paise
@@ -80,6 +89,14 @@ class Settings(BaseSettings):
     # ── Encryption (Fernet) ──────────────────────────────
     encryption_key: str = ""
 
+    # ── Communication Platform ───────────────────────────
+    comm_outbox_batch_size: int = 200
+    comm_outbox_poll_seconds: int = 1
+    mjml_render_timeout_seconds: int = 10
+
+    # ── OpenAI ───────────────────────────────────────────
+    openai_api_key: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
@@ -91,6 +108,16 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET_KEY must be set to a strong secret in production")
             if not self.encryption_key:
                 raise ValueError("ENCRYPTION_KEY must be set in production")
+            if not self.sentry_dsn:
+                raise ValueError("SENTRY_DSN must be set in production")
+            if self.razorpay_key_id and not self.razorpay_key_secret:
+                raise ValueError(
+                    "RAZORPAY_KEY_SECRET must be set when RAZORPAY_KEY_ID is configured"
+                )
+            if self.razorpay_allow_unsigned_dev:
+                raise ValueError(
+                    "RAZORPAY_ALLOW_UNSIGNED_DEV cannot be true in production"
+                )
 
             origins = self.cors_origin_list
             if not origins:

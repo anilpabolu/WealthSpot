@@ -10,12 +10,14 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
+from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.exceptions import APIError
 from app.middleware.auth import get_current_user, get_optional_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
+from app.models.company import Company
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.opportunity_like import OpportunityLike, UserActivity
@@ -282,9 +284,9 @@ async def vault_stats(
     )
     invested_result = await db.execute(invested_users_q)
     invested_users: dict[str, set] = {}
-    for row in invested_result.fetchall():
-        vt_str = row.vault_type.value if hasattr(row.vault_type, "value") else row.vault_type
-        invested_users.setdefault(vt_str, set()).add(row.user_id)
+    for inv_row in invested_result.fetchall():
+        vt_str = inv_row.vault_type.value if hasattr(inv_row.vault_type, "value") else inv_row.vault_type
+        invested_users.setdefault(vt_str, set()).add(inv_row.user_id)
 
     # Step 4: explorer = DNA complete MINUS invested
     explorer_map: dict[str, int] = {}
@@ -626,7 +628,7 @@ async def builder_analytics(
         select(
             func.to_char(OpportunityInvestment.invested_at, "YYYY-MM").label("month"),
             func.coalesce(func.sum(OpportunityInvestment.amount), 0).label("amount"),
-            func.count(OpportunityInvestment.id).label("count"),
+            func.count(OpportunityInvestment.id).label("inv_count"),
         )
         .where(
             OpportunityInvestment.opportunity_id.in_(opp_ids),
@@ -638,7 +640,7 @@ async def builder_analytics(
     )
     monthly_result = await db.execute(monthly_q)
     monthly_trends = [
-        BuilderMonthlyTrend(month=row.month, amount=float(row.amount), count=int(row.count))
+        BuilderMonthlyTrend(month=row.month, amount=float(row.amount), count=int(row.inv_count))
         for row in monthly_result.all()
         if row.month is not None
     ]
@@ -822,68 +824,89 @@ async def create_opportunity(
 
     slug = _slugify(body.title)
 
-    opportunity = Opportunity(
-        creator_id=user.id,
-        vault_type=body.vault_type,
-        status=OpportunityStatus.PENDING_APPROVAL,
-        title=body.title,
-        slug=slug,
-        tagline=body.tagline,
-        description=body.description,
-        city=body.city,
-        state=body.state,
-        address=body.address,
-        # Address details
-        address_line1=body.address_line1,
-        address_line2=body.address_line2,
-        landmark=body.landmark,
-        locality=body.locality,
-        pincode=body.pincode,
-        district=body.district,
-        country=body.country,
-        # Company
-        company_id=company_uuid,
-        # Financials
-        target_amount=body.target_amount,
-        min_investment=body.min_investment,
-        target_irr=body.target_irr,
-        industry=body.industry,
-        stage=body.stage,
-        founder_name=body.founder_name,
-        pitch_deck_url=body.pitch_deck_url,
-        community_type=body.community_type,
-        collaboration_type=body.collaboration_type,
-        community_subtype=body.community_subtype,
-        community_details=body.community_details,
-        safe_vault_data=safe_vault_payload,
-        funding_open_at=body.funding_open_at,
-        closing_date=body.closing_date,
-    )
-    db.add(opportunity)
-    await db.flush()
+    # TENANCY: workspace-scope candidate — opportunity + approval form a single atomic unit.
+    async with db.begin_nested():
+        opportunity = Opportunity(
+            creator_id=user.id,
+            vault_type=body.vault_type,
+            status=OpportunityStatus.PENDING_APPROVAL,
+            title=body.title,
+            slug=slug,
+            tagline=body.tagline,
+            description=body.description,
+            city=body.city,
+            state=body.state,
+            address=body.address,
+            # Address details
+            address_line1=body.address_line1,
+            address_line2=body.address_line2,
+            landmark=body.landmark,
+            locality=body.locality,
+            pincode=body.pincode,
+            district=body.district,
+            country=body.country,
+            # Company
+            company_id=company_uuid,
+            # Financials
+            target_amount=body.target_amount,
+            min_investment=body.min_investment,
+            target_irr=body.target_irr,
+            industry=body.industry,
+            stage=body.stage,
+            founder_name=body.founder_name,
+            pitch_deck_url=body.pitch_deck_url,
+            community_type=body.community_type,
+            collaboration_type=body.collaboration_type,
+            community_subtype=body.community_subtype,
+            community_details=body.community_details,
+            safe_vault_data=safe_vault_payload,
+            # Real-estate property specification fields
+            property_type=body.property_type,
+            price_per_sqft=body.price_per_sqft,
+            total_project_area_sqft=body.total_project_area_sqft,
+            property_specs=body.property_specs,
+            property_amenities=body.property_amenities,
+            amenity_cost_estimate=body.amenity_cost_estimate,
+            funding_open_at=body.funding_open_at,
+            closing_date=body.closing_date,
+            # Investment configuration mode
+            investment_mode=body.investment_mode or "lumpsum",
+        )
+        db.add(opportunity)
+        await db.flush()
 
-    # Create corresponding approval request
-    approval = ApprovalRequest(
-        requester_id=user.id,
-        category=category_map.get(body.vault_type, ApprovalCategory.OPPORTUNITY_LISTING),
-        title=f"New {body.vault_type.value.title()} Opportunity: {body.title}",
-        description=body.description or body.tagline,
-        resource_type="opportunity",
-        resource_id=str(opportunity.id),
-        payload={
-            "vault_type": body.vault_type.value,
-            "title": body.title,
-            "city": body.city,
-            "target_amount": body.target_amount,
-        },
-    )
-    db.add(approval)
-    await db.flush()
+        # Create corresponding approval request
+        approval = ApprovalRequest(
+            requester_id=user.id,
+            category=category_map.get(body.vault_type, ApprovalCategory.OPPORTUNITY_LISTING),
+            title=f"New {body.vault_type.value.title()} Opportunity: {body.title}",
+            description=body.description or body.tagline,
+            resource_type="opportunity",
+            resource_id=str(opportunity.id),
+            payload={
+                "vault_type": body.vault_type.value,
+                "title": body.title,
+                "city": body.city,
+                "target_amount": body.target_amount,
+            },
+        )
+        db.add(approval)
+        await db.flush()
 
-    # Link approval to opportunity
-    opportunity.approval_id = approval.id
-    await db.flush()
+        # Link approval to opportunity (mutual reference — must be in same savepoint)
+        opportunity.approval_id = approval.id
+        await db.flush()
+
     await db.refresh(opportunity)
+
+    # Increment the builder's project count
+    if company_uuid:
+        await db.execute(
+            sql_update(Company)
+            .where(Company.id == company_uuid)
+            .values(projects_completed=Company.projects_completed + 1)
+        )
+        await db.commit()
 
     return OpportunityRead.model_validate(opportunity)
 

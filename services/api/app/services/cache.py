@@ -40,8 +40,8 @@ def cache_get(key: str) -> Any | None:
     if r is None:
         return None
     try:
-        raw = r.get(key)
-        return json.loads(raw) if raw else None
+        raw = r.get(key)  # type: ignore[union-attr]
+        return json.loads(raw) if raw else None  # type: ignore[arg-type]
     except Exception:
         return None
 

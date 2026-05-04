@@ -2,7 +2,7 @@ import { PortalLayout } from '@/components/layout'
 import MetricCard from '@/components/wealth/MetricCard'
 import { usePortfolioSummary, usePortfolioProperties } from '@/hooks/usePortfolio'
 import { formatINRCompact, formatPercent } from '@/lib/formatters'
-import { Wallet, TrendingUp, PieChart, BarChart3, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Wallet, TrendingUp, PieChart, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { DataTable, Badge, type Column } from '@/components/ui'
 import { useContent } from '@/hooks/useSiteContent'
@@ -24,12 +24,6 @@ function SummaryMetrics() {
         icon={<TrendingUp className="h-5 w-5 text-primary" />}
         delta={summary ? formatPercent((summary.currentValue - summary.totalInvested) / summary.totalInvested * 100) : undefined}
         deltaPositive={(summary?.currentValue ?? 0) >= (summary?.totalInvested ?? 0)}
-        isLoading={isLoading}
-      />
-      <MetricCard
-        label="XIRR"
-        value={formatPercent(summary?.xirr ?? 0)}
-        icon={<BarChart3 className="h-5 w-5 text-primary" />}
         isLoading={isLoading}
       />
       <MetricCard
@@ -194,13 +188,6 @@ function PropertiesTable() {
                     </span>
                   )
                 },
-              },
-              {
-                key: 'irr',
-                header: 'IRR',
-                headerClassName: 'text-right',
-                className: 'text-right font-mono font-semibold text-primary',
-                render: (p) => <>{formatPercent(p.irr)}</>,
               },
               {
                 key: 'status',

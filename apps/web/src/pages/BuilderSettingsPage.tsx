@@ -3,7 +3,7 @@ import { PortalLayout } from '@/components/layout'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPatch } from '@/lib/api'
 import { INDIAN_CITIES } from '@/lib/constants'
-import { Select } from '@/components/ui'
+import { Select, Input, Textarea } from '@/components/ui'
 import { Loader2, Save, Building2, Shield, Phone, Globe } from 'lucide-react'
 
 interface BuilderProfile {
@@ -46,7 +46,6 @@ function useUpdateBuilderProfile() {
   })
 }
 
-const inputCls = 'w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none'
 
 export default function BuilderSettingsPage() {
   const { data: profile, isLoading } = useBuilderProfile()
@@ -136,23 +135,14 @@ export default function BuilderSettingsPage() {
               <h2 className="text-sm font-semibold text-theme-primary">Company Information</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Company Name *</label>
-                <input required value={form.companyName} onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))} className={inputCls} />
-              </div>
+              <Input label="Company Name *" required value={form.companyName} onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))} />
               <div>
                 <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
                 <Select value={form.city} onChange={(v) => setForm((p) => ({ ...p, city: v }))} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">Description</label>
-              <textarea rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} className={`${inputCls} resize-none`} placeholder="Brief description of your company" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">About</label>
-              <textarea rows={3} value={form.about} onChange={(e) => setForm((p) => ({ ...p, about: e.target.value }))} className={`${inputCls} resize-none`} placeholder="Detailed about section shown on your profile" />
-            </div>
+            <Textarea label="Description" rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Brief description of your company" />
+            <Textarea label="About" rows={3} value={form.about} onChange={(e) => setForm((p) => ({ ...p, about: e.target.value }))} placeholder="Detailed about section shown on your profile" />
           </section>
 
           {/* Regulatory */}
@@ -162,18 +152,9 @@ export default function BuilderSettingsPage() {
               <h2 className="text-sm font-semibold text-theme-primary">Regulatory & Compliance</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">RERA Number</label>
-                <input value={form.reraNumber} onChange={(e) => setForm((p) => ({ ...p, reraNumber: e.target.value }))} className={inputCls} placeholder="e.g. P52100000001" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">CIN</label>
-                <input value={form.cin} onChange={(e) => setForm((p) => ({ ...p, cin: e.target.value }))} className={inputCls} placeholder="Corporate Identity Number" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">GSTIN</label>
-                <input value={form.gstin} onChange={(e) => setForm((p) => ({ ...p, gstin: e.target.value }))} className={inputCls} placeholder="GST Number" />
-              </div>
+              <Input label="RERA Number" value={form.reraNumber} onChange={(e) => setForm((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. P52100000001" />
+              <Input label="CIN" value={form.cin} onChange={(e) => setForm((p) => ({ ...p, cin: e.target.value }))} placeholder="Corporate Identity Number" />
+              <Input label="GSTIN" value={form.gstin} onChange={(e) => setForm((p) => ({ ...p, gstin: e.target.value }))} placeholder="GST Number" />
             </div>
           </section>
 
@@ -184,24 +165,12 @@ export default function BuilderSettingsPage() {
               <h2 className="text-sm font-semibold text-theme-primary">Contact Details</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Phone</label>
-                <input type="tel" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Email</label>
-                <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className={inputCls} />
-              </div>
+              <Input label="Phone" type="tel" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+              <Input label="Email" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Website</label>
-                <input type="url" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} className={inputCls} placeholder="https://..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Office Address</label>
-                <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} className={inputCls} />
-              </div>
+              <Input label="Website" type="url" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} placeholder="https://..." />
+              <Input label="Office Address" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
             </div>
           </section>
 
@@ -212,18 +181,9 @@ export default function BuilderSettingsPage() {
               <h2 className="text-sm font-semibold text-theme-primary">Experience & Track Record</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Years of Experience</label>
-                <input type="number" min={0} value={form.experienceYears} onChange={(e) => setForm((p) => ({ ...p, experienceYears: e.target.value }))} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Projects Completed</label>
-                <input type="number" min={0} value={form.projectsCompleted} onChange={(e) => setForm((p) => ({ ...p, projectsCompleted: e.target.value }))} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Total Sq.ft Delivered</label>
-                <input type="number" min={0} value={form.totalSqftDelivered} onChange={(e) => setForm((p) => ({ ...p, totalSqftDelivered: e.target.value }))} className={inputCls} />
-              </div>
+              <Input label="Years of Experience" type="number" min={0} value={form.experienceYears} onChange={(e) => setForm((p) => ({ ...p, experienceYears: e.target.value }))} />
+              <Input label="Projects Completed" type="number" min={0} value={form.projectsCompleted} onChange={(e) => setForm((p) => ({ ...p, projectsCompleted: e.target.value }))} />
+              <Input label="Total Sq.ft Delivered" type="number" min={0} value={form.totalSqftDelivered} onChange={(e) => setForm((p) => ({ ...p, totalSqftDelivered: e.target.value }))} />
             </div>
           </section>
 

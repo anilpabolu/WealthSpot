@@ -1,5 +1,11 @@
 """
 Rate limiting middleware with Redis backend (falls back to in-memory for local dev).
+
+Two flavours:
+  - `RateLimitMiddleware`: global per-IP cap, mounted in app/main.py.
+  - `route_limit(...)`: FastAPI dependency for per-endpoint caps. Use on
+    sensitive routes (login, OTP, signup-check) where the global limit is too
+    permissive. Honours the same Redis backend; falls back to in-memory.
 """
 
 import asyncio
@@ -8,7 +14,7 @@ import time
 from collections import defaultdict
 from typing import Any
 
-from fastapi import Request, status
+from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import JSONResponse, Response
 
@@ -135,4 +141,66 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response.headers["X-RateLimit-Limit"] = str(self.max_requests)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
         return response
+
+
+# ── Per-endpoint limiter ────────────────────────────────────────────────────
+
+_route_memory: dict[str, list[float]] = defaultdict(list)
+
+
+def _route_check(scope: str, max_requests: int, window_seconds: int) -> bool:
+    """Returns True if the request is allowed."""
+    now = time.time()
+    cutoff = now - window_seconds
+
+    # Try Redis (lazily; reuses the module-level _get_redis_client by re-calling).
+    redis = _get_redis_client()
+    if redis is not None:
+        try:
+            key = f"ratelimit:route:{scope}"
+            pipe = redis.pipeline()
+            pipe.zremrangebyscore(key, 0, cutoff)
+            pipe.zadd(key, {str(now): now})
+            pipe.zcard(key)
+            pipe.expire(key, window_seconds)
+            results = pipe.execute()
+            return int(results[2]) <= max_requests
+        except Exception:
+            logger.exception("route_limit: Redis error, falling back to memory")
+
+    # Memory fallback
+    _route_memory[scope] = [t for t in _route_memory[scope] if t > cutoff]
+    if len(_route_memory[scope]) >= max_requests:
+        return False
+    _route_memory[scope].append(now)
+    return True
+
+
+def route_limit(*, name: str, max_requests: int, window_seconds: int):
+    """FastAPI dependency factory for per-endpoint rate limiting.
+
+    Keyed by (route name, client IP). Use on auth-adjacent endpoints — login,
+    OTP request/verify, and email-existence check — to stop credential
+    stuffing and enumeration without affecting normal browsing.
+
+    Example:
+        @router.post("/login", dependencies=[Depends(route_limit(
+            name="auth.login", max_requests=10, window_seconds=60
+        ))])
+    """
+
+    async def _dep(request: Request) -> None:
+        ip = request.client.host if request.client else "unknown"
+        scope = f"{name}:{ip}"
+        loop = asyncio.get_running_loop()
+        allowed = await loop.run_in_executor(
+            None, _route_check, scope, max_requests, window_seconds
+        )
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many requests. Please slow down and try again shortly.",
+            )
+
+    return _dep
 

@@ -5,11 +5,13 @@ Revises: 023_analytics_views
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 revision: str = "024_profiling_matching"
 down_revision: Union[str, None] = "023_analytics_views"

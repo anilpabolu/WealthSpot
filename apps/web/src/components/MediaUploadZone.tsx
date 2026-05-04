@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { ImagePlus, Video, X, GripVertical } from 'lucide-react'
 
-interface MediaItem {
+export interface MediaItem {
   file: File
   preview: string
   type: 'image' | 'video'

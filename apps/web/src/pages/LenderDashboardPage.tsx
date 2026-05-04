@@ -162,14 +162,10 @@ export default function LenderDashboardPage() {
                   </div>
                   <span className="pill-upcoming">New</span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <p className="text-xs text-theme-secondary">Target</p>
                     <p className="font-mono font-semibold text-theme-primary">{formatINRCompact(opp.targetAmount ?? 0)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-theme-secondary">IRR</p>
-                    <p className="font-mono font-semibold text-primary">{formatPercent(opp.targetIrr ?? 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-theme-secondary">Min Invest</p>

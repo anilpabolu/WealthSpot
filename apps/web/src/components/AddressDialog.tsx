@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Select } from '@/components/ui'
-import { MapPin, Loader2 } from 'lucide-react'
+import { Select, Input } from '@/components/ui'
+import { MapPin } from 'lucide-react'
 import { usePincodeLookup } from '@/hooks/usePincodes'
 import { INDIAN_CITIES } from '@/lib/constants'
 
@@ -111,70 +111,54 @@ export default function AddressDialog({ value, onChange }: Props) {
 
             <div className="p-5 space-y-4">
               {/* Pincode — hero input */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-theme-primary mb-1">Pincode *</label>
-                <div className="relative">
-                  <input
-                    value={local.pincode}
-                    onChange={(e) => handleField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full rounded-lg border border-theme px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10"
-                    placeholder="Enter 6-digit pincode"
-                    maxLength={6}
-                    inputMode="numeric"
-                  />
-                  {isFetching && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />
-                  )}
-                </div>
-                {pincodeResults && pincodeResults.length > 0 && pincodeResults[0] && (
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                    ✓ {pincodeResults[0].officeName} — {pincodeResults[0].district}, {pincodeResults[0].state}
-                  </p>
-                )}
-                {local.pincode.length === 6 && pincodeResults && pincodeResults.length === 0 && !isFetching && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠ Not found — enter details manually</p>
-                )}
-              </div>
+              <Input
+                label="Pincode *"
+                value={local.pincode}
+                onChange={(e) => handleField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Enter 6-digit pincode"
+                maxLength={6}
+                inputMode="numeric"
+                showCounter
+                loading={isFetching}
+                successText={
+                  pincodeResults && pincodeResults.length > 0 && pincodeResults[0]
+                    ? `✓ ${pincodeResults[0].officeName} — ${pincodeResults[0].district}, ${pincodeResults[0].state}`
+                    : undefined
+                }
+                errorText={
+                  local.pincode.length === 6 && pincodeResults && pincodeResults.length === 0 && !isFetching
+                    ? '⚠ Not found — enter details manually'
+                    : undefined
+                }
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Address Line 1 *</label>
-                <input
-                  value={local.addressLine1}
-                  onChange={(e) => handleField('addressLine1', e.target.value)}
-                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  placeholder="Plot/Survey no., Building name, Street"
-                />
-              </div>
+              <Input
+                label="Address Line 1 *"
+                value={local.addressLine1}
+                onChange={(e) => handleField('addressLine1', e.target.value)}
+                placeholder="Plot/Survey no., Building name, Street"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-theme-primary mb-1">Address Line 2</label>
-                <input
-                  value={local.addressLine2}
-                  onChange={(e) => handleField('addressLine2', e.target.value)}
-                  className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  placeholder="Floor, Wing, Sector"
-                />
-              </div>
+              <Input
+                label="Address Line 2"
+                value={local.addressLine2}
+                onChange={(e) => handleField('addressLine2', e.target.value)}
+                placeholder="Floor, Wing, Sector"
+              />
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">Landmark</label>
-                  <input
-                    value={local.landmark}
-                    onChange={(e) => handleField('landmark', e.target.value)}
-                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    placeholder="Near ..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">Locality / Area</label>
-                  <input
-                    value={local.locality}
-                    onChange={(e) => handleField('locality', e.target.value)}
-                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    placeholder="e.g. Whitefield"
-                  />
-                </div>
+                <Input
+                  label="Landmark"
+                  value={local.landmark}
+                  onChange={(e) => handleField('landmark', e.target.value)}
+                  placeholder="Near ..."
+                />
+                <Input
+                  label="Locality / Area"
+                  value={local.locality}
+                  onChange={(e) => handleField('locality', e.target.value)}
+                  placeholder="e.g. Whitefield"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -191,35 +175,27 @@ export default function AddressDialog({ value, onChange }: Props) {
                     searchable
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">District</label>
-                  <input
-                    value={local.district}
-                    onChange={(e) => handleField('district', e.target.value)}
-                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    placeholder="Auto-filled from pincode"
-                  />
-                </div>
+                <Input
+                  label="District"
+                  value={local.district}
+                  onChange={(e) => handleField('district', e.target.value)}
+                  placeholder="Auto-filled from pincode"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">State</label>
-                  <input
-                    value={local.state}
-                    onChange={(e) => handleField('state', e.target.value)}
-                    className="w-full rounded-lg border border-theme px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    placeholder="Auto-filled from pincode"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">Country</label>
-                  <input
-                    value={local.country}
-                    readOnly
-                    className="w-full rounded-lg border border-theme bg-theme-surface px-3 py-2 text-sm text-theme-secondary"
-                  />
-                </div>
+                <Input
+                  label="State"
+                  value={local.state}
+                  onChange={(e) => handleField('state', e.target.value)}
+                  placeholder="Auto-filled from pincode"
+                />
+                <Input
+                  label="Country"
+                  value={local.country}
+                  readOnly
+                  disabled
+                />
               </div>
 
               {/* Save */}

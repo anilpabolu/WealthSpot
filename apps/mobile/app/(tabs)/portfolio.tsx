@@ -69,11 +69,6 @@ export default function PortfolioScreen() {
 
         <View className="flex-row rounded-xl p-4 gap-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
           <View className="flex-1 items-center">
-            <Text className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>XIRR</Text>
-            <Text className="font-bold text-base" style={{ color: '#6EE7B7' }}>{summary?.xirr?.toFixed(1) ?? '—'}%</Text>
-          </View>
-          <View className="w-px" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} />
-          <View className="flex-1 items-center">
             <Text className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Monthly Income</Text>
             <Text className="font-bold text-base" style={{ color: '#FFFFFF' }}>{summary?.monthlyIncome ? formatINR(summary.monthlyIncome) : '—'}</Text>
           </View>
@@ -102,10 +97,6 @@ export default function PortfolioScreen() {
         }}
       >
         <Text className="font-bold text-base mb-3" style={{ color: colors.textPrimary, fontFamily: 'BricolageGrotesque-Bold' }}>Summary</Text>
-        <View className="flex-row justify-between py-2" style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : '#F9FAFB' }}>
-          <Text className="text-sm" style={{ color: colors.textSecondary }}>Total Returns</Text>
-          <Text className="font-bold text-sm" style={{ color: '#10B981' }}>{formatINR(summary?.totalReturns ?? 0)}</Text>
-        </View>
         <View className="flex-row justify-between py-2">
           <Text className="text-sm" style={{ color: colors.textSecondary }}>Unrealized Gain</Text>
           <Text className="font-bold text-sm" style={{ color: '#10B981' }}>{formatINR(summary?.unrealizedGains ?? 0)}</Text>

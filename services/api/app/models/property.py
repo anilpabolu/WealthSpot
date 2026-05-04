@@ -137,6 +137,13 @@ class Property(Base):
     highlights: Mapped[list[str] | None] = mapped_column(ARRAY(Text), default=list)
     usp: Mapped[str | None] = mapped_column(Text)
 
+    # Property specification fields (mirrors opportunities table)
+    property_type: Mapped[str | None] = mapped_column(String(30), index=True)
+    price_per_sqft: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    total_project_area_sqft: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
+    property_specs: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    property_amenities: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+
     # Referrer (person who shared/listed this property)
     referrer_name: Mapped[str | None] = mapped_column(String(255))
     referrer_phone: Mapped[str | None] = mapped_column(String(20))

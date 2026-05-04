@@ -170,3 +170,6 @@ class HoldingItem(BaseModel):
     founder_name: str | None = None
     tagline: str | None = None
     project_phase: str | None = None
+    sqft: float | None = None
+    flat_configurations: list[str] = []
+    transaction_status: str = ''

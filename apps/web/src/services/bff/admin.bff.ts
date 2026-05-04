@@ -2,45 +2,11 @@
  * Admin BFF – Admin dashboard, user management, property approvals
  */
 
+import type { AdminDashboardView } from "@wealthspot/types";
 import { apiGet, apiPost, apiPut } from "../../lib/api";
 
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export interface AdminDashboardView {
-  stats: {
-    total_users: number;
-    total_investors: number;
-    total_builders: number;
-    total_properties: number;
-    active_properties: number;
-    total_invested: number;
-    total_transactions: number;
-    kyc_pending_count: number;
-  };
-  pendingKyc: Array<{
-    user_id: string;
-    full_name: string;
-    email: string;
-    kyc_status: string;
-    document_count: number;
-    submitted_at: string;
-  }>;
-  pendingProperties: Array<{
-    id: string;
-    title: string;
-    builder_name: string;
-    city: string;
-    target_amount: number;
-    submitted_at: string;
-  }>;
-  recentActivity: Array<{
-    action: string;
-    resource_type: string;
-    resource_id: string | null;
-    actor_name: string;
-    created_at: string;
-  }>;
-}
+// Re-export for consumers that import from this module directly
+export type { AdminDashboardView };
 
 // ── BFF Service ───────────────────────────────────────────────────────────
 

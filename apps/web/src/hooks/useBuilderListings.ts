@@ -37,8 +37,7 @@ export interface BuilderListing {
   city: string
   micromarket: string
   assetType: string
-  status: 'live' | 'upcoming' | 'funded' | 'closed'
-  irr: number
+  status: 'live' | 'upcoming' | 'funded' | 'closed' | 'draft' | 'pending_approval' | 'rejected'
   minInvest: number
   raised: number
   target: number
@@ -57,6 +56,9 @@ const OPP_STATUS_MAP: Record<string, BuilderListing['status']> = {
   funded: 'funded',
   closing_soon: 'live',
   closed: 'closed',
+  draft: 'draft',
+  pending_approval: 'pending_approval',
+  rejected: 'rejected',
 }
 
 const PROP_STATUS_MAP: Record<string, BuilderListing['status']> = {
@@ -121,7 +123,6 @@ export function useBuilderListings() {
         micromarket: opp.locality ?? opp.addressLine1 ?? '',
         assetType: opp.vaultType === 'wealth' ? 'Real Estate' : opp.vaultType === 'safe' ? 'Fixed Income' : 'Community',
         status: mapped,
-        irr: opp.expectedIrr ?? opp.targetIrr ?? 0,
         minInvest: opp.minInvestment ?? 0,
         raised: opp.raisedAmount ?? 0,
         target: opp.targetAmount ?? 0,
@@ -145,7 +146,6 @@ export function useBuilderListings() {
         micromarket: prop.locality ?? '',
         assetType: prop.assetType ?? 'Property',
         status: mapped,
-        irr: prop.targetIrr ?? 0,
         minInvest: prop.minInvestment ?? 0,
         raised: prop.raisedAmount ?? 0,
         target: prop.targetAmount ?? 0,

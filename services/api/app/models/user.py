@@ -68,7 +68,13 @@ class User(Base):
         default=KycStatus.NOT_STARTED,
         nullable=False,
     )
+    # Legacy plaintext PAN — kept for read-fallback during the migration to
+    # `pan_encrypted`. New writes must populate `pan_encrypted` only and leave
+    # this null. Will be dropped in a later migration once reads are migrated.
     pan_number: Mapped[str | None] = mapped_column(String(10))
+    pan_encrypted: Mapped[str | None] = mapped_column(Text)
+    # Aadhaar is stored as an HMAC-SHA256 keyed with ENCRYPTION_KEY (not bare
+    # SHA-256). 64 hex chars.
     aadhaar_hash: Mapped[str | None] = mapped_column(String(64))
     referral_code: Mapped[str | None] = mapped_column(String(12), unique=True)
     referred_by: Mapped[uuid.UUID | None] = mapped_column(

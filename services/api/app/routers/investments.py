@@ -27,7 +27,7 @@ from app.schemas.investment import (
     PaginatedInvestments,
     TransactionRead,
 )
-from app.services.cache import cache_get, cache_set, make_cache_key
+from app.services.cache import cache_delete, cache_get, cache_set, make_cache_key
 from app.services.payment import verify_payment_signature
 from app.services.xirr import calculate_xirr
 
@@ -104,7 +104,7 @@ async def investment_summary(
     xirr_cache_key = make_cache_key("xirr", str(user.id), "inv_summary")
     xirr_value = cache_get(xirr_cache_key)
     if xirr_value is None:
-        cashflows: list[tuple[datetime, float]] = []
+        cashflows: list[tuple[datetime, float | Decimal]] = []
         for inv in investments:
             inv_date = inv.created_at or datetime.now(UTC)
             cashflows.append((inv_date, -float(inv.amount)))
@@ -194,8 +194,19 @@ async def confirm_payment(
     if investment.status != InvestmentStatus.PAYMENT_PENDING:
         raise HTTPException(status_code=400, detail="Invalid investment state")
 
-    # Verify Razorpay signature – mandatory when secret is configured
-    if settings.razorpay_key_secret:
+    # Razorpay signature verification.
+    #   - Production: always required, fail-closed.
+    #   - Development: required unless RAZORPAY_ALLOW_UNSIGNED_DEV is true AND
+    #     the secret is unset (sandbox-without-secret testing only).
+    secret_configured = bool(settings.razorpay_key_secret)
+    dev_bypass = (
+        settings.app_env != "production"
+        and settings.razorpay_allow_unsigned_dev
+        and not secret_configured
+    )
+    if not dev_bypass:
+        if not secret_configured:
+            raise HTTPException(status_code=503, detail="Payments not configured")
         if not body.razorpay_signature:
             raise HTTPException(status_code=400, detail="Payment signature is required")
         if not verify_payment_signature(
@@ -241,6 +252,10 @@ async def confirm_payment(
         db.add(txn)
 
     await db.flush()
+
+    # Invalidate the user's cached XIRR — without this the dashboard shows
+    # a stale return number for up to 5 minutes after a new investment.
+    await cache_delete(make_cache_key("xirr", str(user.id), "inv_summary"))
 
     await log_audit_event(
         actor_id=user.id,

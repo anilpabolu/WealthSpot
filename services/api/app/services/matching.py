@@ -240,7 +240,7 @@ def _compute_answer_score(question: VaultProfileQuestion, answer_value: Any) -> 
       - text: default 50 (neutral) × question weight
     """
     q_weight = float(question.weight or 1.0)
-    options = question.options or []
+    options: list[dict] = list(question.options or [])  # type: ignore[arg-type]
 
     if question.question_type == "choice":
         val = answer_value if isinstance(answer_value, str) else str(answer_value)
@@ -394,8 +394,8 @@ async def compute_match_score(
         # 3. Score each dimension based on vault-specific weights
         weights = _vault_dimension_weights(vault_type)
         dim_scores = {}
-        total_weight = 0
-        weighted_sum = 0
+        total_weight: float = 0.0
+        weighted_sum: float = 0.0
 
         for dim in DIMENSION_COLUMNS:
             raw = float(getattr(pd, dim, 0) or 0)

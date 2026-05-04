@@ -10,6 +10,7 @@ COPY packages/wealthspot-api-client ./packages/wealthspot-api-client
 COPY apps/web ./apps/web
 
 RUN npm install --legacy-peer-deps
+RUN npm run build --workspace=@wealthspot/types
 RUN npm run build --workspace=@wealthspot/api-client
 RUN npm run build --workspace=apps/web
 
@@ -30,6 +31,8 @@ COPY packages/wealthspot-api-client ./packages/wealthspot-api-client
 COPY apps/web ./apps/web
 
 RUN npm install --legacy-peer-deps
+RUN npm run build --workspace=@wealthspot/types
+RUN npm run build --workspace=@wealthspot/api-client
 WORKDIR /app/apps/web
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

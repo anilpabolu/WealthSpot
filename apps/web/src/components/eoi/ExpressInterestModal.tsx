@@ -1,58 +1,190 @@
 import { useState, useEffect } from 'react'
-import { Toggle, Select } from '@/components/ui'
-import { X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle } from 'lucide-react'
-import { useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, type BuilderQuestion } from '@/hooks/useEOI'
+import { Toggle, Select, Input, Textarea } from '@/components/ui'
+import {
+  X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle,
+  CheckCheck, Bath, LayoutGrid, Info, Phone,
+} from 'lucide-react'
+import {
+  useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, useEOIFormOptions,
+  type BuilderQuestion,
+} from '@/hooks/useEOI'
 
-const TIMELINE_OPTIONS = [
-  { value: 'immediate', label: 'Immediate (within 2 weeks)' },
-  { value: '1-3_months', label: '1-3 Months' },
-  { value: '3-6_months', label: '3-6 Months' },
-  { value: 'exploring', label: 'Just Exploring' },
-]
+// ── Types ──────────────────────────────────────────────────────────────────
 
-const FUNDING_OPTIONS = [
-  { value: 'own_funds', label: 'Own Funds' },
-  { value: 'bank_loan', label: 'Bank Loan' },
-  { value: 'both', label: 'Both' },
-]
+export type UnitCfg = {
+  bhk_type?: string
+  type?: string
+  carpet_area_sqft?: number
+  super_built_up_sqft?: number
+  bathrooms?: number
+  balconies?: number
+  available_units?: number
+  total_units?: number
+  price_per_sqft?: number
+}
 
-const PURPOSE_OPTIONS = [
-  { value: 'investment', label: 'Investment / Returns' },
-  { value: 'rental_income', label: 'Rental Income' },
-  { value: 'self_use', label: 'Self Use' },
-]
+export type PlotCfg = {
+  type: string
+  area_sqft?: number
+  area_sqyd?: number
+  area_guntha?: number
+  total_plots?: number
+  available_plots?: number
+  price_per_sqft?: number
+}
 
-const CONTACT_OPTIONS = [
-  { value: 'phone', label: 'Phone Call' },
-  { value: 'email', label: 'Email' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-]
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function formatLakhs(amount: number): string {
+  if (amount >= 10_000_000) return `₹${(amount / 10_000_000).toFixed(2)} Cr`
+  return `₹${(amount / 100_000).toFixed(2)} L`
+}
+
+function getUnitLabel(cfg: UnitCfg): string {
+  return cfg.bhk_type ?? cfg.type ?? 'Unit'
+}
+
+function computeUnitTotal(cfg: UnitCfg): number | null {
+  if (cfg.carpet_area_sqft != null && cfg.price_per_sqft != null) {
+    return cfg.carpet_area_sqft * cfg.price_per_sqft
+  }
+  return null
+}
+
+// ── ChipSelect ────────────────────────────────────────────────────────────
+
+function ChipSelect({
+  label,
+  options,
+  selected,
+  onChange,
+  multi = true,
+}: {
+  label: string
+  options: { value: string; label: string }[]
+  selected: string[]
+  onChange: (vals: string[]) => void
+  multi?: boolean
+}) {
+  const toggle = (v: string) => {
+    if (multi) {
+      onChange(selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v])
+    } else {
+      onChange(selected[0] === v ? [] : [v])
+    }
+  }
+  return (
+    <div>
+      <label className="text-xs font-semibold text-theme-secondary uppercase mb-1.5 block">{label}</label>
+      <div className="flex flex-wrap gap-2">
+        {options.map(o => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => toggle(o.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              selected.includes(o.value)
+                ? 'bg-primary text-white shadow-sm'
+                : 'bg-[var(--bg-surface-hover)] text-theme-secondary hover:opacity-80'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── SelectedConfigBanner ──────────────────────────────────────────────────
+
+function SelectedConfigBanner({ cfg }: { cfg: UnitCfg | PlotCfg }) {
+  const isUnit = 'bhk_type' in cfg || 'carpet_area_sqft' in cfg
+  const label = isUnit ? getUnitLabel(cfg as UnitCfg) : (cfg as PlotCfg).type
+  const areaText = isUnit
+    ? ((cfg as UnitCfg).carpet_area_sqft != null
+        ? `${(cfg as UnitCfg).carpet_area_sqft!.toLocaleString('en-IN')} sqft carpet`
+        : '')
+    : ((cfg as PlotCfg).area_sqft != null
+        ? `${(cfg as PlotCfg).area_sqft!.toLocaleString('en-IN')} sqft`
+        : '')
+  const total = isUnit
+    ? computeUnitTotal(cfg as UnitCfg)
+    : ((cfg as PlotCfg).area_sqft != null && (cfg as PlotCfg).price_per_sqft != null
+        ? (cfg as PlotCfg).area_sqft! * (cfg as PlotCfg).price_per_sqft!
+        : null)
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+      <CheckCheck className="h-4 w-4 text-primary shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-primary truncate">{label}</p>
+        {areaText && <p className="text-xs text-theme-secondary truncate">{areaText}</p>}
+      </div>
+      {total != null && (
+        <p className="text-sm font-bold text-primary shrink-0">{formatLakhs(total)}</p>
+      )}
+    </div>
+  )
+}
 
 interface Props {
   opportunityId: string
   opportunityTitle: string
   minInvestment: number
+  propertyType?: string
+  unitConfigs?: unknown[]
+  plotConfigs?: unknown[]
   onClose: () => void
 }
 
-type Step = 'confirm' | 'form' | 'success'
+type Step = 'confirm' | 'config' | 'form' | 'success'
 
-export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, onClose }: Props) {
+export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, propertyType: _propertyType, unitConfigs: rawUnitConfigs, plotConfigs: rawPlotConfigs, onClose }: Props) {
   const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
   const hasExistingInvestment = (existingEOIs?.items?.length ?? 0) > 0
 
-  const [step, setStep] = useState<Step>('form')
+  const unitConfigs = (rawUnitConfigs ?? []) as UnitCfg[]
+  const plotConfigs = (rawPlotConfigs ?? []) as PlotCfg[]
+  const hasConfigs = unitConfigs.length > 0 || plotConfigs.length > 0
+
+  // Sort unit configs by carpet area ascending
+  const sortedUnitConfigs = [...unitConfigs].sort(
+    (a, b) => (a.carpet_area_sqft ?? 0) - (b.carpet_area_sqft ?? 0)
+  )
+
+  const [step, setStep] = useState<Step>(() => hasConfigs ? 'config' : 'form')
   const [eoiId, setEoiId] = useState<string | null>(null)
+  const [selectedConfig, setSelectedConfig] = useState<UnitCfg | PlotCfg | null>(null)
+  const [configError, setConfigError] = useState(false)
 
   // Show confirmation step if user already has EOIs for this property
   useEffect(() => {
-    if (!eoisLoading && hasExistingInvestment && step === 'form') {
+    if (!eoisLoading && hasExistingInvestment && (step === 'form' || step === 'config')) {
       setStep('confirm')
     }
   }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // DB-driven form options
+  const { data: formOptions, isLoading: optionsLoading } = useEOIFormOptions()
+  const timelineOptions = (formOptions?.investment_timeline ?? []).map(o => ({ value: o.value, label: o.label }))
+  const fundingOptions = (formOptions?.funding_source ?? []).map(o => ({ value: o.value, label: o.label }))
+  const purposeOptions = (formOptions?.purpose ?? []).map(o => ({ value: o.value, label: o.label }))
+  const contactOptions = (formOptions?.preferred_contact ?? []).map(o => ({ value: o.value, label: o.label }))
+
+  // Computed investment amount from selected config; fallback to minInvestment
+  const computedInvestment: number = (() => {
+    if (selectedConfig && 'carpet_area_sqft' in selectedConfig) {
+      const u = selectedConfig as UnitCfg
+      if (u.carpet_area_sqft != null && u.price_per_sqft != null) return u.carpet_area_sqft * u.price_per_sqft
+    }
+    if (selectedConfig && 'area_sqft' in selectedConfig) {
+      const p = selectedConfig as PlotCfg
+      if (p.area_sqft != null && p.price_per_sqft != null) return p.area_sqft * p.price_per_sqft
+    }
+    return minInvestment
+  })()
+
   // Platform questions state
-  const [investmentAmount, _setInvestmentAmount] = useState<number>(minInvestment)
   const [timeline, setTimeline] = useState('')
   const [fundingSource, setFundingSource] = useState<string[]>([])
   const [purpose, setPurpose] = useState<string[]>([])
@@ -78,7 +210,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
     const result = await submitEOI.mutateAsync({
       opportunityId,
-      investmentAmount: investmentAmount || undefined,
+      investmentAmount: computedInvestment || undefined,
       investmentTimeline: timeline || undefined,
       fundingSource: fundingSource.length ? fundingSource.join(',') : undefined,
       purpose: purpose.length ? purpose.join(',') : undefined,
@@ -86,10 +218,19 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
       bestTimeToContact: bestTime || undefined,
       communicationConsent,
       additionalNotes: notes || undefined,
+      selectedUnitConfig: selectedConfig ?? undefined,
       answers,
     })
     setEoiId(result.id)
     setStep('success')
+  }
+
+  const proceedToForm = () => {
+    if (hasConfigs && !selectedConfig) {
+      setConfigError(true)
+      return
+    }
+    setStep('form')
   }
 
   const handleConnect = async () => {
@@ -105,7 +246,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
         {/* Header */}
         <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <h2 className="font-display text-lg font-bold text-theme-primary">
-            {step === 'confirm' ? 'Already Invested' : step === 'form' ? 'Express Your Interest' : 'Thank You!'}
+            {step === 'confirm' ? 'Already Expressed Interest'
+              : step === 'config' ? 'Choose Your Configuration'
+              : step === 'form' ? 'Express Your Interest'
+              : 'Thank You!'}
           </h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--bg-surface-hover)]" aria-label="Close">
             <X className="h-5 w-5 text-theme-tertiary" />
@@ -118,17 +262,17 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               <AlertTriangle className="h-7 w-7 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold text-theme-primary mb-2">You've already invested in this property</h3>
+              <h3 className="font-display text-lg font-bold text-theme-primary mb-2">You've already expressed interest</h3>
               <p className="text-sm text-theme-secondary">
-                You have {existingEOIs?.items?.length} existing expression{(existingEOIs?.items?.length ?? 0) > 1 ? 's' : ''} of interest for <span className="font-semibold text-theme-primary">{opportunityTitle}</span>. Would you like to invest again?
+                You have {existingEOIs?.items?.length} existing expression{(existingEOIs?.items?.length ?? 0) > 1 ? 's' : ''} of interest for <span className="font-semibold text-theme-primary">{opportunityTitle}</span>. Would you like to submit another?
               </p>
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => setStep('form')}
+                onClick={() => setStep(hasConfigs ? 'config' : 'form')}
                 className="btn-primary w-full py-3 text-base"
               >
-                Yes, Invest Again
+                Yes, Submit Again
               </button>
               <button
                 onClick={onClose}
@@ -140,68 +284,226 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
           </div>
         )}
 
+        {step === 'config' && (
+          <div className="p-6 space-y-5">
+            <p className="text-sm text-theme-secondary">
+              Select the BHK / unit configuration you are interested in for <span className="font-semibold text-theme-primary">{opportunityTitle}</span>.
+            </p>
+
+            {sortedUnitConfigs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">BHK / Unit Configurations</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {sortedUnitConfigs.map((u, i) => {
+                    const isSelected = selectedConfig === u
+                    const total = computeUnitTotal(u)
+                    const label = getUnitLabel(u)
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setSelectedConfig(u); setConfigError(false) }}
+                        className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
+                          isSelected ? 'border-primary bg-primary/5 shadow-md' : 'border-theme hover:border-primary/50'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                            <CheckCheck className="h-3 w-3" /> Selected
+                          </span>
+                        )}
+                        <p className={`text-base font-bold mb-3 ${isSelected ? 'text-primary' : 'text-theme-primary'}`}>🏠 {label}</p>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3">
+                          {u.carpet_area_sqft != null && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Carpet Area</p>
+                              <p className="text-xs font-semibold text-theme-primary">{u.carpet_area_sqft.toLocaleString('en-IN')} sqft</p>
+                            </div>
+                          )}
+                          {u.super_built_up_sqft != null && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Super BUA</p>
+                              <p className="text-xs font-semibold text-theme-primary">{u.super_built_up_sqft.toLocaleString('en-IN')} sqft</p>
+                            </div>
+                          )}
+                        </div>
+                        {(u.bathrooms != null || u.balconies != null) && (
+                          <div className="flex items-center gap-4 mb-3 text-xs text-theme-secondary">
+                            {u.bathrooms != null && (
+                              <span className="flex items-center gap-1">
+                                <Bath className="h-3.5 w-3.5" />
+                                {u.bathrooms} Bath{u.bathrooms > 1 ? 's' : ''}
+                              </span>
+                            )}
+                            {u.balconies != null && (
+                              <span className="flex items-center gap-1">
+                                <LayoutGrid className="h-3.5 w-3.5" />
+                                {u.balconies} Balcon{u.balconies === 1 ? 'y' : 'ies'}
+                              </span>
+                            )}
+                            {(u.available_units ?? u.total_units) != null && (
+                              <span className="ml-auto text-[11px]">{u.available_units ?? u.total_units} units</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-2 border-t border-theme">
+                          {u.price_per_sqft != null && (
+                            <p className="text-xs text-theme-secondary">₹{u.price_per_sqft.toLocaleString('en-IN')}<span className="text-theme-tertiary">/sqft</span></p>
+                          )}
+                          {total != null && (
+                            <p className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                              {formatLakhs(total)}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {plotConfigs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">Plot Configurations</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {plotConfigs.map((p, i) => {
+                    const isSelected = selectedConfig === p
+                    const total = p.area_sqft != null && p.price_per_sqft != null
+                      ? p.area_sqft * p.price_per_sqft : null
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setSelectedConfig(p); setConfigError(false) }}
+                        className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
+                          isSelected ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20 shadow-md' : 'border-theme hover:border-amber-400/50'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
+                            <CheckCheck className="h-3 w-3" /> Selected
+                          </span>
+                        )}
+                        <p className={`text-base font-bold mb-3 ${isSelected ? 'text-amber-700 dark:text-amber-400' : 'text-theme-primary'}`}>🌿 {p.type}</p>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3">
+                          {p.area_sqft != null && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Area (sqft)</p>
+                              <p className="text-xs font-semibold text-theme-primary">{p.area_sqft.toLocaleString('en-IN')}</p>
+                            </div>
+                          )}
+                          {p.area_sqyd != null && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Area (sq.yd)</p>
+                              <p className="text-xs font-semibold text-theme-primary">{p.area_sqyd.toLocaleString('en-IN')}</p>
+                            </div>
+                          )}
+                          {(p.available_plots ?? p.total_plots) != null && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Plots</p>
+                              <p className="text-xs font-semibold text-theme-primary">{p.available_plots ?? p.total_plots}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-theme">
+                          {p.price_per_sqft != null && (
+                            <p className="text-xs text-theme-secondary">₹{p.price_per_sqft.toLocaleString('en-IN')}<span className="text-theme-tertiary">/sqft</span></p>
+                          )}
+                          {total != null && (
+                            <p className={`text-sm font-bold ${isSelected ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                              {formatLakhs(total)}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {configError && (
+              <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                <Info className="h-3.5 w-3.5" /> Please select a configuration to continue.
+              </p>
+            )}
+
+            <button
+              onClick={proceedToForm}
+              className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+            >
+              <Phone className="h-4 w-4" />
+              Continue with Selected Configuration
+            </button>
+          </div>
+        )}
+
         {step === 'form' && (
           <div className="p-6 space-y-5">
             <p className="text-sm text-theme-secondary">
               Interested in <span className="font-semibold text-theme-primary">{opportunityTitle}</span>? Fill in the details below to express your interest. Your contact details will not be shared.
             </p>
 
-            {/* Investment Amount (fixed – min investment for the property) */}
+            {/* Selected config summary banner */}
+            {selectedConfig && <SelectedConfigBanner cfg={selectedConfig} />}
+
+            {/* Investment Amount – computed from selection or min investment */}
             <div>
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount (₹)</label>
-              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary cursor-not-allowed select-none">
-                {minInvestment.toLocaleString('en-IN')}
+              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary cursor-not-allowed select-none flex items-center justify-between">
+                <span>{computedInvestment.toLocaleString('en-IN')}</span>
+                <span className="text-[11px] text-primary font-semibold">{formatLakhs(computedInvestment)}</span>
               </div>
-              <p className="text-[11px] text-theme-tertiary mt-1">Minimum investment required for this property</p>
+              <p className="text-[11px] text-theme-tertiary mt-1">
+                {selectedConfig ? 'Computed from your selected configuration' : 'Minimum investment for this property'}
+              </p>
             </div>
 
-            {/* Timeline */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Timeline</label>
-              <Select value={timeline} onChange={setTimeline} placeholder="Select timeline" options={TIMELINE_OPTIONS} />
-            </div>
-
-            {/* Funding Source */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Funding Source</label>
-              <div className="flex flex-wrap gap-2">
-                {FUNDING_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setFundingSource(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${fundingSource.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
-                    {o.label}
-                  </button>
-                ))}
+            {/* DB-driven form options */}
+            {optionsLoading ? (
+              <div className="flex items-center gap-2 py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-theme-tertiary" />
+                <span className="text-xs text-theme-secondary">Loading options…</span>
               </div>
-            </div>
-
-            {/* Purpose */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Purpose</label>
-              <div className="flex flex-wrap gap-2">
-                {PURPOSE_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPurpose(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${purpose.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Preferred Contact */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Preferred Contact Method</label>
-              <div className="flex flex-wrap gap-2">
-                {CONTACT_OPTIONS.map(o => (
-                  <button key={o.value} onClick={() => setPreferredContact(prev => prev.includes(o.value) ? prev.filter(v => v !== o.value) : [...prev, o.value])} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${preferredContact.includes(o.value) ? 'bg-primary text-white' : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'}`}>
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ) : (
+              <>
+                <ChipSelect
+                  label="Investment Timeline"
+                  options={timelineOptions}
+                  selected={timeline ? [timeline] : []}
+                  onChange={vals => setTimeline(vals[0] ?? '')}
+                  multi={false}
+                />
+                <ChipSelect
+                  label="Funding Source"
+                  options={fundingOptions}
+                  selected={fundingSource}
+                  onChange={setFundingSource}
+                />
+                <ChipSelect
+                  label="Purpose"
+                  options={purposeOptions}
+                  selected={purpose}
+                  onChange={setPurpose}
+                />
+                <ChipSelect
+                  label="Preferred Contact Method"
+                  options={contactOptions}
+                  selected={preferredContact}
+                  onChange={setPreferredContact}
+                />
+              </>
+            )}
 
             {/* Best time */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Best Time to Contact</label>
-              <input type="text" value={bestTime} onChange={(e) => setBestTime(e.target.value)} placeholder="e.g. Weekdays 10am-6pm" className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-            </div>
+            <Input
+              label="Best Time to Contact"
+              type="text"
+              value={bestTime}
+              onChange={(e) => setBestTime(e.target.value)}
+              placeholder="e.g. Weekdays 10am-6pm"
+            />
 
             {/* Builder custom questions */}
             {builderQuestions.length > 0 && (
@@ -227,11 +529,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                           ))}
                         </div>
                       ) : (
-                        <input
+                        <Input
                           type={q.questionType === 'number' ? 'number' : 'text'}
                           value={customAnswers[q.id] ?? ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                          className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                           placeholder="Your answer..."
                         />
                       )}
@@ -242,10 +543,13 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             )}
 
             {/* Additional Notes */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Additional Notes</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Any questions or comments..." className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" />
-            </div>
+            <Textarea
+              label="Additional Notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Any questions or comments..."
+            />
 
             {/* Consent */}
             <Toggle checked={communicationConsent} onChange={setCommunicationConsent} label="I consent to receive communication regarding this opportunity." size="sm" />

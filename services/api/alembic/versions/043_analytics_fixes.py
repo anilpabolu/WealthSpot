@@ -16,10 +16,12 @@ Changes:
 - Rebuild unique indexes
 - Update refresh_analytics_views() function
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
 
 from alembic import op
-import sqlalchemy as sa
 
 revision: str = "043_analytics_fixes"
 down_revision: Union[str, None] = "042_property_appreciation"

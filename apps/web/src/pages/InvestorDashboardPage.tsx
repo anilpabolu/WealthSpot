@@ -5,7 +5,7 @@ import { useInvestmentSummary } from '@/hooks/useInvestment'
 import { useContent } from '@/hooks/useSiteContent'
 import { useRecentTransactions } from '@/hooks/usePortfolio'
 import { useFeaturedProperties, type Property } from '@/hooks/useProperties'
-import { formatINRCompact, formatPercent, formatDate } from '@/lib/formatters'
+import { formatINRCompact, formatDate } from '@/lib/formatters'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Wallet, TrendingUp, PieChart, Building2, ArrowRight, ArrowUpRight,
@@ -19,7 +19,6 @@ function PortfolioMetrics() {
   const metrics = [
     { label: 'Total Invested', value: formatINRCompact(summary?.totalInvested ?? 0), icon: <Wallet className="h-5 w-5 text-primary" />, delta: undefined },
     { label: 'Current Value', value: formatINRCompact(summary?.currentValue ?? 0), icon: <TrendingUp className="h-5 w-5 text-primary" />, delta: summary ? ((summary.currentValue - summary.totalInvested) / summary.totalInvested * 100).toFixed(1) + '%' : undefined, deltaPositive: (summary?.currentValue ?? 0) >= (summary?.totalInvested ?? 0) },
-    { label: 'Avg. IRR', value: formatPercent(summary?.avgIrr ?? 0), icon: <PieChart className="h-5 w-5 text-primary" />, delta: undefined },
     { label: 'Properties', value: String(summary?.propertiesCount ?? 0), icon: <Building2 className="h-5 w-5 text-primary" />, delta: undefined },
   ]
 
@@ -127,7 +126,7 @@ function RecommendedProperties() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
-              <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" targetIrr={0} minInvestment={0} raised={0} target={0} />
+              <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" minInvestment={0} raised={0} target={0} />
             ))
           : properties.map((p) => (
               <PropertyCard
@@ -136,7 +135,6 @@ function RecommendedProperties() {
                 city={p.city}
                 assetType={p.assetType}
                 coverImage={p.coverImage}
-                targetIrr={p.targetIrr}
                 minInvestment={p.minInvestment}
                 raised={p.raised}
                 target={p.target}

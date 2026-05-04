@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { formatINRCompact, formatPercent } from '@/lib/formatters'
+import { formatINRCompact } from '@/lib/formatters'
 import FundingBar from './FundingBar'
 import StatusBadge from './StatusBadge'
 import type { StatusType } from './StatusBadge'
@@ -15,7 +15,6 @@ export interface PropertyCardProps {
   coverImage: string
   gallery?: string[]
   videoUrl?: string
-  targetIrr: number
   minInvestment: number
   raised: number
   target: number
@@ -26,6 +25,10 @@ export interface PropertyCardProps {
   isLoading?: boolean
   onInvestClick?: () => void
   onCardClick?: () => void
+  /** Property specs (optional) */
+  propertyType?: string | null
+  bhkTypes?: string[] | null
+  pricePerSqft?: number | null
   /** Admin soft-delete */
   isAdmin?: boolean
   propertyId?: string
@@ -40,7 +43,6 @@ export default memo(function PropertyCard({
   coverImage,
   gallery,
   videoUrl,
-  targetIrr,
   minInvestment,
   raised,
   target,
@@ -51,10 +53,14 @@ export default memo(function PropertyCard({
   isLoading = false,
   onInvestClick,
   onCardClick,
+  propertyType,
+  bhkTypes,
+  pricePerSqft,
   isAdmin = false,
   propertyId,
   onDelete,
 }: PropertyCardProps) {
+  const PROP_TYPE_ICON: Record<string, string> = { flat: '🏢', villa: '🏡', plot: '🏞️', commercial: '🏪', warehouse: '🏭', mixed_use: '🏙️' }
   const { propertyVideosEnabled } = useVaultConfig()
 
   // Build the images array: gallery first, fall back to coverImage
@@ -233,16 +239,35 @@ export default memo(function PropertyCard({
       {/* Content */}
       <div className="p-4">
         {/* Financial metrics */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div>
-            <p className="text-xs uppercase tracking-wider text-theme-secondary font-semibold">Target IRR</p>
-            <p className="font-mono font-bold text-2xl text-theme-primary">{formatPercent(targetIrr)}</p>
-          </div>
-          <div className="text-right">
             <p className="text-xs uppercase tracking-wider text-theme-secondary font-semibold">Min Invest</p>
-            <p className="font-mono font-bold text-lg text-theme-primary">{formatINRCompact(minInvestment)}</p>
+            <p className="font-mono font-bold text-2xl text-theme-primary">{formatINRCompact(minInvestment)}</p>
           </div>
+          {pricePerSqft != null && (
+            <div className="text-right">
+              <p className="text-xs text-theme-tertiary">Price</p>
+              <p className="text-sm font-bold text-theme-primary">₹{pricePerSqft.toLocaleString('en-IN')}<span className="text-xs font-normal text-theme-secondary">/sqft</span></p>
+            </div>
+          )}
         </div>
+
+        {/* Property spec chips */}
+        {(bhkTypes?.length || propertyType) && (
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {propertyType && (
+              <span className="px-2 py-0.5 bg-theme-surface-hover text-theme-secondary text-[11px] font-medium rounded-md">
+                {PROP_TYPE_ICON[propertyType] ?? '🏠'} {propertyType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
+            )}
+            {bhkTypes?.slice(0, 3).map((t) => (
+              <span key={t} className="px-2 py-0.5 bg-primary/5 text-primary text-[11px] font-semibold rounded-md">{t}</span>
+            ))}
+            {bhkTypes && bhkTypes.length > 3 && (
+              <span className="px-2 py-0.5 bg-theme-surface-hover text-theme-secondary text-[11px] rounded-md">+{bhkTypes.length - 3}</span>
+            )}
+          </div>
+        )}
 
         {/* Funding progress */}
         <FundingBar raised={raised} target={target} showLabels={false} />
@@ -323,12 +348,12 @@ export default memo(function PropertyCard({
               <p className="text-white font-mono font-bold text-base mt-0.5">{formatINRCompact(raised)}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-3 text-center">
-              <p className="text-white/60 text-[10px] uppercase tracking-wider font-semibold">Target IRR</p>
-              <p className="text-white font-mono font-bold text-base mt-0.5">{formatPercent(targetIrr)}</p>
-            </div>
-            <div className="bg-white/10 rounded-lg p-3 text-center">
               <p className="text-white/60 text-[10px] uppercase tracking-wider font-semibold">Investors</p>
               <p className="text-white font-mono font-bold text-base mt-0.5">{investorCount ?? '—'}</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-3 text-center">
+              <p className="text-white/60 text-[10px] uppercase tracking-wider font-semibold">Capital Raised</p>
+              <p className="text-white font-mono font-bold text-base mt-0.5">{formatINRCompact(raised)}</p>
             </div>
           </div>
           <p className="text-white/50 text-xs mt-1">This offering is no longer accepting investments</p>

@@ -31,6 +31,8 @@ from app.models.community import (  # noqa: F401
     Referral,
 )
 from app.models.company import Company, EntityType, VerificationStatus  # noqa: F401
+from app.models.device import DevicePlatform, UserDevice  # noqa: F401
+from app.models.eoi_form_option import EoiFormOption  # noqa: F401
 from app.models.eoi_stage_history import EoiStageHistory  # noqa: F401
 from app.models.expression_of_interest import (  # noqa: F401
     EOIStatus,
@@ -42,6 +44,7 @@ from app.models.investment import (  # noqa: F401
     Transaction,
     TransactionType,
 )
+from app.models.investment_transaction_record import InvestmentTransactionRecord  # noqa: F401
 from app.models.notification import (  # noqa: F401
     Notification,
     NotificationChannel,
@@ -52,6 +55,7 @@ from app.models.opportunity_assessment import (  # noqa: F401
     OpportunityAssessment,
     OpportunityRiskFlag,
 )
+from app.models.opportunity_document import OpportunityDocument  # noqa: F401
 from app.models.opportunity_investment import (  # noqa: F401
     OppInvestmentStatus,
     OpportunityInvestment,

@@ -70,11 +70,11 @@ async def autocomplete(
         .distinct()
         .limit(limit)
     )
-    for row in (await db.execute(city_q)).all():
-        key = f"city:{row[0]}"
+    for city_row in (await db.execute(city_q)).all():
+        key = f"city:{city_row[0]}"
         if key not in seen:
             seen.add(key)
-            results.append(SearchSuggestion(text=row[0], type="city"))
+            results.append(SearchSuggestion(text=city_row[0], type="city"))
 
     # Localities / areas
     locality_q = (
@@ -87,21 +87,21 @@ async def autocomplete(
         .distinct()
         .limit(limit)
     )
-    for row in (await db.execute(locality_q)).all():
-        key = f"area:{row[0]}"
+    for locality_row in (await db.execute(locality_q)).all():
+        key = f"area:{locality_row[0]}"
         if key not in seen:
             seen.add(key)
-            results.append(SearchSuggestion(text=row[0], type="area"))
+            results.append(SearchSuggestion(text=locality_row[0], type="area"))
 
     # Builder / company names
     builder_q = (
         select(Builder.company_name).where(Builder.company_name.ilike(term)).distinct().limit(limit)
     )
-    for row in (await db.execute(builder_q)).all():
-        key = f"builder:{row[0]}"
+    for builder_row in (await db.execute(builder_q)).all():
+        key = f"builder:{builder_row[0]}"
         if key not in seen:
             seen.add(key)
-            results.append(SearchSuggestion(text=row[0], type="builder"))
+            results.append(SearchSuggestion(text=builder_row[0], type="builder"))
 
     # Referrer names
     referrer_q = (
@@ -114,11 +114,11 @@ async def autocomplete(
         .distinct()
         .limit(limit)
     )
-    for row in (await db.execute(referrer_q)).all():
-        key = f"referrer:{row[0]}"
+    for referrer_row in (await db.execute(referrer_q)).all():
+        key = f"referrer:{referrer_row[0]}"
         if key not in seen:
             seen.add(key)
-            results.append(SearchSuggestion(text=row[0], type="referrer"))
+            results.append(SearchSuggestion(text=referrer_row[0], type="referrer"))
 
     return results[:limit]
 

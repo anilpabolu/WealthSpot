@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
+from app.middleware.rate_limit import route_limit
 from app.models.user import User
 from app.schemas.user import (
     FullProfileRead,
@@ -213,7 +214,12 @@ async def update_phone(
 # ── OTP Verification ────────────────────────────────────────────────────────
 
 
-@router.post("/otp/send")
+@router.post(
+    "/otp/send",
+    dependencies=[
+        Depends(route_limit(name="profile.otp_send", max_requests=5, window_seconds=60))
+    ],
+)
 async def send_otp(
     body: OtpSendRequest,
     user: User = Depends(get_current_user),
@@ -268,7 +274,12 @@ async def send_otp(
     return result
 
 
-@router.post("/otp/verify")
+@router.post(
+    "/otp/verify",
+    dependencies=[
+        Depends(route_limit(name="profile.otp_verify", max_requests=10, window_seconds=60))
+    ],
+)
 async def verify_otp(
     body: OtpVerifyRequest,
     user: User = Depends(get_current_user),

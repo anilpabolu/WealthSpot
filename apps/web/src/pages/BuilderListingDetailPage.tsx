@@ -3,13 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { PortalLayout } from '@/components/layout'
 import FundingBar from '@/components/wealth/FundingBar'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
-import IrrBadge from '@/components/wealth/IrrBadge'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
 import { ShieldSection } from '@/components/shield/ShieldSection'
 import { BuilderShieldPanel } from '@/components/shield/BuilderShieldPanel'
 import { useOpportunity } from '@/hooks/useOpportunities'
 import { useCreateAppreciation, useAppreciationHistory } from '@/hooks/useAppreciation'
 import { formatINRCompact, formatDate } from '@/lib/formatters'
+import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
 import { EmptyState } from '@/components/ui'
 import {
   ArrowLeft, Edit, MapPin, Calendar, Users, Building2, ShieldCheck,
@@ -102,7 +102,7 @@ export default function BuilderListingDetailPage() {
         )}
 
         {/* KPI cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-4">
             <div className="flex items-center gap-2 text-theme-secondary text-xs mb-1"><Target className="h-3.5 w-3.5" />Target</div>
             <p className="text-lg font-bold text-theme-primary">{opp.targetAmount ? formatINRCompact(opp.targetAmount) : '—'}</p>
@@ -114,10 +114,6 @@ export default function BuilderListingDetailPage() {
           <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-4">
             <div className="flex items-center gap-2 text-theme-secondary text-xs mb-1"><Users className="h-3.5 w-3.5" />Investors</div>
             <p className="text-lg font-bold text-theme-primary">{opp.investorCount}</p>
-          </div>
-          <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-4">
-            <div className="flex items-center gap-2 text-theme-secondary text-xs mb-1"><TrendingUp className="h-3.5 w-3.5" />IRR</div>
-            <p className="text-lg font-bold text-theme-primary">{opp.targetIrr != null ? <IrrBadge value={opp.targetIrr} /> : '—'}</p>
           </div>
         </div>
 
@@ -138,6 +134,17 @@ export default function BuilderListingDetailPage() {
             <h2 className="text-sm font-semibold text-theme-primary mb-2">Description</h2>
             <p className="text-sm text-theme-secondary whitespace-pre-line">{opp.description}</p>
           </div>
+        )}
+
+        {/* Property Specifications */}
+        {opp.property_type && opp.property_specs && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+          <PropertySpecsSection
+            propertyType={opp.property_type}
+            pricePerSqft={opp.price_per_sqft}
+            totalProjectAreaSqft={opp.total_project_area_sqft}
+            specs={opp.property_specs as Record<string, unknown>}
+            amenities={opp.property_amenities ?? []}
+          />
         )}
 
         {/* Key Details Grid */}

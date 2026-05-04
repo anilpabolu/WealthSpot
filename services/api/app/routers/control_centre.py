@@ -88,7 +88,7 @@ async def platform_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
 
 @router.get("/vault-config")
-async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
+async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool | str]:
     """Public endpoint: returns which vaults are enabled/disabled + video toggles.
 
     Reads from PlatformConfig section='vaults' and section='content'.
@@ -110,6 +110,14 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
             return bool(val.get("enabled", True))
         return bool(val)
 
+    def _str_val(key: str, default: str) -> str:
+        val = configs.get(key)
+        if val is None:
+            return default
+        if isinstance(val, dict):
+            return str(val.get("value", default))
+        return str(val)
+
     return {
         "wealth_vault_enabled": True,  # always on — core product
         "opportunity_vault_enabled": _is_enabled("opportunity_vault_enabled"),
@@ -121,6 +129,8 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
         "video_management_enabled": _is_enabled("video_management_enabled"),
         # Content display toggles
         "rera_display_enabled": _is_enabled("rera_display_enabled"),
+        # Property display mode: "show_placeholder" | "hide_empty"
+        "property_empty_section_mode": _str_val("property_empty_section_mode", "show_placeholder"),
     }
 
 
@@ -211,6 +221,35 @@ async def get_public_notifications_config(
     except Exception:
         logger.exception("get_public_notifications_config: DB error, returning defaults")
         return {"toast_interval_ms": 3000}
+
+
+# ── Public Company Form Config ───────────────────────────────────────────────
+
+_DEFAULT_COMPANY_REQUIRED_FIELDS = ["contactName", "contactEmail", "contactPhone"]
+
+
+@router.get("/company-form-config")
+async def get_company_form_config(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """Public endpoint: returns which fields are required in the company onboarding form.
+
+    Reads from PlatformConfig section='company_form', key='required_fields'.
+    Falls back to default (contactName, contactEmail, contactPhone) if not configured.
+    """
+    try:
+        result = await db.execute(
+            select(PlatformConfig).where(
+                PlatformConfig.section == "company_form",
+                PlatformConfig.key == "required_fields",
+                PlatformConfig.is_active.is_(True),
+            )
+        )
+        row = result.scalars().first()
+        if row is not None and isinstance(row.value, list):
+            return {"required_fields": row.value}
+        return {"required_fields": _DEFAULT_COMPANY_REQUIRED_FIELDS}
+    except Exception:
+        logger.exception("get_company_form_config: DB error, returning defaults")
+        return {"required_fields": _DEFAULT_COMPANY_REQUIRED_FIELDS}
 
 
 # ── Platform Config CRUD ─────────────────────────────────────────────────────

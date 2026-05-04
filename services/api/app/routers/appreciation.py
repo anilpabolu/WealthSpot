@@ -133,7 +133,7 @@ async def appreciate_opportunity(
             share = (Decimal(str(inv.amount)) / total_invested) * appreciation_amount
             inv.returns_amount = share.quantize(Decimal("0.01"))
             # Invalidate cached XIRR so next fetch recalculates with new returns
-            cache_delete(make_cache_key("xirr", str(inv.user_id), "portfolio"))
+            await cache_delete(make_cache_key("xirr", str(inv.user_id), "portfolio"))
 
     # Update actual_irr on opportunity
     if total_invested > 0:

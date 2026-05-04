@@ -153,6 +153,12 @@ export enum CommunitySubtype {
   CO_PARTNER = "co_partner",
 }
 
+/** Investment configuration mode for opportunity creation */
+export enum InvestmentMode {
+  LUMPSUM = "lumpsum",
+  UNIT_CONFIG = "unit_config",
+}
+
 /** Persona types visible at signup */
 export enum PersonaType {
   INVESTOR = "investor",
@@ -180,4 +186,14 @@ export enum InviteStatus {
   PENDING = "pending",
   ACCEPTED = "accepted",
   EXPIRED = "expired",
+}
+
+/** Real-estate property types for Wealth / Safe vault opportunities */
+export enum PropertyType {
+  FLAT = "flat",
+  VILLA = "villa",
+  PLOT = "plot",
+  COMMERCIAL = "commercial",
+  WAREHOUSE = "warehouse",
+  MIXED_USE = "mixed_use",
 }

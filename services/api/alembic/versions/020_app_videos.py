@@ -5,11 +5,10 @@ Revises: 019_likes_activities
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 revision: str = "020_app_videos"
 down_revision: Union[str, None] = "019_likes_activities"

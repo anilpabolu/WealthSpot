@@ -2,46 +2,14 @@
  * Portfolio BFF – Investor portfolio aggregation
  */
 
+import type {
+  PortfolioView,
+  PortfolioPropertyHolding,
+} from "@wealthspot/types";
 import { apiGet } from "../../lib/api";
 
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export interface PortfolioPropertyHolding {
-  property_id: string;
-  slug: string;
-  title: string;
-  city: string;
-  cover_image: string | null;
-  asset_type: string;
-  units_held: number;
-  invested_amount: number;
-  current_value: number;
-  unrealized_gain: number;
-  monthly_rental: number;
-  status: string;
-}
-
-export interface PortfolioView {
-  summary: {
-    total_invested: number;
-    current_value: number;
-    total_returns: number;
-    monthly_rental_income: number;
-    properties_count: number;
-    unrealized_gain: number;
-    xirr: number | null;
-  };
-  holdings: PortfolioPropertyHolding[];
-  transactions: Array<{
-    id: string;
-    type: string;
-    amount: number;
-    description: string | null;
-    property_title: string;
-    created_at: string;
-  }>;
-}
-
+// Re-export for consumers that import from this module directly
+export type { PortfolioView, PortfolioPropertyHolding };
 // ── BFF Service ───────────────────────────────────────────────────────────
 
 export const portfolioBff = {

@@ -9,9 +9,10 @@ table (section='vault_metrics'). Admins can toggle metrics on/off via
 the Control Centre.
 """
 
-from alembic import op
 import json
 import uuid
+
+from alembic import op
 
 revision = "035_vault_metrics_config"
 down_revision = "034_opportunity_archived_status"

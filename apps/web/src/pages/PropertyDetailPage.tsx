@@ -1,9 +1,11 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
+import AuthGateModal from '@/components/AuthGateModal'
 import FundingBar from '@/components/wealth/FundingBar'
-import IrrBadge from '@/components/wealth/IrrBadge'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useProperty } from '@/hooks/useProperties'
+import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
 import { useInvestmentStore } from '@/stores/investment.store'
 import { useKycStatus } from '@/hooks/useKycBank'
 import { EmptyState } from '@/components/ui'
@@ -141,7 +143,6 @@ function InvestmentPanel({
   investorCount,
   status,
   fundingDeadline,
-  irr,
 }: {
   propertyId: string
   propertyName: string
@@ -152,7 +153,6 @@ function InvestmentPanel({
   investorCount: number
   status: string
   fundingDeadline: string
-  irr: number
 }) {
   const { startInvestment } = useInvestmentStore()
   const { data: kycData } = useKycStatus()
@@ -182,11 +182,7 @@ function InvestmentPanel({
         {investorCount} investors
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-theme-surface rounded-lg p-3">
-          <p className="text-xs text-theme-secondary uppercase font-semibold">Target IRR</p>
-          <IrrBadge value={irr} className="mt-1" />
-        </div>
+      <div className="mb-4">
         <div className="bg-theme-surface rounded-lg p-3">
           <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
           <p className="font-mono font-bold text-lg text-theme-primary mt-1">{formatINRCompact(minInvestment)}</p>
@@ -259,6 +255,7 @@ export default function PropertyDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { data: property, isLoading } = useProperty(slug ?? '')
+  const { propertyEmptySectionMode } = useVaultConfig()
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   useEffect(() => {
@@ -484,6 +481,18 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
+            {/* Property Specifications — shown when specs are available or placeholder mode */}
+            {property.propertyType && (
+              <PropertySpecsSection
+                propertyType={property.propertyType}
+                pricePerSqft={property.pricePerSqft}
+                totalProjectAreaSqft={property.totalProjectAreaSqft}
+                specs={property.propertySpecs ?? {}}
+                amenities={property.propertyAmenities ?? property.amenities}
+                emptySectionMode={propertyEmptySectionMode}
+              />
+            )}
+
             {/* Builder Info */}
             <div className="card p-6">
               <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Developer</h2>
@@ -539,8 +548,8 @@ export default function PropertyDetailPage() {
               </div>
             )}
 
-            {/* Amenities */}
-            {property.amenities?.length > 0 && (
+            {/* Amenities — only shown when property has no propertyType (legacy listings) */}
+            {!property.propertyType && property.amenities?.length > 0 && (
               <div className="card p-6">
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Amenities</h2>
                 <div className="flex flex-wrap gap-2">
@@ -566,12 +575,13 @@ export default function PropertyDetailPage() {
               investorCount={property.investorCount}
               status={property.status}
               fundingDeadline={''}
-              irr={property.targetIrr}
             />
           </div>
         </div>
         </div>
       </div>
+
+      <AuthGateModal />
 
       {/* Toast notification */}
       {toast && (

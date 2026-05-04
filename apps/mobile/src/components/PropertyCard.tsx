@@ -15,7 +15,6 @@ interface PropertyCardProps {
   city: string
   coverImage: string | null
   assetType: string
-  targetIrr: number
   minInvestment: number
   fundingPercentage: number
 }
@@ -26,7 +25,6 @@ export default function PropertyCard({
   city,
   coverImage,
   assetType,
-  targetIrr,
   minInvestment,
   fundingPercentage,
 }: PropertyCardProps) {
@@ -83,10 +81,6 @@ export default function PropertyCard({
           <View>
             <Text className="text-[10px]" style={{ color: colors.textTertiary }}>Min. Investment</Text>
             <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>{formatINR(minInvestment)}</Text>
-          </View>
-          <View className="items-end">
-            <Text className="text-[10px]" style={{ color: colors.textTertiary }}>Target IRR</Text>
-            <Text className="text-sm font-bold" style={{ color: isDark ? colors.gold : '#5B4FCF' }}>{targetIrr}%</Text>
           </View>
         </View>
       </View>

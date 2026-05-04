@@ -27,7 +27,6 @@ export interface PortfolioView {
     monthlyRentalIncome: number;
     propertiesCount: number;
     unrealizedGain: number;
-    xirr: number | null;
   };
   holdings: PortfolioPropertyHolding[];
   transactions: {

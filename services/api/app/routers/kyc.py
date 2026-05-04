@@ -17,12 +17,25 @@ from app.middleware.auth import get_current_user
 from app.models.community import AuditLog
 from app.models.user import KycDocument, KycStatus, User
 from app.schemas.user import KycDetailsResponse, KycDocumentOut, KycStatusResponse, KycSubmission
+from app.services.encryption import decrypt, encrypt, mask_pan
 from app.services.s3 import generate_presigned_url, upload_document
+from app.services.upload_scan import validate_upload
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/kyc", tags=["kyc"])
 _settings = get_settings()
+
+
+def _resolve_pan(user: User) -> str | None:
+    """Return the user's PAN in plaintext, preferring the encrypted column.
+
+    Falls back to the legacy plaintext column for users whose PAN hasn't been
+    re-submitted since migration 052.
+    """
+    if user.pan_encrypted:
+        return decrypt(user.pan_encrypted)
+    return user.pan_number
 
 ALLOWED_DOC_TYPES = {"PAN", "AADHAAR", "SELFIE"}
 MAX_FILE_SIZE = _settings.max_upload_size_bytes
@@ -72,14 +85,17 @@ async def submit_kyc(
     if user.kyc_status == KycStatus.APPROVED:
         raise HTTPException(status_code=400, detail="KYC already approved")
 
+    pan_upper = body.pan_number.upper()
     old_values = {
         "full_name": user.full_name,
-        "pan_number": user.pan_number,
+        "pan_masked": mask_pan(_resolve_pan(user) or ""),
         "kyc_status": user.kyc_status.value,
     }
 
     user.full_name = body.full_name
-    user.pan_number = body.pan_number.upper()
+    user.pan_encrypted = encrypt(pan_upper)
+    # Stop writing the legacy plaintext column.
+    user.pan_number = None
     user.date_of_birth = datetime.strptime(body.date_of_birth, "%Y-%m-%d").date()
     user.address_line1 = body.address
     user.city = body.city
@@ -95,7 +111,7 @@ async def submit_kyc(
         old_value=old_values,
         new_value={
             "full_name": body.full_name,
-            "pan_number": body.pan_number.upper(),
+            "pan_masked": mask_pan(pan_upper),
             "kyc_status": KycStatus.IN_PROGRESS.value,
         },
         request=request,
@@ -141,6 +157,11 @@ async def upload_kyc_document(
     file_size = len(file_data)
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Maximum 5 MB allowed.")
+
+    # Magic-byte verification — guards against Content-Type spoofing.
+    ok, reason = validate_upload(file_data, content_type)
+    if not ok:
+        raise HTTPException(status_code=400, detail=reason or "Invalid file content")
     await file.seek(0)
 
     # Delete existing document of same type (replace)
@@ -320,9 +341,8 @@ async def get_kyc_details(
     user: User = Depends(get_current_user),
 ) -> KycDetailsResponse:
     """Return the submitted KYC personal details (PAN is masked)."""
-    pan_masked = None
-    if user.pan_number:
-        pan_masked = user.pan_number[:2] + "****" + user.pan_number[-2:]
+    pan_plain = _resolve_pan(user)
+    pan_masked = mask_pan(pan_plain) if pan_plain else None
     return KycDetailsResponse(
         kyc_status=user.kyc_status,
         full_name=user.full_name,

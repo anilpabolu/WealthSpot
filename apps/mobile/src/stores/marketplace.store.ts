@@ -6,7 +6,6 @@ export interface MarketplaceFilters {
   city: string
   assetType: string
   minInvestment: [number, number]
-  irrRange: [number, number]
   status: string
   sortBy: 'newest' | 'funding' | 'price_low' | 'price_high'
   page: number
@@ -27,7 +26,6 @@ const DEFAULT_FILTERS: MarketplaceFilters = {
   city: '',
   assetType: '',
   minInvestment: [10000, 5000000],
-  irrRange: [8, 25],
   status: '',
   sortBy: 'newest',
   page: 1,

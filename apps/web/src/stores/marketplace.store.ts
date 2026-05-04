@@ -7,7 +7,6 @@ export interface MarketplaceFilters {
   assetType: string
   payoutFrequency: string
   minInvestment: [number, number]
-  irrRange: [number, number]
   status: string
   sortBy: 'newest' | 'funding' | 'price_low' | 'price_high'
   page: number
@@ -29,7 +28,6 @@ const DEFAULT_FILTERS: MarketplaceFilters = {
   assetType: '',
   payoutFrequency: '',
   minInvestment: [10000, 5000000],
-  irrRange: [8, 25],
   status: '',
   sortBy: 'newest',
   page: 1,

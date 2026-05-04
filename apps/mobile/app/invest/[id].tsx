@@ -10,14 +10,21 @@ import { Ionicons } from '@expo/vector-icons'
 import { formatINR } from '@/lib/formatters'
 import { useInitiateInvestment, useConfirmPayment } from '@/hooks/useInvestment'
 import { useProperty } from '@/hooks/useProperties'
+import { useOpportunity } from '@/hooks/useOpportunities'
+import type { UnitCfg } from '@/components/eoi/ExpressInterestSheet'
 import { useUserStore } from '@/stores/user.store'
 import { Input } from '@/components/ui'
 
 const STEPS = ['Amount', 'Review', 'Payment', 'Confirm']
 
 export default function InvestScreen() {
-  const { id } = useLocalSearchParams()
+  const { id, oppId } = useLocalSearchParams()
   const { data: property, isLoading: propertyLoading } = useProperty(id as string)
+  const { data: oppData } = useOpportunity((oppId as string) || '')
+  const investmentMode = oppData?.investment_mode ?? 'lumpsum'
+  const isUnitConfigMode = investmentMode === 'unit_config'
+  const unitCfgs = (oppData?.propertySpecs?.unit_configs ?? []) as UnitCfg[]
+  const hasCfgs = isUnitConfigMode && unitCfgs.length > 0
   const initiateMutation = useInitiateInvestment()
   const confirmMutation = useConfirmPayment()
   const user = useUserStore((s) => s.user)
@@ -25,13 +32,22 @@ export default function InvestScreen() {
   const [step, setStep] = useState(0)
   const [amount, setAmount] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [selectedBhkIdx, setSelectedBhkIdx] = useState<number | null>(null)
+  const [bhkQty, setBhkQty] = useState(1)
 
   const unitPrice = property?.unitPrice ?? 25000
-  const units = amount ? Math.floor(Number(amount) / unitPrice) : 0
-  const totalAmount = units * unitPrice
+  const selectedBhk = isUnitConfigMode && selectedBhkIdx != null ? unitCfgs[selectedBhkIdx] : null
+  const bhkUnitAmount = selectedBhk
+    ? (Number(selectedBhk.carpet_area_sqft) || 0) * (Number(selectedBhk.price_per_sqft) || 0)
+    : 0
+  const units = isUnitConfigMode ? bhkQty : (amount ? Math.floor(Number(amount) / unitPrice) : 0)
+  const totalAmount = isUnitConfigMode ? bhkUnitAmount * bhkQty : units * unitPrice
 
   const handleNext = () => {
-    if (step === 0 && units < 1) return
+    if (step === 0) {
+      if (isUnitConfigMode && hasCfgs && selectedBhkIdx === null) return
+      if (!isUnitConfigMode && units < 1) return
+    }
     if (step < 3) setStep(step + 1)
   }
 
@@ -129,49 +145,119 @@ export default function InvestScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 pt-4">
-        {/* Step 1: Amount */}
+        {/* Step 1: Amount / Unit Selection */}
         {step === 0 && (
           <View>
-            <View className="bg-white rounded-2xl p-5 shadow-sm">
-              <Text className="text-gray-900 font-bold text-lg mb-1">Enter Investment Amount</Text>
-              <Text className="text-gray-500 text-sm mb-4">
-                Unit price: {formatINR(unitPrice)} per unit
-              </Text>
+            {isUnitConfigMode && hasCfgs ? (
+              <View className="bg-white rounded-2xl p-5 shadow-sm">
+                <Text className="text-gray-900 font-bold text-lg mb-1">Choose Your Unit</Text>
+                <Text className="text-gray-500 text-sm mb-4">Select a BHK configuration to invest in</Text>
+                {unitCfgs.map((u, idx) => {
+                  const unitAmt = (Number(u.carpet_area_sqft) || 0) * (Number(u.price_per_sqft) || 0)
+                  const isSelected = selectedBhkIdx === idx
+                  return (
+                    <Pressable
+                      key={idx}
+                      onPress={() => setSelectedBhkIdx(idx)}
+                      className={`p-4 rounded-2xl border-2 mb-3 ${isSelected ? 'border-primary bg-purple-50' : 'border-gray-200 bg-white'}`}
+                    >
+                      <View className="flex-row items-center justify-between mb-2">
+                        <Text className={`font-bold text-base ${isSelected ? 'text-primary' : 'text-gray-900'}`}>
+                          🏠 {u.bhk_type ?? u.type ?? 'Unit'}
+                        </Text>
+                        {isSelected && <Ionicons name="checkmark-circle" size={18} color="#5B4FCF" />}
+                      </View>
+                      {u.carpet_area_sqft != null && (
+                        <Text className="text-xs text-gray-500 mb-1">{u.carpet_area_sqft.toLocaleString('en-IN')} sqft carpet</Text>
+                      )}
+                      {u.price_per_sqft != null && (
+                        <Text className="text-xs text-gray-500 mb-2">₹{u.price_per_sqft.toLocaleString('en-IN')}/sqft</Text>
+                      )}
+                      {unitAmt > 0 && (
+                        <Text className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-green-600'}`}>
+                          {unitAmt >= 10_000_000 ? `₹${(unitAmt / 10_000_000).toFixed(2)} Cr` : `₹${(unitAmt / 100_000).toFixed(2)} L`} per unit
+                        </Text>
+                      )}
+                    </Pressable>
+                  )
+                })}
 
-              <Input
-                icon={<Text className="text-gray-400 text-lg">₹</Text>}
-                placeholder="0"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-              />
+                {selectedBhkIdx !== null && (
+                  <View className="mt-2">
+                    <Text className="text-sm font-medium text-gray-700 mb-2">Quantity</Text>
+                    <View className="flex-row items-center gap-4">
+                      <Pressable
+                        onPress={() => setBhkQty(q => Math.max(1, q - 1))}
+                        className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
+                      >
+                        <Text className="text-lg font-bold text-gray-600">-</Text>
+                      </Pressable>
+                      <Text className="text-2xl font-bold text-gray-900">{bhkQty}</Text>
+                      <Pressable
+                        onPress={() => setBhkQty(q => q + 1)}
+                        className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center"
+                      >
+                        <Text className="text-lg font-bold text-primary">+</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
 
-              {/* Quick amounts */}
-              <View className="flex-row gap-2 mt-3">
-                {[25000, 50000, 100000, 250000].map((v) => (
-                  <Pressable
-                    key={v}
-                    onPress={() => setAmount(String(v))}
-                    className="flex-1 bg-primary-light rounded-lg py-2 items-center"
-                  >
-                    <Text className="text-primary text-xs font-bold">{formatINR(v)}</Text>
-                  </Pressable>
-                ))}
+                {selectedBhkIdx !== null && totalAmount > 0 && (
+                  <View className="mt-4 bg-gray-50 rounded-xl p-3">
+                    <View className="flex-row justify-between">
+                      <Text className="text-gray-500 text-sm">Quantity</Text>
+                      <Text className="text-gray-900 font-bold">{bhkQty}</Text>
+                    </View>
+                    <View className="flex-row justify-between mt-1">
+                      <Text className="text-gray-500 text-sm">Total Amount</Text>
+                      <Text className="text-primary font-bold">{formatINR(totalAmount)}</Text>
+                    </View>
+                  </View>
+                )}
               </View>
+            ) : (
+              <View className="bg-white rounded-2xl p-5 shadow-sm">
+                <Text className="text-gray-900 font-bold text-lg mb-1">Enter Investment Amount</Text>
+                <Text className="text-gray-500 text-sm mb-4">
+                  Unit price: {formatINR(unitPrice)} per unit
+                </Text>
 
-              {units > 0 && (
-                <View className="mt-4 bg-gray-50 rounded-xl p-3">
-                  <View className="flex-row justify-between">
-                    <Text className="text-gray-500 text-sm">Units</Text>
-                    <Text className="text-gray-900 font-bold">{units}</Text>
-                  </View>
-                  <View className="flex-row justify-between mt-1">
-                    <Text className="text-gray-500 text-sm">Total Amount</Text>
-                    <Text className="text-primary font-bold">{formatINR(totalAmount)}</Text>
-                  </View>
+                <Input
+                  icon={<Text className="text-gray-400 text-lg">₹</Text>}
+                  placeholder="0"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
+                />
+
+                {/* Quick amounts */}
+                <View className="flex-row gap-2 mt-3">
+                  {[25000, 50000, 100000, 250000].map((v) => (
+                    <Pressable
+                      key={v}
+                      onPress={() => setAmount(String(v))}
+                      className="flex-1 bg-primary-light rounded-lg py-2 items-center"
+                    >
+                      <Text className="text-primary text-xs font-bold">{formatINR(v)}</Text>
+                    </Pressable>
+                  ))}
                 </View>
-              )}
-            </View>
+
+                {units > 0 && (
+                  <View className="mt-4 bg-gray-50 rounded-xl p-3">
+                    <View className="flex-row justify-between">
+                      <Text className="text-gray-500 text-sm">Units</Text>
+                      <Text className="text-gray-900 font-bold">{units}</Text>
+                    </View>
+                    <View className="flex-row justify-between mt-1">
+                      <Text className="text-gray-500 text-sm">Total Amount</Text>
+                      <Text className="text-primary font-bold">{formatINR(totalAmount)}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -179,10 +265,13 @@ export default function InvestScreen() {
         {step === 1 && (
           <View className="bg-white rounded-2xl p-5 shadow-sm">
             <Text className="text-gray-900 font-bold text-lg mb-4">Review Investment</Text>
-            {[
-              { label: 'Property', value: property?.title ?? 'Property' },
-              { label: 'Units', value: String(units) },
-              { label: 'Unit Price', value: formatINR(unitPrice) },
+            {[              { label: 'Property', value: property?.title ?? 'Property' },
+              isUnitConfigMode && selectedBhk
+                ? { label: 'BHK Type', value: selectedBhk.bhk_type ?? selectedBhk.type ?? 'Unit' }
+                : { label: 'Units', value: String(units) },
+              isUnitConfigMode && selectedBhk
+                ? { label: 'Quantity', value: String(bhkQty) }
+                : { label: 'Unit Price', value: formatINR(unitPrice) },
               { label: 'Total Amount', value: formatINR(totalAmount) },
               { label: 'Platform Fee (1%)', value: formatINR(totalAmount * 0.01) },
               { label: 'GST (18% on fee)', value: formatINR(totalAmount * 0.01 * 0.18) },
@@ -255,9 +344,9 @@ export default function InvestScreen() {
         <View className="bg-white border-t border-gray-100 px-4 py-3">
           <Pressable
             onPress={step === 2 ? handlePayment : handleNext}
-            disabled={processing || (step === 0 && units < 1)}
+            disabled={processing || (step === 0 && (isUnitConfigMode ? hasCfgs && selectedBhkIdx === null : units < 1))}
             className={`py-3.5 rounded-xl items-center ${
-              processing || (step === 0 && units < 1) ? 'bg-gray-200' : 'bg-primary'
+              processing || (step === 0 && (isUnitConfigMode ? hasCfgs && selectedBhkIdx === null : units < 1)) ? 'bg-gray-200' : 'bg-primary'
             }`}
           >
             <Text className={`font-bold text-base ${

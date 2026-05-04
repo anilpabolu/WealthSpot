@@ -5,11 +5,13 @@ Revises: 001_initial
 Create Date: 2025-07-14
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import UUID
+
 from alembic import op
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 # revision identifiers
 revision: str = "004_community"

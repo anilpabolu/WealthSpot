@@ -7,7 +7,6 @@ import {
   Flag,
   Loader2,
   MinusCircle,
-  Search,
   ShieldCheck,
 } from 'lucide-react'
 import {
@@ -25,6 +24,7 @@ import {
 import { useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
 import { ShieldMetricsCard } from './ShieldMetricsCard'
 import { ShieldDot } from './ShieldDot'
+import { Input, Textarea } from '@/components/ui'
 
 const VAULT_FILTERS = [
   { value: '', label: 'All Vaults' },
@@ -88,19 +88,12 @@ export function AdminShieldReviewTab() {
             ))}
           </select>
 
-          <div className="relative">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-tertiary"
-            />
-            <input
-              type="text"
+          <Input
+              type="search"
               placeholder="Search listings…"
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              className="input w-full text-sm pl-8"
             />
-          </div>
 
           <div className="space-y-1 max-h-[520px] overflow-y-auto">
             {oppsLoading && (
@@ -414,8 +407,7 @@ function ReviewSubItemRow({
       )}
 
       {/* Reviewer note input */}
-      <textarea
-        className="input w-full text-[12px]"
+      <Textarea
         rows={1}
         placeholder="Reviewer note…"
         value={note}

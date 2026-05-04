@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import decode_token
 from app.models.user import User, UserRole
+from app.services import token_store
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -38,6 +39,9 @@ async def get_current_user(
     except JWTError as exc:
         raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
 
+    if token_store.is_revoked(payload.get("jti") or ""):
+        raise HTTPException(status_code=401, detail="Token revoked")
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
@@ -61,6 +65,9 @@ async def get_optional_user(
         if user_id is None or token_type != "access":
             return None
     except JWTError:
+        return None
+
+    if token_store.is_revoked(payload.get("jti") or ""):
         return None
 
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))

@@ -45,9 +45,8 @@ export interface OpportunityItem {
   targetAmount: number | null
   raisedAmount: number
   minInvestment: number | null
-  targetIrr: number | null
-  expectedIrr: number | null
-  actualIrr: number | null
+  investment_mode: string | null
+
   industry: string | null
   stage: string | null
   founderName: string | null
@@ -57,6 +56,13 @@ export interface OpportunityItem {
   communitySubtype: string | null
   communityDetails: Record<string, unknown> | null
   safeVaultData: Record<string, unknown> | null
+  // Property Specs
+  property_type: string | null
+  price_per_sqft: number | null
+  total_project_area_sqft: number | null
+  property_specs: Record<string, unknown> | null
+  property_amenities: string[] | null
+  amenity_cost_estimate: number | null
   projectPhase: string | null
   currentValuation: number | null
   coverImage: string | null
@@ -85,8 +91,7 @@ export interface VaultStats {
   totalInvested: number
   investorCount: number
   opportunityCount: number
-  expectedIrr: number | null
-  actualIrr: number | null
+
   explorerCount: number
   dnaInvestorCount: number
   minInvestment: number | null
@@ -126,7 +131,7 @@ export interface OpportunityCreatePayload {
   // Financials
   targetAmount?: number
   minInvestment?: number
-  targetIrr?: number
+
   // Startup
   industry?: string
   stage?: string
@@ -139,6 +144,15 @@ export interface OpportunityCreatePayload {
   communityDetails?: Record<string, unknown>
   // Safe Vault
   safeVaultData?: Record<string, unknown>
+  // Property Specs
+  property_type?: string
+  price_per_sqft?: number
+  total_project_area_sqft?: number
+  property_specs?: Record<string, unknown>
+  property_amenities?: string[]
+  amenity_cost_estimate?: number
+  // Investment configuration mode
+  investmentMode?: 'lumpsum' | 'unit_config'
   // Funding schedule
   fundingOpenAt?: string
   closingDate?: string
@@ -207,7 +221,6 @@ export function useCreateOpportunity() {
         country: data.country,
         target_amount: data.targetAmount,
         min_investment: data.minInvestment,
-        target_irr: data.targetIrr,
         industry: data.industry,
         stage: data.stage,
         founder_name: data.founderName,
@@ -217,6 +230,15 @@ export function useCreateOpportunity() {
         community_subtype: data.communitySubtype,
         community_details: data.communityDetails,
         safe_vault_data: data.safeVaultData,
+        property_type: data.property_type,
+        price_per_sqft: data.price_per_sqft,
+        total_project_area_sqft: data.total_project_area_sqft,
+        property_specs: data.property_specs,
+        property_amenities: data.property_amenities,
+        amenity_cost_estimate: data.amenity_cost_estimate,
+        investment_mode: data.investmentMode ?? 'lumpsum',
+        funding_open_at: data.fundingOpenAt,
+        closing_date: data.closingDate,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
@@ -246,7 +268,6 @@ export function useUpdateOpportunity() {
         ...(data.country !== undefined && { country: data.country }),
         ...(data.targetAmount !== undefined && { target_amount: data.targetAmount }),
         ...(data.minInvestment !== undefined && { min_investment: data.minInvestment }),
-        ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
         ...(data.industry !== undefined && { industry: data.industry }),
         ...(data.stage !== undefined && { stage: data.stage }),
         ...(data.founderName !== undefined && { founder_name: data.founderName }),
@@ -256,6 +277,13 @@ export function useUpdateOpportunity() {
         ...(data.communitySubtype !== undefined && { community_subtype: data.communitySubtype }),
         ...(data.communityDetails !== undefined && { community_details: data.communityDetails }),
         ...(data.safeVaultData !== undefined && { safe_vault_data: data.safeVaultData }),
+        ...(data.property_type !== undefined && { property_type: data.property_type }),
+        ...(data.price_per_sqft !== undefined && { price_per_sqft: data.price_per_sqft }),
+        ...(data.total_project_area_sqft !== undefined && { total_project_area_sqft: data.total_project_area_sqft }),
+        ...(data.property_specs !== undefined && { property_specs: data.property_specs }),
+        ...(data.property_amenities !== undefined && { property_amenities: data.property_amenities }),
+        ...(data.amenity_cost_estimate !== undefined && { amenity_cost_estimate: data.amenity_cost_estimate }),
+        ...(data.investmentMode !== undefined && { investment_mode: data.investmentMode }),
         ...(data.status !== undefined && { status: data.status }),
         ...(data.closingDate !== undefined && { closing_date: data.closingDate }),
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),

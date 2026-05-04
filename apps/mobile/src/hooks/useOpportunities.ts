@@ -59,26 +59,22 @@ export interface OpportunityItem {
   targetAmount: number | null
   raisedAmount: number
   minInvestment: number | null
-  targetIrr: number | null
   industry: string | null
   stage: string | null
   founderName: string | null
   pitchDeckUrl: string | null
   communityType: string | null
   collaborationType: string | null
-  coverImage: string | null
-  currentValuation: number | null
-  videoUrl: string | null
-  companyId: string | null
-  investorCount: number
-  launchDate: string | null
-  closingDate: string | null
-  createdAt: string
-  creator?: { id: string; fullName: string; avatarUrl: string | null }
-  media: OpportunityMedia[]
-  company: CompanySummary | null
-  expectedIrr: number | null
-  actualIrr: number | null
+  // Property specification fields
+  propertyType?: string
+  pricePerSqft?: number
+  totalProjectAreaSqft?: number
+  propertySpecs?: Record<string, unknown>
+  propertyAmenities?: string[]
+  safeVaultData?: Record<string, unknown>
+  targetIrr?: number
+  expectedIrr?: number
+  investment_mode?: string
 }
 
 interface PaginatedOpportunities {
@@ -107,7 +103,6 @@ export interface OpportunityCreatePayload {
   address?: string
   targetAmount?: number
   minInvestment?: number
-  targetIrr?: number
   industry?: string
   stage?: string
   founderName?: string
@@ -161,7 +156,6 @@ export function useCreateOpportunity() {
         country: data.country,
         target_amount: data.targetAmount,
         min_investment: data.minInvestment,
-        target_irr: data.targetIrr,
         industry: data.industry,
         stage: data.stage,
         founder_name: data.founderName,
@@ -180,10 +174,6 @@ export interface VaultStats {
   totalInvested: number
   investorCount: number
   opportunityCount: number
-  expectedIrr: number | null
-  actualIrr: number | null
-  explorerCount: number
-  dnaInvestorCount: number
   minInvestment: number | null
   avgTicketSize: number | null
   citiesCovered: number

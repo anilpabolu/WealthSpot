@@ -5,8 +5,9 @@ Revises: 005b_media
 Create Date: 2025-07-18
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
 from sql_utils import exec_sql_file
 

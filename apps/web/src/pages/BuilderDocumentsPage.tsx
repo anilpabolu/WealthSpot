@@ -1,11 +1,11 @@
 import { useState, useMemo, useRef } from 'react'
 import { PortalLayout } from '@/components/layout'
-import { EmptyState, Select } from '@/components/ui'
+import { EmptyState, Select, Input } from '@/components/ui'
 import { useBuilderListings } from '@/hooks/useBuilderListings'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, api } from '@/lib/api'
 import { formatDate } from '@/lib/formatters'
-import { FileText, Image, Upload, Loader2, Search, Film } from 'lucide-react'
+import { FileText, Image, Upload, Loader2, Film } from 'lucide-react'
 
 interface MediaItem {
   id: string
@@ -131,10 +131,13 @@ export default function BuilderDocumentsPage() {
               { value: 'document', label: 'Documents' },
             ]}
           />
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
-            <input type="search" placeholder="Search files..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-surface)] border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-          </div>
+          <Input
+            type="search"
+            className="flex-1"
+            placeholder="Search files..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
         {!activeOppId ? (

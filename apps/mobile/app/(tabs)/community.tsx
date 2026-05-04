@@ -7,7 +7,7 @@ import { View, Text, ScrollView, Pressable, FlatList, ActivityIndicator } from '
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { useCommunityPosts, useLikePost } from '@/hooks/useCommunity'
+import { useCommunityPosts, useLikePost, type CommunityPostSummary } from '@/hooks/useCommunity'
 import { useProfilingProgress } from '@/hooks/useProfiling'
 import { formatRelativeTime } from '@/lib/formatters'
 import { EmptyState, Badge, FadeInView } from '@/components/ui'
@@ -67,9 +67,9 @@ export default function CommunityScreen() {
       </FadeInView>
 
       {/* Posts List */}
-      <FlatList
+      <FlatList<CommunityPostSummary>
         data={posts}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: CommunityPostSummary) => item.id}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
@@ -123,7 +123,7 @@ export default function CommunityScreen() {
             />
           ) : null
         }
-        renderItem={({ item, index }) => {
+        renderItem={({ item, index }: { item: CommunityPostSummary; index: number }) => {
           const authorName = item.author?.fullName ?? 'Unknown'
           const initials = authorName
             .split(' ')

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Run lint-staged so only changed files are linted on commit.
+# Skip with `git commit --no-verify` for emergencies — but please don't.
+
+npx lint-staged

@@ -72,7 +72,7 @@ export function ToastRibbon() {
 
   return (
     <div
-      className="fixed right-4 top-4 z-[9999] flex flex-col gap-2 pointer-events-none"
+      className="fixed right-4 top-4 z-[99999] flex flex-col gap-2 pointer-events-none"
       aria-live="polite"
       aria-atomic="false"
     >

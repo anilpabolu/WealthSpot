@@ -3,12 +3,14 @@ import { PortalLayout } from '@/components/layout'
 import { DataTable, type Column, EmptyState, Select } from '@/components/ui'
 import { useBuilderInvestors, type BuilderInvestor } from '@/hooks/useBuilderInvestors'
 import { formatINRCompact, formatDate } from '@/lib/formatters'
-import { Users, Search, IndianRupee, UserCheck, Loader2 } from 'lucide-react'
+import { Users, Search, IndianRupee, UserCheck, Loader2, FileText } from 'lucide-react'
+import { BuilderInvestorTransactionsPopup } from '@/components/portfolio/BuilderInvestorTransactionsPopup'
 
 export default function BuilderInvestorsPage() {
   const { data, isLoading } = useBuilderInvestors()
   const [search, setSearch] = useState('')
   const [oppFilter, setOppFilter] = useState('')
+  const [selectedInvestor, setSelectedInvestor] = useState<BuilderInvestor | null>(null)
 
   const investors = useMemo(() => data?.investors ?? [], [data?.investors])
   const oppOptions = useMemo(() => {
@@ -67,6 +69,19 @@ export default function BuilderInvestorsPage() {
         </span>
       ),
     },
+    {
+      key: 'investmentId',
+      header: 'Transactions',
+      render: (inv) => (
+        <button
+          onClick={() => setSelectedInvestor(inv)}
+          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          View
+        </button>
+      ),
+    },
   ]
 
   return (
@@ -121,6 +136,13 @@ export default function BuilderInvestorsPage() {
           <DataTable columns={columns} data={filtered} keyExtractor={(row) => row.investmentId} />
         )}
       </div>
+
+      {selectedInvestor && (
+        <BuilderInvestorTransactionsPopup
+          investor={selectedInvestor}
+          onClose={() => setSelectedInvestor(null)}
+        />
+      )}
     </PortalLayout>
   )
 }

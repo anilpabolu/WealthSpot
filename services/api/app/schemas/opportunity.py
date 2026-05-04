@@ -4,10 +4,154 @@ Opportunity schemas (Pydantic v2).
 
 import uuid
 from datetime import datetime
+from typing import Any, Literal, Union
 
 from pydantic import BaseModel, Field
 
 from app.models.opportunity import OpportunityStatus, VaultType
+
+# ---------------------------------------------------------------------------
+# Property-type-specific specification schemas
+# ---------------------------------------------------------------------------
+
+
+class UnitConfiguration(BaseModel):
+    """Individual BHK / unit configuration within a flat or villa project."""
+
+    type: str  # "Studio" | "1 BHK" | "2 BHK" | "3 BHK" | "4 BHK" | "Penthouse"
+    carpet_area_sqft: float | None = None
+    super_built_up_sqft: float | None = None
+    built_up_sqft: float | None = None  # for villas / independent floors
+    plot_area_sqyd: float | None = None  # villa/bungalow plot area
+    balconies: int | None = None
+    bathrooms: int | None = None
+    car_parks: int | None = None
+    floors: int | None = None  # for villas / duplex
+    available_units: int | None = None
+    total_units: int | None = None
+    price_per_sqft: float | None = None
+
+
+class PlotConfiguration(BaseModel):
+    """Individual plot variant (corner, east-facing, etc.)."""
+
+    type: str  # "Corner Plot" | "Regular Plot" | "East-facing" | "North-facing"
+    area_sqft: float
+    area_sqyd: float | None = None
+    area_guntha: float | None = None
+    area_gunta: float | None = None  # alias used in Maharashtra/Telangana
+    area_acre: float | None = None
+    area_bigha: float | None = None  # North India
+    available_plots: int | None = None
+    total_plots: int | None = None
+    price_per_sqft: float | None = None
+    price_per_sqyd: float | None = None
+
+
+class AreaConversions(BaseModel):
+    """Pre-computed multi-unit area conversion for display."""
+
+    sqft: float
+    sqyd: float | None = None
+    guntha: float | None = None
+    gunta: float | None = None
+    acre: float | None = None
+    bigha: float | None = None
+    hectare: float | None = None
+
+
+class PropertySpecsFlat(BaseModel):
+    """Flat / Apartment project specifications."""
+
+    property_type: Literal["flat"] = "flat"
+    configurations: list[UnitConfiguration] = []
+    total_units_in_project: int | None = None
+    total_floors: int | None = None
+    total_towers: int | None = None
+    land_parcel_area_sqft: float | None = None
+    project_total_area_sqft: float | None = None
+    possession_quarter: str | None = None  # e.g., "Q3 2027"
+    rera_number: str | None = None
+    launch_price_per_sqft: float | None = None
+    current_price_per_sqft: float | None = None
+    floor_plan_url: str | None = None
+
+
+class PropertySpecsVilla(BaseModel):
+    """Villa / Independent House project specifications."""
+
+    property_type: Literal["villa"] = "villa"
+    configurations: list[UnitConfiguration] = []
+    total_units_in_project: int | None = None
+    project_total_area_acres: float | None = None
+    project_total_area_sqft: float | None = None
+    land_parcel_area_sqft: float | None = None
+    possession_quarter: str | None = None
+    rera_number: str | None = None
+    current_price_per_sqft: float | None = None
+
+
+class PropertySpecsPlot(BaseModel):
+    """Plot / Land Parcel project specifications."""
+
+    property_type: Literal["plot"] = "plot"
+    plot_configurations: list[PlotConfiguration] = []
+    total_plots: int | None = None
+    project_total_area_sqft: float | None = None
+    project_total_area_acres: float | None = None
+    project_total_area_guntha: float | None = None
+    land_parcel_area_sqft: float | None = None
+    dtcp_approved: bool = False
+    rera_number: str | None = None
+    facing_options: list[str] = []  # ["East", "North", "Corner"]
+    conversion_display: AreaConversions | None = None
+
+
+class PropertySpecsCommercial(BaseModel):
+    """Commercial Office / Shop / Showroom project specifications."""
+
+    property_type: Literal["commercial"] = "commercial"
+    space_type: str | None = None  # "office" | "retail" | "showroom" | "mixed"
+    configurations: list[UnitConfiguration] = []
+    total_units_in_project: int | None = None
+    car_parks_per_unit: int | None = None
+    project_total_area_sqft: float | None = None
+    rera_number: str | None = None
+    current_price_per_sqft: float | None = None
+
+
+class PropertySpecsWarehouse(BaseModel):
+    """Warehouse / Industrial project specifications."""
+
+    property_type: Literal["warehouse"] = "warehouse"
+    total_area_sqft: float | None = None
+    floor_height_ft: float | None = None
+    loading_docks: int | None = None
+    power_supply_kva: float | None = None
+    project_total_area_sqft: float | None = None
+    rera_number: str | None = None
+
+
+class PropertySpecsMixedUse(BaseModel):
+    """Mixed Use / Township project specifications."""
+
+    property_type: Literal["mixed_use"] = "mixed_use"
+    components: list[str] = []  # ["residential", "commercial", "retail"]
+    residential_units: int | None = None
+    commercial_units: int | None = None
+    project_total_area_sqft: float | None = None
+    rera_number: str | None = None
+
+
+# Discriminated union — stored as JSONB, parsed by property_type key
+PropertySpecs = Union[
+    PropertySpecsFlat,
+    PropertySpecsVilla,
+    PropertySpecsPlot,
+    PropertySpecsCommercial,
+    PropertySpecsWarehouse,
+    PropertySpecsMixedUse,
+]
 
 
 class MortgageAgreementSchema(BaseModel):
@@ -135,6 +279,12 @@ class OpportunityRead(BaseModel):
     safe_vault_data: SafeVaultDataSchema | None = None
     project_phase: str | None = None
     current_valuation: float | None = None
+    # Real-estate property specification fields
+    property_type: str | None = None
+    price_per_sqft: float | None = None
+    total_project_area_sqft: float | None = None
+    property_specs: dict[str, Any] | None = None
+    property_amenities: list[str] | None = None
     cover_image: str | None = None
     video_url: str | None = None
     gallery: list[str] | None = None
@@ -144,6 +294,8 @@ class OpportunityRead(BaseModel):
     launch_date: datetime | None = None
     funding_open_at: datetime | None = None
     closing_date: datetime | None = None
+    # Investment configuration mode
+    investment_mode: str | None = "lumpsum"
     created_at: datetime
     updated_at: datetime
     creator: OpportunityCreatorRead | None = None
@@ -197,9 +349,19 @@ class OpportunityCreateRequest(BaseModel):
     # Safe Vault fields
     safe_vault_data: SafeVaultDataSchema | None = None
     project_phase: str | None = None
+    # Real-estate property specification fields (Wealth + Safe vaults)
+    property_type: str | None = None
+    price_per_sqft: float | None = None
+    total_project_area_sqft: float | None = None
+    property_specs: dict[str, Any] | None = None
+    property_amenities: list[str] | None = None
+    # Combined amenity cost estimate (single ₹ figure, e.g. ₹50 000 per unit)
+    amenity_cost_estimate: float | None = None
     # Funding schedule
     funding_open_at: datetime | None = None
     closing_date: datetime | None = None
+    # Investment configuration mode: 'lumpsum' or 'unit_config'
+    investment_mode: str | None = "lumpsum"
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -238,10 +400,20 @@ class OpportunityUpdateRequest(BaseModel):
     safe_vault_data: SafeVaultDataSchema | None = None
     # Lifecycle
     project_phase: str | None = None
+    # Real-estate property specification fields (Wealth + Safe vaults)
+    property_type: str | None = None
+    price_per_sqft: float | None = None
+    total_project_area_sqft: float | None = None
+    property_specs: dict[str, Any] | None = None
+    property_amenities: list[str] | None = None
+    # Combined amenity cost estimate
+    amenity_cost_estimate: float | None = None
     # Funding schedule
     funding_open_at: datetime | None = None
     closing_date: datetime | None = None
     status: str | None = None
+    # Investment configuration mode: 'lumpsum' or 'unit_config'
+    investment_mode: str | None = None
     # Investment management (admin only)
     cancel_investments: bool = False
 

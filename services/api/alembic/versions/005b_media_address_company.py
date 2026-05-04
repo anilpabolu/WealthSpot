@@ -5,8 +5,9 @@ Revises: 005_companies
 Create Date: 2025-07-16
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
 from sql_utils import exec_sql_file
 

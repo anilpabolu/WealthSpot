@@ -151,6 +151,23 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npx vitest run -c vitest.functional.config.ts
 
+  # ── Mobile Lint & Type-Check ──────────────────────────
+  mobile-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npx eslint . --max-warnings=0
+      - run: npx tsc --noEmit
+
   # ── Mobile Tests ───────────────────────────────────────
   mobile-test:
     runs-on: ubuntu-latest
@@ -166,6 +183,52 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci --legacy-peer-deps
       - run: npx vitest run
+
+  # ── Mobile Bundle Smoke ────────────────────────────────
+  # Confirms the Metro bundler + Expo config still produce a JS bundle.
+  # Catches issues like missing native module installs, app.json schema
+  # drift, or broken expo-router routes before they reach EAS.
+  mobile-bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - name: Export JS bundle (no native build)
+        run: npx expo export --platform all --output-dir ./.expo-export
+        env:
+          EXPO_PUBLIC_API_URL: https://staging-api.wealthspot.in/api/v1
+
+  # ── Dependency Audit ───────────────────────────────────
+  # Surface high+critical advisories in the workspace dependency tree.
+  # `continue-on-error` keeps unrelated PRs unblocked while still flagging
+  # advisories in the run summary — promote to required once baseline is clean.
+  dependency-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: npm audit (high+critical)
+        run: npm audit --audit-level=high --workspaces --include-workspace-root
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pip-audit (Python)
+        working-directory: services/api
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip install ".[dev]"
+          pip-audit --strict
 
   # ── E2E Playwright Tests ───────────────────────────────
   e2e-test:

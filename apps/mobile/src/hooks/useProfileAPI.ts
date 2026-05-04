@@ -4,19 +4,7 @@ import { useUserStore } from '@/stores/user.store'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Check if the stored JWT is present and not expired (with 60s buffer). */
-function hasValidToken(): boolean {
-  const token = localStorage.getItem('ws_token')
-  if (!token) return false
-  try {
-    const parts = token.split('.')
-    if (parts.length < 2) return false
-    const payload = JSON.parse(atob(parts[1]!))
-    return payload.exp * 1000 > Date.now() - 60_000
-  } catch {
-    return false
-  }
-}
+
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -94,22 +82,20 @@ export interface OtpVerifyResponse {
 
 export function useProfileCompletionStatus() {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
-  const token = useUserStore((s) => s.token)   // subscribe so we re-eval after sync
   return useQuery<ProfileCompletionStatus>({
     queryKey: ['profile', 'completion'],
     queryFn: () => apiGet<ProfileCompletionStatus>('/profile/completion'),
-    enabled: isAuthenticated && !!token && hasValidToken(),
+    enabled: isAuthenticated,
     staleTime: 30_000,
   })
 }
 
 export function useFullProfile() {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
-  const token = useUserStore((s) => s.token)
   return useQuery<FullProfile>({
     queryKey: ['profile', 'full'],
     queryFn: () => apiGet<FullProfile>('/profile/full'),
-    enabled: isAuthenticated && !!token && hasValidToken(),
+    enabled: isAuthenticated,
     staleTime: 30_000,
   })
 }

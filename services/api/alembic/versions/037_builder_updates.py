@@ -4,9 +4,10 @@ Revision ID: 037_builder_updates
 Revises: 036_vault_explorer_metric
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "037_builder_updates"
 down_revision = "036_vault_explorer_metric"

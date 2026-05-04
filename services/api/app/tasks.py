@@ -90,9 +90,16 @@ def send_sms_task(self, phone_number: str, message: str):
 
 @shared_task
 def cleanup_expired_otps():
-    """Remove expired OTP records from the database."""
+    """Clear expired OTP fields on user rows.
+
+    Targets the actual columns on `users` (email_otp_hash, email_otp_expires_at,
+    phone_otp_hash, phone_otp_expires_at). An earlier version of this task ran
+    a DELETE FROM users on a non-existent `otp` column — it was both dangerous
+    (would have removed accounts mid-OTP-verification if the column existed)
+    and dead code (the column never existed in this schema).
+    """
     import asyncio
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
     from sqlalchemy import text
 
@@ -100,22 +107,42 @@ def cleanup_expired_otps():
 
     async def _cleanup():
         async with async_session_factory() as session:
-            cutoff = datetime.now(UTC) - timedelta(minutes=15)
-            # OTPs older than 15 minutes are considered expired
-            await session.execute(
-                text("DELETE FROM users WHERE otp IS NOT NULL AND otp_expires_at < :cutoff"),
-                {"cutoff": cutoff},
-            )
-            # Actually, just clear the OTP fields, don't delete users
-            await session.execute(
+            now = datetime.now(UTC)
+            result = await session.execute(
                 text(
-                    "UPDATE users SET otp = NULL, otp_expires_at = NULL "
-                    "WHERE otp IS NOT NULL AND otp_expires_at < :cutoff"
+                    """
+                    UPDATE users
+                       SET email_otp_hash       = NULL,
+                           email_otp_expires_at = NULL
+                     WHERE email_otp_hash IS NOT NULL
+                       AND email_otp_expires_at < :now
+                    """
                 ),
-                {"cutoff": cutoff},
+                {"now": now},
             )
+            cleared_email = result.rowcount or 0
+
+            result2 = await session.execute(
+                text(
+                    """
+                    UPDATE users
+                       SET phone_otp_hash       = NULL,
+                           phone_otp_expires_at = NULL
+                     WHERE phone_otp_hash IS NOT NULL
+                       AND phone_otp_expires_at < :now
+                    """
+                ),
+                {"now": now},
+            )
+            cleared_phone = result2.rowcount or 0
+
             await session.commit()
-            logger.info("Cleaned up expired OTPs (cutoff=%s)", cutoff)
+            logger.info(
+                "Cleared expired OTPs (email=%d, phone=%d, cutoff=%s)",
+                cleared_email,
+                cleared_phone,
+                now,
+            )
 
     asyncio.run(_cleanup())
 

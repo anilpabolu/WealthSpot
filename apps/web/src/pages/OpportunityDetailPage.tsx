@@ -1,8 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
+import AuthGateModal from '@/components/AuthGateModal'
 import SEOHead from '@/components/SEOHead'
 import FundingBar from '@/components/wealth/FundingBar'
-import IrrBadge from '@/components/wealth/IrrBadge'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useOpportunityBySlug } from '@/hooks/useOpportunities'
 import { useLikeStatus, useToggleLike, useTrackShare, usePropertyReferralCode } from '@/hooks/useOpportunityActions'
@@ -14,16 +14,24 @@ import {
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Shield, Ruler, FolderKanban, BadgeCheck,
 } from 'lucide-react'
+import * as LucideAllIcons from 'lucide-react'
+import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import { EmptyState } from '@/components/ui'
-import { useUserStore } from '@/stores/user.store'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
-import { useProfilingProgress } from '@/hooks/useProfiling'
-import ProfilingGateModal from '@/components/profiling/ProfilingGateModal'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
 import { ShieldSection } from '@/components/shield/ShieldSection'
+import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
+import { AMENITIES, AMENITY_CATEGORIES } from '@wealthspot/types'
+import type { AmenityCategory } from '@wealthspot/types'
+
+function _AmenityIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = (LucideAllIcons as unknown as Record<string, React.FC<LucideProps>>)[name]
+  if (!Icon) return null
+  return <Icon className={className ?? 'h-3.5 w-3.5'} />
+}
 
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
@@ -157,8 +165,7 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
 }
 
 /** Derive lifecycle ribbon from status + dates + funding */
-function getLifecycleRibbon(opp: { status: string; closingDate: string | null; raisedAmount: number; targetAmount: number | null }) {
-  if (opp.status === 'closed') return { label: 'CLOSED', color: 'bg-red-600' }
+function getLifecycleRibbon(opp: { status: string; closingDate: string | null; raisedAmount: number; targetAmount: number | null }) {  if (opp.status === 'closed') return { label: 'CLOSED', color: 'bg-red-600' }
 
   const closingDate = opp.closingDate ? new Date(opp.closingDate) : null
   const daysLeft = closingDate ? Math.ceil((closingDate.getTime() - Date.now()) / 86400000) : null
@@ -290,7 +297,7 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
   )
 }
 
-function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; targetIrr: number | null; closingDate: string | null } }) {
+function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
   const isClosed = opportunity.status === 'closed'
@@ -315,13 +322,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           <Users className="h-3.5 w-3.5" /> {opportunity.investorCount} investors
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          {opportunity.targetIrr != null && (
-            <div className="bg-theme-surface rounded-lg p-3">
-              <p className="text-xs text-theme-secondary uppercase font-semibold">Target IRR</p>
-              <IrrBadge value={opportunity.targetIrr} className="mt-1" />
-            </div>
-          )}
+        <div className="mb-4">
           {opportunity.minInvestment != null && (
             <div className="bg-theme-surface rounded-lg p-3">
               <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
@@ -356,6 +357,9 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           opportunityId={opportunity.id}
           opportunityTitle={opportunity.title}
           minInvestment={opportunity.minInvestment ?? 0}
+          propertyType={opportunity.property_type ?? undefined}
+          unitConfigs={(opportunity.property_specs?.unit_configurations as unknown[]) ?? undefined}
+          plotConfigs={(opportunity.property_specs?.plot_configurations as unknown[]) ?? undefined}
           onClose={() => setShowEOI(false)}
         />
       )}
@@ -370,18 +374,6 @@ export default function OpportunityDetailPage() {
   const { propertyVideosEnabled, reraDisplayEnabled } = useVaultConfig()
   const [showShareModal, setShowShareModal] = useState(false)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
-  const [showProfilingGate, setShowProfilingGate] = useState(false)
-
-  // Auth / role
-  const userRole = useUserStore((s) => s.user?.role)
-  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
-  const isInvestorRole = userRole === 'investor'
-
-  // Vault-specific DNA profiling progress (for gating)
-  const { data: profilingProgress } = useProfilingProgress(opp?.vaultType ?? '')
-  const dnaComplete = profilingProgress?.isComplete ?? false
-  // Gate: investor who hasn't completed this vault's DNA
-  const needsProfilingGate = isAuthenticated && isInvestorRole && !dnaComplete
 
   const { data: _appreciationHistory } = useAppreciationHistory(opp?.id ?? '')
 
@@ -401,11 +393,6 @@ export default function OpportunityDetailPage() {
     trackShare.mutate(opp.id)
     setShowShareModal(true)
   }
-
-  // Auto-trigger profiling gate for investors without vault DNA (must be before early returns)
-  useEffect(() => {
-    if (needsProfilingGate && opp) setShowProfilingGate(true)
-  }, [needsProfilingGate, opp])
 
   if (isLoading) {
     return (
@@ -523,6 +510,18 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
+            {/* Property Specifications — for Wealth & Safe vault with property type set */}
+            {opp.property_type && opp.property_specs && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+              <PropertySpecsSection
+                propertyType={opp.property_type}
+                pricePerSqft={opp.price_per_sqft}
+                totalProjectAreaSqft={opp.total_project_area_sqft}
+                specs={opp.property_specs}
+                amenities={opp.property_amenities ?? []}
+                amenityCostEstimate={opp.amenity_cost_estimate}
+              />
+            )}
+
             {/* Vault-Specific Project Details */}
             {(() => {
               const details: Array<{ label: string; value: string; icon: typeof Calendar }> = []
@@ -609,6 +608,43 @@ export default function OpportunityDetailPage() {
             {/* WealthSpot Shield */}
             <ShieldSection opportunityId={opp.id} />
 
+            {/* Amenities & Features — shown for wealth/safe vault properties that have amenities */}
+            {opp.property_amenities && opp.property_amenities.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (() => {
+              const resolved = AMENITIES.filter(a => (opp.property_amenities ?? []).includes(a.key))
+              const byCategory = Object.fromEntries(
+                (Object.keys(AMENITY_CATEGORIES) as AmenityCategory[]).map(cat => [
+                  cat,
+                  resolved.filter(a => a.category === cat),
+                ])
+              ) as Record<AmenityCategory, typeof resolved>
+              const nonEmpty = (Object.entries(AMENITY_CATEGORIES) as [AmenityCategory, string][]).filter(
+                ([catKey]) => (byCategory[catKey]?.length ?? 0) > 0
+              )
+              if (nonEmpty.length === 0) return null
+              return (
+                <div className="card p-6">
+                  <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" /> Amenities &amp; Features
+                  </h2>
+                  <div className="space-y-4">
+                    {nonEmpty.map(([catKey, catLabel]) => (
+                      <div key={catKey}>
+                        <p className="text-[11px] font-semibold text-theme-tertiary uppercase tracking-wider mb-2">{catLabel}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {byCategory[catKey].map(a => (
+                            <span key={a.key} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-theme-surface border border-theme text-theme-secondary">
+                              <_AmenityIcon name={a.icon} className="h-3 w-3 shrink-0" />
+                              {a.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Company / Builder Info */}
             {opp.company && (
               <button
@@ -661,8 +697,9 @@ export default function OpportunityDetailPage() {
                 targetAmount: opp.targetAmount,
                 minInvestment: opp.minInvestment,
                 investorCount: opp.investorCount,
-                targetIrr: opp.targetIrr,
                 closingDate: opp.closingDate,
+                property_type: opp.property_type,
+                property_specs: opp.property_specs,
               }} />
             </div>
 
@@ -686,7 +723,6 @@ export default function OpportunityDetailPage() {
             city: opp.city,
             coverImage: opp.coverImage,
             slug: opp.slug,
-            targetIrr: opp.targetIrr,
             minInvestment: opp.minInvestment,
             targetAmount: opp.targetAmount,
             raisedAmount: opp.raisedAmount,
@@ -712,14 +748,8 @@ export default function OpportunityDetailPage() {
         />
       )}
 
-      {/* Profiling gate modal for explorers */}
-      {showProfilingGate && opp && (
-        <ProfilingGateModal
-          vaultType={opp.vaultType}
-          onClose={() => setShowProfilingGate(false)}
-          onComplete={() => setShowProfilingGate(false)}
-        />
-      )}
+      <AuthGateModal />
+
     </MainLayout>
   )
 }

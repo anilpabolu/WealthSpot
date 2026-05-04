@@ -11,7 +11,6 @@ import {
   Compass,
   Rocket,
   Users,
-  TrendingUp,
   ArrowRight,
   Wallet,
   Clock,
@@ -237,12 +236,6 @@ function formatINRCompact(num: number): string {
 /*  Vault Card                                                         */
 /* ------------------------------------------------------------------ */
 
-/* Default expected IRR per vault (shown when API returns null) */
-const DEFAULT_EXPECTED_IRR: Record<string, number> = {
-  wealth: 14,
-  safe: 12,
-}
-
 /* ------------------------------------------------------------------ */
 /*  Vault Metrics Registry                                             */
 /* ------------------------------------------------------------------ */
@@ -250,7 +243,7 @@ const DEFAULT_EXPECTED_IRR: Record<string, number> = {
 type MetricDef = {
   label: string
   icon: LucideIcon
-  resolve: (stats: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null } | undefined, vaultId: string) => string
+  resolve: (stats: { totalInvested: number; investorCount: number; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null } | undefined, vaultId: string) => string
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -264,19 +257,6 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
     label: 'Investors',
     icon: Users,
     resolve: (s) => (s ? s.investorCount.toLocaleString('en-IN') : '—'),
-  },
-  expected_irr: {
-    label: 'Expected IRR',
-    icon: TrendingUp,
-    resolve: (s, vaultId) => {
-      const val = s?.expectedIrr ?? DEFAULT_EXPECTED_IRR[vaultId] ?? null
-      return val != null ? `${val}%` : '—'
-    },
-  },
-  actual_irr: {
-    label: 'Actual IRR',
-    icon: TrendingUp,
-    resolve: (s) => (s?.actualIrr != null ? `${s.actualIrr}%` : '—'),
   },
   properties_listed: {
     label: 'Properties Listed',
@@ -393,7 +373,7 @@ function VaultCard({
   onExplore,
 }: {
   vault: (typeof VAULTS)[number]
-  stats?: { totalInvested: number; investorCount: number; expectedIrr: number | null; actualIrr: number | null; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null }
+  stats?: { totalInvested: number; investorCount: number; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null }
   opportunities: OpportunityItem[]
   profilingPct: number
   archetype?: string | null
@@ -485,14 +465,13 @@ function VaultCard({
             if (!def) return null
             const MetricIcon = def.icon
             const value = def.resolve(stats, vault.id)
-            const isIrr = key === 'actual_irr'
             return (
               <div key={key} className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <MetricIcon className={`h-3.5 w-3.5 ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`} />
-                  <span className={`text-[11px] font-semibold uppercase tracking-wider ${isIrr ? 'text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>{def.label}</span>
+                  <MetricIcon className="h-3.5 w-3.5 text-gray-400 dark:text-white/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/40">{def.label}</span>
                 </div>
-                <p className={`font-mono text-sm font-bold ${isIrr ? 'text-emerald-400' : key === 'expected_irr' ? vault.accent : 'text-gray-800 dark:text-white/90'}`}>
+                <p className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">
                   {value}
                 </p>
               </div>

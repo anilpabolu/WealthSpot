@@ -12,7 +12,6 @@ interface ShareModalProps {
     city?: string | null
     coverImage?: string | null
     slug: string
-    targetIrr?: number | null
     minInvestment?: number | null
     targetAmount?: number | null
     raisedAmount?: number | null
@@ -40,7 +39,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const shareUrl = `${PLATFORM_URL}/opportunity/${opportunity.slug}?pref=${referralCode}`
-  const shareText = `Check out "${opportunity.title}" on WealthSpot${opportunity.city ? ` in ${opportunity.city}` : ''}${opportunity.targetIrr ? ` — Target IRR ${opportunity.targetIrr}%` : ''}. Invest smart, grow wealth! 🏠\n\nInterested? Sign up here: ${shareUrl}`
+  const shareText = `Check out "${opportunity.title}" on WealthSpot${opportunity.city ? ` in ${opportunity.city}` : ''}. Invest smart, grow wealth! 🏠\n\nInterested? Sign up here: ${shareUrl}`
 
   const handleCopy = useCallback(async () => {
     try {
@@ -342,9 +341,6 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     interface MetricItem { label: string; value: string; highlight?: boolean }
     const metricItems: MetricItem[] = []
 
-    if (opportunity.targetIrr) {
-      metricItems.push({ label: 'TARGET IRR', value: `${opportunity.targetIrr}%`, highlight: true })
-    }
     if (opportunity.minInvestment) {
       metricItems.push({ label: 'MIN. INVESTMENT', value: formatINR(opportunity.minInvestment) })
     }
@@ -644,7 +640,6 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     // Metrics row (up to 3 in a horizontal strip)
     interface LMItem { label: string; value: string; highlight?: boolean }
     const lMetrics: LMItem[] = []
-    if (opportunity.targetIrr) lMetrics.push({ label: 'TARGET IRR', value: `${opportunity.targetIrr}%`, highlight: true })
     if (opportunity.minInvestment) lMetrics.push({ label: 'MIN. INVEST', value: formatINR(opportunity.minInvestment) })
     if (opportunity.targetAmount) lMetrics.push({ label: 'TARGET', value: formatINR(opportunity.targetAmount) })
 

@@ -104,10 +104,10 @@ export function Select({
             )}
 
             {/* Options List */}
-            <FlatList
+            <FlatList<SelectOption>
               data={filtered}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
+              keyExtractor={(item: SelectOption) => item.value}
+              renderItem={({ item }: { item: SelectOption }) => (
                 <Pressable
                   onPress={() => {
                     onChange(item.value)

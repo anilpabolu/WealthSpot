@@ -23,6 +23,7 @@ export {
   PersonaType,
   FeatureKey,
   InviteStatus,
+  PropertyType,
 } from "./enums";
 
 // Entity models
@@ -62,6 +63,17 @@ export type {
   ApprovalStats,
   Opportunity,
   OpportunityCreate,
+  // Property specification types
+  UnitConfiguration,
+  PlotConfiguration,
+  AreaConversions,
+  PropertySpecsFlat,
+  PropertySpecsVilla,
+  PropertySpecsPlot,
+  PropertySpecsCommercial,
+  PropertySpecsWarehouse,
+  PropertySpecsMixedUse,
+  PropertySpecs,
   PlatformConfig,
   PlatformConfigCreate,
   PlatformConfigUpdate,
@@ -123,3 +135,16 @@ export type {
   ShieldMetrics,
 } from "./assessments";
 export * from "./bff";
+
+// Amenity registry
+export {
+  AMENITIES,
+  AMENITY_CATEGORIES,
+  getAmenity,
+  resolveAmenities,
+  groupAmenitiesByCategory,
+} from "./amenities";
+export type { AmenityDefinition, AmenityCategory } from "./amenities";
+
+// Shared domain validators (Zod — requires zod peer dependency)
+export * from "./validators";

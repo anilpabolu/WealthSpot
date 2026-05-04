@@ -6,14 +6,18 @@ plus file-attachment upload and delete.
 import io
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user
-from app.models.builder_update import BuilderUpdate, BuilderUpdateAttachment
+from app.middleware.auth import get_current_user, get_optional_user
+from app.models.builder_update import (
+    BuilderUpdate,
+    BuilderUpdateAttachment,
+    BuilderUpdateReadReceipt,
+)
 from app.models.opportunity import Opportunity
 from app.models.user import User, UserRole
 from app.schemas.builder_update import (
@@ -47,8 +51,13 @@ def _can_manage(user: User, opp: Opportunity) -> bool:
 async def list_updates(
     opportunity_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
 ):
-    """Public: list all builder updates for an opportunity, newest first."""
+    """List all builder updates for an opportunity, newest first.
+
+    When called with a valid Bearer token, each item includes ``is_read`` set
+    based on whether the authenticated user has opened that update.
+    """
     stmt = (
         select(BuilderUpdate)
         .where(BuilderUpdate.opportunity_id == opportunity_id)
@@ -56,7 +65,19 @@ async def list_updates(
         .order_by(BuilderUpdate.created_at.desc())
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return rows
+
+    read_ids: set[uuid.UUID] = set()
+    if user and rows:
+        receipt_stmt = select(BuilderUpdateReadReceipt.update_id).where(
+            BuilderUpdateReadReceipt.user_id == user.id,
+            BuilderUpdateReadReceipt.update_id.in_([r.id for r in rows]),
+        )
+        read_ids = set((await db.execute(receipt_stmt)).scalars().all())
+
+    return [
+        BuilderUpdateRead.model_validate(row).model_copy(update={"is_read": row.id in read_ids})
+        for row in rows
+    ]
 
 
 # ── Create update ────────────────────────────────────────────────────────────
@@ -218,3 +239,77 @@ async def delete_attachment(
 
     await db.delete(att)
     await db.flush()
+
+
+# ── Mark update as read ──────────────────────────────────────────────────────
+
+
+@router.post("/{update_id}/mark-read", status_code=204)
+async def mark_update_read(
+    update_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Record that the current user has read this update (idempotent)."""
+    upd = await db.get(BuilderUpdate, update_id)
+    if not upd:
+        raise HTTPException(404, "Update not found")
+
+    existing = await db.execute(
+        select(BuilderUpdateReadReceipt).where(
+            BuilderUpdateReadReceipt.user_id == user.id,
+            BuilderUpdateReadReceipt.update_id == update_id,
+        )
+    )
+    if existing.scalar_one_or_none() is None:
+        db.add(BuilderUpdateReadReceipt(user_id=user.id, update_id=update_id))
+        await db.flush()
+
+    return Response(status_code=204)
+
+
+# ── Bulk unread counts ────────────────────────────────────────────────────────
+
+
+@router.get("/unread-counts", response_model=dict[str, dict[str, int]])
+async def unread_counts(
+    opportunity_ids: list[uuid.UUID] = Query(..., alias="opportunity_ids"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return unread and total update counts per opportunity for the current user.
+
+    Example: GET /builder-updates/unread-counts?opportunity_ids=uuid1&opportunity_ids=uuid2
+
+    Returns: ``{"<opportunityId>": {"unread": N, "total": M}, ...}``
+    """
+    if not opportunity_ids:
+        return {}
+
+    # All updates per opportunity
+    total_stmt = (
+        select(BuilderUpdate.opportunity_id, BuilderUpdate.id)
+        .where(BuilderUpdate.opportunity_id.in_(opportunity_ids))
+    )
+    all_rows = (await db.execute(total_stmt)).all()
+    update_ids_by_opp: dict[uuid.UUID, list[uuid.UUID]] = {}
+    for opp_id, upd_id in all_rows:
+        update_ids_by_opp.setdefault(opp_id, []).append(upd_id)
+
+    all_update_ids = [upd_id for ids in update_ids_by_opp.values() for upd_id in ids]
+    read_ids: set[uuid.UUID] = set()
+    if all_update_ids:
+        read_stmt = select(BuilderUpdateReadReceipt.update_id).where(
+            BuilderUpdateReadReceipt.user_id == user.id,
+            BuilderUpdateReadReceipt.update_id.in_(all_update_ids),
+        )
+        read_ids = set((await db.execute(read_stmt)).scalars().all())
+
+    result: dict[str, dict[str, int]] = {}
+    for opp_id in opportunity_ids:
+        ids = update_ids_by_opp.get(opp_id, [])
+        total = len(ids)
+        unread = sum(1 for uid in ids if uid not in read_ids)
+        result[str(opp_id)] = {"unread": unread, "total": total}
+
+    return result

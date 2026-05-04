@@ -5,11 +5,10 @@ Revises: 021_eoi_unique
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
 
 revision: str = "022_eoi_stage_history"
 down_revision: Union[str, None] = "021_eoi_unique"

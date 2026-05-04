@@ -27,6 +27,7 @@ export interface BuilderUpdate {
   attachments: BuilderUpdateAttachment[]
   createdAt: string
   updatedAt: string
+  isRead: boolean
 }
 
 /* ── Queries ──────────────────────────────────────────────────────── */
@@ -39,7 +40,28 @@ export function useBuilderUpdates(opportunityId: string | undefined) {
   })
 }
 
+export function useBuilderUpdateUnreadCounts(opportunityIds: string[]) {
+  const params = opportunityIds.map((id) => `opportunity_ids=${encodeURIComponent(id)}`).join('&')
+  return useQuery<Record<string, { unread: number; total: number }>>({
+    queryKey: ['builder-unread-counts', ...opportunityIds.slice().sort()],
+    queryFn: () => apiGet(`/builder-updates/unread-counts?${params}`),
+    enabled: opportunityIds.length > 0,
+  })
+}
+
 /* ── Mutations ────────────────────────────────────────────────────── */
+
+export function useMarkBuilderUpdateRead(opportunityId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (updateId: string) =>
+      apiPost(`/builder-updates/${updateId}/mark-read`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['builder-updates', opportunityId] })
+      qc.invalidateQueries({ queryKey: ['builder-unread-counts'] })
+    },
+  })
+}
 
 export function useCreateBuilderUpdate(opportunityId: string) {
   const qc = useQueryClient()

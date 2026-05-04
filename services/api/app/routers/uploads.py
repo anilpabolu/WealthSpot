@@ -15,9 +15,24 @@ from app.middleware.auth import get_current_user, require_super_admin
 from app.models.opportunity import Opportunity
 from app.models.opportunity_media import OpportunityMedia
 from app.models.user import User
-from app.services.s3 import delete_file, get_public_url, upload_avatar, upload_file, upload_opportunity_media
+from app.services.s3 import (
+    delete_file,
+    get_public_url,
+    upload_avatar,
+    upload_file,
+    upload_opportunity_media,
+)
+from app.services.upload_scan import validate_upload
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
+
+
+def _ensure_clean(content: bytes, claimed_mime: str) -> None:
+    """Magic-byte check; raises 400 on mismatch."""
+    ok, reason = validate_upload(content, claimed_mime)
+    if not ok:
+        raise HTTPException(status_code=400, detail=reason or "Invalid file content")
+
 
 ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5 MB
@@ -37,6 +52,7 @@ async def upload_user_avatar(
     content = await file.read()
     if len(content) > MAX_AVATAR_SIZE:
         raise HTTPException(status_code=400, detail="Image too large (max 5 MB)")
+    _ensure_clean(content, content_type)
 
     # Delete old avatar from S3 if one exists
     if user.avatar_s3_key:
@@ -120,6 +136,7 @@ async def upload_opportunity_files(
                 status_code=400,
                 detail=f"File too large: {f.filename} exceeds {max_size // (1024 * 1024)} MB",
             )
+        _ensure_clean(content, content_type)
 
         # Reset for upload
         file_obj = io.BytesIO(content)
@@ -189,6 +206,7 @@ async def upload_company_logo(
     content = await file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Logo too large (max 10 MB)")
+    _ensure_clean(content, content_type)
 
     file_obj = io.BytesIO(content)
     safe_name = (file.filename or "logo").replace(" ", "_")
@@ -262,6 +280,7 @@ async def admin_upload_opportunity_media(
                 status_code=400,
                 detail=f"File too large: {f.filename} exceeds {max_size // (1024 * 1024)} MB",
             )
+        _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
         s3_key = await upload_opportunity_media(
@@ -404,6 +423,7 @@ async def upload_opportunity_documents(
                 status_code=400,
                 detail=f"File too large: {f.filename} exceeds 25 MB",
             )
+        _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
         s3_key = await upload_opportunity_media(
@@ -489,6 +509,7 @@ async def upload_assessment_document(
                 status_code=400,
                 detail=f"File too large: {f.filename} exceeds 25 MB",
             )
+        _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
         s3_key = await upload_opportunity_media(

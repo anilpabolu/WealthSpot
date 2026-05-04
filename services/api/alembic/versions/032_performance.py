@@ -5,8 +5,9 @@ Revises: 031_persona_seeding
 Create Date: 2026-04-14
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Union
 
 from sql_utils import exec_sql_file
 

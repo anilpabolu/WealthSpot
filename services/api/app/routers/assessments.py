@@ -147,7 +147,7 @@ async def _load_summary(
     )
     media_by_sub: dict[str, list[OpportunityMedia]] = {}
     for m in media_rows:
-        media_by_sub.setdefault(m.assessment_subcategory_code, []).append(m)
+        media_by_sub.setdefault(m.assessment_subcategory_code or "", []).append(m)
 
     # Determine viewer access
     is_privileged = False
@@ -207,7 +207,7 @@ async def _load_summary(
                     label=sub.label,
                     status=status_val,
                     has_evidence=bool(docs),
-                    risk_severity=row.risk_severity if row else None,
+                    risk_severity=row.risk_severity if row else None,  # type: ignore[arg-type]
                     reviewer_note=row.reviewer_note if row else None,
                     documents=docs,
                     builder_answer=row.builder_answer if row else None,

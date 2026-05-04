@@ -140,7 +140,7 @@ async def submit_vault_answers(
 
         if existing:
             existing.answer_value = ans.answer_value
-            existing.answer_score = round(score, 2)
+            existing.answer_score = round(score, 2)  # type: ignore[assignment]
             saved.append(existing)
         else:
             new_ans = UserProfileAnswer(
@@ -245,7 +245,7 @@ async def get_profiling_progress(
         answered_questions=answered,
         completion_pct=pct,
         is_complete=answered >= total and total > 0,
-        personality=personality,
+        personality=personality,  # type: ignore[arg-type]
     )
 
 
@@ -440,7 +440,7 @@ async def submit_application_answers(
                     self.question_type = q.question_type
                     self.options = q.options
 
-            score = _compute_answer_score(_Q(question), ans.answer_value)
+            score = _compute_answer_score(_Q(question), ans.answer_value)  # type: ignore[arg-type]
 
         existing = (
             await db.execute(
@@ -453,7 +453,7 @@ async def submit_application_answers(
 
         if existing:
             existing.answer_value = ans.answer_value
-            existing.answer_score = round(score, 2) if score else None
+            existing.answer_score = round(score, 2) if score else None  # type: ignore[assignment]
             saved.append(existing)
         else:
             new_ans = OpportunityApplicationAnswer(

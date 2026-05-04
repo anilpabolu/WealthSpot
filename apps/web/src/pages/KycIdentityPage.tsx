@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useContent } from '@/hooks/useSiteContent'
+import { Input, Textarea } from '@/components/ui'
 
 const kycSchema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -163,26 +164,9 @@ export default function KycIdentityPage() {
             </h2>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-theme-primary mb-1 block">Full Name (as per PAN)</label>
-                <input
-                  {...register('fullName')}
-                  className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Enter your full name"
-                />
-                {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
-              </div>
+              <Input label="Full Name (as per PAN)" {...register('fullName')} placeholder="Enter your full name" errorText={errors.fullName?.message} />
 
-              <div>
-                <label className="text-sm font-medium text-theme-primary mb-1 block">PAN Number</label>
-                <input
-                  {...register('panNumber')}
-                  className="w-full px-3 py-2.5 text-sm font-mono uppercase border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="ABCDE1234F"
-                  maxLength={10}
-                />
-                {errors.panNumber && <p className="text-xs text-danger mt-1">{errors.panNumber.message}</p>}
-              </div>
+              <Input label="PAN Number" {...register('panNumber')} className="[&_input]:font-mono [&_input]:uppercase" placeholder="ABCDE1234F" maxLength={10} errorText={errors.panNumber?.message} />
 
               <div>
                 <label className="text-sm font-medium text-theme-primary mb-1 block">Date of Birth</label>
@@ -194,37 +178,11 @@ export default function KycIdentityPage() {
                 {errors.dateOfBirth && <p className="text-xs text-danger mt-1">{errors.dateOfBirth.message}</p>}
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-theme-primary mb-1 block">Full Address</label>
-                <textarea
-                  {...register('address')}
-                  rows={2}
-                  className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-                  placeholder="House no., Street, Area"
-                />
-                {errors.address && <p className="text-xs text-danger mt-1">{errors.address.message}</p>}
-              </div>
+              <Textarea label="Full Address" {...register('address')} rows={2} placeholder="House no., Street, Area" errorText={errors.address?.message} />
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-theme-primary mb-1 block">City</label>
-                  <input
-                    {...register('city')}
-                    className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                    placeholder="City"
-                  />
-                  {errors.city && <p className="text-xs text-danger mt-1">{errors.city.message}</p>}
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-theme-primary mb-1 block">Pincode</label>
-                  <input
-                    {...register('pincode')}
-                    className="w-full px-3 py-2.5 text-sm font-mono border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                    placeholder="560001"
-                    maxLength={6}
-                  />
-                  {errors.pincode && <p className="text-xs text-danger mt-1">{errors.pincode.message}</p>}
-                </div>
+                <Input label="City" {...register('city')} placeholder="City" errorText={errors.city?.message} />
+                <Input label="Pincode" {...register('pincode')} className="[&_input]:font-mono" placeholder="560001" maxLength={6} errorText={errors.pincode?.message} />
               </div>
             </div>
 

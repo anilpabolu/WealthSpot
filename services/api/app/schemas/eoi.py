@@ -70,6 +70,8 @@ class EOICreate(BaseModel):
     best_time_to_contact: str | None = None
     communication_consent: bool = True
     additional_notes: str | None = None
+    # Selected BHK / unit configuration the investor chose
+    selected_unit_config: dict | None = None
     # Builder custom question answers
     answers: list[EOIAnswerCreate] = []
 
@@ -122,6 +124,7 @@ class EOIRead(BaseModel):
     best_time_to_contact: str | None = None
     communication_consent: bool = True
     additional_notes: str | None = None
+    selected_unit_config: dict | None = None
     status: str
     referrer_id: uuid.UUID | None = None
     created_at: datetime
@@ -140,6 +143,33 @@ class PaginatedEOIs(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+# ── EOI Form Options ────────────────────────────────────────────────────────
+
+
+class EOIFormOptionRead(BaseModel):
+    id: uuid.UUID
+    field_name: str
+    value: str
+    label: str
+    is_active: bool
+    sort_order: int
+    model_config = {"from_attributes": True}
+
+
+class EOIFormOptionUpdate(BaseModel):
+    is_active: bool | None = None
+    sort_order: int | None = None
+
+
+class EOIFormOptionsGrouped(BaseModel):
+    """Grouped form options keyed by field_name."""
+
+    investment_timeline: list[EOIFormOptionRead] = []
+    funding_source: list[EOIFormOptionRead] = []
+    purpose: list[EOIFormOptionRead] = []
+    preferred_contact: list[EOIFormOptionRead] = []
 
 
 # ── Communication Mapping ───────────────────────────────────────────────────

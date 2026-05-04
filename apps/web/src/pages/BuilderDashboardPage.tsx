@@ -67,7 +67,7 @@ export default function BuilderDashboardPage() {
         )}
 
         {/* Profile completion prompt */}
-        {data?.builder && !data.builder.company_name && (
+        {data?.builder && !data.builder.companyName && (
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-700/40 rounded-2xl p-6 flex items-center justify-between">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -88,17 +88,17 @@ export default function BuilderDashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 label="Total Raised"
-                value={formatINRCompact(stats.total_raised)}
+                value={formatINRCompact(stats.totalRaised)}
                 icon={<IndianRupee className="h-5 w-5 text-primary" />}
               />
               <MetricCard
                 label="Active Listings"
-                value={String(stats.active_count)}
+                value={String(stats.activeCount)}
                 icon={<Building2 className="h-5 w-5 text-primary" />}
               />
               <MetricCard
                 label="Total Investors"
-                value={String(stats.investor_count)}
+                value={String(stats.investorCount)}
                 icon={<Users className="h-5 w-5 text-primary" />}
               />
               <MetricCard
@@ -130,11 +130,11 @@ export default function BuilderDashboardPage() {
                         </div>
                         <StatusBadge status={p.status as 'live' | 'upcoming' | 'funded'} />
                       </div>
-                      <FundingBar raised={p.raised_amount} target={p.target_amount} showLabels showPercent showAmount />
+                      <FundingBar raised={p.raisedAmount} target={p.targetAmount} showLabels showPercent showAmount />
                       <div className="flex items-center justify-between mt-3 text-xs text-theme-secondary">
                         <span className="flex items-center gap-1">
                           <Users className="h-3.5 w-3.5" />
-                          {p.investor_count} investors
+                          {p.investorCount} investors
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />

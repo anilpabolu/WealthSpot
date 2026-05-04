@@ -10,6 +10,7 @@ interface VaultConfigResponse {
   propertyVideosEnabled: boolean
   videoManagementEnabled: boolean
   reraDisplayEnabled: boolean
+  propertyEmptySectionMode: string
 }
 
 /**
@@ -40,6 +41,8 @@ export function useVaultConfig() {
     propertyVideosEnabled: config?.propertyVideosEnabled ?? true,
     videoManagementEnabled: config?.videoManagementEnabled ?? true,
     reraDisplayEnabled: config?.reraDisplayEnabled ?? true,
+    // Property display mode: 'show_placeholder' | 'hide_empty'
+    propertyEmptySectionMode: config?.propertyEmptySectionMode ?? 'show_placeholder',
     isVaultEnabled: (vaultId: string): boolean => {
       if (vaultId === 'wealth') return true
       if (vaultId === 'safe') return config?.opportunityVaultEnabled ?? false

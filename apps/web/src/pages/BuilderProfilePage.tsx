@@ -195,7 +195,6 @@ export default function BuilderProfilePage() {
                   coverImage={p.coverImage}
                   gallery={p.gallery}
                   videoUrl={p.videoUrl}
-                  targetIrr={p.targetIrr}
                   minInvestment={p.minInvestment}
                   raised={p.raised}
                   target={p.target}

@@ -13,7 +13,7 @@ import {
   MessageSquare,
   ThumbsUp,
 } from 'lucide-react'
-import { EmptyState } from '@/components/ui'
+import { EmptyState, Textarea } from '@/components/ui'
 
 const ALLOWED_ROLES = new Set(['admin', 'super_admin', 'community_lead', 'knowledge_contributor', 'approver'])
 
@@ -117,12 +117,11 @@ function QuestionCard({ question }: { question: CommunityPostSummary }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-4">
-              <textarea
+              <Textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Write your answer to this question..."
                 rows={3}
-                className="w-full border border-theme rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
               />
               <div className="flex justify-end mt-2">
                 <button

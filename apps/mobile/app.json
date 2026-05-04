@@ -15,14 +15,34 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "in.wealthspot.app"
+      "bundleIdentifier": "in.wealthspot.app",
+      "associatedDomains": [
+        "applinks:wealthspot.in",
+        "applinks:www.wealthspot.in"
+      ]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#5B4FCF"
       },
-      "package": "in.wealthspot.app"
+      "package": "in.wealthspot.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "wealthspot.in" },
+            { "scheme": "https", "host": "www.wealthspot.in" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "wealthspot" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",

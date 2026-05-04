@@ -2,42 +2,15 @@
  * Community BFF – Forum posts, replies, and interactions
  */
 
+import type {
+  CommunityFeedItem,
+  CommunityFeedView,
+  PostDetailView,
+} from "@wealthspot/types";
 import { apiGet, apiPost } from "../../lib/api";
 
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export interface CommunityFeedItem {
-  id: string;
-  post_type: string;
-  title: string;
-  body_preview: string; // first 200 chars
-  category: string | null;
-  tags: string[] | null;
-  upvotes: number;
-  reply_count: number;
-  is_pinned: boolean;
-  author: { id: string; full_name: string; avatar_url: string | null };
-  created_at: string;
-}
-
-export interface CommunityFeedView {
-  posts: CommunityFeedItem[];
-  total: number;
-  page: number;
-  total_pages: number;
-  pinned: CommunityFeedItem[];
-}
-
-export interface PostDetailView {
-  post: CommunityFeedItem & { body: string };
-  replies: Array<{
-    id: string;
-    body: string;
-    upvotes: number;
-    author: { id: string; full_name: string; avatar_url: string | null };
-    created_at: string;
-  }>;
-}
+// Re-export for consumers that import from this module directly
+export type { CommunityFeedItem, CommunityFeedView, PostDetailView };
 
 // ── BFF Service ───────────────────────────────────────────────────────────
 
@@ -54,18 +27,18 @@ export const communityBff = {
       items: CommunityFeedItem[];
       total: number;
       page: number;
-      total_pages: number;
+      totalPages: number;
     }>("/community/posts", { params });
 
     // Separate pinned from regular
-    const pinned = result.items.filter((p) => p.is_pinned);
-    const posts = result.items.filter((p) => !p.is_pinned);
+    const pinned = result.items.filter((p) => p.isPinned);
+    const posts = result.items.filter((p) => !p.isPinned);
 
     return {
       posts,
       total: result.total,
       page: result.page,
-      total_pages: result.total_pages,
+      totalPages: result.totalPages,
       pinned,
     };
   },

@@ -133,3 +133,18 @@ export function useApprovalCategories() {
     staleTime: 60_000,
   })
 }
+
+const DEFAULT_REQUIRED_FIELDS = ['contactName', 'contactEmail', 'contactPhone']
+
+export function useCompanyFormConfig() {
+  const query = useQuery({
+    queryKey: ['control-centre', 'company-form-config'],
+    queryFn: () => apiGet<{ required_fields: string[] }>('/control-centre/company-form-config'),
+    staleTime: 60_000,
+    retry: false, // non-critical; fall back to defaults
+  })
+  return {
+    ...query,
+    requiredFields: query.data?.required_fields ?? DEFAULT_REQUIRED_FIELDS,
+  }
+}

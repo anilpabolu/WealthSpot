@@ -5,10 +5,10 @@ Revises: 020_app_videos
 Create Date: 2025-08-01
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 from alembic import op
-import sqlalchemy as sa
 
 revision: str = "021_eoi_unique"
 down_revision: Union[str, None] = "020_app_videos"
