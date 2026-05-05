@@ -20,7 +20,7 @@ WealthSpot/
 ## Tech Stack
 
 | Layer      | Technology |
-|------------|-----------|
+| --- | --- |
 | Web        | React 19, Vite 5, TypeScript 5 (strict), Tailwind CSS 3, Zustand 4, TanStack Query 5, React Router v6, Zod, react-hook-form |
 | Mobile     | Expo SDK 51, React Native 0.74, Expo Router 3.5, NativeWind v4, Zustand, TanStack Query |
 | Backend    | FastAPI, Pydantic v2, SQLAlchemy 2 (async), asyncpg, Alembic, python-jose (JWT) |
@@ -70,7 +70,7 @@ WealthSpot/
 ## API Endpoints
 
 | Prefix | Module | Endpoints |
-|--------|--------|-----------|
+| --- | --- | --- |
 | `/api/v1/auth` | Auth | POST register, login, refresh |
 | `/api/v1/properties` | Properties | GET list/featured/cities/detail, POST create, PATCH update |
 | `/api/v1/investments` | Investments | GET list/summary/transactions, POST invest/confirm-payment |
@@ -140,7 +140,7 @@ npx expo start
 Copy `services/api/.env.example` to `services/api/.env` and fill in:
 
 | Variable | Description |
-|----------|-------------|
+| --- | --- |
 | `DATABASE_URL` | PostgreSQL connection string |
 | `JWT_SECRET_KEY` | Random 256-bit secret |
 | `CLERK_SECRET_KEY` | From Clerk dashboard |

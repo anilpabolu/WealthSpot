@@ -4,6 +4,7 @@ This module must be imported before any model-related queries run.
 """
 
 from app.models.admin_invite import AdminInvite  # noqa: F401
+from app.models.app_image import AppImage  # noqa: F401
 from app.models.app_video import AppVideo  # noqa: F401
 from app.models.appreciation_event import AppreciationEvent  # noqa: F401
 from app.models.approval import (  # noqa: F401
@@ -56,6 +57,7 @@ from app.models.opportunity_assessment import (  # noqa: F401
     OpportunityRiskFlag,
 )
 from app.models.opportunity_document import OpportunityDocument  # noqa: F401
+from app.models.opportunity_form_option import OpportunityFormOption  # noqa: F401
 from app.models.opportunity_investment import (  # noqa: F401
     OppInvestmentStatus,
     OpportunityInvestment,

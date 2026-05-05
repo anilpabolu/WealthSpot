@@ -183,7 +183,11 @@ async def list_holding_transactions(
     return [_record_to_out(r) for r in result.scalars().all()]
 
 
-@router.post("/holdings/{holding_id}/transactions", response_model=TransactionRecordOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/holdings/{holding_id}/transactions",
+    response_model=TransactionRecordOut,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_holding_transaction(
     holding_id: uuid.UUID,
     body: CreateTransactionRecordBody,
@@ -215,7 +219,11 @@ async def create_holding_transaction(
     return _record_to_out(rec)
 
 
-@router.post("/holdings/{holding_id}/transactions/upload-ack", response_model=TransactionRecordOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/holdings/{holding_id}/transactions/upload-ack",
+    response_model=TransactionRecordOut,
+    status_code=status.HTTP_201_CREATED,
+)
 async def upload_acknowledgement(
     holding_id: uuid.UUID,
     file: UploadFile = File(...),
@@ -232,7 +240,9 @@ async def upload_acknowledgement(
 
     content_type = file.content_type or "application/octet-stream"
     if content_type not in _ALLOWED_MIME:
-        raise HTTPException(status_code=415, detail="Unsupported file type. Allowed: PDF, JPEG, PNG, WEBP, GIF")
+        raise HTTPException(
+            status_code=415, detail="Unsupported file type. Allowed: PDF, JPEG, PNG, WEBP, GIF"
+        )
 
     file_bytes = await file.read()
     if len(file_bytes) > _MAX_BYTES:
@@ -240,7 +250,12 @@ async def upload_acknowledgement(
 
     # Upload to S3
     import io
-    ext = (file.filename or "ack").rsplit(".", 1)[-1].lower() if file.filename and "." in file.filename else "bin"
+
+    ext = (
+        (file.filename or "ack").rsplit(".", 1)[-1].lower()
+        if file.filename and "." in file.filename
+        else "bin"
+    )
     s3_key = f"transaction-acks/{user.id}/{holding_id}/{uuid.uuid4().hex}.{ext}"
     await upload_file(io.BytesIO(file_bytes), s3_key, content_type)
 
@@ -256,7 +271,9 @@ async def upload_acknowledgement(
             ocr_data = json.loads(ocr_text)
             if ocr_data.get("amount"):
                 try:
-                    amount = Decimal(str(ocr_data["amount"]).replace(",", "").replace("₹", "").strip())
+                    amount = Decimal(
+                        str(ocr_data["amount"]).replace(",", "").replace("₹", "").strip()
+                    )
                 except Exception:
                     pass
             if ocr_data.get("date"):
@@ -312,7 +329,10 @@ async def get_acknowledgement_url(
 # ── Endpoint: Builder view ────────────────────────────────────────────────────
 
 
-@builder_router.get("/{opportunity_id}/investors/{investor_user_id}/transactions", response_model=list[TransactionRecordOut])
+@builder_router.get(
+    "/{opportunity_id}/investors/{investor_user_id}/transactions",
+    response_model=list[TransactionRecordOut],
+)
 async def builder_view_investor_transactions(
     opportunity_id: uuid.UUID,
     investor_user_id: uuid.UUID,
@@ -351,7 +371,9 @@ async def builder_view_investor_transactions(
     return [_record_to_out(r) for r in result.scalars().all()]
 
 
-@builder_router.get("/{opportunity_id}/investors/{investor_user_id}/transactions/{record_id}/acknowledgement")
+@builder_router.get(
+    "/{opportunity_id}/investors/{investor_user_id}/transactions/{record_id}/acknowledgement"
+)
 async def builder_get_acknowledgement_url(
     opportunity_id: uuid.UUID,
     investor_user_id: uuid.UUID,

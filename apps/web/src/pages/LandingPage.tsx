@@ -4,6 +4,7 @@ import OnboardingVideo from '@/components/OnboardingVideo'
 import { usePlatformStats } from '@/hooks/usePlatformStats'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
+import { usePublicImage } from '@/hooks/useAppImages'
 import { useClerk } from '@clerk/react'
 import ParticleCanvas from '@/components/ui/ParticleCanvas'
 import GradientMesh from '@/components/ui/GradientMesh'
@@ -48,17 +49,74 @@ function AnimatedNumber({ value, format }: { value: number; format?: (n: number)
 }
 
 
+/* ---------- Hero Image Showcase ---------- */
+const DEFAULT_HERO_IMAGE = '/wealthspot-investment-journey.png'
+const DEFAULT_HERO_ALT = 'WealthSpot investment journey from opportunity discovery to deal closure'
+
+function HeroImageShowcase() {
+  const { data: managedHero } = usePublicImage('home', 'hero_image')
+  const [imgError, setImgError] = useState(false)
+  const imageSrc = managedHero?.imageUrl || DEFAULT_HERO_IMAGE
+  const imageAlt = managedHero?.altText || DEFAULT_HERO_ALT
+
+  useEffect(() => {
+    setImgError(false)
+  }, [imageSrc])
+
+  return (
+    <div className="relative w-full animate-float lg:scale-[1.04] xl:scale-[1.08]">
+      {!imgError && (
+        <img
+          src={imageSrc}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-4 -z-10 h-[calc(100%-2rem)] w-[calc(100%-2rem)] rounded-[2rem] object-cover opacity-20 blur-2xl saturate-125"
+        />
+      )}
+      <div className="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-[#D4AF37]/18 via-indigo-500/10 to-transparent blur-2xl" />
+
+      <div
+        className="rounded-[2rem] border border-[#D4AF37]/70 bg-gradient-to-br from-[#FFF7B8]/70 via-[#D4AF37]/60 to-[#7A5512]/80 p-[3px]"
+        style={{
+          boxShadow:
+            '0 0 70px rgba(212,175,55,0.24), 0 28px 90px rgba(2,6,23,0.45), inset 0 0 24px rgba(212,175,55,0.08)',
+        }}
+      >
+        <div className="rounded-[1.75rem] bg-slate-950/95 p-[5px]">
+          <div className="relative overflow-hidden rounded-[1.45rem] border border-[#D4AF37]/35 bg-white">
+            <div className="absolute inset-0 pointer-events-none rounded-[1.45rem] ring-1 ring-inset ring-white/40" />
+            {imgError ? (
+              <div className="aspect-[16/9] bg-gradient-to-br from-[#0b1120] via-[#111827] to-[#1a1510] flex flex-col items-center justify-center gap-5 p-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#D4AF37]/70">Investment Journey</p>
+                <p className="font-hero text-4xl sm:text-5xl font-extrabold text-white tracking-tight text-center leading-tight">
+                  WealthSpot<br />Investment Journey
+                </p>
+                <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent rounded-full" />
+                <p className="text-white/40 text-xs text-center font-body leading-relaxed">
+                  Upload or replace the home hero image from Command & Control.
+                </p>
+              </div>
+            ) : (
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className="aspect-[16/9] w-full object-contain block"
+                onError={() => setImgError(true)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ---------- Hero ---------- */
 function HeroSection() {
   const heroBadge = useContent('landing', 'hero_badge', 'Curated access • trusted networks • strategic entry')
   const heroTitle = useContent('landing', 'hero_title', 'Private Access to Exceptional Real Asset Opportunities.')
   const heroSubtitle = useContent('landing', 'hero_subtitle', 'A refined platform for discerning investors, strategic partners, and value creators seeking curated entry into early-stage real estate opportunities and relationship-led wealth creation.')
   const heroItalic = useContent('landing', 'hero_italic', 'For those who understand that wealth is not built by chasing visibility, but by entering with clarity, conviction, and the right people around the table.')
-  const thesisLabel = useContent('landing', 'thesis_label', 'WealthSpot Thesis')
-  const thesisBadge = useContent('landing', 'thesis_badge', 'Private Market Mindset')
-  const thesisHeading = useContent('landing', 'thesis_heading', 'Where access, judgment, and trust align.')
-  const thesisCorebelief = useContent('landing', 'thesis_core_belief', 'The best opportunities are often recognized early, understood deeply, and pursued selectively. WealthSpot is being built around that belief.')
-  const thesisPromise = useContent('landing', 'thesis_promise', 'We bring together curated deal flow, aligned investor communities, and future-facing participation models in one premium ecosystem.')
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center">
@@ -70,8 +128,8 @@ function HeroSection() {
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
       </div>
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="mx-auto w-full max-w-[100rem] px-6 sm:px-8 lg:px-12 xl:px-14 relative z-10">
+        <div className="grid lg:grid-cols-[0.68fr_1.56fr] gap-10 lg:gap-10 xl:gap-12 items-center">
           {/* Left — Hero copy */}
           <div className="space-y-6">
             <span className="page-hero-badge animate-fade-up" style={{ animationDelay: '0.1s' }}>
@@ -89,44 +147,8 @@ function HeroSection() {
             </p>
           </div>
 
-          {/* Right — Thesis panel */}
-          <div className="relative overflow-hidden rounded-3xl border border-[var(--frame-border)] p-8 space-y-6 animate-float">
-            {/* Warm gradient bg */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-3xl" />
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-3xl" />
-            <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
-            <div className="relative z-10 flex items-start justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37]">
-                {thesisLabel}
-              </p>
-              <span className="px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest leading-tight text-center whitespace-pre-line">
-                {thesisBadge}
-              </span>
-            </div>
-
-            <h2 className="relative z-10 font-hero text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-              {thesisHeading}
-            </h2>
-
-            <hr className="relative z-10 border-white/10" />
-
-            {/* Core Belief */}
-            <div className="relative z-10 rounded-xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2">Core Belief</p>
-              <p className="text-sm text-white/70 leading-relaxed font-body">
-                {thesisCorebelief}
-              </p>
-            </div>
-
-            {/* Platform Promise */}
-            <div className="relative z-10 rounded-xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2">Platform Promise</p>
-              <p className="text-sm text-white/70 leading-relaxed font-body">
-                {thesisPromise}
-              </p>
-            </div>
-
-          </div>
+          {/* Right — Admin-managed home hero image with gold double-border */}
+          <HeroImageShowcase />
         </div>
       </div>
     </section>

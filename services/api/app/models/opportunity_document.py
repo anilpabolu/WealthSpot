@@ -26,9 +26,7 @@ from app.core.database import Base
 class OpportunityDocument(Base):
     __tablename__ = "opportunity_documents"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     opportunity_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("opportunities.id", ondelete="CASCADE"),

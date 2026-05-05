@@ -570,7 +570,6 @@ export default function MarketplacePage() {
                         raised={p.raised}
                         target={p.target}
                         investorCount={p.investorCount}
-                        reraNumber={p.reraNumber}
                         status={p.status as StatusType}
                         onCardClick={() => navigate(`/marketplace/${p.slug}`)}
                         onInvestClick={() => navigate(`/marketplace/${p.slug}`)}

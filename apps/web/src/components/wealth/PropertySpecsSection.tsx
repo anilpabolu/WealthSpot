@@ -78,7 +78,6 @@ export function PropertySpecsSection({
   const landParcelSqft = specs.land_parcel_sqft as number | undefined
   const totalTowers = specs.total_towers as number | undefined
   const totalFloors = specs.total_floors as number | undefined
-  const reraNumber = specs.rera_registration_number as string | undefined
   const possessionDate = specs.possession_date as string | undefined
 
   const resolvedAmenities = AMENITIES.filter((a) => amenities.includes(a.key))
@@ -114,7 +113,7 @@ export function PropertySpecsSection({
       </div>
 
       {/* Key stats */}
-      {(pricePerSqft || totalProjectAreaSqft || reraNumber || possessionDate) && (
+      {(pricePerSqft || totalProjectAreaSqft || possessionDate) && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {pricePerSqft != null && (
             <div className="p-3 bg-primary/5 rounded-xl text-center">
@@ -130,12 +129,6 @@ export function PropertySpecsSection({
               <p className="font-mono text-lg font-bold text-theme-primary">
                 {(totalProjectAreaSqft / 1000).toFixed(1)}K sqft
               </p>
-            </div>
-          )}
-          {reraNumber && (
-            <div className="p-3 bg-teal-50 dark:bg-teal-900/20 rounded-xl text-center">
-              <p className="text-[11px] text-theme-secondary font-medium mb-0.5">RERA</p>
-              <p className="font-semibold text-sm text-teal-700 dark:text-teal-300 truncate">{reraNumber}</p>
             </div>
           )}
           {possessionDate && (

@@ -9,7 +9,7 @@ const VAULT_COMING_SOON: Record<
   safe: {
     emoji: '🔒',
     headline: 'Safe Vault is being secured.\nYour returns await.',
-    subtext: 'We\'re onboarding mortgage-backed, RERA-verified projects with fixed returns. Premium slots, opening soon.',
+    subtext: 'We\'re onboarding mortgage-backed, thoroughly reviewed projects with fixed returns. Premium slots, opening soon.',
     button: 'Launching Soon — Stay Tuned!',
     toast: 'Safe Vault is gearing up for launch 🔒',
     toastSub: 'Fixed returns, mortgage-backed security. Stay tuned!',

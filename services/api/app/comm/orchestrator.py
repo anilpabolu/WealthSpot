@@ -200,7 +200,12 @@ async def _send_via_binding(
     channel = binding.channel
     recipient = _recipient_for_channel(channel, user, profile)
     if not recipient:
-        log.warning("binding %s: no recipient for channel %s user=%s", binding.id, channel, getattr(user, 'id', None))
+        log.warning(
+            "binding %s: no recipient for channel %s user=%s",
+            binding.id,
+            channel,
+            getattr(user, "id", None),
+        )
         return
 
     msg_id = await _record_message(
@@ -335,9 +340,7 @@ async def _get_best_provider(channel: str, session: AsyncSession):
     return result.scalar_one_or_none()
 
 
-def _recipient_for_channel(
-    channel: str, user: Any | None, profile: Any | None
-) -> str | None:
+def _recipient_for_channel(channel: str, user: Any | None, profile: Any | None) -> str | None:
     if channel == "email":
         return getattr(user, "email", None)
     elif channel == "sms" or channel == "whatsapp":
@@ -399,6 +402,4 @@ async def _update_message_status(
     if error:
         values["error"] = error[:500]
 
-    await session.execute(
-        update(CommMessage).where(CommMessage.id == msg_id).values(**values)
-    )
+    await session.execute(update(CommMessage).where(CommMessage.id == msg_id).values(**values))

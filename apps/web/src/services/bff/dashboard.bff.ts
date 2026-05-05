@@ -22,8 +22,8 @@ export const dashboardBff = {
    */
   async getInvestorDashboard(): Promise<DashboardView> {
     const [user, portfolio, transactions, properties] = await Promise.all([
-      apiGet<DashboardView["user"]>("/users/me"),
-      apiGet<DashboardView["portfolio"]>("/investments/portfolio/summary"),
+      apiGet<DashboardView["user"]>("/auth/me"),
+      apiGet<DashboardView["portfolio"]>("/portfolio/summary"),
       apiGet<DashboardView["recentTransactions"]>("/investments/transactions", {
         params: { limit: 5, sort: "-created_at" },
       }),

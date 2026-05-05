@@ -2,6 +2,8 @@
 Alembic env.py – async migration support for WealthSpot.
 """
 
+# ruff: noqa: F401, I001
+
 import asyncio
 import sys
 from logging.config import fileConfig
@@ -28,6 +30,7 @@ import app.models.opportunity as _opportunity_models  # pyright: ignore[reportUn
 import app.models.platform_config as _platform_config_models  # pyright: ignore[reportUnusedImport]
 import app.models.admin_invite as _admin_invite_models  # pyright: ignore[reportUnusedImport]
 import app.models.appreciation_event as _appreciation_event_models  # pyright: ignore[reportUnusedImport]
+import app.models.app_image as _app_image_models  # pyright: ignore[reportUnusedImport]
 import app.models.app_video as _app_video_models  # pyright: ignore[reportUnusedImport]
 import app.models.builder_question as _builder_question_models  # pyright: ignore[reportUnusedImport]
 import app.models.builder_update as _builder_update_models  # pyright: ignore[reportUnusedImport]

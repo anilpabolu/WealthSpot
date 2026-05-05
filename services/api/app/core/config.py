@@ -115,9 +115,7 @@ class Settings(BaseSettings):
                     "RAZORPAY_KEY_SECRET must be set when RAZORPAY_KEY_ID is configured"
                 )
             if self.razorpay_allow_unsigned_dev:
-                raise ValueError(
-                    "RAZORPAY_ALLOW_UNSIGNED_DEV cannot be true in production"
-                )
+                raise ValueError("RAZORPAY_ALLOW_UNSIGNED_DEV cannot be true in production")
 
             origins = self.cors_origin_list
             if not origins:
@@ -135,9 +133,7 @@ class Settings(BaseSettings):
                         f"CORS_ORIGINS contains a development origin in production: {origin}"
                     )
                 if not origin.startswith("https://"):
-                    raise ValueError(
-                        f"CORS_ORIGINS must use https:// in production: {origin}"
-                    )
+                    raise ValueError(f"CORS_ORIGINS must use https:// in production: {origin}")
         return self
 
 

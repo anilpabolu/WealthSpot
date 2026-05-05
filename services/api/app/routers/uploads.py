@@ -93,6 +93,7 @@ async def delete_user_avatar(
     user.avatar_s3_key = None
     await db.flush()
 
+
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/quicktime"}
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB

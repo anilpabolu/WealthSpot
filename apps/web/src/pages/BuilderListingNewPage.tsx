@@ -491,7 +491,7 @@ export default function BuilderListingNewPage() {
                     {(safeVaultData.mortgage_agreement as { enabled: boolean }).enabled && (
                       <div className="grid grid-cols-2 gap-2 ml-6">
                         <Input value={(safeVaultData.mortgage_agreement as { details: string }).details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), details: e.target.value } }))} placeholder="Property details" />
-                        <Input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} placeholder="Period (e.g. until RERA issued)" />
+                        <Input value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))} placeholder="Period (e.g. 24 months)" />
                       </div>
                     )}
 
@@ -499,14 +499,6 @@ export default function BuilderListingNewPage() {
                       <input type="checkbox" checked={safeVaultData.legal_notarised_doc as boolean} onChange={(e) => setSafeVaultData((p) => ({ ...p, legal_notarised_doc: e.target.checked }))} className="rounded" />
                       <span className="text-sm text-theme-primary">Legal / Notarised Document</span>
                     </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={(safeVaultData.rera_registration as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), enabled: e.target.checked } }))} className="rounded" />
-                      <span className="text-sm text-theme-primary">RERA Registration</span>
-                    </label>
-                    {(safeVaultData.rera_registration as { enabled: boolean }).enabled && (
-                      <Input className="ml-6" value={(safeVaultData.rera_registration as { rera_number: string }).rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, rera_registration: { ...(p.rera_registration as object), rera_number: e.target.value } }))} placeholder="RERA number" />
-                    )}
 
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={(safeVaultData.buyback_guarantee as { enabled: boolean }).enabled} onChange={(e) => setSafeVaultData((p) => ({ ...p, buyback_guarantee: { ...(p.buyback_guarantee as object), enabled: e.target.checked } }))} className="rounded" />
@@ -697,7 +689,7 @@ export default function BuilderListingNewPage() {
                               </div>
                             )}
                             {fc.showRera && (
-                              <Input label="RERA Number" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
+                              <Input label="RERA Number (Optional)" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
                             )}
                           </div>
                         )}

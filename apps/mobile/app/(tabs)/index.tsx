@@ -296,7 +296,7 @@ export default function HomeScreen() {
       <View className="px-4 mt-4 mb-8">
         <Text className="text-lg font-bold mb-3" style={{ color: colors.textPrimary, fontFamily: 'BricolageGrotesque-Bold' }}>How It Works</Text>
         {[
-          { step: '1', title: 'Browse', desc: 'Explore RERA-verified properties', icon: 'search-outline' as const },
+          { step: '1', title: 'Browse', desc: 'Explore verified investment properties', icon: 'search-outline' as const },
           { step: '2', title: 'Invest', desc: 'Start from just ₹10,000', icon: 'wallet-outline' as const },
           { step: '3', title: 'Earn', desc: 'Get rental income monthly', icon: 'trending-up-outline' as const },
           { step: '4', title: 'Exit', desc: 'Sell on secondary market', icon: 'swap-horizontal-outline' as const },

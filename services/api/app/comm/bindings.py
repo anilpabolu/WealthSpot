@@ -16,9 +16,7 @@ _cache: dict[str, tuple[float, list[Any]]] = {}
 _TTL = 10.0  # seconds
 
 
-async def load_active_bindings(
-    event_name: str, version: int, session: AsyncSession
-) -> list[Any]:
+async def load_active_bindings(event_name: str, version: int, session: AsyncSession) -> list[Any]:
     """Return all enabled CommBinding rows for (event_name, version), TTL-cached."""
     key = f"{event_name}:{version}"
     now = time.monotonic()

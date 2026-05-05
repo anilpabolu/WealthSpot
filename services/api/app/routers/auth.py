@@ -83,9 +83,7 @@ async def register(
 @router.post(
     "/login",
     response_model=TokenPair,
-    dependencies=[
-        Depends(route_limit(name="auth.login", max_requests=10, window_seconds=60))
-    ],
+    dependencies=[Depends(route_limit(name="auth.login", max_requests=10, window_seconds=60))],
 )
 async def login(
     body: UserCreate,
@@ -133,9 +131,7 @@ async def check_user_exists(
 @router.post(
     "/refresh",
     response_model=TokenPair,
-    dependencies=[
-        Depends(route_limit(name="auth.refresh", max_requests=20, window_seconds=60))
-    ],
+    dependencies=[Depends(route_limit(name="auth.refresh", max_requests=20, window_seconds=60))],
 )
 async def refresh_token(
     body: RefreshTokenRequest,
@@ -432,7 +428,9 @@ async def get_me(
     from app.models.opportunity_investment import OpportunityInvestment
 
     count_result = await db.execute(
-        select(func.count()).select_from(OpportunityInvestment).where(
+        select(func.count())
+        .select_from(OpportunityInvestment)
+        .where(
             OpportunityInvestment.user_id == user.id,
             OpportunityInvestment.status == "confirmed",
         )
@@ -500,13 +498,17 @@ async def my_audit_log(
     offset = max(0, offset)
 
     rows = (
-        await db.execute(
-            select(AuditLog)
-            .where(AuditLog.actor_id == user.id)
-            .order_by(desc(AuditLog.created_at))
-            .limit(limit)
-            .offset(offset)
+        (
+            await db.execute(
+                select(AuditLog)
+                .where(AuditLog.actor_id == user.id)
+                .order_by(desc(AuditLog.created_at))
+                .limit(limit)
+                .offset(offset)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     return [AuditEventOut.model_validate(r) for r in rows]

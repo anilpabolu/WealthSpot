@@ -39,7 +39,7 @@
 ```
 
 | Component | Technology | Port |
-|-----------|-----------|------|
+| --- | --- | --- |
 | Web SPA | React 19 + Vite 5 + TypeScript | 5173 |
 | API | FastAPI + SQLAlchemy 2 (async) | 8000 |
 | Database | PostgreSQL 16 | 5432 |
@@ -56,7 +56,7 @@
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 1.1 | Install **Node.js 20 LTS+** | `node --version` → `v20.x.x` or higher | ☐ |
 | 1.2 | Install **Python 3.11+** (3.12 recommended) | `python --version` → `3.11.x+` | ☐ |
 | 1.3 | Install **Docker Desktop** and start it | `docker --version` → `24.x+` | ☐ |
@@ -65,7 +65,7 @@
 ### Optional Tools
 
 | Tool | Purpose | Required? |
-|------|---------|-----------|
+| --- | --- | --- |
 | pgAdmin / DBeaver | Visual database management | No |
 | Postman / Insomnia | API testing beyond Swagger | No |
 | Expo Go (iOS/Android) | Test mobile app on phone | Only for mobile dev |
@@ -119,7 +119,7 @@ docker compose ps
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 2.1 | Start PostgreSQL container | `docker compose ps` shows postgres healthy | ☐ |
 | 2.2 | Start Redis container | `docker compose ps` shows redis healthy | ☐ |
 
@@ -175,7 +175,7 @@ SENTRY_DSN=                # Error monitoring
 
 **What happens if optional keys are blank:**
 | Missing Key | Effect |
-|-------------|--------|
+| --- | --- |
 | `RAZORPAY_*` | Investment payment flow won't work (invest buttons fail) |
 | `AWS_*` | KYC document upload fails (no S3) |
 | `CLERK_*` | Clerk webhook verification disabled (standalone JWT auth still works) |
@@ -184,7 +184,7 @@ SENTRY_DSN=                # Error monitoring
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 3.1 | Create/activate Python venv | `which python` or `Get-Command python` points to `.venv` | ☐ |
 | 3.2 | Install pip dependencies | `pip list \| grep fastapi` shows fastapi | ☐ |
 | 3.3 | Verify `services/api/.env` exists and has correct `DATABASE_URL` | `cat services/api/.env` | ☐ |
@@ -232,7 +232,7 @@ Get-Content services/api/database/002_seed_data.sql | docker exec -i $pgContaine
 ### Seed Data — What Gets Created
 
 | Entity | Count | Details |
-|--------|-------|---------|
+| --- | --- | --- |
 | Users | 6 | admin, builder, 2 investors, lender, referred user |
 | Builder | 1 | Rajesh Constructions |
 | Properties | 4 | Mumbai, Bangalore, Chennai, Pune (various statuses) |
@@ -245,7 +245,7 @@ Get-Content services/api/database/002_seed_data.sql | docker exec -i $pgContaine
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 4.1 | Run migrations OR SQL schema | Tables created successfully | ☐ |
 | 4.2 | (Optional) Load seed data | `SELECT count(*) FROM users;` → 6 | ☐ |
 
@@ -301,7 +301,7 @@ The app uses Clerk for authentication. A test publishable key is already configu
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 5.1 | Install npm dependencies | `ls apps/web/node_modules/.package-lock.json` exists | ☐ |
 | 5.2 | Verify `.env.local` has Clerk key | `cat apps/web/.env.local` | ☐ |
 | 5.3 | (Optional) Set `VITE_RAZORPAY_KEY_ID` for payments | — | ☐ |
@@ -322,7 +322,7 @@ npx tsc --build
 ### ✅ Checklist
 
 | # | Action | How to Verify | Status |
-|---|--------|--------------|--------|
+| --- | --- | --- | --- |
 | 6.1 | Build shared types | `ls packages/wealthspot-types/dist/` has `.js` and `.d.ts` files | ☐ |
 
 ---
@@ -334,7 +334,7 @@ npx tsc --build
 ### 7.1 Clerk (Authentication) — ⚠️ Recommended
 
 | Step | Action | Where |
-|------|--------|-------|
+| --- | --- | --- |
 | 1 | Create account at https://clerk.com | Browser |
 | 2 | Create a new application | Clerk Dashboard |
 | 3 | Copy **Publishable Key** → `apps/web/.env.local` as `VITE_CLERK_PUBLISHABLE_KEY` | Local file |
@@ -345,7 +345,7 @@ npx tsc --build
 ### 7.2 Razorpay (Payments) — Optional
 
 | Step | Action | Where |
-|------|--------|-------|
+| --- | --- | --- |
 | 1 | Create account at https://razorpay.com | Browser |
 | 2 | Go to **Settings → API Keys** → Generate **Test** keys | Razorpay Dashboard |
 | 3 | Copy `Key ID` → `services/api/.env` as `RAZORPAY_KEY_ID` | Local file |
@@ -355,7 +355,7 @@ npx tsc --build
 ### 7.3 AWS S3 (KYC Documents) — Optional
 
 | Step | Action | Where |
-|------|--------|-------|
+| --- | --- | --- |
 | 1 | Create AWS account or use existing | AWS Console |
 | 2 | Create S3 bucket `wealthspot-documents` in `ap-south-1` | AWS S3 Console |
 | 3 | Create IAM user with `s3:PutObject`, `s3:GetObject` on that bucket | AWS IAM Console |
@@ -366,7 +366,7 @@ npx tsc --build
 ### 7.4 Sentry (Error Monitoring) — Optional
 
 | Step | Action | Where |
-|------|--------|-------|
+| --- | --- | --- |
 | 1 | Create project at https://sentry.io | Browser |
 | 2 | Choose **FastAPI** platform | Sentry Dashboard |
 | 3 | Copy DSN → `services/api/.env` as `SENTRY_DSN` | Local file |
@@ -374,7 +374,7 @@ npx tsc --build
 ### ✅ Checklist
 
 | # | Action | Required? | Status |
-|---|--------|-----------|--------|
+| --- | --- | --- | --- |
 | 7.1 | Set up Clerk account & keys | Recommended | ☐ |
 | 7.2 | Set up Razorpay test keys | Only for payment testing | ☐ |
 | 7.3 | Set up AWS S3 bucket | Only for KYC upload testing | ☐ |
@@ -419,7 +419,7 @@ npx expo start
 ### ✅ Checklist
 
 | # | Action | Status |
-|---|--------|--------|
+| --- | --- | --- |
 | 8.1 | Install mobile npm dependencies | ☐ |
 | 8.2 | Create `apps/mobile/.env` with LAN IP | ☐ |
 | 8.3 | Start Expo and scan QR with Expo Go | ☐ |
@@ -444,7 +444,7 @@ docker compose up -d
 ### Option B: Manual (4 terminals)
 
 | Terminal | Command | Expected |
-|----------|---------|----------|
+| --- | --- | --- |
 | 1 | `docker compose up postgres redis -d` | Containers running |
 | 2 | `cd services/api && .venv\Scripts\Activate.ps1 && uvicorn app.main:app --reload --port 8000` | API at http://localhost:8000 |
 | 3 | `cd apps/web && npm run dev` | Web at http://localhost:5173 |
@@ -453,7 +453,7 @@ docker compose up -d
 ### Verification Endpoints
 
 | Check | URL | Expected |
-|-------|-----|----------|
+| --- | --- | --- |
 | API Health | http://localhost:8000/health | `{"status": "healthy"}` |
 | Swagger Docs | http://localhost:8000/api/docs | Interactive API docs |
 | Web App | http://localhost:5173 | Landing page loads |
@@ -549,7 +549,7 @@ Should return an access token. Other seed users:
 ## Quick Reference — All Commands
 
 | Action | Command |
-|--------|---------|
+| --- | --- |
 | Start all services (Docker) | `docker compose up -d` |
 | Start only PostgreSQL + Redis | `docker compose up postgres redis -d` |
 | Check containers | `docker compose ps` |
@@ -572,7 +572,7 @@ Should return an access token. Other seed users:
 ## Env Files Summary
 
 | File | Already Exists? | Must Edit? |
-|------|----------------|------------|
+| --- | --- | --- |
 | `services/api/.env` | ✅ Yes | Only if adding Razorpay/AWS/Clerk/Sentry keys |
 | `apps/web/.env.local` | ✅ Yes | Only if changing Clerk key or adding Razorpay key |
 | `apps/mobile/.env` | ❌ No | Create if doing mobile development |
@@ -586,7 +586,7 @@ Should return an access token. Other seed users:
 The following issues were fixed during setup:
 
 | # | Issue | Fix |
-|---|-------|-----|
+| --- | --- | --- |
 | 1 | Web Dockerfile used `npm ci` but no `package-lock.json` existed | Changed to `npm install --legacy-peer-deps` |
 | 2 | API Dockerfile hatchling build failed (couldn't find package directory) | Added `[tool.hatch.build.targets.wheel] packages = ["app"]` to `pyproject.toml` |
 | 3 | `celery_app.py` missing — Celery worker crashed on start | Created `services/api/app/celery_app.py` with Celery instance |

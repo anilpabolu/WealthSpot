@@ -132,7 +132,9 @@ async def publish_event(
             correlation_id=body.correlation_id,
         )
     except CommError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
 
 
 # ── OTP ──────────────────────────────────────────────────────────────────────
@@ -251,9 +253,7 @@ async def update_event(
 # ── Templates ────────────────────────────────────────────────────────────────
 
 
-@router.get(
-    "/templates", response_model=list[TemplateRead], summary="List message templates"
-)
+@router.get("/templates", response_model=list[TemplateRead], summary="List message templates")
 async def list_templates(
     db: AsyncSession = Depends(get_db),
     _: User = _AdminDep,
@@ -402,18 +402,14 @@ async def create_binding(
     return binding
 
 
-@router.get(
-    "/bindings/{binding_id}", response_model=BindingRead, summary="Get binding by ID"
-)
+@router.get("/bindings/{binding_id}", response_model=BindingRead, summary="Get binding by ID")
 async def get_binding(
     binding_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     _: User = _AdminDep,
 ):
     result = await db.execute(
-        select(CommBinding).where(
-            CommBinding.id == binding_id, CommBinding.deleted_at.is_(None)
-        )
+        select(CommBinding).where(CommBinding.id == binding_id, CommBinding.deleted_at.is_(None))
     )
     binding = result.scalar_one_or_none()
     if not binding:
@@ -421,9 +417,7 @@ async def get_binding(
     return binding
 
 
-@router.patch(
-    "/bindings/{binding_id}", response_model=BindingRead, summary="Update binding"
-)
+@router.patch("/bindings/{binding_id}", response_model=BindingRead, summary="Update binding")
 async def update_binding(
     binding_id: uuid.UUID,
     body: BindingUpdate,
@@ -433,9 +427,7 @@ async def update_binding(
     from app.comm.bindings import invalidate_bindings_cache
 
     result = await db.execute(
-        select(CommBinding).where(
-            CommBinding.id == binding_id, CommBinding.deleted_at.is_(None)
-        )
+        select(CommBinding).where(CommBinding.id == binding_id, CommBinding.deleted_at.is_(None))
     )
     binding = result.scalar_one_or_none()
     if not binding:
@@ -464,9 +456,7 @@ async def delete_binding(
     from app.comm.bindings import invalidate_bindings_cache
 
     result = await db.execute(
-        select(CommBinding).where(
-            CommBinding.id == binding_id, CommBinding.deleted_at.is_(None)
-        )
+        select(CommBinding).where(CommBinding.id == binding_id, CommBinding.deleted_at.is_(None))
     )
     binding = result.scalar_one_or_none()
     if not binding:
@@ -664,12 +654,7 @@ async def list_messages(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
-    stmt = (
-        select(CommMessage)
-        .offset(skip)
-        .limit(limit)
-        .order_by(CommMessage.created_at.desc())
-    )
+    stmt = select(CommMessage).offset(skip).limit(limit).order_by(CommMessage.created_at.desc())
     if channel:
         stmt = stmt.where(CommMessage.channel == channel)
     if status_filter:
@@ -688,9 +673,7 @@ async def get_message(
     db: AsyncSession = Depends(get_db),
     _: User = _AdminDep,
 ):
-    result = await db.execute(
-        select(CommMessage).where(CommMessage.id == message_id)
-    )
+    result = await db.execute(select(CommMessage).where(CommMessage.id == message_id))
     msg = result.scalar_one_or_none()
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -717,9 +700,7 @@ async def get_user_preferences(
     ):
         raise HTTPException(status_code=403, detail="Not authorised")
 
-    result = await db.execute(
-        select(CommUserProfile).where(CommUserProfile.user_id == user_id)
-    )
+    result = await db.execute(select(CommUserProfile).where(CommUserProfile.user_id == user_id))
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -743,9 +724,7 @@ async def update_user_preferences(
     ):
         raise HTTPException(status_code=403, detail="Not authorised")
 
-    result = await db.execute(
-        select(CommUserProfile).where(CommUserProfile.user_id == user_id)
-    )
+    result = await db.execute(select(CommUserProfile).where(CommUserProfile.user_id == user_id))
     profile = result.scalar_one_or_none()
     if not profile:
         # Auto-create

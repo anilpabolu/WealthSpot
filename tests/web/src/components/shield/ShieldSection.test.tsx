@@ -174,7 +174,7 @@ describe('ShieldSection', () => {
     } as never)
     render(<ShieldSection opportunityId="opp-1" mode="builder" />)
     fireEvent.click(screen.getByText('Builder Assessment'))
-    expect(screen.getByText(/Your answer: A/)).toBeInTheDocument()
+    expect(screen.getByText('Builder answer:')).toBeInTheDocument()
   })
 
   it('renders the risk strip when risks exist', () => {

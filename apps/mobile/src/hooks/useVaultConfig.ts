@@ -9,7 +9,6 @@ interface VaultConfigResponse {
   vaultVideosEnabled: boolean
   propertyVideosEnabled: boolean
   videoManagementEnabled: boolean
-  reraDisplayEnabled: boolean
   propertyEmptySectionMode: string
 }
 
@@ -35,7 +34,6 @@ export function useVaultConfig() {
     introVideosEnabled: config?.introVideosEnabled ?? true,
     vaultVideosEnabled: config?.vaultVideosEnabled ?? true,
     propertyVideosEnabled: config?.propertyVideosEnabled ?? true,
-    reraDisplayEnabled: config?.reraDisplayEnabled ?? true,
     // Property display mode: 'show_placeholder' | 'hide_empty'
     propertyEmptySectionMode: config?.propertyEmptySectionMode ?? 'show_placeholder',
     isVaultEnabled: (vaultId: string): boolean => {

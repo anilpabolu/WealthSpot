@@ -13,8 +13,8 @@ describe('portfolioBff', () => {
 
   describe('getPortfolio', () => {
     it('aggregates summary, holdings, and transactions', async () => {
-      const mockSummary = { total_invested: 100000, current_value: 120000 }
-      const mockHoldings = [{ property_id: 'p1', title: 'Alpha' }]
+      const mockSummary = { totalInvested: 100000, currentValue: 120000 }
+      const mockHoldings = [{ propertyId: 'p1', title: 'Alpha' }]
       const mockTransactions = [{ id: 't1', type: 'investment', amount: 50000 }]
 
       vi.mocked(apiGet)
@@ -24,9 +24,9 @@ describe('portfolioBff', () => {
 
       const result = await portfolioBff.getPortfolio()
 
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/summary')
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/holdings')
-      expect(apiGet).toHaveBeenCalledWith('/investments/transactions', {
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/summary')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/properties')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/transactions', {
         params: { limit: 20, sort: '-created_at' },
       })
 
@@ -38,7 +38,7 @@ describe('portfolioBff', () => {
 
   describe('getPropertyInvestmentDetail', () => {
     it('fetches holding and transactions for a property', async () => {
-      const mockHolding = { property_id: 'p1', invested_amount: 50000 }
+      const mockHolding = { propertyId: 'p1', investedAmount: 50000 }
       const mockTx = [{ id: 't1', amount: 50000 }]
 
       vi.mocked(apiGet)
@@ -47,7 +47,7 @@ describe('portfolioBff', () => {
 
       const result = await portfolioBff.getPropertyInvestmentDetail('p1')
 
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/holdings/p1')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/properties/p1')
       expect(apiGet).toHaveBeenCalledWith('/investments/transactions', {
         params: { property_id: 'p1', limit: 50 },
       })

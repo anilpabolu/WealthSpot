@@ -312,7 +312,7 @@ export default function ExpressInterestSheet({
   const [communicationConsent, setCommunicationConsent] = useState(true)
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({})
 
-  const { data: formOptions, isLoading: optionsLoading } = useEOIFormOptions()
+  const { data: formOptions, isLoading: optionsLoading, isFetching: optionsFetching } = useEOIFormOptions()
   const { data: builderQuestions = [] } = useBuilderQuestions(opportunityId)
   const submitEOI = useSubmitEOI()
   const connectBuilder = useConnectWithBuilder()
@@ -334,10 +334,10 @@ export default function ExpressInterestSheet({
     return minInvestment
   })()
 
-  const timelineOptions = (formOptions?.investment_timeline ?? []).map(o => ({ value: o.value, label: o.label }))
-  const fundingOptions = (formOptions?.funding_source ?? []).map(o => ({ value: o.value, label: o.label }))
+  const timelineOptions = (formOptions?.investmentTimeline ?? []).map(o => ({ value: o.value, label: o.label }))
+  const fundingOptions = (formOptions?.fundingSource ?? []).map(o => ({ value: o.value, label: o.label }))
   const purposeOptions = (formOptions?.purpose ?? []).map(o => ({ value: o.value, label: o.label }))
-  const contactOptions = (formOptions?.preferred_contact ?? []).map(o => ({ value: o.value, label: o.label }))
+  const contactOptions = (formOptions?.preferredContact ?? []).map(o => ({ value: o.value, label: o.label }))
 
   const sortedUnits = [...unitConfigs].sort(
     (a, b) => (a.carpet_area_sqft ?? 0) - (b.carpet_area_sqft ?? 0)
@@ -525,7 +525,7 @@ export default function ExpressInterestSheet({
               </View>
 
               {/* DB-driven form options */}
-              {optionsLoading ? (
+              {(optionsLoading || (optionsFetching && !timelineOptions.length)) ? (
                 <View className="flex-row items-center gap-2 py-4">
                   <ActivityIndicator size="small" color="#5B4FCF" />
                   <Text className="text-xs text-gray-400">Loading options…</Text>

@@ -403,7 +403,7 @@ export default function BuilderListingEditPage() {
                         <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
                         <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
                       </div>
-                      <Input label="RERA Number" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
+                      <Input label="RERA Number (Optional)" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <Input label="Total Towers" type="number" min={1} value={projectOverview.totalTowers} onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))} placeholder="e.g. 4" />

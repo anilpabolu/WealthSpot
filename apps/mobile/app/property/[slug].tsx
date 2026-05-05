@@ -146,9 +146,6 @@ export default function PropertyDetailScreen() {
             <View className="flex-1 mr-3">
               <View className="flex-row items-center gap-2 mb-1">
                 <Badge variant="purple" size="xs">{property.assetType}</Badge>
-                {property.reraNumber ? (
-                  <Badge variant="success" size="xs">RERA</Badge>
-                ) : null}
               </View>
               <Text className="text-gray-900 font-bold text-xl">{property.title}</Text>
               <Text className="text-gray-500 text-sm">{property.micromarket}, {property.city}</Text>
@@ -218,7 +215,6 @@ export default function PropertyDetailScreen() {
             const landSqft = specs?.land_parcel_sqft != null ? Number(specs.land_parcel_sqft) : null
             const towers = specs?.total_towers != null ? Number(specs.total_towers) : null
             const floors = specs?.total_floors != null ? Number(specs.total_floors) : null
-            const reraNum = (specs?.rera_registration_number ?? specs?.rera_number) as string | undefined
             const possession = (specs?.possession_date as string | undefined) ?? property.possessionDate
             const showEmpty = propertyEmptySectionMode === 'show_placeholder'
 
@@ -258,7 +254,6 @@ export default function PropertyDetailScreen() {
             }
 
             if (possession) rows.push({ label: 'Possession', value: possession })
-            if (reraNum) rows.push({ label: 'RERA', value: reraNum })
             rows.push({ label: 'Available Units', value: `${property.totalUnits - property.soldUnits}` })
             rows.push({ label: 'Unit Price', value: formatINR(property.unitPrice) })
             rows.push({ label: 'Builder', value: property.builderName || '—' })
@@ -429,8 +424,6 @@ export default function PropertyDetailScreen() {
             if (mortgage?.enabled) terms.push({ label: 'Mortgage Agreement', value: String(mortgage.period_description ?? '✓ Included') })
             const landReg = svd.land_registration as Record<string, unknown> | undefined
             if (landReg?.enabled) terms.push({ label: 'Land Registration', value: String(landReg.details ?? '✓ Included') })
-            const rera = svd.rera_registration as Record<string, unknown> | undefined
-            if (rera?.enabled && rera.rera_number) terms.push({ label: 'RERA', value: String(rera.rera_number) })
             if (terms.length === 0) return null
             return (
               <View className="bg-emerald-50 rounded-2xl p-4 mt-3 border border-emerald-200">
@@ -479,9 +472,6 @@ export default function PropertyDetailScreen() {
                       <Ionicons name="checkmark-circle" size={14} color="#5B4FCF" />
                     )}
                   </View>
-                  {property.builder.reraNumber ? (
-                    <Text className="text-gray-400 text-xs mt-0.5">RERA: {property.builder.reraNumber}</Text>
-                  ) : null}
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
               </View>
@@ -643,15 +633,6 @@ export default function PropertyDetailScreen() {
 
               {/* Details */}
               <View className="gap-3 mb-6">
-                {property.builder?.reraNumber ? (
-                  <View className="flex-row items-center gap-3 p-3 bg-emerald-50 rounded-xl">
-                    <Ionicons name="shield-checkmark-outline" size={20} color="#059669" />
-                    <View>
-                      <Text className="text-gray-400 text-[10px]">RERA Registration</Text>
-                      <Text className="text-gray-900 font-semibold text-sm">{property.builder.reraNumber}</Text>
-                    </View>
-                  </View>
-                ) : null}
                 {property.builder?.city ? (
                   <View className="flex-row items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <Ionicons name="location-outline" size={20} color="#9CA3AF" />

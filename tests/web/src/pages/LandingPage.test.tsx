@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('@/components/layout', () => ({
   MainLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -39,12 +40,16 @@ import LandingPage from '@/pages/LandingPage'
 describe('LandingPage', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  const renderPage = () =>
-    render(
-      <MemoryRouter>
-        <LandingPage />
-      </MemoryRouter>,
+  const renderPage = () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <LandingPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
+  }
 
   it('renders hero title', () => {
     renderPage()
@@ -57,10 +62,10 @@ describe('LandingPage', () => {
     expect(screen.queryByText('Explore WealthSpot')).not.toBeInTheDocument()
   })
 
-  it('renders thesis section', () => {
+  it('renders intro section', () => {
     renderPage()
-    expect(screen.getByText('WealthSpot Thesis')).toBeInTheDocument()
-    expect(screen.getByText('Where access, judgment, and trust align.')).toBeInTheDocument()
+    expect(screen.getByText('Intro')).toBeInTheDocument()
+    expect(screen.getByText('Built for those who think beyond conventional investing.')).toBeInTheDocument()
   })
 
   it('renders platform stats labels', () => {

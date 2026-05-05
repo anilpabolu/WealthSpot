@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Shield, Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Sun, Moon, Vault } from 'lucide-react'
+import { Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Sun, Moon, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -15,6 +15,7 @@ import { useThemeStore } from '@/stores/theme.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 import { useOverallProgress } from '@/hooks/useProfiling'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import WLogo3D from '@/components/ui/WLogo3D'
 
 const AUTH_NAV_LINKS = [
   { label: 'Vaults', href: '/vaults', icon: Vault },
@@ -72,10 +73,13 @@ export default function Navbar(_props?: NavbarProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/vaults" className="flex items-center gap-2.5 shrink-0" aria-label="WealthSpot Home">
-            <Shield className="h-8 w-8 text-indigo-400" />
+            <WLogo3D size={34} spin />
             <div className="flex flex-col">
-              <span className="font-display text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-                Wealth<span className="text-indigo-400 dark:text-indigo-400">Spot</span>
+              <span
+                className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none"
+                style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
+              >
+                Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
               <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-white/40 leading-none mt-0.5">
                 Private Wealth Access

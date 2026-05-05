@@ -19,6 +19,7 @@ from app.middleware.auth import get_current_user, get_optional_user, require_rol
 from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.company import Company
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
+from app.models.opportunity_form_option import OpportunityFormOption
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.opportunity_like import OpportunityLike, UserActivity
 from app.models.profiling import UserProfileAnswer, VaultProfileQuestion
@@ -26,6 +27,8 @@ from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
+    OpportunityFormOptionRead,
+    OpportunityFormOptionsGrouped,
     OpportunityRead,
     OpportunityUpdateRequest,
     PaginatedOpportunities,
@@ -285,7 +288,9 @@ async def vault_stats(
     invested_result = await db.execute(invested_users_q)
     invested_users: dict[str, set] = {}
     for inv_row in invested_result.fetchall():
-        vt_str = inv_row.vault_type.value if hasattr(inv_row.vault_type, "value") else inv_row.vault_type
+        vt_str = (
+            inv_row.vault_type.value if hasattr(inv_row.vault_type, "value") else inv_row.vault_type
+        )
         invested_users.setdefault(vt_str, set()).add(inv_row.user_id)
 
     # Step 4: explorer = DNA complete MINUS invested
@@ -347,41 +352,48 @@ async def vault_stats(
     # ── Safe Vault specific aggregations ─────────────────────────────
     # avg_interest_rate, avg_tenure_months, mortgage_coverage_pct
     # from safe_vault_data JSONB — only approved/active listings
-    safe_opps_q = (
-        select(Opportunity.safe_vault_data)
-        .where(
-            Opportunity.vault_type == VaultType.SAFE,
-            Opportunity.status.in_(active_statuses),
-            Opportunity.safe_vault_data.isnot(None),
-        )
+    safe_opps_q = select(Opportunity.safe_vault_data).where(
+        Opportunity.vault_type == VaultType.SAFE,
+        Opportunity.status.in_(active_statuses),
+        Opportunity.safe_vault_data.isnot(None),
     )
     safe_opps_result = await db.execute(safe_opps_q)
     safe_data_rows = [row[0] for row in safe_opps_result.fetchall() if row[0]]
     safe_count = len(safe_data_rows)
-    safe_interest_rates = [float(d["interest_rate"]) for d in safe_data_rows if "interest_rate" in d]
+    safe_interest_rates = [
+        float(d["interest_rate"]) for d in safe_data_rows if "interest_rate" in d
+    ]
     safe_tenures = [float(d["tenure_months"]) for d in safe_data_rows if "tenure_months" in d]
     safe_mortgage_count = sum(
-        1 for d in safe_data_rows
+        1
+        for d in safe_data_rows
         if isinstance(d.get("mortgage_agreement"), dict) and d["mortgage_agreement"].get("enabled")
     )
-    avg_interest_rate = round(sum(safe_interest_rates) / len(safe_interest_rates), 2) if safe_interest_rates else None
+    avg_interest_rate = (
+        round(sum(safe_interest_rates) / len(safe_interest_rates), 2)
+        if safe_interest_rates
+        else None
+    )
     avg_tenure_months = round(sum(safe_tenures) / len(safe_tenures), 1) if safe_tenures else None
-    mortgage_coverage_pct = round((safe_mortgage_count / safe_count) * 100, 1) if safe_count > 0 else None
+    mortgage_coverage_pct = (
+        round((safe_mortgage_count / safe_count) * 100, 1) if safe_count > 0 else None
+    )
 
     # ── Community Vault specific aggregations ────────────────────────
     # avg_project_size = avg target_amount for community opps
     # collaboration_rate = % community projects with >1 confirmed investor
-    comm_size_q = (
-        select(func.avg(Opportunity.target_amount).label("avg_size"))
-        .where(
-            Opportunity.vault_type == VaultType.COMMUNITY,
-            Opportunity.status.in_(active_statuses),
-            Opportunity.target_amount.isnot(None),
-        )
+    comm_size_q = select(func.avg(Opportunity.target_amount).label("avg_size")).where(
+        Opportunity.vault_type == VaultType.COMMUNITY,
+        Opportunity.status.in_(active_statuses),
+        Opportunity.target_amount.isnot(None),
     )
     comm_size_result = await db.execute(comm_size_q)
     comm_size_row = comm_size_result.fetchone()
-    avg_project_size = round(float(comm_size_row.avg_size), 2) if comm_size_row and comm_size_row.avg_size else None
+    avg_project_size = (
+        round(float(comm_size_row.avg_size), 2)
+        if comm_size_row and comm_size_row.avg_size
+        else None
+    )
 
     # Count community opps with >1 distinct confirmed investor
     comm_collab_q = (
@@ -401,7 +413,9 @@ async def vault_stats(
     comm_collab_rows = comm_collab_result.fetchall()
     comm_total_opps = len(comm_collab_rows)
     comm_collab_opps = sum(1 for r in comm_collab_rows if int(r.inv_count) > 1)
-    collaboration_rate = round((comm_collab_opps / comm_total_opps) * 100, 1) if comm_total_opps > 0 else None
+    collaboration_rate = (
+        round((comm_collab_opps / comm_total_opps) * 100, 1) if comm_total_opps > 0 else None
+    )
 
     results = []
     for vt in VaultType:
@@ -428,7 +442,9 @@ async def vault_stats(
                 co_partner_count=co_map.get("co_partner", 0) if vt == VaultType.COMMUNITY else 0,
                 platform_users_count=platform_users_count,
                 # Safe Vault
-                listings_count=safe_count if vt == VaultType.SAFE else (int(agg_row.opp_count) if agg_row else 0),
+                listings_count=safe_count
+                if vt == VaultType.SAFE
+                else (int(agg_row.opp_count) if agg_row else 0),
                 avg_interest_rate=avg_interest_rate if vt == VaultType.SAFE else None,
                 avg_tenure_months=avg_tenure_months if vt == VaultType.SAFE else None,
                 mortgage_coverage_pct=mortgage_coverage_pct if vt == VaultType.SAFE else None,
@@ -448,7 +464,9 @@ async def vault_stats(
 async def builder_investors(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
-    opportunity_id: _uuid.UUID | None = Query(None, description="Filter investors to a specific opportunity"),
+    opportunity_id: _uuid.UUID | None = Query(
+        None, description="Filter investors to a specific opportunity"
+    ),
 ) -> dict:
     """Return all investors across the current user's opportunities.
 
@@ -670,12 +688,9 @@ async def builder_analytics(
         _inv_count, raised = stats_map.get(opp.id, (0, 0.0))
         if target > 0 and raised >= target:
             # Find the last confirmed investment date for this opportunity
-            last_inv_q = (
-                select(func.max(OpportunityInvestment.invested_at))
-                .where(
-                    OpportunityInvestment.opportunity_id == opp.id,
-                    OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-                )
+            last_inv_q = select(func.max(OpportunityInvestment.invested_at)).where(
+                OpportunityInvestment.opportunity_id == opp.id,
+                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
             )
             last_inv_date = (await db.execute(last_inv_q)).scalar()
             if last_inv_date and opp.created_at:
@@ -749,6 +764,37 @@ async def user_activities(
         }
         for a in activities
     ]
+
+
+@router.get("/form-options", response_model=OpportunityFormOptionsGrouped)
+async def get_opportunity_form_options(
+    db: AsyncSession = Depends(get_db),
+) -> OpportunityFormOptionsGrouped:
+    """Return all active opportunity form options grouped by field_name."""
+    result = await db.execute(
+        select(OpportunityFormOption)
+        .where(OpportunityFormOption.is_active.is_(True))
+        .order_by(OpportunityFormOption.field_name, OpportunityFormOption.sort_order)
+    )
+    rows = result.scalars().all()
+
+    grouped: dict[str, list[OpportunityFormOptionRead]] = {}
+    for row in rows:
+        grouped.setdefault(row.field_name, []).append(OpportunityFormOptionRead.model_validate(row))
+
+    return OpportunityFormOptionsGrouped(
+        community_type=grouped.get("community_type", []),
+        collaboration_type=grouped.get("collaboration_type", []),
+        investment_tenure=grouped.get("investment_tenure", []),
+        revenue_model=grouped.get("revenue_model", []),
+        legal_structure=grouped.get("legal_structure", []),
+        risk_level=grouped.get("risk_level", []),
+        projected_timeline=grouped.get("projected_timeline", []),
+        time_commitment=grouped.get("time_commitment", []),
+        partnership_duration=grouped.get("partnership_duration", []),
+        partner_skill=grouped.get("partner_skill", []),
+        decision_authority=grouped.get("decision_authority", []),
+    )
 
 
 @router.get("/by-slug/{slug}", response_model=OpportunityRead)
@@ -1057,9 +1103,9 @@ async def update_opportunity(
             for oi in inv_result.scalars().all():
                 share = (Decimal(str(oi.amount)) / total_invested) * appreciation_amount
                 oi.returns_amount = share.quantize(Decimal("0.01"))
-            opp.actual_irr = (
-                (new_val - total_invested) / total_invested * 100
-            ).quantize(Decimal("0.01"))
+            opp.actual_irr = ((new_val - total_invested) / total_invested * 100).quantize(
+                Decimal("0.01")
+            )
 
     await db.flush()
     await db.refresh(opp)

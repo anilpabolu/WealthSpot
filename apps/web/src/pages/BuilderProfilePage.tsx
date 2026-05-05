@@ -4,7 +4,7 @@ import { useBuilderProfile } from '@/hooks/useProperties'
 import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
 import {
-  Building2, MapPin, Phone, Mail, Globe, Shield,
+  Building2, MapPin, Phone, Mail, Globe,
   ChevronRight, Briefcase, Ruler, Calendar,
 } from 'lucide-react'
 import { Badge, EmptyState } from '@/components/ui'
@@ -73,12 +73,7 @@ export default function BuilderProfilePage() {
                   {builder.city}
                 </p>
               )}
-              {builder.reraNumber && (
-                <p className="text-xs text-theme-secondary mt-1 flex items-center gap-1">
-                  <Shield className="h-3.5 w-3.5 text-green-500" />
-                  RERA: {builder.reraNumber}
-                </p>
-              )}
+
             </div>
           </div>
         </div>
@@ -199,7 +194,6 @@ export default function BuilderProfilePage() {
                   raised={p.raised}
                   target={p.target}
                   investorCount={p.investorCount}
-                  reraNumber={p.reraNumber}
                   status={p.status as StatusType}
                   onCardClick={() => navigate(`/marketplace/${p.slug}`)}
                   onInvestClick={() => navigate(`/marketplace/${p.slug}`)}

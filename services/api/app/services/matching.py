@@ -496,6 +496,7 @@ def _vault_dimension_weights(vault_type: str) -> dict[str, float]:
     """Importance of each dimension varies by vault type."""
     return _VAULT_DIMENSION_WEIGHTS.get(vault_type, _VAULT_WEIGHTS_DEFAULT)
 
+
 def _apply_opportunity_bonuses(
     score: float, opp: Opportunity, pd: PersonalityDimension, user: User | None
 ) -> float:

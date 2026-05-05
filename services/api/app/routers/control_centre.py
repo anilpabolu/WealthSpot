@@ -128,7 +128,6 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
         "property_videos_enabled": _is_enabled("property_videos_enabled"),
         "video_management_enabled": _is_enabled("video_management_enabled"),
         # Content display toggles
-        "rera_display_enabled": _is_enabled("rera_display_enabled"),
         # Property display mode: "show_placeholder" | "hide_empty"
         "property_empty_section_mode": _str_val("property_empty_section_mode", "show_placeholder"),
     }
@@ -138,8 +137,22 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
 
 # Default metrics per vault (used when no DB config exists yet)
 _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
-    "wealth": ["total_invested", "investor_count", "explorer_count", "properties_listed", "expected_irr", "cities_covered"],
-    "safe": ["total_invested", "investor_count", "explorer_count", "listings_count", "avg_interest_rate", "avg_tenure_months"],
+    "wealth": [
+        "total_invested",
+        "investor_count",
+        "explorer_count",
+        "properties_listed",
+        "expected_irr",
+        "cities_covered",
+    ],
+    "safe": [
+        "total_invested",
+        "investor_count",
+        "explorer_count",
+        "listings_count",
+        "avg_interest_rate",
+        "avg_tenure_months",
+    ],
     "community": [
         "total_invested",
         "investor_count",
@@ -191,7 +204,8 @@ async def get_appearance_config(db: AsyncSession = Depends(get_db)) -> dict[str,
         )
         configs = {c.key: c.value for c in result.scalars().all()}
         return {
-            "light_mode_bg_color": configs.get("light_mode_bg_color") or _defaults["light_mode_bg_color"],
+            "light_mode_bg_color": configs.get("light_mode_bg_color")
+            or _defaults["light_mode_bg_color"],
         }
     except Exception:
         logger.exception("get_appearance_config: DB error, returning defaults")

@@ -108,10 +108,14 @@ async def list_my_devices(
 ) -> list[UserDevice]:
     """List the user's registered devices (most recently active first)."""
     rows = (
-        await db.execute(
-            select(UserDevice)
-            .where(UserDevice.user_id == user.id)
-            .order_by(UserDevice.last_active_at.desc())
+        (
+            await db.execute(
+                select(UserDevice)
+                .where(UserDevice.user_id == user.id)
+                .order_by(UserDevice.last_active_at.desc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return list(rows)

@@ -12,6 +12,7 @@ import { applyThemePalette, clearThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 import { ToastRibbon } from '@/components/ToastRibbon'
 import { useToastStore } from '@/stores/toastStore'
+import WLogo3D from '@/components/ui/WLogo3D'
 
 // Lazy-loaded route components
 const Landing = lazy(() => import('@/pages/LandingPage'))
@@ -69,20 +70,25 @@ function PageLoader() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-base">
-      <div className="flex flex-col items-center gap-5">
-        {/* Branded logo mark */}
-        <div className="relative">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] dark:from-[#D4AF37] dark:to-[#B8860B] flex items-center justify-center shadow-xl shadow-[#D4AF37]/20 animate-pulse">
-            <svg viewBox="0 0 40 40" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M20 5L35 15V30L20 35L5 30V15L20 5Z" />
-              <path d="M13 20L18 25L27 16" />
-            </svg>
-          </div>
+      <div className="flex flex-col items-center gap-6">
+
+        {/* Single logo-led progress status */}
+        <div className="relative flex h-36 w-36 items-center justify-center animate-loader-logo-zoom">
+          <div className="absolute inset-1 rounded-full border border-violet-300/45 border-t-violet-100/90 shadow-[0_0_34px_rgba(167,139,250,0.32)] animate-loader-violet-ring" />
+          <div className="absolute -inset-8 rounded-full border border-violet-300/20 bg-violet-400/5 animate-loader-ripple" />
+          <div className="absolute -inset-14 rounded-full border border-violet-300/10 animate-loader-ripple [animation-delay:0.75s]" />
+          <WLogo3D size={94} spin />
         </div>
-        <span className="font-display text-lg font-bold text-theme-primary">
-          Wealth<span className="text-theme-accent">Spot</span>
+
+        {/* Brand text */}
+        <span className="font-display text-lg font-bold text-theme-primary tracking-tight">
+          Wealth<span className="text-[#D4AF37]">Spot</span>
         </span>
-        <p className="text-sm text-theme-tertiary font-body animate-pulse">{message}</p>
+
+        {/* Rotating message */}
+        <p className="text-sm text-theme-tertiary font-body animate-[logo-fade_2.5s_ease-in-out_infinite]">
+          {message}
+        </p>
       </div>
     </div>
   )

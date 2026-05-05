@@ -180,9 +180,7 @@ def _verify_razorpay_signature(body: bytes, signature: str) -> bool:
                 "accepting unverified webhook (dev only)"
             )
             return True
-        logger.error(
-            "Razorpay webhook rejected: secret not configured (env=%s)", settings.app_env
-        )
+        logger.error("Razorpay webhook rejected: secret not configured (env=%s)", settings.app_env)
         return False
 
     if not signature:

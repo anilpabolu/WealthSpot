@@ -25,6 +25,7 @@ from app.middleware.request_id import RequestIdFilter, RequestIdMiddleware
 from app.routers import (
     admin,
     analytics,
+    app_images,
     app_videos,
     appreciation,
     approvals,
@@ -162,6 +163,7 @@ app.include_router(eoi.router, prefix=API_PREFIX)
 app.include_router(portfolio.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.builder_router, prefix=API_PREFIX)
+app.include_router(app_images.router, prefix=API_PREFIX)
 app.include_router(app_videos.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(profiling.router, prefix=API_PREFIX)
@@ -193,9 +195,7 @@ async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_error_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """Pydantic validation errors — return a stable shape instead of FastAPI's default."""
     errors = [
         {

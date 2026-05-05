@@ -100,9 +100,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 # page load (later requests had their connections dropped while
                 # the loop was stalled on the Redis I/O).
                 loop = asyncio.get_running_loop()
-                allowed, remaining = await loop.run_in_executor(
-                    None, self._check_redis, client_ip
-                )
+                allowed, remaining = await loop.run_in_executor(None, self._check_redis, client_ip)
             except Exception:
                 # Redis error – fall back to memory
                 allowed, remaining = self._check_memory(client_ip)
@@ -126,9 +124,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except Exception:
-            logger.exception(
-                "Unhandled exception in route %s %s", request.method, request.url.path
-            )
+            logger.exception("Unhandled exception in route %s %s", request.method, request.url.path)
             return JSONResponse(
                 status_code=500,
                 content={
@@ -203,4 +199,3 @@ def route_limit(*, name: str, max_requests: int, window_seconds: int):
             )
 
     return _dep
-

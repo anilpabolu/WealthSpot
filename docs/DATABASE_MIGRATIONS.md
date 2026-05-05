@@ -7,7 +7,7 @@ reads and executes it, maintaining a single source of truth.
 ## Files
 
 | File | Purpose |
-|------|---------|
+| --- | --- |
 | `001_initial_schema.sql` | Full DDL: enums, 10 tables, indexes, constraints, triggers |
 | `002_seed_data.sql` | Realistic dev/demo data (6 users, 4 properties, investments, etc.) |
 | `003_rbac_approvals_opportunities.sql` | RBAC, approvals, opportunities, platform configs |

@@ -12,7 +12,7 @@ import {
   MapPin, Calendar, Users, Building2,
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
-  X, Globe, Shield, Ruler, FolderKanban, BadgeCheck,
+  X, Globe, Shield, Ruler, FolderKanban, BadgeCheck, FileText,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -304,7 +304,8 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
 
   return (
     <>
-      <div className="card p-6 sticky top-20">
+      <div className="card p-6 sticky top-20 relative overflow-hidden ring-1 ring-primary/10">
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/80 via-amber-400/60 to-primary/20" />
         <div className="flex items-center justify-between mb-4">
           <StatusBadge status={opportunity.status as StatusType} />
           {daysLeft > 0 && (
@@ -324,7 +325,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
 
         <div className="mb-4">
           {opportunity.minInvestment != null && (
-            <div className="bg-theme-surface rounded-lg p-3">
+            <div className="bg-primary/5 rounded-xl border border-primary/15 p-3">
               <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
               <p className="font-mono font-bold text-lg text-theme-primary mt-1">{formatINRCompact(opportunity.minInvestment)}</p>
             </div>
@@ -371,7 +372,7 @@ export default function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { data: opp, isLoading } = useOpportunityBySlug(slug ?? '')
-  const { propertyVideosEnabled, reraDisplayEnabled } = useVaultConfig()
+  const { propertyVideosEnabled } = useVaultConfig()
   const [showShareModal, setShowShareModal] = useState(false)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
 
@@ -504,8 +505,12 @@ export default function OpportunityDetailPage() {
 
             {/* Description */}
             {opp.description && (
-              <div className="card p-6">
-                <h2 className="font-display text-lg font-bold text-theme-primary mb-3">About this Opportunity</h2>
+              <div className="card p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/15 text-amber-500 dark:text-amber-400 shrink-0"><FileText className="h-4 w-4" /></span>
+                  About this Opportunity
+                </h2>
                 <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{opp.description}</p>
               </div>
             )}
@@ -528,9 +533,6 @@ export default function OpportunityDetailPage() {
               // Project phase (any vault — shows current construction/progress phase)
               if (opp.projectPhase)
                 details.push({ label: 'Current Phase', value: opp.projectPhase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
-              // Wealth vault: RERA (conditionally shown via vault config)
-              if (reraDisplayEnabled && opp.company && (opp.company as CompanyData).reraNumber)
-                details.push({ label: 'RERA Number', value: (opp.company as CompanyData).reraNumber!, icon: Shield })
               // Wealth vault: Entity Type
               if (opp.company && (opp.company as CompanyData).entityType)
                 details.push({ label: 'Entity Type', value: (opp.company as CompanyData).entityType!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: Building2 })
@@ -550,13 +552,17 @@ export default function OpportunityDetailPage() {
 
               if (details.length === 0) return null
               return (
-                <div className="card p-6">
-                  <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Project Details</h2>
+                <div className="card p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-blue-500/10" />
+                  <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/15 text-blue-500 dark:text-blue-400 shrink-0"><FolderKanban className="h-4 w-4" /></span>
+                    Project Details
+                  </h2>
                   <div className="grid sm:grid-cols-2 gap-4">
                     {details.map(d => {
                       const Icon = d.icon
                       return (
-                        <div key={d.label} className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
+                        <div key={d.label} className="flex items-center gap-3 p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
                           <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
                           <div>
                             <p className="text-xs text-theme-secondary">{d.label}</p>
@@ -572,31 +578,33 @@ export default function OpportunityDetailPage() {
 
             {/* Location */}
             {(opp.address || opp.addressLine1 || opp.city) && (
-              <div className="card p-6">
+              <div className="card p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500/70 via-emerald-400/50 to-emerald-500/10" />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" /> Location Details
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 shrink-0"><MapPin className="h-4 w-4" /></span>
+                  Location Details
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {opp.addressLine1 && (
-                    <div className="p-3 bg-theme-surface rounded-lg">
+                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
                       <p className="text-xs text-theme-secondary mb-0.5">Address</p>
                       <p className="text-sm font-medium text-theme-primary">{opp.addressLine1}{opp.addressLine2 ? `, ${opp.addressLine2}` : ''}</p>
                     </div>
                   )}
                   {opp.locality && (
-                    <div className="p-3 bg-theme-surface rounded-lg">
+                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
                       <p className="text-xs text-theme-secondary mb-0.5">Area</p>
                       <p className="text-sm font-medium text-theme-primary">{opp.locality}</p>
                     </div>
                   )}
                   {opp.city && (
-                    <div className="p-3 bg-theme-surface rounded-lg">
+                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
                       <p className="text-xs text-theme-secondary mb-0.5">City</p>
                       <p className="text-sm font-medium text-theme-primary">{opp.city}</p>
                     </div>
                   )}
                   {opp.pincode && (
-                    <div className="p-3 bg-theme-surface rounded-lg">
+                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
                       <p className="text-xs text-theme-secondary mb-0.5">Pincode</p>
                       <p className="text-sm font-medium text-theme-primary">{opp.pincode}</p>
                     </div>
@@ -622,9 +630,11 @@ export default function OpportunityDetailPage() {
               )
               if (nonEmpty.length === 0) return null
               return (
-                <div className="card p-6">
+                <div className="card p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" /> Amenities &amp; Features
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 dark:text-violet-400 shrink-0"><Sparkles className="h-4 w-4" /></span>
+                    Amenities &amp; Features
                   </h2>
                   <div className="space-y-4">
                     {nonEmpty.map(([catKey, catLabel]) => (
@@ -632,7 +642,7 @@ export default function OpportunityDetailPage() {
                         <p className="text-[11px] font-semibold text-theme-tertiary uppercase tracking-wider mb-2">{catLabel}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {byCategory[catKey].map(a => (
-                            <span key={a.key} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-theme-surface border border-theme text-theme-secondary">
+                            <span key={a.key} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--bg-surface-hover)]/60 border border-[var(--border-default)] hover:border-violet-400/40 text-theme-secondary transition-colors">
                               <_AmenityIcon name={a.icon} className="h-3 w-3 shrink-0" />
                               {a.label}
                             </span>
@@ -650,8 +660,9 @@ export default function OpportunityDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowCompanyModal(true)}
-                className="card p-6 w-full text-left cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all group"
+                className="card p-6 w-full text-left cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all group relative overflow-hidden"
               >
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-500/70 via-sky-400/50 to-sky-500/10" />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Developer / Company</h2>
                 <div className="flex items-center gap-4">
                   {opp.company.logoUrl ? (
@@ -732,7 +743,6 @@ export default function OpportunityDetailPage() {
             media: opp.media,
             company: opp.company ? {
               companyName: opp.company.companyName,
-              reraNumber: (opp.company as CompanyData).reraNumber,
               logoUrl: opp.company.logoUrl,
             } : null,
           }}

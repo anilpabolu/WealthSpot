@@ -20,7 +20,6 @@ export interface PropertyCardProps {
   target: number
   investorCount?: number
   status?: StatusType
-  reraNumber?: string
   className?: string
   isLoading?: boolean
   onInvestClick?: () => void
@@ -47,7 +46,6 @@ export default memo(function PropertyCard({
   raised,
   target,
   investorCount,
-  reraNumber,
   status,
   className,
   isLoading = false,
@@ -277,12 +275,6 @@ export default memo(function PropertyCard({
           {investorCount !== undefined && (
             <span className="text-xs text-theme-tertiary">{investorCount} investors</span>
           )}
-          {reraNumber && (
-            <span className="text-xs text-theme-tertiary truncate max-w-[120px]" title={reraNumber}>
-              RERA ✓
-            </span>
-          )}
-
           {/* CTA area — depends on status */}
           {isUpcoming ? (
             /* Upcoming: reminder buttons */

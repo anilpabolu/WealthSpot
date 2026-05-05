@@ -11,7 +11,7 @@ import { useKycStatus } from '@/hooks/useKycBank'
 import { EmptyState } from '@/components/ui'
 import { formatINR, formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
-  MapPin, Calendar, Users, Building2, FileText, Shield,
+  MapPin, Calendar, Users, Building2, FileText,
   ArrowRight, ChevronLeft, Heart, Share2, CheckCircle2,
   Clock, ChevronRight, Play, Star, Sparkles, Phone, ExternalLink, User2,
   AlertCircle, X,
@@ -330,12 +330,7 @@ export default function PropertyDetailPage() {
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mt-3">
                 <span className="px-3 py-1 bg-primary/5 text-primary text-xs font-medium rounded-full">{property.assetType}</span>
-                {property.reraNumber && (
-                  <span className="px-3 py-1 bg-green-50 text-success text-xs font-medium rounded-full flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    RERA: {property.reraNumber}
-                  </span>
-                )}
+
               </div>
             </div>
 
@@ -399,15 +394,7 @@ export default function PropertyDetailPage() {
                   <p className="text-xs text-theme-secondary mb-0.5">City</p>
                   <p className="text-sm font-medium text-theme-primary">{property.city}</p>
                 </div>
-                {property.reraNumber && (
-                  <div className="p-3 bg-theme-surface rounded-lg">
-                    <p className="text-xs text-theme-secondary mb-0.5">RERA ID</p>
-                    <p className="text-sm font-medium text-theme-primary flex items-center gap-1">
-                      <Shield className="h-3.5 w-3.5 text-green-500" />
-                      {property.reraNumber}
-                    </p>
-                  </div>
-                )}
+
               </div>
             </div>
 

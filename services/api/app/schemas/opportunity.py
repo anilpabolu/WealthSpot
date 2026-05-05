@@ -506,3 +506,30 @@ class BuilderAnalyticsResponse(BaseModel):
     avg_days_to_fund: float | None = None
     top_opportunity: BuilderOpportunityBreakdown | None = None
     repeat_investor_rate: float = 0
+
+
+# ── Opportunity form options (DB-driven dropdowns / chip selects) ────────────
+
+
+class OpportunityFormOptionRead(BaseModel):
+    id: uuid.UUID
+    field_name: str
+    value: str
+    label: str
+    is_active: bool
+    sort_order: int
+    model_config = {"from_attributes": True}
+
+
+class OpportunityFormOptionsGrouped(BaseModel):
+    community_type: list[OpportunityFormOptionRead] = []
+    collaboration_type: list[OpportunityFormOptionRead] = []
+    investment_tenure: list[OpportunityFormOptionRead] = []
+    revenue_model: list[OpportunityFormOptionRead] = []
+    legal_structure: list[OpportunityFormOptionRead] = []
+    risk_level: list[OpportunityFormOptionRead] = []
+    projected_timeline: list[OpportunityFormOptionRead] = []
+    time_commitment: list[OpportunityFormOptionRead] = []
+    partnership_duration: list[OpportunityFormOptionRead] = []
+    partner_skill: list[OpportunityFormOptionRead] = []
+    decision_authority: list[OpportunityFormOptionRead] = []

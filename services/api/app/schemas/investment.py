@@ -108,11 +108,11 @@ class PortfolioTransactionItem(BaseModel):
     opportunity-side (OpportunityInvestment table) activity."""
 
     id: uuid.UUID
-    type: str          # 'investment' | 'payout' | 'referral_bonus' | 'wealthpass'
+    type: str  # 'investment' | 'payout' | 'referral_bonus' | 'wealthpass'
     amount: Decimal
-    property_title: str | None = None   # camelised → propertyTitle on the frontend
+    property_title: str | None = None  # camelised → propertyTitle on the frontend
     date: datetime
-    status: str                         # 'confirmed' | 'pending' | 'cancelled'
+    status: str  # 'confirmed' | 'pending' | 'cancelled'
     vault_type: str | None = None
     opportunity_slug: str | None = None
 
@@ -172,4 +172,4 @@ class HoldingItem(BaseModel):
     project_phase: str | None = None
     sqft: float | None = None
     flat_configurations: list[str] = []
-    transaction_status: str = ''
+    transaction_status: str = ""

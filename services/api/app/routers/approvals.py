@@ -182,7 +182,7 @@ async def review_approval(
                 # Auto-transition to ACTIVE so the opportunity is immediately live.
                 # Phase 2: when funding_open_at is set and is in the future,
                 # remain in APPROVED (upcoming) until the Celery beat task transitions it.
-                funding_open = getattr(opp, 'funding_open_at', None)
+                funding_open = getattr(opp, "funding_open_at", None)
                 if funding_open and funding_open > datetime.now(UTC):
                     opp.status = OpportunityStatus.APPROVED
                 else:

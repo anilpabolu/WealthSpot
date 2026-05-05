@@ -104,8 +104,7 @@ describe('propertyFilterSchema', () => {
       status: 'live',
       city: 'Mumbai',
       assetType: 'commercial',
-      minXirr: 12,
-      sort: 'xirr_desc',
+      sort: 'raised_desc',
       page: 2,
       limit: 10,
     })
@@ -122,8 +121,8 @@ describe('propertyFilterSchema', () => {
     expect(() => propertyFilterSchema.parse({ assetType: 'unknown' })).toThrow()
   })
 
-  it('rejects minXirr > 100', () => {
-    expect(() => propertyFilterSchema.parse({ minXirr: 101 })).toThrow()
+  it('rejects invalid sort value', () => {
+    expect(() => propertyFilterSchema.parse({ sort: 'unknown_sort' })).toThrow()
   })
 
   it('rejects limit > 50', () => {

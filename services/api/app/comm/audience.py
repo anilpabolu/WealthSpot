@@ -52,6 +52,10 @@ def matches(rule: Any, context: dict[str, Any]) -> bool:
         result = jsonLogic(rule, context)
         return bool(result)
     except Exception as exc:  # noqa: BLE001
-        logger.warning("audience rule evaluation failed (rule=%r context_keys=%s): %s",
-                       rule, list(context.keys()), exc)
+        logger.warning(
+            "audience rule evaluation failed (rule=%r context_keys=%s): %s",
+            rule,
+            list(context.keys()),
+            exc,
+        )
         return False

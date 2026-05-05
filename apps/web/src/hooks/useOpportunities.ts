@@ -165,6 +165,29 @@ export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {
   cancelInvestments?: boolean
 }
 
+export interface OpportunityFormOptionRead {
+  id: string
+  fieldName: string
+  value: string
+  label: string
+  isActive: boolean
+  sortOrder: number
+}
+
+export interface OpportunityFormOptionsGrouped {
+  community_type: OpportunityFormOptionRead[]
+  collaboration_type: OpportunityFormOptionRead[]
+  investment_tenure: OpportunityFormOptionRead[]
+  revenue_model: OpportunityFormOptionRead[]
+  legal_structure: OpportunityFormOptionRead[]
+  risk_level: OpportunityFormOptionRead[]
+  projected_timeline: OpportunityFormOptionRead[]
+  time_commitment: OpportunityFormOptionRead[]
+  partnership_duration: OpportunityFormOptionRead[]
+  partner_skill: OpportunityFormOptionRead[]
+  decision_authority: OpportunityFormOptionRead[]
+}
+
 export function useOpportunities(params?: { vaultType?: string; status?: string; page?: number; communitySubtype?: string; city?: string }) {
   return useQuery({
     queryKey: ['opportunities', params],
@@ -299,5 +322,14 @@ export function useVaultStats() {
     queryKey: ['vault-stats'],
     queryFn: () => apiGet<VaultStats[]>('/opportunities/vault-stats'),
     staleTime: 30_000,
+  })
+}
+
+export function useOpportunityFormOptions() {
+  return useQuery({
+    queryKey: ['opportunity-form-options'],
+    queryFn: () => apiGet<OpportunityFormOptionsGrouped>('/opportunities/form-options'),
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
   })
 }

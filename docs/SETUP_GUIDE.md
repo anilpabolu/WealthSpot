@@ -29,7 +29,7 @@
 Install these before proceeding:
 
 | Tool | Version | Install |
-|------|---------|---------|
+| --- | --- | --- |
 | **Node.js** | 20 LTS+ | [nodejs.org](https://nodejs.org/) or `nvm install 20` |
 | **npm** | 10+ | Comes with Node.js |
 | **Python** | 3.11+ (3.12 recommended) | [python.org](https://www.python.org/downloads/) |
@@ -39,7 +39,7 @@ Install these before proceeding:
 **Optional but recommended:**
 
 | Tool | Purpose |
-|------|---------|
+| --- | --- |
 | **Expo Go** (mobile) | Test mobile app on physical device |
 | **Android Studio** | Android emulator for Expo |
 | **Xcode** (macOS only) | iOS simulator for Expo |
@@ -60,7 +60,7 @@ git --version
 
 ## 2. Repository Structure
 
-```
+```text
 WealthSpot/
 ├── apps/
 │   ├── web/                    # React 19 + Vite 5 + TypeScript (SPA)
@@ -110,6 +110,7 @@ WealthSpot/
 ├── docker-compose.yml          # PostgreSQL + Redis + API + Celery + Web
 ├── package.json                # Root workspace config
 └── turbo.json                  # Turborepo pipeline
+
 ```
 
 ---
@@ -126,6 +127,7 @@ docker compose up postgres redis -d
 ```
 
 This starts:
+
 - **PostgreSQL 16** on `localhost:5432` (user: `wealthspot`, password: `wealthspot_dev`, db: `wealthspot`)
 - **Redis 7** on `localhost:6379`
 
@@ -138,20 +140,25 @@ docker compose ps
 ### Option B: Local Installation (without Docker)
 
 **PostgreSQL:**
+
 1. Install PostgreSQL 16 from [postgresql.org](https://www.postgresql.org/download/)
 2. Create the database:
+
    ```sql
    CREATE USER wealthspot WITH PASSWORD 'wealthspot_dev';
    CREATE DATABASE wealthspot OWNER wealthspot;
    GRANT ALL PRIVILEGES ON DATABASE wealthspot TO wealthspot;
    ```
+
 3. Enable required extensions (run as superuser on the `wealthspot` database):
+
    ```sql
    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
    ```
 
 **Redis:**
+
 1. Install Redis from [redis.io](https://redis.io/download)
 2. Start: `redis-server`
 3. Verify: `redis-cli ping` → should return `PONG`
@@ -217,6 +224,7 @@ SENTRY_DSN=
 ```
 
 > **Important:** Generate a proper JWT secret for production:
+>
 > ```bash
 > python -c "import secrets; print(secrets.token_hex(32))"
 > ```
@@ -229,9 +237,10 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 The API is now available at:
-- **Swagger docs:** http://localhost:8000/api/docs
-- **ReDoc:** http://localhost:8000/api/redoc
-- **Health check:** http://localhost:8000/api/v1/health
+
+- **Swagger docs:** <http://localhost:8000/api/docs>
+- **ReDoc:** <http://localhost:8000/api/redoc>
+- **Health check:** <http://localhost:8000/api/v1/health>
 
 ---
 
@@ -253,6 +262,7 @@ alembic upgrade head
 > **Note:** The `alembic.ini` file has a default `sqlalchemy.url`. For async connections,
 > the migration's `env.py` should read from your `.env` file's `DATABASE_URL`.
 > If you get connection errors, update `alembic.ini`:
+>
 > ```ini
 > sqlalchemy.url = postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5432/wealthspot
 > ```
@@ -388,6 +398,7 @@ Expo Go doesn't support all native modules. For full functionality:
 ```bash
 npx expo run:android   # Build native Android
 npx expo run:ios       # Build native iOS (macOS only)
+
 ```
 
 ---
@@ -500,11 +511,13 @@ If using Clerk for social login / webhook-based auth:
 Open **4 terminal windows/tabs:**
 
 ### Terminal 1 — Infrastructure
+
 ```bash
 docker compose up postgres redis -d
 ```
 
 ### Terminal 2 — Backend API
+
 ```bash
 cd services/api
 .venv\Scripts\Activate.ps1   # Windows
@@ -513,12 +526,14 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 ### Terminal 3 — Web App
+
 ```bash
 cd apps/web
 npm run dev
 ```
 
 ### Terminal 4 — Mobile App
+
 ```bash
 cd apps/mobile
 npx expo start
@@ -527,7 +542,7 @@ npx expo start
 ### Access Points
 
 | Service | URL |
-|---------|-----|
+| --- | --- |
 | Web App | http://localhost:5173 |
 | API Docs (Swagger) | http://localhost:8000/api/docs |
 | API Docs (ReDoc) | http://localhost:8000/api/redoc |
@@ -562,6 +577,7 @@ This starts: PostgreSQL, Redis, FastAPI (with hot-reload), Celery worker, and Vi
 ## 12. Common Issues & Troubleshooting
 
 ### "Module not found" in web app
+
 ```bash
 cd apps/web
 rm -rf node_modules
@@ -572,6 +588,7 @@ npm install --legacy-peer-deps
 The monorepo uses React 19 for web and React Native 0.74 (React 18) for mobile. The root `package.json` has `@types/react@^18` for React Native compatibility. The web app has `@types/react@^19` in its own `node_modules`. This is intentional — don't hoist `@types/react` to root.
 
 ### Python "ModuleNotFoundError"
+
 ```bash
 cd services/api
 .venv\Scripts\Activate.ps1   # Make sure venv is activated
@@ -630,6 +647,7 @@ Ensure `nativewind-env.d.ts` exists in `apps/mobile/` with:
 And `tailwind.config.js` has the correct content paths.
 
 ### Port already in use
+
 ```bash
 # Find what's using the port (Windows)
 netstat -ano | findstr :8000
@@ -669,6 +687,7 @@ For Python IntelliSense, set the interpreter to `services/api/.venv/Scripts/pyth
 cd apps/web
 npm run build
 # Output: apps/web/dist/
+
 ```
 
 Deploy `dist/` to any static hosting:
@@ -726,7 +745,7 @@ Update `DATABASE_URL` to point to your production instance.
 ## Quick Reference — All Commands
 
 | Action | Command |
-|--------|---------|
+| --- | --- |
 | Start infra (Docker) | `docker compose up postgres redis -d` |
 | Start API | `cd services/api && uvicorn app.main:app --reload` |
 | Start web | `cd apps/web && npm run dev` |
@@ -743,7 +762,7 @@ Update `DATABASE_URL` to point to your production instance.
 
 *Last updated: $(date). Generated for WealthSpot.in v0.1.0*
 
-
+```bash
 # Backend tests + coverage
 cd services/api && pytest --cov=app
 
@@ -761,3 +780,4 @@ cd apps/web && npx playwright install chromium && npm run test:e2e
 
 # Performance
 cd services/api && locust -f tests/performance/locustfile.py --host http://localhost:8000
+```

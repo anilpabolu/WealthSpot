@@ -17,7 +17,7 @@ export const kycBff = {
   async getKycStatus(): Promise<KycStatusView> {
     // API client converts snake_case → camelCase (documentType, verificationStatus, etc.)
     const [profile, documents] = await Promise.all([
-      apiGet<{ kycStatus: string }>("/users/me"),
+      apiGet<{ kycStatus: string }>("/auth/me"),
       apiGet<KycStatusView["documents"]>("/kyc/documents"),
     ]);
 

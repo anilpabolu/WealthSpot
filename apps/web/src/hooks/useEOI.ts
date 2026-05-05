@@ -288,17 +288,18 @@ export interface EOIFormOption {
 }
 
 export interface EOIFormOptionsGrouped {
-  investment_timeline: EOIFormOption[]
-  funding_source: EOIFormOption[]
+  investmentTimeline: EOIFormOption[]
+  fundingSource: EOIFormOption[]
   purpose: EOIFormOption[]
-  preferred_contact: EOIFormOption[]
+  preferredContact: EOIFormOption[]
 }
 
 export function useEOIFormOptions() {
   return useQuery({
-    queryKey: ['eoi-form-options'],
+    queryKey: ['eoi-form-options-v2'],
     queryFn: () => apiGet<EOIFormOptionsGrouped>('/eoi/form-options'),
-    staleTime: 60 * 60 * 1000, // 1 hour — rarely changes
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
   })
 }
 

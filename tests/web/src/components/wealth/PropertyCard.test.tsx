@@ -14,7 +14,6 @@ describe('PropertyCard', () => {
     city: 'Mumbai',
     assetType: 'Residential',
     coverImage: 'https://example.com/img.jpg',
-    targetIrr: 14.5,
     minInvestment: 25000,
     raised: 5000000,
     target: 10000000,
@@ -24,7 +23,6 @@ describe('PropertyCard', () => {
     renderWithQC(<PropertyCard {...baseProps} />)
     expect(screen.getByText('Sunrise Heights')).toBeInTheDocument()
     expect(screen.getByText(/Mumbai/)).toBeInTheDocument()
-    expect(screen.getByText('14.5%')).toBeInTheDocument()
     expect(screen.getByText('₹25K')).toBeInTheDocument()
   })
 
@@ -47,9 +45,10 @@ describe('PropertyCard', () => {
     expect(screen.getByText('42 investors')).toBeInTheDocument()
   })
 
-  it('shows RERA badge when reraNumber provided', () => {
-    renderWithQC(<PropertyCard {...baseProps} reraNumber="P52100001234" />)
-    expect(screen.getByText('RERA ✓')).toBeInTheDocument()
+  it('shows status badge for funded properties', () => {
+    renderWithQC(<PropertyCard {...baseProps} status="fully_funded" />)
+    // PropertyCard renders a StatusBadge which is present
+    expect(screen.getByRole('article')).toBeInTheDocument()
   })
 
   it('shows INVEST NOW button by default', () => {

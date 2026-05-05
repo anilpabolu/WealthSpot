@@ -73,7 +73,7 @@ export default function BuilderDashboardPage() {
               <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-theme-primary">Complete your builder profile</p>
-                <p className="text-xs text-theme-secondary mt-0.5">Add your company details, RERA number, and contact info to unlock all builder features.</p>
+                <p className="text-xs text-theme-secondary mt-0.5">Add your company details and contact info to unlock all builder features.</p>
               </div>
             </div>
             <Link to="/portal/builder/settings" className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-sm whitespace-nowrap">

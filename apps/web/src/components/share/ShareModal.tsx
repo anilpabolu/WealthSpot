@@ -21,7 +21,6 @@ interface ShareModalProps {
     media?: Array<{ url: string }>
     company?: {
       companyName: string
-      reraNumber?: string | null
       logoUrl?: string | null
     } | null
   }
@@ -296,9 +295,6 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
       ctx.fillStyle = GOLD + 'cc'
       ctx.font = '18px system-ui, -apple-system, sans-serif'
       let companyText = `🏗 ${opportunity.company.companyName}`
-      if (opportunity.company.reraNumber) {
-        companyText += ` · RERA: ${opportunity.company.reraNumber}`
-      }
       // Truncate if too long
       const maxCompanyW = imgW - 300
       if (ctx.measureText(companyText).width > maxCompanyW) {
@@ -495,7 +491,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     ctx.fillText('wealthspot.in', W - 72, bottomY + 36)
     ctx.fillStyle = '#475569'
     ctx.font = '12px system-ui, -apple-system, sans-serif'
-    ctx.fillText('RERA Verified  ·  Secure Investments', W - 72, bottomY + 56)
+    ctx.fillText('Secure Investments', W - 72, bottomY + 56)
 
     return canvas
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -601,7 +597,6 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     const infoLine: string[] = []
     if (opportunity.city) infoLine.push(`📍 ${opportunity.city}`)
     if (opportunity.company?.companyName) infoLine.push(`🏗 ${opportunity.company.companyName}`)
-    if (opportunity.company?.reraNumber) infoLine.push(`RERA: ${opportunity.company.reraNumber}`)
 
     if (infoLine.length > 0) {
       ctx.fillStyle = '#94a3b8'
@@ -718,7 +713,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
     ctx.fillStyle = '#475569'
     ctx.font = '11px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText('wealthspot.in  ·  RERA Verified  ·  Secure Investments', rX, bY)
+    ctx.fillText('wealthspot.in  ·  Secure Investments', rX, bY)
 
     return canvas
   // eslint-disable-next-line react-hooks/exhaustive-deps

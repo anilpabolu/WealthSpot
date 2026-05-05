@@ -49,6 +49,7 @@ async def list_investments(
     total = (await db.execute(total_q)).scalar() or 0
 
     from sqlalchemy.orm import selectinload
+
     query = (
         base.options(selectinload(Investment.property))
         .order_by(Investment.created_at.desc())
@@ -79,9 +80,14 @@ async def investment_summary(
 ) -> InvestmentSummary:
     """Aggregated investment summary for dashboard."""
     from sqlalchemy.orm import selectinload
-    confirmed = select(Investment).options(selectinload(Investment.property)).where(
-        Investment.user_id == user.id,
-        Investment.status == InvestmentStatus.CONFIRMED,
+
+    confirmed = (
+        select(Investment)
+        .options(selectinload(Investment.property))
+        .where(
+            Investment.user_id == user.id,
+            Investment.status == InvestmentStatus.CONFIRMED,
+        )
     )
     result = await db.execute(confirmed)
     investments = list(result.scalars().all())
@@ -91,7 +97,11 @@ async def investment_summary(
     current_value = Decimal("0")
     property_ids = set()
     for inv in investments:
-        current_unit_price = (inv.property.current_unit_price or inv.property.unit_price) if inv.property else inv.unit_price
+        current_unit_price = (
+            (inv.property.current_unit_price or inv.property.unit_price)
+            if inv.property
+            else inv.unit_price
+        )
         current_value += inv.units * current_unit_price
         if inv.property_id:
             property_ids.add(inv.property_id)
@@ -297,6 +307,7 @@ async def get_investment(
 ) -> InvestmentRead:
     """Get a single investment by ID."""
     from sqlalchemy.orm import selectinload
+
     result = await db.execute(
         select(Investment)
         .options(selectinload(Investment.property))

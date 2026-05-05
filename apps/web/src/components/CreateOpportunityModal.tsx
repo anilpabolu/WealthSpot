@@ -15,7 +15,7 @@ import {
   AlertCircle,
   type LucideIcon,
 } from 'lucide-react'
-import { useCreateOpportunity, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
+import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { INDIAN_CITIES } from '@/lib/constants'
@@ -264,6 +264,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
   const { isVaultEnabled } = useVaultConfig()
+  const { data: oppFormOptions } = useOpportunityFormOptions()
 
   // Reset amenities and unit/plot configs when property type changes
   useEffect(() => {
@@ -339,7 +340,6 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
         const fc = PROPERTY_FIELD_CONFIG[propertyType]
         if (fc) {
           if (fc.showPossessionQuarter && !projectOverview.possessionQuarter) errors.possessionQuarter = 'Required'
-          if (fc.showRera && !projectOverview.reraNumber) errors.reraNumber = 'Required'
           if (fc.showTotalFloors && !projectOverview.totalFloors) errors.totalFloors = 'Required'
           if (!projectOverview.landParcelSqft) errors.landParcelSqft = 'Required'
 
@@ -838,7 +838,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                           <Input
                             value={(safeVaultData.mortgage_agreement as { period_description: string }).period_description ?? ''}
                             onChange={(e) => setSafeVaultData((p) => ({ ...p, mortgage_agreement: { ...(p.mortgage_agreement as object), period_description: e.target.value } }))}
-                            placeholder="Period (e.g. until RERA issued)"
+                            placeholder="Period (e.g. 24 months)"
                           />
                         </div>
                       )}
@@ -926,7 +926,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         value={form.communityType ?? ''}
                         onChange={(v) => handleChange('communityType', v)}
                         placeholder="Select type"
-                        options={COMMUNITY_TYPES.map((t) => ({ value: t, label: t }))}
+                        options={(oppFormOptions?.community_type.length ? oppFormOptions.community_type : COMMUNITY_TYPES.map((t) => ({ value: t, label: t, id: t, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                       />
                       {fe('communityType') && (
                         <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -938,7 +938,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                         value={form.collaborationType ?? ''}
                         onChange={(v) => handleChange('collaborationType', v)}
                         placeholder="Select collaboration"
-                        options={COLLABORATION_TYPES.map((t) => ({ value: t, label: t }))}
+                        options={(oppFormOptions?.collaboration_type.length ? oppFormOptions.collaboration_type : COLLABORATION_TYPES.map((t) => ({ value: t, label: t, id: t, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                       />
                       {fe('collaborationType') && (
                         <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1004,7 +1004,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.investmentTenure as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('investmentTenure', v)}
                             placeholder="Select"
-                            options={INVESTMENT_TENURES.map((t) => ({ value: t, label: t }))}
+                            options={(oppFormOptions?.investment_tenure.length ? oppFormOptions.investment_tenure : INVESTMENT_TENURES.map((t) => ({ value: t, label: t, id: t, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('investmentTenure') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1018,7 +1018,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.revenueModel as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('revenueModel', v)}
                             placeholder="Select"
-                            options={REVENUE_MODELS.map((m) => ({ value: m, label: m }))}
+                            options={(oppFormOptions?.revenue_model.length ? oppFormOptions.revenue_model : REVENUE_MODELS.map((m) => ({ value: m, label: m, id: m, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('revenueModel') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1030,7 +1030,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.legalStructure as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('legalStructure', v)}
                             placeholder="Select"
-                            options={LEGAL_STRUCTURES.map((l) => ({ value: l, label: l }))}
+                            options={(oppFormOptions?.legal_structure.length ? oppFormOptions.legal_structure : LEGAL_STRUCTURES.map((l) => ({ value: l, label: l, id: l, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('legalStructure') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1044,7 +1044,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.riskLevel as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('riskLevel', v)}
                             placeholder="Select"
-                            options={RISK_LEVELS.map((r) => ({ value: r, label: r }))}
+                            options={(oppFormOptions?.risk_level.length ? oppFormOptions.risk_level : RISK_LEVELS.map((r) => ({ value: r, label: r, id: r, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('riskLevel') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1056,7 +1056,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.projectedTimeline as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('projectedTimeline', v)}
                             placeholder="Select"
-                            options={TIMELINE_OPTIONS.map((t) => ({ value: t, label: t }))}
+                            options={(oppFormOptions?.projected_timeline.length ? oppFormOptions.projected_timeline : TIMELINE_OPTIONS.map((t) => ({ value: t, label: t, id: t, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('projectedTimeline') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1116,7 +1116,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.timeCommitment as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('timeCommitment', v)}
                             placeholder="Select"
-                            options={TIME_COMMITMENTS.map((t) => ({ value: t, label: t }))}
+                            options={(oppFormOptions?.time_commitment.length ? oppFormOptions.time_commitment : TIME_COMMITMENTS.map((t) => ({ value: t, label: t, id: t, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('timeCommitment') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1128,7 +1128,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.partnershipDuration as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('partnershipDuration', v)}
                             placeholder="Select"
-                            options={PARTNERSHIP_DURATIONS.map((d) => ({ value: d, label: d }))}
+                            options={(oppFormOptions?.partnership_duration.length ? oppFormOptions.partnership_duration : PARTNERSHIP_DURATIONS.map((d) => ({ value: d, label: d, id: d, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('partnershipDuration') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1143,7 +1143,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                           <p className="text-xs text-red-500 mb-2 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Select at least one skill</p>
                         )}
                         <div className="flex flex-wrap gap-2">
-                          {PARTNER_SKILLS.map((skill) => {
+                          {(oppFormOptions?.partner_skill.length ? oppFormOptions.partner_skill.map((o) => o.label) : PARTNER_SKILLS).map((skill) => {
                             const selected = ((communityDetails.requiredSkills as string[]) ?? []).includes(skill)
                             return (
                               <button
@@ -1176,7 +1176,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                             value={(communityDetails.decisionAuthority as string) ?? ''}
                             onChange={(v) => handleCommunityDetailChange('decisionAuthority', v)}
                             placeholder="Select"
-                            options={DECISION_AUTHORITIES.map((d) => ({ value: d, label: d }))}
+                            options={(oppFormOptions?.decision_authority.length ? oppFormOptions.decision_authority : DECISION_AUTHORITIES.map((d) => ({ value: d, label: d, id: d, fieldName: '', isActive: true, sortOrder: 0 }))).map((o) => ({ value: o.value, label: o.label }))}
                           />
                           {fe('decisionAuthority') && (
                             <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Required</p>
@@ -1267,11 +1267,10 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                           )}
                           {fc.showRera && (
                             <Input
-                              label="RERA Number *"
+                              label="RERA Number (Optional)"
                               value={projectOverview.reraNumber}
                               onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))}
                               placeholder="e.g. MH/12345"
-                              errorText={fe('reraNumber') ? 'Required' : undefined}
                             />
                           )}
                         </div>

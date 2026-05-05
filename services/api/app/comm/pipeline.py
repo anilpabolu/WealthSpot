@@ -105,9 +105,8 @@ def _check_quiet_hours(ctx: GateContext) -> str | None:
     except Exception:
         now_local = datetime.now(UTC).time()
 
-    in_quiet = (
-        (qs < qe and qs <= now_local < qe)
-        or (qs >= qe and (now_local >= qs or now_local < qe))
+    in_quiet = (qs < qe and qs <= now_local < qe) or (
+        qs >= qe and (now_local >= qs or now_local < qe)
     )
     if in_quiet:
         return "quiet_hours"

@@ -11,12 +11,12 @@ export const WEALTHPASS_PRICE = 499 // ₹499/year
 
 // ─── KYC Statuses ─────────────────────────────────────
 export const KYC_STATUS = {
-  NOT_STARTED: 'not_started',
-  IN_PROGRESS: 'in_progress',
-  UNDER_REVIEW: 'under_review',
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
-  EXPIRED: 'expired',
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  EXPIRED: 'EXPIRED',
 } as const
 
 export type KycStatus = (typeof KYC_STATUS)[keyof typeof KYC_STATUS]

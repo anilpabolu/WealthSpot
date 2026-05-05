@@ -4,7 +4,7 @@ Notification router – list, mark read, get unread count, enquiry.
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -118,7 +118,7 @@ async def send_enquiry(
     ).scalar_one_or_none()
 
     if not prop:
-        return {"status": "error", "message": "Property not found"}
+        raise HTTPException(status_code=404, detail="Property not found")
 
     recipients: list[str] = []
     if prop.builder_id:

@@ -223,7 +223,7 @@ export default function KycIdentityPage() {
               <Lock className="h-4 w-4 text-info shrink-0 mt-0.5" />
               <p className="text-xs text-theme-secondary">
                 <strong>Your data is safe.</strong> All documents are encrypted end-to-end using AES-256 
-                encryption and stored in a secure vault. We comply with DPDP Act 2023 and RERA guidelines 
+                encryption and stored in a secure vault. We comply with DPDP Act 2023 
                 for data protection. Your information is never shared with third parties.
               </p>
             </div>

@@ -42,7 +42,9 @@ class OpportunityAssessment(Base):
     )
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     risk_severity: Mapped[str | None] = mapped_column(String(10))
-    is_public: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True, server_default="true")
+    is_public: Mapped[bool] = mapped_column(
+        Boolean(), nullable=False, default=True, server_default="true"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

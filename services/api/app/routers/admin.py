@@ -4,12 +4,13 @@ Admin router – user management, property approval, KYC review, analytics.
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
+from app.middleware.audit import log_audit_event
 from app.middleware.auth import require_role
 from app.models.investment import Investment, InvestmentStatus
 from app.models.property import Property, PropertyStatus
@@ -93,8 +94,9 @@ async def list_users(
 @router.post("/kyc/{user_id}/approve")
 async def approve_kyc(
     user_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _admin: User = Depends(admin_dep),
+    admin_user: User = Depends(admin_dep),
 ) -> dict[str, str]:
     """Approve a user's KYC."""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -102,16 +104,30 @@ async def approve_kyc(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    previous_status = user.kyc_status
     user.kyc_status = KycStatus.APPROVED
     await db.flush()
+    await log_audit_event(
+        actor_id=admin_user.id,
+        action="kyc.approved",
+        resource_type="user",
+        resource_id=str(user.id),
+        details={
+            "previous_status": previous_status.value
+            if hasattr(previous_status, "value")
+            else str(previous_status)
+        },
+        request=request,
+    )
     return {"status": "approved", "user_id": str(user.id)}
 
 
 @router.post("/kyc/{user_id}/reject")
 async def reject_kyc(
     user_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _admin: User = Depends(admin_dep),
+    admin_user: User = Depends(admin_dep),
 ) -> dict[str, str]:
     """Reject a user's KYC."""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -119,8 +135,21 @@ async def reject_kyc(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    previous_status = user.kyc_status
     user.kyc_status = KycStatus.REJECTED
     await db.flush()
+    await log_audit_event(
+        actor_id=admin_user.id,
+        action="kyc.rejected",
+        resource_type="user",
+        resource_id=str(user.id),
+        details={
+            "previous_status": previous_status.value
+            if hasattr(previous_status, "value")
+            else str(previous_status)
+        },
+        request=request,
+    )
     return {"status": "rejected", "user_id": str(user.id)}
 
 
@@ -159,6 +188,10 @@ async def reject_property(
     prop = result.scalar_one_or_none()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
+    if prop.status not in (PropertyStatus.UNDER_REVIEW, PropertyStatus.ACTIVE):
+        raise HTTPException(
+            status_code=400, detail="Only properties under review or active can be rejected"
+        )
 
     prop.status = PropertyStatus.REJECTED
     await db.flush()

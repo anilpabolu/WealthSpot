@@ -85,7 +85,7 @@ function ChipSelect({
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
               selected.includes(o.value)
                 ? 'bg-primary text-white shadow-sm'
-                : 'bg-[var(--bg-surface-hover)] text-theme-secondary hover:opacity-80'
+                : 'bg-[var(--bg-surface-hover)] text-theme-secondary border border-[var(--border-default)] hover:border-primary/40 hover:text-theme-primary'
             }`}
           >
             {o.label}
@@ -165,11 +165,11 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // DB-driven form options
-  const { data: formOptions, isLoading: optionsLoading } = useEOIFormOptions()
-  const timelineOptions = (formOptions?.investment_timeline ?? []).map(o => ({ value: o.value, label: o.label }))
-  const fundingOptions = (formOptions?.funding_source ?? []).map(o => ({ value: o.value, label: o.label }))
+  const { data: formOptions, isLoading: optionsLoading, isFetching: optionsFetching } = useEOIFormOptions()
+  const timelineOptions = (formOptions?.investmentTimeline ?? []).map(o => ({ value: o.value, label: o.label }))
+  const fundingOptions = (formOptions?.fundingSource ?? []).map(o => ({ value: o.value, label: o.label }))
   const purposeOptions = (formOptions?.purpose ?? []).map(o => ({ value: o.value, label: o.label }))
-  const contactOptions = (formOptions?.preferred_contact ?? []).map(o => ({ value: o.value, label: o.label }))
+  const contactOptions = (formOptions?.preferredContact ?? []).map(o => ({ value: o.value, label: o.label }))
 
   // Computed investment amount from selected config; fallback to minInvestment
   const computedInvestment: number = (() => {
@@ -242,7 +242,9 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   return (
     <div className="modal-overlay p-4">
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
-      <div className="modal-panel max-w-lg relative">
+      <div className="modal-panel max-w-lg relative overflow-hidden">
+        {/* Gold accent strip */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-primary to-amber-400/60 z-20" />
         {/* Header */}
         <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <h2 className="font-display text-lg font-bold text-theme-primary">
@@ -461,39 +463,42 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             </div>
 
             {/* DB-driven form options */}
-            {optionsLoading ? (
+            {(optionsLoading || (optionsFetching && !timelineOptions.length)) ? (
               <div className="flex items-center gap-2 py-3">
                 <Loader2 className="h-4 w-4 animate-spin text-theme-tertiary" />
                 <span className="text-xs text-theme-secondary">Loading options…</span>
               </div>
             ) : (
-              <>
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface-hover)]/30 p-4 space-y-5">
                 <ChipSelect
-                  label="Investment Timeline"
+                  label="⏱ Investment Timeline"
                   options={timelineOptions}
                   selected={timeline ? [timeline] : []}
                   onChange={vals => setTimeline(vals[0] ?? '')}
                   multi={false}
                 />
+                <div className="h-px bg-[var(--border-subtle)]" />
                 <ChipSelect
-                  label="Funding Source"
+                  label="💰 Funding Source"
                   options={fundingOptions}
                   selected={fundingSource}
                   onChange={setFundingSource}
                 />
+                <div className="h-px bg-[var(--border-subtle)]" />
                 <ChipSelect
-                  label="Purpose"
+                  label="🎯 Purpose"
                   options={purposeOptions}
                   selected={purpose}
                   onChange={setPurpose}
                 />
+                <div className="h-px bg-[var(--border-subtle)]" />
                 <ChipSelect
-                  label="Preferred Contact Method"
+                  label="📞 Preferred Contact Method"
                   options={contactOptions}
                   selected={preferredContact}
                   onChange={setPreferredContact}
                 />
-              </>
+              </div>
             )}
 
             {/* Best time */}

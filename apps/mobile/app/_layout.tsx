@@ -27,6 +27,7 @@ import { useUserStore } from '../src/stores/user.store'
 import { setOnAuthFailure } from '../src/lib/api'
 import { OfflineQueueProvider } from '../src/lib/offlineQueue'
 import { useClerkBackendSync } from '../src/hooks/useClerkBackendSync'
+import PageLoader from '../src/components/ui/PageLoader'
 
 import {
   BricolageGrotesque_400Regular,
@@ -226,7 +227,7 @@ export default function RootLayout() {
     if (fontsLoaded) SplashScreen.hideAsync()
   }, [fontsLoaded])
 
-  if (!fontsLoaded) return null
+  if (!fontsLoaded) return <PageLoader />
 
   const layout = (
     <QueryClientProvider client={queryClient}>

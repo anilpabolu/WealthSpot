@@ -72,6 +72,7 @@ async def submit_eoi(
     existing = existing_result.scalar_one_or_none()
     if existing:
         from datetime import UTC, datetime
+
         existing.updated_at = datetime.now(UTC)
         await db.flush()
         await db.refresh(existing)
@@ -212,6 +213,34 @@ async def list_eois(
         page_size=page_size,
         total_pages=total_pages,
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EOI Form Options (must be registered BEFORE /{eoi_id} to avoid route clash)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/form-options", response_model=EOIFormOptionsGrouped)
+async def get_form_options(
+    db: AsyncSession = Depends(get_db),
+) -> EOIFormOptionsGrouped:
+    """Return active EOI form options grouped by field_name (public endpoint)."""
+    result = await db.execute(
+        select(EoiFormOption)
+        .where(EoiFormOption.is_active == True)  # noqa: E712
+        .order_by(EoiFormOption.field_name, EoiFormOption.sort_order)
+    )
+    options = result.scalars().all()
+    grouped: dict[str, list[EOIFormOptionRead]] = {
+        "investment_timeline": [],
+        "funding_source": [],
+        "purpose": [],
+        "preferred_contact": [],
+    }
+    for opt in options:
+        if opt.field_name in grouped:
+            grouped[opt.field_name].append(EOIFormOptionRead.model_validate(opt))
+    return EOIFormOptionsGrouped(**grouped)
 
 
 @router.get("/{eoi_id}", response_model=EOIRead)
@@ -536,34 +565,6 @@ async def create_comm_mapping(
     await db.flush()
     await db.refresh(mapping)
     return CommMappingRead.model_validate(mapping)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# EOI Form Options
-# ═══════════════════════════════════════════════════════════════════════════════
-
-
-@router.get("/form-options", response_model=EOIFormOptionsGrouped)
-async def get_form_options(
-    db: AsyncSession = Depends(get_db),
-) -> EOIFormOptionsGrouped:
-    """Return active EOI form options grouped by field_name (public endpoint)."""
-    result = await db.execute(
-        select(EoiFormOption)
-        .where(EoiFormOption.is_active == True)  # noqa: E712
-        .order_by(EoiFormOption.field_name, EoiFormOption.sort_order)
-    )
-    options = result.scalars().all()
-    grouped: dict[str, list[EOIFormOptionRead]] = {
-        "investment_timeline": [],
-        "funding_source": [],
-        "purpose": [],
-        "preferred_contact": [],
-    }
-    for opt in options:
-        if opt.field_name in grouped:
-            grouped[opt.field_name].append(EOIFormOptionRead.model_validate(opt))
-    return EOIFormOptionsGrouped(**grouped)
 
 
 @router.get("/admin/form-options", response_model=dict[str, list[EOIFormOptionRead]])

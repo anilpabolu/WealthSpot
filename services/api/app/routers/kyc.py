@@ -37,6 +37,7 @@ def _resolve_pan(user: User) -> str | None:
         return decrypt(user.pan_encrypted)
     return user.pan_number
 
+
 ALLOWED_DOC_TYPES = {"PAN", "AADHAAR", "SELFIE"}
 MAX_FILE_SIZE = _settings.max_upload_size_bytes
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}

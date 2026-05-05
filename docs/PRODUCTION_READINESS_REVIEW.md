@@ -7,7 +7,7 @@
 ### 1.1 Architecture Compliance Matrix
 
 | Principle | Status | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Clean Architecture | 🟡 Partial | Routes→Services→Models exists but services layer is thin; most business logic lives in routers |
 | Hexagonal Architecture | 🔴 Violated | No ports/adapters pattern; S3/Razorpay/SMTP directly called from routers and services |
 | Domain Driven Design | 🟡 Partial | Good domain models, but no domain events, aggregates, or value objects |
@@ -31,7 +31,7 @@ Routers → Services (business logic) → Repositories → Models → DB
 ### 1.2 Module Boundary Analysis
 
 | Module | Responsibility | Dependencies | Coupling Score |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `routers/` | HTTP handling + business logic | models, schemas, services, middleware, core | 🔴 HIGH (5 internal) |
 | `models/` | ORM entities | core.database only | ✅ LOW (1) |
 | `schemas/` | Pydantic request/response | models (enums) | ✅ LOW (1) |
@@ -55,7 +55,7 @@ services → core
 ### 1.4 God File Detection
 
 | File | Lines | Classification | Split Strategy |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `community.py` (router) | 452 | Controller God File | Split into: posts.py, replies.py, likes.py |
 | `properties.py` (router) | 371 | Controller God File | Split into: marketplace.py, builder_listings.py |
 | `kyc.py` (router) | 317 | Controller God File | Split into: kyc_submit.py, kyc_documents.py |
@@ -65,7 +65,7 @@ services → core
 ### 1.5 Missing Modules
 
 | Module | Status | Impact |
-|---|---|---|
+| --- | --- | --- |
 | `auth/` (directory) | 🟡 Exists as middleware | Good — but refresh token rotation not implemented |
 | `audit/` | ✅ Exists | `middleware/audit.py` — fire-and-forget pattern |
 | `rate_limit/` | ✅ Exists | Redis-backed with in-memory fallback |
@@ -79,7 +79,7 @@ services → core
 ### 1.6 Orphan File Detection
 
 | File | Type | Name | Reason / Safe to Delete |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `services/api/app/services/__init__.py` | ☠ ORPHAN FILE | `__init__.py` | Empty init, no barrel exports — harmless but unused |
 | `services/api/app/celery_app.py` | ☠ ORPHAN MODULE | `celery_app` | Celery configured but **zero @task decorators** defined anywhere in codebase |
 | `database/005_media_address_company.sql` | ☠ DUPLICATE MIGRATION | `005_` duplicate | Two `005_` prefixed files — naming collision risk |
@@ -91,7 +91,7 @@ services → core
 ### 2.1 RESTful Compliance
 
 | Check | Status | Details |
-|---|---|---|
+| --- | --- | --- |
 | Resource Naming | ✅ Good | `/properties`, `/investments`, `/community/posts` |
 | HTTP Methods | ✅ Correct | GET/POST/PATCH/PUT/DELETE used correctly |
 | Versioning | ✅ `/api/v1/` | All routes prefixed |
@@ -181,7 +181,7 @@ xirr=8.2,  # Would be calculated from actual cash flows
 #### 🟡 MEDIUM — Missing Pagination
 
 | Endpoint | File | Issue |
-|---|---|---|
+| --- | --- | --- |
 | `GET /community/posts/{id}/replies` | `community.py` | Returns ALL replies unbounded |
 | `GET /lender/dashboard` | `lender.py` | Loads ALL loans into memory |
 | `GET /approvals/my` | `approvals.py` | Hard-capped at 50, no real pagination |
@@ -193,7 +193,7 @@ xirr=8.2,  # Would be calculated from actual cash flows
 ### 3.1 Schema Summary
 
 | Table | Indexes | FKs | Constraints | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | users | 4 | 1 (self-ref) | UNIQUE(email, clerk_id, referral_code) | ✅ Good |
 | properties | 5 | 2 | UNIQUE(slug) | ✅ Good |
 | investments | 4 | 2 | CHECK(units>0, amount>0) | ✅ Good |
@@ -217,7 +217,7 @@ xirr=8.2,  # Would be calculated from actual cash flows
 ### 3.2 Missing Indexes
 
 | Table | Column(s) | Query Pattern | Priority |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `notifications` | `(user_id, read_at)` WHERE `read_at IS NULL` | Unread count query | 🟠 HIGH |
 | `community_posts` | `(title, body)` GIN tsvector | Full-text search | 🟡 MEDIUM |
 | `audit_logs` | `created_at` (BRIN) | Time-range queries | 🟡 MEDIUM |
@@ -284,7 +284,7 @@ ON properties (city, asset_type) WHERE status NOT IN ('archived', 'rejected');
 ### 4.1 Issue Summary
 
 | Category | Count | Severity |
-|---|---|---|
+| --- | --- | --- |
 | N+1 Queries | 3 | 🔴 CRITICAL |
 | Unbounded Queries | 3 | 🟠 HIGH |
 | Missing Caching | 5 | 🟠 HIGH |
@@ -318,7 +318,7 @@ async def upload_file(file, key, content_type):
 ### 4.3 Missing Redis Caching
 
 | Endpoint | Cache TTL Suggestion | Rationale |
-|---|---|---|
+| --- | --- | --- |
 | `GET /properties` (list) | 30s | Most viewed, rarely changes |
 | `GET /properties/cities` | 5 min | Slow distinct query, static data |
 | `GET /properties/autocomplete` | 60s | Multiple sub-queries |
@@ -466,7 +466,7 @@ Good — but staging environments (non-production, non-development) also expose 
 ### 5.2 Security Checklist
 
 | Check | Status |
-|---|---|
+| --- | --- |
 | SQL Injection | ✅ Protected — SQLAlchemy ORM parameterized queries |
 | JWT Security | 🔴 Default secret risk |
 | Authentication | ✅ Bearer JWT with proper validation |
@@ -487,7 +487,7 @@ Good — but staging environments (non-production, non-development) also expose 
 ### 6.1 Current State
 
 | Component | Status | Assessment |
-|---|---|---|
+| --- | --- | --- |
 | Celery App | ☠ CONFIGURED BUT EMPTY | `celery_app.py` — 25 lines, zero tasks |
 | Celery Worker | 🔴 Docker service exists | Will start but do nothing — wasted container |
 | APScheduler | 🔴 Not present | No periodic job scheduler |
@@ -497,7 +497,7 @@ Good — but staging environments (non-production, non-development) also expose 
 ### 6.2 Missing Background Tasks
 
 | Task | Priority | Currently Handled |
-|---|---|---|
+| --- | --- | --- |
 | Send email notifications | 🔴 HIGH | Inline in request handler (blocks response) |
 | Process KYC document verification | 🔴 HIGH | Not automated |
 | Compute investment returns/XIRR | 🟠 HIGH | Hardcoded `Decimal("1.08")` |
@@ -535,7 +535,7 @@ def cleanup_expired_otps():
 ### 7.1 Current State
 
 | Component | Status | Details |
-|---|---|---|
+| --- | --- | --- |
 | Sentry | 🟡 Optional | Configured in `main.py` (lines 25-30) but `SENTRY_DSN` defaults to empty |
 | Prometheus | 🔴 Missing | No `/metrics` endpoint, no instrumentation |
 | Structured Logging | 🟡 Basic | Uses `logging.getLogger()` — no JSON formatting |
@@ -569,7 +569,7 @@ async def health():
 ### 8.1 Web App Assessment
 
 | Check | Status | Details |
-|---|---|---|
+| --- | --- | --- |
 | Code Splitting | ✅ Excellent | All 28 routes use `React.lazy` |
 | Error Boundaries | ✅ Present | `ErrorBoundary.tsx` with recovery options |
 | State Management | ✅ Good | 4 Zustand stores with appropriate scoping |
@@ -602,7 +602,7 @@ The mobile app is a **minimal MVP** with ~10% feature parity to web:
 ### 9.1 Backend Test Coverage
 
 | Test File | Lines | Covers | Missing |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | test_auth.py | 99 | Register, login, refresh | Brute-force, token expiry edge cases |
 | test_properties.py | 25 | ⚠️ Stub only | Complete CRUD, filtering, pagination |
 | test_investments_referrals_templates_pincodes.py | 237 | Investments, referrals | Payment confirmation, race conditions |
@@ -617,7 +617,7 @@ The mobile app is a **minimal MVP** with ~10% feature parity to web:
 ### 9.2 Coverage Gaps
 
 | Category | Coverage | Priority |
-|---|---|---|
+| --- | --- | --- |
 | Auth (brute force, token rotation) | 🟡 40% | 🔴 HIGH |
 | Properties CRUD | 🔴 ~5% | 🔴 HIGH |
 | Investment confirm-payment race condition | 🔴 0% | 🔴 CRITICAL |
@@ -643,7 +643,7 @@ The mobile app is a **minimal MVP** with ~10% feature parity to web:
 ### 10.1 Docker Assessment
 
 | Check | Status | Details |
-|---|---|---|
+| --- | --- | --- |
 | Multi-stage build (API) | 🔴 Missing | Single FROM, no builder/runtime separation |
 | Multi-stage build (Web) | ✅ Good | Build → nginx production stage |
 | Non-root user | 🔴 Missing (API) | Runs as root |
@@ -696,7 +696,7 @@ USER appuser
 ### 10.3 Environment Configuration
 
 | Concern | Status |
-|---|---|
+| --- | --- |
 | `.env` example file | ✅ Exists |
 | Secret rotation strategy | 🔴 Missing |
 | Config validation on startup | 🔴 Missing for critical settings |
@@ -730,7 +730,7 @@ The project description mentions "AI-powered" but there are:
 ## SECTION 12 — FEATURE GAP ANALYSIS
 
 | Feature | Status | Priority |
-|---|---|---|
+| --- | --- | --- |
 | Portfolio Tracking | ✅ Present | — |
 | Investment Dashboard | ✅ Present | — |
 | KYC Verification | ✅ Present | — |
@@ -863,7 +863,7 @@ jobs:
 ## SECTION 14 — FINAL PRODUCTION READINESS SCORE
 
 | Category | Score | Grade | Key Blockers |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Architecture** | 62/100 | C+ | Missing service layer, thin abstraction, god files |
 | **Security** | 48/100 | D+ | Webhook bypass, JWT default, encryption key in compose, no MFA |
 | **Performance** | 58/100 | C | N+1 queries, blocking S3, no caching, hardcoded returns |
@@ -886,7 +886,7 @@ jobs:
 ### Priority Fix Order
 
 | Priority | Item | Effort |
-|---|---|---|
+| --- | --- | --- |
 | P0 | Fix webhook bypass (env check) | 1 hour |
 | P0 | Remove `--reload` from Docker CMD | 10 min |
 | P0 | Remove encryption key from docker-compose | 10 min |

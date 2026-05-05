@@ -31,13 +31,9 @@ class DevicePlatform(str, PyEnum):
 
 class UserDevice(Base):
     __tablename__ = "user_devices"
-    __table_args__ = (
-        UniqueConstraint("user_id", "push_token", name="uq_user_devices_user_token"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "push_token", name="uq_user_devices_user_token"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),

@@ -16,13 +16,13 @@ describe('communityBff', () => {
     it('separates pinned posts from regular posts', async () => {
       vi.mocked(apiGet).mockResolvedValueOnce({
         items: [
-          { id: '1', title: 'Pinned', is_pinned: true },
-          { id: '2', title: 'Regular', is_pinned: false },
-          { id: '3', title: 'Also Pinned', is_pinned: true },
+          { id: '1', title: 'Pinned', isPinned: true },
+          { id: '2', title: 'Regular', isPinned: false },
+          { id: '3', title: 'Also Pinned', isPinned: true },
         ],
         total: 3,
         page: 1,
-        total_pages: 1,
+        totalPages: 1,
       } as any)
 
       const result = await communityBff.getFeed({ category: 'general' })

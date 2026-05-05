@@ -20,11 +20,15 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  Image,
+  Dimensions,
 } from 'react-native'
 import { router } from 'expo-router'
 import { useSignIn } from '@clerk/clerk-expo'
 import { useThemeStore } from '@/stores/theme.store'
 import { getThemeColors } from '@/lib/theme'
+import WLogo3D from '@/components/ui/WLogo3D'
 
 type Stage = 'email' | 'otp' | 'loading'
 
@@ -90,18 +94,106 @@ export default function SignInScreen() {
 
   const isLoading = stage === 'loading'
 
+  const screenWidth = Dimensions.get('window').width
+  const [bannerError, setBannerError] = useState(false)
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: colors.bgBase }}
     >
-      <View className="flex-1 justify-center px-6">
-        {/* Logo / heading */}
-        <View className="mb-10 items-center">
-          <Text style={{ color: colors.gold }} className="text-4xl font-extrabold tracking-tight mb-1">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ─── Marketing banner image with gold double-border ─── */}
+        <View style={{ marginBottom: 28 }}>
+          {/* Outer gold border */}
+          <View
+            style={{
+              borderWidth: 2,
+              borderColor: 'rgba(212,175,55,0.75)',
+              borderRadius: 20,
+              padding: 3,
+              shadowColor: '#D4AF37',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.25,
+              shadowRadius: 20,
+              elevation: 6,
+            }}
+          >
+            {/* Dark gap */}
+            <View
+              style={{
+                backgroundColor: isDark ? '#0c0a1f' : '#0b1120',
+                borderRadius: 17,
+                padding: 3,
+              }}
+            >
+              {/* Inner gold border */}
+              <View
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(212,175,55,0.38)',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                }}
+              >
+                {bannerError ? (
+                  /* Branded fallback */
+                  <View
+                    style={{
+                      width: '100%',
+                      aspectRatio: 1.78,
+                      backgroundColor: '#0b1120',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 10,
+                      padding: 20,
+                    }}
+                  >
+                    <Text style={{ color: 'rgba(212,175,55,0.7)', fontSize: 10, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase' }}>
+                      WealthSpot Club
+                    </Text>
+                    <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: '800', textAlign: 'center', lineHeight: 28 }}>
+                      Secure tomorrow&apos;s{`\n`}value today.
+                    </Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
+                      Invest early in prime land. Build value.
+                    </Text>
+                  </View>
+                ) : (
+                  <Image
+                    // eslint-disable-next-line @typescript-eslint/no-require-imports
+                    source={require('../assets/wealthspot-club-banner.jpg')}
+                    style={{ width: screenWidth - 56, aspectRatio: 1.78 }}
+                    resizeMode="cover"
+                    onError={() => setBannerError(true)}
+                  />
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ─── Logo / heading ─── */}
+        <View style={{ marginBottom: 32, alignItems: 'center' }}>
+          <WLogo3D size={64} spin />
+          <Text
+            style={{
+              color: colors.gold,
+              fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
+              fontSize: 30,
+              fontWeight: '800',
+              letterSpacing: -0.4,
+              marginTop: 12,
+              marginBottom: 2,
+            }}
+          >
             WealthSpot
           </Text>
-          <Text style={{ color: colors.textSecondary }} className="text-sm">
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
             Fractional real-estate investing
           </Text>
         </View>
@@ -247,7 +339,7 @@ export default function SignInScreen() {
           By signing in you agree to WealthSpot&apos;s Terms of Service and Privacy Policy.
           SEBI-registered investment advisor.
         </Text>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }

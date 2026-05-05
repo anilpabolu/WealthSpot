@@ -42,9 +42,9 @@ export interface PortfolioView {
 export const mobilePortfolioBff = {
   async getPortfolio(): Promise<PortfolioView> {
     const [summary, holdings, transactions] = await Promise.all([
-      apiGet<PortfolioView["summary"]>("/investments/portfolio/summary"),
-      apiGet<PortfolioView["holdings"]>("/investments/portfolio/holdings"),
-      apiGet<PortfolioView["transactions"]>("/investments/transactions", {
+      apiGet<PortfolioView["summary"]>("/portfolio/summary"),
+      apiGet<PortfolioView["holdings"]>("/portfolio/properties"),
+      apiGet<PortfolioView["transactions"]>("/portfolio/transactions", {
         params: { limit: 20, sort: "-created_at" },
       }),
     ]);
@@ -54,7 +54,7 @@ export const mobilePortfolioBff = {
   async getPropertyInvestmentDetail(propertyId: string) {
     const [holding, transactions] = await Promise.all([
       apiGet<PortfolioPropertyHolding>(
-        `/investments/portfolio/holdings/${propertyId}`
+        `/portfolio/properties/${propertyId}`
       ),
       apiGet<PortfolioView["transactions"]>("/investments/transactions", {
         params: { property_id: propertyId, limit: 50 },

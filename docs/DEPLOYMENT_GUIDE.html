@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DEPLOYMENT_GUIDE.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="wealthspot-production-hosting--deployment-guide">WealthSpot Production Hosting &amp; Deployment Guide</h1>
+<p><strong>Date:</strong> May 4, 2026<br>
+<strong>Scope:</strong> Practical production hosting recommendation for the current WealthSpot monorepo and Dockerized stack.<br>
+<strong>Audience:</strong> Founder/engineering leadership, infrastructure owners, DevOps, platform engineers.</p>
+<hr>
+<h2 id="1-executive-recommendation">1. Executive Recommendation</h2>
+<h3 id="recommended-production-platform">Recommended production platform</h3>
+<p>Use <strong>Azure Container Apps + managed Azure services</strong> for the first serious production launch.</p>
+<p>This is the best fit for WealthSpot because the project is already containerized, but it does not yet justify the operational cost and complexity of Kubernetes. Azure Container Apps gives you production-grade container hosting, autoscaling, revisions, private networking, secrets integration, logging, and scaling controls without running an AKS cluster.</p>
+<h3 id="recommended-target-architecture">Recommended target architecture</h3>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Recommended service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>React/Vite web app</td>
+<td>Azure Static Web Apps or Azure Storage Static Website + Azure Front Door/CDN</td>
+</tr>
+<tr>
+<td>FastAPI backend</td>
+<td>Azure Container Apps</td>
+</tr>
+<tr>
+<td>Background workers</td>
+<td>Azure Container Apps worker apps or Container Apps Jobs</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>Azure Database for PostgreSQL Flexible Server</td>
+</tr>
+<tr>
+<td>Redis / Celery broker / cache</td>
+<td>Azure Cache for Redis</td>
+</tr>
+<tr>
+<td>File/media storage</td>
+<td>Azure Blob Storage</td>
+</tr>
+<tr>
+<td>Container registry</td>
+<td>Azure Container Registry</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>Azure Key Vault</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>Application Insights + Log Analytics</td>
+</tr>
+<tr>
+<td>Edge security</td>
+<td>Azure Front Door + WAF</td>
+</tr>
+<tr>
+<td>Infrastructure as Code</td>
+<td>Terraform or Bicep; prefer Terraform if multi-cloud portability matters</td>
+</tr>
+</tbody>
+</table>
+<h3 id="practical-cost-target">Practical cost target</h3>
+<p>For a cost-efficient but production-grade MVP launch in India:</p>
+<ul>
+<li><strong>Lean production baseline:</strong> approximately <strong>₹12,000–₹25,000/month</strong>.</li>
+<li><strong>Stronger production baseline with better HA/security:</strong> approximately <strong>₹35,000–₹80,000/month</strong>.</li>
+<li><strong>Do not start with AKS</strong> unless the team already has Kubernetes operations experience and clear scale requirements.</li>
+<li><strong>Avoid single-VM Docker Compose for real production</strong> unless this is a short-lived beta with explicit acceptance of downtime risk.</li>
+</ul>
+<h3 id="final-decision">Final decision</h3>
+<p>Start with:</p>
+<ol>
+<li><strong>Azure Container Apps</strong> for API and workers.</li>
+<li><strong>Azure Static Web Apps</strong> for the React frontend.</li>
+<li><strong>Azure Database for PostgreSQL Flexible Server</strong> for the database.</li>
+<li><strong>Azure Cache for Redis</strong> for Redis.</li>
+<li><strong>Azure Blob Storage</strong> instead of MinIO.</li>
+<li><strong>Azure Key Vault</strong> for all secrets.</li>
+<li><strong>Application Insights + Log Analytics</strong> from day one.</li>
+<li><strong>Central India</strong> as the primary Azure region, with South India as the DR/backup region when needed.</li>
+</ol>
+<hr>
+<h2 id="2-current-project-and-docker-review">2. Current Project and Docker Review</h2>
+<p>The current repository is a monorepo with these major components:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Current location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web app</td>
+<td>React 19, Vite, TypeScript, Tailwind</td>
+<td>apps/web</td>
+</tr>
+<tr>
+<td>Mobile app</td>
+<td>Expo / React Native</td>
+<td>apps/mobile</td>
+</tr>
+<tr>
+<td>Backend API</td>
+<td>FastAPI, SQLAlchemy async, Alembic</td>
+<td>services/api</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>PostgreSQL</td>
+<td>docker-compose service</td>
+</tr>
+<tr>
+<td>Cache / broker</td>
+<td>Redis</td>
+<td>docker-compose service</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td>MinIO local S3-compatible storage</td>
+<td>docker-compose service</td>
+</tr>
+<tr>
+<td>Async workers</td>
+<td>Celery</td>
+<td>docker-compose services</td>
+</tr>
+<tr>
+<td>Shared packages</td>
+<td>TypeScript types and API client</td>
+<td>packages</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>JS/Python test runner</td>
+<td>tests</td>
+</tr>
+</tbody>
+</table>
+<h3 id="21-current-docker-compose-services">2.1 Current Docker Compose services</h3>
+<p>The current docker-compose.yml defines these services:</p>
+<table>
+<thead>
+<tr>
+<th>Compose service</th>
+<th>Image/build</th>
+<th>Current role</th>
+<th>Production recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>postgres</td>
+<td>postgres:16-alpine</td>
+<td>Local/dev database</td>
+<td>Replace with Azure Database for PostgreSQL Flexible Server</td>
+</tr>
+<tr>
+<td>redis</td>
+<td>redis:7-alpine</td>
+<td>Local/dev cache and Celery broker</td>
+<td>Replace with Azure Cache for Redis</td>
+</tr>
+<tr>
+<td>minio</td>
+<td>minio/minio:latest</td>
+<td>Local/dev S3-compatible object storage</td>
+<td>Replace with Azure Blob Storage</td>
+</tr>
+<tr>
+<td>minio-init</td>
+<td>minio/mc:latest</td>
+<td>Creates local bucket and CORS</td>
+<td>Remove in production</td>
+</tr>
+<tr>
+<td>api</td>
+<td>services/api Dockerfile, target development</td>
+<td>FastAPI backend with hot reload and migrations</td>
+<td>Build target production; run in Azure Container Apps</td>
+</tr>
+<tr>
+<td>celery-worker</td>
+<td>services/api Dockerfile, target development</td>
+<td>General Celery worker</td>
+<td>Deploy only after real tasks are implemented and tested</td>
+</tr>
+<tr>
+<td>comm-worker</td>
+<td>services/api Dockerfile, target development</td>
+<td>Communication worker queues</td>
+<td>Deploy separately only after communication flows are production-ready</td>
+</tr>
+<tr>
+<td>web</td>
+<td>apps/web Dockerfile, target dev</td>
+<td>Vite development server</td>
+<td>Use production target or deploy static dist to Static Web Apps</td>
+</tr>
+<tr>
+<td>test-runner</td>
+<td>tests/Dockerfile</td>
+<td>Optional CI/test container</td>
+<td>CI only; never production</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-current-image-details">2.2 Current image details</h3>
+<h4 id="web-image">Web image</h4>
+<p>Current Dockerfile has three stages:</p>
+<ol>
+<li><strong>build</strong> — node:20-alpine, installs root workspace dependencies, builds shared packages, builds apps/web.</li>
+<li><strong>production</strong> — nginx:alpine, serves apps/web/dist.</li>
+<li><strong>dev</strong> — node:20-alpine, runs Vite dev server on port 5173.</li>
+</ol>
+<p>This is good structure. The production web target is suitable, but current docker-compose uses the <strong>dev</strong> target. That is correct for local development, not production.</p>
+<h4 id="api-image">API image</h4>
+<p>Current API Dockerfile has three stages:</p>
+<ol>
+<li><strong>builder</strong> — python:3.12-slim, installs uv and builds dependencies into /install.</li>
+<li><strong>production</strong> — python:3.12-slim, copies runtime app and Alembic files, runs as appuser, starts uvicorn with 4 workers.</li>
+<li><strong>development</strong> — python:3.12-slim, includes build tools, dev dependencies, entrypoint migrations, and reload mode.</li>
+</ol>
+<p>The production target is a good starting point. The development target must not be used in production.</p>
+<h4 id="celery-images">Celery images</h4>
+<p>The Celery and communication workers currently reuse the API Dockerfile development target. This is acceptable locally, but production should either:</p>
+<ul>
+<li>use the same API production image with a different command, or</li>
+<li>use a dedicated worker image if worker dependencies diverge.</li>
+</ul>
+<p>The practical first step is to reuse the API production image and override the command for Celery.</p>
+<h4 id="test-runner-image">Test runner image</h4>
+<p>The test runner is not a production runtime. Keep it only in CI.</p>
+<hr>
+<h2 id="3-what-not-to-deploy-to-production">3. What Not To Deploy To Production</h2>
+<h3 id="do-not-deploy-the-full-docker-composeyml-as-is">Do not deploy the full docker-compose.yml as-is</h3>
+<p>The current Compose stack is a local development stack. It includes dev targets, hot reload, local credentials, local object storage, and dev service bindings.</p>
+<p>Do not run this exact stack in production.</p>
+<h3 id="do-not-run-production-database-inside-the-app-vmcontainer-stack">Do not run production database inside the app VM/container stack</h3>
+<p>Avoid self-hosted PostgreSQL in Docker for production. The database is the most valuable stateful asset. Use a managed database with backups, restore, patching, metrics, and failover.</p>
+<h3 id="do-not-run-minio-for-production-unless-you-have-a-storage-operations-team">Do not run MinIO for production unless you have a storage operations team</h3>
+<p>MinIO is useful locally, but production object storage needs:</p>
+<ul>
+<li>lifecycle policies,</li>
+<li>versioning,</li>
+<li>backup/replication,</li>
+<li>private endpoints,</li>
+<li>IAM/RBAC integration,</li>
+<li>audit trails,</li>
+<li>durable storage SLAs.</li>
+</ul>
+<p>Use Azure Blob Storage.</p>
+<h3 id="do-not-run-vite-dev-server-in-production">Do not run Vite dev server in production</h3>
+<p>The current web container running in Docker Compose uses target dev. Production should serve static Vite build output from:</p>
+<ul>
+<li>Azure Static Web Apps, or</li>
+<li>Azure Storage Static Website + Front Door/CDN, or</li>
+<li>nginx production target if containerizing the frontend is mandatory.</li>
+</ul>
+<h3 id="do-not-run-migrations-in-every-scaled-api-replica">Do not run migrations in every scaled API replica</h3>
+<p>The current development entrypoint runs Alembic migrations on container startup. In production, this can become dangerous when multiple replicas start at the same time.</p>
+<p>Run migrations as a dedicated deployment step or one-off Container Apps Job.</p>
+<h3 id="do-not-keep-secrets-in-env-files-or-compose-environment-blocks">Do not keep secrets in .env files or Compose environment blocks</h3>
+<p>Use Azure Key Vault and managed identity.</p>
+<h3 id="do-not-deploy-unused-workers">Do not deploy unused workers</h3>
+<p>Deploy Celery workers only when tasks exist and are tested. Unused workers add cost, attack surface, and operational noise.</p>
+<hr>
+<h2 id="4-hosting-options-compared">4. Hosting Options Compared</h2>
+<h3 id="41-azure-container-apps--recommended">4.1 Azure Container Apps — Recommended</h3>
+<p>Best balance of cost, production readiness, autoscaling, and low operational burden.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Directly supports containers.</li>
+<li>No Kubernetes cluster management.</li>
+<li>Can autoscale API and workers independently.</li>
+<li>Supports revisions, rollbacks, traffic splitting.</li>
+<li>Integrates well with Azure Container Registry, Key Vault, Log Analytics, and Application Insights.</li>
+<li>Good path to future AKS migration if scale demands it.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Less low-level control than Kubernetes.</li>
+<li>Requires learning Container Apps environment, revisions, ingress, secrets, and scaling rules.</li>
+</ul>
+<p><strong>Recommendation:</strong> Use this.</p>
+<h3 id="42-azure-app-service-for-containers">4.2 Azure App Service for Containers</h3>
+<p>Good for simpler web/API hosting but less elegant for multiple independently scaling container workers.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Mature PaaS.</li>
+<li>Deployment slots are strong.</li>
+<li>Easy operational model.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Background workers are less natural.</li>
+<li>Scaling granularity is less flexible.</li>
+<li>Can become more expensive for multiple app services.</li>
+</ul>
+<p><strong>Recommendation:</strong> Acceptable, but Container Apps is better for this stack.</p>
+<h3 id="43-aks">4.3 AKS</h3>
+<p>Powerful but overkill right now.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Maximum control.</li>
+<li>Best for large multi-service platforms.</li>
+<li>Supports advanced networking and service mesh.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Requires Kubernetes expertise.</li>
+<li>Higher base cost.</li>
+<li>More operational responsibility.</li>
+<li>More moving parts than this application currently needs.</li>
+</ul>
+<p><strong>Recommendation:</strong> Avoid for first production launch. Reconsider after major scale, multiple teams, or strict platform engineering needs.</p>
+<h3 id="44-single-vm--vps-with-docker-compose">4.4 Single VM / VPS with Docker Compose</h3>
+<p>Cheapest in raw hosting cost, but expensive in risk and operations.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Very simple to understand.</li>
+<li>Low initial bill.</li>
+<li>Can run current Compose stack with minor edits.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Single point of failure.</li>
+<li>Manual patching and backups.</li>
+<li>Harder incident recovery.</li>
+<li>Database and storage reliability become your responsibility.</li>
+<li>Weak fit for finance/real-estate investment platform credibility.</li>
+</ul>
+<p><strong>Recommendation:</strong> Only use for internal demo/beta if budget is extremely constrained. Not recommended for real production.</p>
+<h3 id="45-render-railway-flyio-heroku-like-paas">4.5 Render, Railway, Fly.io, Heroku-like PaaS</h3>
+<p>Good developer experience, weaker data residency/control story.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Fast setup.</li>
+<li>Git-native deploys.</li>
+<li>Low DevOps overhead.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Region/data residency limitations.</li>
+<li>Less enterprise-grade network/security control.</li>
+<li>Managed database/storage options may be limited.</li>
+<li>Harder to satisfy future compliance needs.</li>
+</ul>
+<p><strong>Recommendation:</strong> Good for prototypes, not preferred for WealthSpot production.</p>
+<h3 id="46-aws-equivalent">4.6 AWS equivalent</h3>
+<p>AWS is also viable:</p>
+<ul>
+<li>ECS Fargate for API/workers.</li>
+<li>RDS PostgreSQL.</li>
+<li>ElastiCache Redis.</li>
+<li>S3.</li>
+<li>Secrets Manager.</li>
+<li>CloudWatch.</li>
+<li>CloudFront/WAF.</li>
+</ul>
+<p>This is a strong alternative, especially if the team already knows AWS. However, since the repo already has Azure-oriented dev tooling and Azure Container Apps gives simpler container PaaS ergonomics, Azure is the recommended path.</p>
+<hr>
+<h2 id="5-recommended-production-architecture">5. Recommended Production Architecture</h2>
+<h3 id="51-primary-region">5.1 Primary region</h3>
+<p>Use <strong>Central India</strong> for the primary deployment.</p>
+<p>Reasoning:</p>
+<ul>
+<li>Keeps production data in India.</li>
+<li>Good baseline region for regulated or finance-adjacent workloads.</li>
+<li>Lower latency for Indian users compared with US/EU regions.</li>
+<li>Better long-term compliance posture.</li>
+</ul>
+<p>Use <strong>South India</strong> as the DR or secondary region when introducing disaster recovery.</p>
+<h3 id="52-runtime-topology">5.2 Runtime topology</h3>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th>Minimum production config</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API Container App</td>
+<td>min 1 replica for lean launch, min 2 for stronger production</td>
+<td>0.5–1 vCPU, 1–2 GiB memory to start</td>
+</tr>
+<tr>
+<td>Worker Container App</td>
+<td>min 0 or 1 replica depending on task criticality</td>
+<td>Scale by queue depth later</td>
+</tr>
+<tr>
+<td>Migration Job</td>
+<td>one-off Container Apps Job</td>
+<td>Runs Alembic once per deployment</td>
+</tr>
+<tr>
+<td>Web frontend</td>
+<td>Static Web Apps</td>
+<td>Avoid running frontend as always-on container unless required</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-data-services">5.3 Data services</h3>
+<table>
+<thead>
+<tr>
+<th>Data service</th>
+<th>Recommended Azure service</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Azure Database for PostgreSQL Flexible Server</td>
+<td>Start Burstable/General Purpose depending on traffic</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Azure Cache for Redis</td>
+<td>Basic for early MVP; Standard/Premium for production HA/private networking</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td>Azure Blob Storage</td>
+<td>Enable versioning and lifecycle rules</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>Azure Key Vault</td>
+<td>Use managed identity from Container Apps</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-edge-and-networking">5.4 Edge and networking</h3>
+<p>Start simple but production-safe:</p>
+<ol>
+<li>Custom domain for frontend.</li>
+<li>HTTPS only.</li>
+<li>API ingress limited and protected.</li>
+<li>CORS restricted to real frontend domains.</li>
+<li>Database and Redis behind private endpoints when moving to stronger production.</li>
+<li>Azure Front Door + WAF before public scale or paid users.</li>
+</ol>
+<h3 id="55-observability">5.5 Observability</h3>
+<p>Minimum from day one:</p>
+<ul>
+<li>Application Insights for API requests, failures, dependency latency.</li>
+<li>Log Analytics for container logs.</li>
+<li>Alerts for API down, 5xx rate, latency, DB CPU, DB storage, Redis memory.</li>
+<li>Sentry can remain for application exceptions if already configured.</li>
+</ul>
+<hr>
+<h2 id="6-cost-efficient-tiers">6. Cost-Efficient Tiers</h2>
+<p>These are practical approximations, not vendor quotes. Validate pricing before final purchase.</p>
+<h3 id="61-lean-mvp-production">6.1 Lean MVP production</h3>
+<p>Best for early controlled launch, beta users, and cost control.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Suggested tier</th>
+<th style="text-align:right">Approx monthly cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Static Web Apps</td>
+<td>Free/Standard as needed</td>
+<td style="text-align:right">₹0–₹800</td>
+</tr>
+<tr>
+<td>Container Apps API</td>
+<td>Consumption, 1–2 small replicas</td>
+<td style="text-align:right">₹2,000–₹8,000</td>
+</tr>
+<tr>
+<td>PostgreSQL Flexible Server</td>
+<td>Burstable B1ms/B2s style tier</td>
+<td style="text-align:right">₹3,000–₹8,000</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Basic/low tier</td>
+<td style="text-align:right">₹1,000–₹3,000</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td>Hot LRS, low volume</td>
+<td style="text-align:right">₹200–₹1,000</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>Standard</td>
+<td style="text-align:right">₹100–₹500</td>
+</tr>
+<tr>
+<td>Logs/App Insights</td>
+<td>Low ingestion cap</td>
+<td style="text-align:right">₹500–₹3,000</td>
+</tr>
+<tr>
+<td>Container Registry</td>
+<td>Basic</td>
+<td style="text-align:right">₹400–₹800</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td style="text-align:right"><strong>₹12,000–₹25,000/month</strong></td>
+</tr>
+</tbody>
+</table>
+<p>USD equivalent: approximately <strong>$145–$300/month</strong>.</p>
+<h3 id="62-stronger-production-baseline">6.2 Stronger production baseline</h3>
+<p>Best when handling real investors, sensitive documents, payment flows, and public traffic.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Suggested tier</th>
+<th style="text-align:right">Approx monthly cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Static Web Apps / Front Door</td>
+<td>Standard + WAF when needed</td>
+<td style="text-align:right">₹2,000–₹10,000</td>
+</tr>
+<tr>
+<td>Container Apps API</td>
+<td>2+ always-warm replicas</td>
+<td style="text-align:right">₹8,000–₹20,000</td>
+</tr>
+<tr>
+<td>PostgreSQL Flexible Server</td>
+<td>General Purpose, better storage, backups</td>
+<td style="text-align:right">₹10,000–₹25,000</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Standard/Premium</td>
+<td style="text-align:right">₹5,000–₹15,000</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td>Hot + versioning + lifecycle</td>
+<td style="text-align:right">₹500–₹3,000</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>Standard</td>
+<td style="text-align:right">₹200–₹1,000</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>App Insights + Log Analytics</td>
+<td style="text-align:right">₹3,000–₹10,000</td>
+</tr>
+<tr>
+<td>Container Registry</td>
+<td>Basic/Standard</td>
+<td style="text-align:right">₹800–₹2,000</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td style="text-align:right"><strong>₹35,000–₹80,000/month</strong></td>
+</tr>
+</tbody>
+</table>
+<p>USD equivalent: approximately <strong>$420–$960/month</strong>.</p>
+<h3 id="63-ultra-low-cost-beta-option">6.3 Ultra-low-cost beta option</h3>
+<p>If cost must be kept extremely low:</p>
+<ul>
+<li>One small VM running API/web only.</li>
+<li>Managed PostgreSQL still recommended.</li>
+<li>Managed Redis optional.</li>
+<li>Blob Storage for files.</li>
+</ul>
+<p>Approximate cost: <strong>₹6,000–₹15,000/month</strong>.</p>
+<p>This should be treated as beta/non-critical hosting only. It is not the recommended architecture for investor-facing production.</p>
+<hr>
+<h2 id="7-current-service-to-production-mapping">7. Current Service to Production Mapping</h2>
+<table>
+<thead>
+<tr>
+<th>Current Docker service</th>
+<th>Production replacement</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>postgres</td>
+<td>Azure Database for PostgreSQL Flexible Server</td>
+<td>Migrate schema/data using Alembic and pg_dump/restore</td>
+</tr>
+<tr>
+<td>redis</td>
+<td>Azure Cache for Redis</td>
+<td>Use TLS URL and password/managed access</td>
+</tr>
+<tr>
+<td>minio</td>
+<td>Azure Blob Storage</td>
+<td>Replace endpoint config; keep boto3 only if using S3-compatible path, otherwise migrate to Azure SDK later</td>
+</tr>
+<tr>
+<td>minio-init</td>
+<td>Not needed</td>
+<td>Remove from production</td>
+</tr>
+<tr>
+<td>api</td>
+<td>Azure Container Apps</td>
+<td>Build production target and deploy from ACR</td>
+</tr>
+<tr>
+<td>celery-worker</td>
+<td>Azure Container Apps worker or job</td>
+<td>Deploy after tasks are confirmed</td>
+</tr>
+<tr>
+<td>comm-worker</td>
+<td>Separate worker Container App</td>
+<td>Deploy after email/SMS/WhatsApp flows are hardened</td>
+</tr>
+<tr>
+<td>web</td>
+<td>Azure Static Web Apps</td>
+<td>Build Vite static assets and deploy dist</td>
+</tr>
+<tr>
+<td>test-runner</td>
+<td>GitHub Actions / CI</td>
+<td>Keep out of production</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-production-docker-changes-required">8. Production Docker Changes Required</h2>
+<h3 id="81-web">8.1 Web</h3>
+<p>Current production stage is acceptable. Required actions:</p>
+<ol>
+<li>Build using production target only.</li>
+<li>Confirm Vite environment variables point to production API.</li>
+<li>Harden nginx.conf if using containerized web:
+<ul>
+<li>HSTS.</li>
+<li>X-Content-Type-Options.</li>
+<li>X-Frame-Options or frame-ancestors CSP.</li>
+<li>CSP compatible with Clerk, Sentry, API, and media domains.</li>
+<li>gzip/brotli compression if supported.</li>
+</ul>
+</li>
+<li>Prefer Static Web Apps over nginx container for cost and simplicity.</li>
+</ol>
+<h3 id="82-api">8.2 API</h3>
+<p>Required actions:</p>
+<ol>
+<li>Use services/api Dockerfile production target.</li>
+<li>Do not use reload mode.</li>
+<li>Do not run Alembic migrations in every API replica.</li>
+<li>Add or verify a /health endpoint suitable for readiness checks.</li>
+<li>Add structured JSON logging.</li>
+<li>Confirm non-root user is used.</li>
+<li>Pin production dependencies with lockfile strategy.</li>
+<li>Add graceful shutdown handling for active requests.</li>
+</ol>
+<h3 id="83-workers">8.3 Workers</h3>
+<p>Required actions:</p>
+<ol>
+<li>Use the API production image with a worker command, or create a dedicated worker image.</li>
+<li>Start with one worker type only when real tasks are in use.</li>
+<li>Add task timeouts and retry policies.</li>
+<li>Configure queue names explicitly.</li>
+<li>Add queue-depth based scaling later.</li>
+</ol>
+<h3 id="84-database-migrations">8.4 Database migrations</h3>
+<p>Required actions:</p>
+<ol>
+<li>Create a deployment job to run Alembic once.</li>
+<li>Run migrations before shifting traffic to the new API revision.</li>
+<li>Keep rollback scripts or backward-compatible migrations.</li>
+<li>Never run destructive migrations without a backup.</li>
+</ol>
+<hr>
+<h2 id="9-environment-and-secrets">9. Environment and Secrets</h2>
+<h3 id="91-required-production-secrets">9.1 Required production secrets</h3>
+<p>Move all of these to Azure Key Vault:</p>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DATABASE_URL</td>
+<td>PostgreSQL connection</td>
+</tr>
+<tr>
+<td>REDIS_URL</td>
+<td>Redis/cache/broker connection</td>
+</tr>
+<tr>
+<td>CELERY_BROKER_URL</td>
+<td>Celery broker connection</td>
+</tr>
+<tr>
+<td>JWT_SECRET_KEY</td>
+<td>API token signing</td>
+</tr>
+<tr>
+<td>ENCRYPTION_KEY</td>
+<td>Sensitive field encryption</td>
+</tr>
+<tr>
+<td>CLERK_API_KEY</td>
+<td>Clerk server integration</td>
+</tr>
+<tr>
+<td>CLERK_WEBHOOK_SECRET</td>
+<td>Clerk webhook validation</td>
+</tr>
+<tr>
+<td>RAZORPAY_KEY_ID</td>
+<td>Razorpay public/server key id</td>
+</tr>
+<tr>
+<td>RAZORPAY_KEY_SECRET</td>
+<td>Razorpay secret</td>
+</tr>
+<tr>
+<td>SMTP credentials</td>
+<td>Email sending</td>
+</tr>
+<tr>
+<td>Twilio credentials</td>
+<td>SMS/WhatsApp</td>
+</tr>
+<tr>
+<td>SENTRY_DSN</td>
+<td>Error monitoring</td>
+</tr>
+<tr>
+<td>OPENAI_API_KEY</td>
+<td>AI features if used</td>
+</tr>
+</tbody>
+</table>
+<h3 id="92-required-production-environment-values">9.2 Required production environment values</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APP_ENV</td>
+<td>production</td>
+</tr>
+<tr>
+<td>DEBUG</td>
+<td>false</td>
+</tr>
+<tr>
+<td>CORS_ORIGINS</td>
+<td>only exact HTTPS frontend origins</td>
+</tr>
+<tr>
+<td>DATABASE_ECHO</td>
+<td>false</td>
+</tr>
+<tr>
+<td>S3_PUBLIC_URL</td>
+<td>production storage/CDN URL</td>
+</tr>
+<tr>
+<td>AWS_S3_BUCKET</td>
+<td>keep if preserving boto3 abstraction</td>
+</tr>
+<tr>
+<td>S3_ENDPOINT_URL</td>
+<td>blank for AWS S3; Azure-specific if using compatibility layer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93-cors-policy">9.3 CORS policy</h3>
+<p>Do not use localhost or wildcard origins in production.</p>
+<p>Use explicit values such as:</p>
+<ul>
+<li>https://wealthspot.in</li>
+<li>https://www.wealthspot.in</li>
+<li>https://app.wealthspot.in</li>
+<li>staging domain only in staging</li>
+</ul>
+<hr>
+<h2 id="10-cicd-recommendation">10. CI/CD Recommendation</h2>
+<h3 id="101-pipeline-stages">10.1 Pipeline stages</h3>
+<p>Use GitHub Actions or Azure DevOps.</p>
+<p>Recommended pipeline:</p>
+<ol>
+<li>Checkout.</li>
+<li>Install Node and Python.</li>
+<li>Lint web/mobile/API.</li>
+<li>Run tests.</li>
+<li>Build shared packages.</li>
+<li>Build API production image.</li>
+<li>Build worker image or reuse API image.</li>
+<li>Build web static assets.</li>
+<li>Scan images for vulnerabilities.</li>
+<li>Push images to Azure Container Registry.</li>
+<li>Run database migration job.</li>
+<li>Deploy API Container App revision.</li>
+<li>Deploy worker revision if enabled.</li>
+<li>Deploy web static assets.</li>
+<li>Run smoke tests.</li>
+<li>Shift traffic.</li>
+<li>Monitor and rollback if health checks fail.</li>
+</ol>
+<h3 id="102-deployment-strategy">10.2 Deployment strategy</h3>
+<p>Use revision-based deployment:</p>
+<ul>
+<li>Deploy new API revision.</li>
+<li>Run health checks.</li>
+<li>Shift 10% traffic for canary.</li>
+<li>Monitor 5xx and latency.</li>
+<li>Shift to 100%.</li>
+<li>Keep previous revision for rollback.</li>
+</ul>
+<h3 id="103-branching">10.3 Branching</h3>
+<p>Minimum practical model:</p>
+<table>
+<thead>
+<tr>
+<th>Branch</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main</td>
+<td>production releases</td>
+</tr>
+<tr>
+<td>staging</td>
+<td>pre-production environment</td>
+</tr>
+<tr>
+<td>feature/*</td>
+<td>pull requests and review</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="11-security-and-compliance-checklist">11. Security and Compliance Checklist</h2>
+<h3 id="111-must-fix-before-real-production">11.1 Must fix before real production</h3>
+<ol>
+<li>Remove dev secrets from deployment configuration.</li>
+<li>Enforce strong JWT secret in production.</li>
+<li>Enforce ENCRYPTION_KEY in production.</li>
+<li>Enforce SENTRY_DSN or equivalent observability in production.</li>
+<li>Use HTTPS only.</li>
+<li>Lock CORS to exact origins.</li>
+<li>Protect database and Redis with private networking.</li>
+<li>Use Blob Storage instead of public MinIO.</li>
+<li>Validate all webhooks in production.</li>
+<li>Add API rate limiting using Redis.</li>
+<li>Turn off API docs in production.</li>
+<li>Add backup and restore validation.</li>
+<li>Add alerts for failed payments, auth spikes, and API failures.</li>
+</ol>
+<h3 id="112-strongly-recommended-for-investor-facing-launch">11.2 Strongly recommended for investor-facing launch</h3>
+<ol>
+<li>Azure Front Door WAF.</li>
+<li>Storage versioning for documents/media.</li>
+<li>Immutable audit log storage for compliance-critical events.</li>
+<li>App Insights distributed tracing.</li>
+<li>Per-request correlation ID across frontend/API/logs.</li>
+<li>Database read/write user with least privilege.</li>
+<li>Admin access protected by MFA.</li>
+<li>Security headers in frontend hosting.</li>
+<li>Image upload scanning if users upload documents at scale.</li>
+<li>Formal incident response runbook.</li>
+</ol>
+<h3 id="113-data-residency">11.3 Data residency</h3>
+<p>For an India-focused product, keep primary production data in Indian Azure regions.</p>
+<p>Recommended:</p>
+<ul>
+<li>Primary: Central India.</li>
+<li>Secondary/DR: South India.</li>
+<li>Avoid US/EU regions for production user data unless there is a deliberate legal/compliance decision.</li>
+</ul>
+<hr>
+<h2 id="12-observability-and-alerts">12. Observability and Alerts</h2>
+<h3 id="121-minimum-dashboards">12.1 Minimum dashboards</h3>
+<p>Create dashboards for:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Metrics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td>requests/min, 5xx rate, p95 latency, active replicas</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>CPU, memory, storage, connections, slow queries</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>memory, operations/sec, evictions, connection count</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>requests, failures, egress, capacity</td>
+</tr>
+<tr>
+<td>Workers</td>
+<td>queue length, task success/failure, retries</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>CDN errors, JS errors, web vitals if instrumented</td>
+</tr>
+</tbody>
+</table>
+<h3 id="122-alerts">12.2 Alerts</h3>
+<p>Minimum alerts:</p>
+<table>
+<thead>
+<tr>
+<th>Alert</th>
+<th>Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API down</td>
+<td>health check fails for 3–5 minutes</td>
+</tr>
+<tr>
+<td>API error rate</td>
+<td>5xx &gt; 1% for 5 minutes</td>
+</tr>
+<tr>
+<td>API latency</td>
+<td>p95 &gt; 1.5 seconds for 10 minutes</td>
+</tr>
+<tr>
+<td>DB CPU</td>
+<td>&gt; 80% for 15 minutes</td>
+</tr>
+<tr>
+<td>DB connections</td>
+<td>&gt; 80% pool usage</td>
+</tr>
+<tr>
+<td>DB storage</td>
+<td>&gt; 80% used</td>
+</tr>
+<tr>
+<td>Redis memory</td>
+<td>&gt; 80% used</td>
+</tr>
+<tr>
+<td>Worker backlog</td>
+<td>queue depth above agreed threshold</td>
+</tr>
+<tr>
+<td>Payment failures</td>
+<td>spike above baseline</td>
+</tr>
+<tr>
+<td>Auth failures</td>
+<td>spike above baseline</td>
+</tr>
+</tbody>
+</table>
+<h3 id="123-logging">12.3 Logging</h3>
+<p>Use structured logs with:</p>
+<ul>
+<li>request_id,</li>
+<li>user_id when authenticated,</li>
+<li>route,</li>
+<li>method,</li>
+<li>status,</li>
+<li>latency_ms,</li>
+<li>error code,</li>
+<li>deployment revision,</li>
+<li>trace id.</li>
+</ul>
+<p>Never log:</p>
+<ul>
+<li>JWTs,</li>
+<li>passwords,</li>
+<li>Razorpay secrets,</li>
+<li>encryption keys,</li>
+<li>bank details,</li>
+<li>KYC document contents,</li>
+<li>raw OTPs.</li>
+</ul>
+<hr>
+<h2 id="13-backup-and-disaster-recovery">13. Backup and Disaster Recovery</h2>
+<h3 id="131-postgresql">13.1 PostgreSQL</h3>
+<p>Minimum:</p>
+<ul>
+<li>Automated backups enabled.</li>
+<li>7–14 day retention for MVP.</li>
+<li>30–35 day retention for stronger production.</li>
+<li>Point-in-time restore.</li>
+<li>Monthly restore test.</li>
+</ul>
+<p>Stronger production:</p>
+<ul>
+<li>Zone redundant HA.</li>
+<li>Geo-redundant backups.</li>
+<li>Read replica if reporting traffic grows.</li>
+</ul>
+<h3 id="132-redis">13.2 Redis</h3>
+<p>For Redis used as cache only:</p>
+<ul>
+<li>No backup required.</li>
+<li>Rebuild cache from DB.</li>
+</ul>
+<p>For Redis used as Celery broker:</p>
+<ul>
+<li>Accept that queued jobs may be lost unless using durable broker patterns.</li>
+<li>For critical jobs, persist job state in PostgreSQL outbox table and let workers process from durable state.</li>
+</ul>
+<h3 id="133-blob-storage">13.3 Blob Storage</h3>
+<p>Enable:</p>
+<ul>
+<li>versioning,</li>
+<li>soft delete,</li>
+<li>lifecycle policies,</li>
+<li>private access by default,</li>
+<li>signed URLs for restricted access,</li>
+<li>geo-redundancy when budget allows.</li>
+</ul>
+<h3 id="134-rtorpo-targets">13.4 RTO/RPO targets</h3>
+<p>Suggested initial targets:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th style="text-align:right">RTO</th>
+<th style="text-align:right">RPO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web frontend</td>
+<td style="text-align:right">15 minutes</td>
+<td style="text-align:right">0, from git/build artifacts</td>
+</tr>
+<tr>
+<td>API</td>
+<td style="text-align:right">15–30 minutes</td>
+<td style="text-align:right">0, stateless</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td style="text-align:right">1–4 hours initially</td>
+<td style="text-align:right">5–15 minutes with PITR</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td style="text-align:right">1–4 hours initially</td>
+<td style="text-align:right">near-zero with versioning/replication</td>
+</tr>
+<tr>
+<td>Redis cache</td>
+<td style="text-align:right">15 minutes</td>
+<td style="text-align:right">acceptable cache loss</td>
+</tr>
+<tr>
+<td>Celery queue</td>
+<td style="text-align:right">depends on task durability</td>
+<td style="text-align:right">use DB outbox for critical tasks</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="14-production-rollout-plan">14. Production Rollout Plan</h2>
+<h3 id="phase-0--decide-and-prepare">Phase 0 — Decide and prepare</h3>
+<ol>
+<li>Confirm Azure subscription.</li>
+<li>Confirm region: Central India primary.</li>
+<li>Confirm domains: wealthspot.in, app.wealthspot.in, api.wealthspot.in.</li>
+<li>Confirm budget ceiling.</li>
+<li>Confirm whether web should be Static Web Apps or containerized nginx.</li>
+</ol>
+<h3 id="phase-1--infrastructure-foundation">Phase 1 — Infrastructure foundation</h3>
+<ol>
+<li>Create resource group.</li>
+<li>Create Azure Container Registry.</li>
+<li>Create Key Vault.</li>
+<li>Create PostgreSQL Flexible Server.</li>
+<li>Create Azure Cache for Redis.</li>
+<li>Create Storage Account and Blob container.</li>
+<li>Create Log Analytics workspace.</li>
+<li>Create Application Insights.</li>
+<li>Create Container Apps environment.</li>
+<li>Configure managed identities and RBAC.</li>
+</ol>
+<h3 id="phase-2--production-image-build">Phase 2 — Production image build</h3>
+<ol>
+<li>Build API production image.</li>
+<li>Build worker image or use API production image with worker command.</li>
+<li>Build web static assets.</li>
+<li>Push API/worker images to ACR.</li>
+<li>Scan images for vulnerabilities.</li>
+</ol>
+<h3 id="phase-3--deploy-staging">Phase 3 — Deploy staging</h3>
+<ol>
+<li>Deploy API to staging Container App.</li>
+<li>Run Alembic migration job against staging DB.</li>
+<li>Deploy web staging app.</li>
+<li>Configure Clerk staging URLs.</li>
+<li>Run smoke tests.</li>
+<li>Run auth, KYC, media upload, and payment webhook tests.</li>
+</ol>
+<h3 id="phase-4--deploy-production">Phase 4 — Deploy production</h3>
+<ol>
+<li>Take database backup/snapshot.</li>
+<li>Run migrations as one-off job.</li>
+<li>Deploy API revision.</li>
+<li>Deploy web.</li>
+<li>Verify health checks.</li>
+<li>Run smoke tests.</li>
+<li>Shift traffic.</li>
+<li>Monitor for at least 2 hours.</li>
+</ol>
+<h3 id="phase-5--stabilize">Phase 5 — Stabilize</h3>
+<ol>
+<li>Review slow endpoints.</li>
+<li>Tune DB indexes.</li>
+<li>Tune API replica count.</li>
+<li>Tune Redis usage.</li>
+<li>Add worker scaling if queues are active.</li>
+<li>Run restore drill.</li>
+</ol>
+<hr>
+<h2 id="15-codebase-specific-production-risks">15. Codebase-Specific Production Risks</h2>
+<p>These were observed from the current project structure and readiness notes.</p>
+<h3 id="151-database-query-performance">15.1 Database query performance</h3>
+<p>The production readiness review already identifies N+1 query risks and missing indexes. Fix high-impact query issues before major public traffic.</p>
+<p>Priority:</p>
+<ol>
+<li>Investment listing N+1 query.</li>
+<li>Vault stats multiple aggregation queries.</li>
+<li>Missing unread notifications index.</li>
+<li>Missing composite indexes for investment dashboards.</li>
+<li>Audit log time-range strategy.</li>
+</ol>
+<h3 id="152-financial-correctness">15.2 Financial correctness</h3>
+<p>Any hardcoded financial return values must be clearly labeled as projected or removed. This is especially important for investor trust and regulatory posture.</p>
+<h3 id="153-idempotency">15.3 Idempotency</h3>
+<p>Payment, investment, webhook, and approval endpoints should use idempotency keys to avoid duplicate actions.</p>
+<h3 id="154-worker-maturity">15.4 Worker maturity</h3>
+<p>Celery exists in the stack, but production should only run workers for real tasks with:</p>
+<ul>
+<li>retries,</li>
+<li>dead-letter handling,</li>
+<li>idempotency,</li>
+<li>task status persistence,</li>
+<li>alerts.</li>
+</ul>
+<h3 id="155-uploadmedia-migration">15.5 Upload/media migration</h3>
+<p>The application currently supports S3-style storage through boto3 and MinIO variables. For Azure Blob Storage, you have two practical choices:</p>
+<ol>
+<li>Keep the S3-style abstraction temporarily by using compatible storage patterns where possible.</li>
+<li>Refactor storage service to Azure Blob SDK.</li>
+</ol>
+<p>Recommendation: use Blob Storage directly in production once stable, but do not block launch if S3 abstraction can be configured safely.</p>
+<hr>
+<h2 id="16-recommended-first-production-shape">16. Recommended First Production Shape</h2>
+<h3 id="start-with-these-deployed-components">Start with these deployed components</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Deploy now?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web frontend</td>
+<td>Yes</td>
+<td>Static Web Apps preferred</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Yes</td>
+<td>Container Apps, production image</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>Yes</td>
+<td>Managed Flexible Server</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Yes</td>
+<td>Managed Redis, can start low tier</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td>Yes</td>
+<td>Replace MinIO</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>Yes</td>
+<td>Mandatory</td>
+</tr>
+<tr>
+<td>App Insights</td>
+<td>Yes</td>
+<td>Mandatory</td>
+</tr>
+<tr>
+<td>Celery worker</td>
+<td>Maybe</td>
+<td>Only if real tasks are needed at launch</td>
+</tr>
+<tr>
+<td>Comm worker</td>
+<td>Maybe later</td>
+<td>Defer if not production-tested</td>
+</tr>
+<tr>
+<td>Test runner</td>
+<td>No</td>
+<td>CI only</td>
+</tr>
+<tr>
+<td>MinIO</td>
+<td>No</td>
+<td>Dev only</td>
+</tr>
+<tr>
+<td>Postgres container</td>
+<td>No</td>
+<td>Dev only</td>
+</tr>
+<tr>
+<td>Redis container</td>
+<td>No</td>
+<td>Dev only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="minimal-public-launch-topology">Minimal public launch topology</h3>
+<ol>
+<li>Static web app on app.wealthspot.in.</li>
+<li>API container on api.wealthspot.in.</li>
+<li>PostgreSQL Flexible Server private to backend.</li>
+<li>Redis private to backend.</li>
+<li>Blob Storage for media.</li>
+<li>Key Vault for secrets.</li>
+<li>Application Insights for monitoring.</li>
+</ol>
+<hr>
+<h2 id="17-practical-implementation-checklist">17. Practical Implementation Checklist</h2>
+<h3 id="before-infrastructure">Before infrastructure</h3>
+<ul>
+<li><input type="checkbox" id="checkbox0"><label for="checkbox0">Confirm Azure subscription and billing owner.</label></li>
+<li><input type="checkbox" id="checkbox1"><label for="checkbox1">Confirm domain DNS owner.</label></li>
+<li><input type="checkbox" id="checkbox2"><label for="checkbox2">Confirm production region.</label></li>
+<li><input type="checkbox" id="checkbox3"><label for="checkbox3">Confirm budget cap.</label></li>
+<li><input type="checkbox" id="checkbox4"><label for="checkbox4">Confirm initial expected users and traffic.</label></li>
+<li><input type="checkbox" id="checkbox5"><label for="checkbox5">Confirm RTO/RPO expectations.</label></li>
+</ul>
+<h3 id="before-production-deploy">Before production deploy</h3>
+<ul>
+<li><input type="checkbox" id="checkbox6"><label for="checkbox6">API production image builds successfully.</label></li>
+<li><input type="checkbox" id="checkbox7"><label for="checkbox7">Web production build succeeds.</label></li>
+<li><input type="checkbox" id="checkbox8"><label for="checkbox8">All secrets moved to Key Vault.</label></li>
+<li><input type="checkbox" id="checkbox9"><label for="checkbox9">CORS locked down.</label></li>
+<li><input type="checkbox" id="checkbox10"><label for="checkbox10">Alembic migration job created.</label></li>
+<li><input type="checkbox" id="checkbox11"><label for="checkbox11">PostgreSQL backups enabled.</label></li>
+<li><input type="checkbox" id="checkbox12"><label for="checkbox12">Redis configured securely.</label></li>
+<li><input type="checkbox" id="checkbox13"><label for="checkbox13">Blob Storage container configured.</label></li>
+<li><input type="checkbox" id="checkbox14"><label for="checkbox14">Health endpoint verified.</label></li>
+<li><input type="checkbox" id="checkbox15"><label for="checkbox15">Logs visible in Log Analytics.</label></li>
+<li><input type="checkbox" id="checkbox16"><label for="checkbox16">Alerts configured.</label></li>
+<li><input type="checkbox" id="checkbox17"><label for="checkbox17">Smoke tests documented.</label></li>
+</ul>
+<h3 id="before-public-users">Before public users</h3>
+<ul>
+<li><input type="checkbox" id="checkbox18"><label for="checkbox18">WAF enabled or scheduled for immediate enablement.</label></li>
+<li><input type="checkbox" id="checkbox19"><label for="checkbox19">Clerk production URLs configured.</label></li>
+<li><input type="checkbox" id="checkbox20"><label for="checkbox20">Razorpay production webhook verified.</label></li>
+<li><input type="checkbox" id="checkbox21"><label for="checkbox21">Upload security verified.</label></li>
+<li><input type="checkbox" id="checkbox22"><label for="checkbox22">Admin access MFA enforced.</label></li>
+<li><input type="checkbox" id="checkbox23"><label for="checkbox23">Backup restore tested.</label></li>
+<li><input type="checkbox" id="checkbox24"><label for="checkbox24">Rollback path tested.</label></li>
+</ul>
+<hr>
+<h2 id="18-final-recommendation">18. Final Recommendation</h2>
+<p>The best practical decision is:</p>
+<p><strong>Deploy WealthSpot to Azure Container Apps with managed PostgreSQL, Redis, Blob Storage, Key Vault, and Application Insights. Use Azure Static Web Apps for the frontend.</strong></p>
+<p>This gives the best combination of:</p>
+<ul>
+<li>low operational burden,</li>
+<li>production-grade security,</li>
+<li>good cost control,</li>
+<li>autoscaling,</li>
+<li>managed backups,</li>
+<li>India data residency,</li>
+<li>clear migration path to AKS later,</li>
+<li>compatibility with the current Dockerized architecture.</li>
+</ul>
+<p>Do not ship the current docker-compose stack as production. Treat it as local development only.</p>
+<p>Start lean, but do not compromise on:</p>
+<ol>
+<li>Managed database.</li>
+<li>Managed secrets.</li>
+<li>Managed object storage.</li>
+<li>Backups.</li>
+<li>Observability.</li>
+<li>HTTPS and CORS security.</li>
+<li>Deployment rollback.</li>
+</ol>
+<p>For a platform handling investors, properties, KYC, documents, referrals, payments, and sensitive user data, this is the minimum responsible production posture.</p>
+
+</body>
+</html>

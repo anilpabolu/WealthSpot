@@ -76,9 +76,9 @@ export const communityBff = {
   },
 
   /**
-   * Upvote a post.
+   * Toggle like on a post (idempotent – adds if not liked, removes if already liked).
    */
-  async upvotePost(postId: string) {
-    return apiPost<{ upvotes: number }>(`/community/posts/${postId}/upvote`);
+  async likePost(postId: string) {
+    return apiPost<{ upvotes: number; userHasLiked: boolean }>(`/community/posts/${postId}/like`);
   },
 };

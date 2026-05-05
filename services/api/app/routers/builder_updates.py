@@ -287,9 +287,8 @@ async def unread_counts(
         return {}
 
     # All updates per opportunity
-    total_stmt = (
-        select(BuilderUpdate.opportunity_id, BuilderUpdate.id)
-        .where(BuilderUpdate.opportunity_id.in_(opportunity_ids))
+    total_stmt = select(BuilderUpdate.opportunity_id, BuilderUpdate.id).where(
+        BuilderUpdate.opportunity_id.in_(opportunity_ids)
     )
     all_rows = (await db.execute(total_stmt)).all()
     update_ids_by_opp: dict[uuid.UUID, list[uuid.UUID]] = {}

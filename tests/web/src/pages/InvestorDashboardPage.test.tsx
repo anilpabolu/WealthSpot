@@ -91,7 +91,6 @@ describe('InvestorDashboardPage', () => {
     renderPage()
     expect(screen.getByTestId('metric-Total Invested')).toBeInTheDocument()
     expect(screen.getByTestId('metric-Current Value')).toBeInTheDocument()
-    expect(screen.getByTestId('metric-Avg. IRR')).toBeInTheDocument()
     expect(screen.getByTestId('metric-Properties')).toBeInTheDocument()
   })
 
@@ -117,7 +116,7 @@ describe('InvestorDashboardPage', () => {
     renderPage()
     // MetricCard mock receives isLoading
     const metrics = screen.getAllByTestId(/^metric-/)
-    expect(metrics.length).toBe(4)
+    expect(metrics.length).toBe(3)
   })
 
   it('shows property skeletons when featured properties load', () => {

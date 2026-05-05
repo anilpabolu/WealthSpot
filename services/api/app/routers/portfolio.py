@@ -166,7 +166,9 @@ async def portfolio_summary(
 
     # Monthly returns: group investments by invested month
     # Key: datetime(year, month, 1); value: (invested, returns)
-    monthly_map: dict[datetime, dict[str, float]] = defaultdict(lambda: {"invested": 0.0, "returns": 0.0})
+    monthly_map: dict[datetime, dict[str, float]] = defaultdict(
+        lambda: {"invested": 0.0, "returns": 0.0}
+    )
 
     if investments:
         props_for_monthly: dict = {}
@@ -316,7 +318,9 @@ async def portfolio_transactions(
         items.append(
             PortfolioTransactionItem(
                 id=txn.id,
-                type=_TXN_TYPE_MAP.get(txn.type.value if hasattr(txn.type, "value") else txn.type, "investment"),
+                type=_TXN_TYPE_MAP.get(
+                    txn.type.value if hasattr(txn.type, "value") else txn.type, "investment"
+                ),
                 amount=txn.amount,
                 property_title=prop.title,
                 date=txn.created_at,
@@ -343,7 +347,9 @@ async def portfolio_transactions(
                 amount=oi.amount,
                 property_title=opp.title,
                 date=oi.invested_at or oi.created_at,
-                status="confirmed" if oi.status == OppInvestmentStatus.CONFIRMED else oi.status.value,
+                status="confirmed"
+                if oi.status == OppInvestmentStatus.CONFIRMED
+                else oi.status.value,
                 vault_type=opp.vault_type.value if opp.vault_type else None,
                 opportunity_slug=opp.slug,
             )
@@ -405,11 +411,13 @@ async def portfolio_property_detail(
         raise HTTPException(status_code=404, detail="Property not found")
 
     result = await db.execute(
-        select(Investment).where(
+        select(Investment)
+        .where(
             Investment.user_id == user.id,
             Investment.property_id == property_id,
             Investment.status == InvestmentStatus.CONFIRMED,
-        ).order_by(Investment.created_at.desc())
+        )
+        .order_by(Investment.created_at.desc())
     )
     investments = list(result.scalars().all())
 
@@ -549,7 +557,9 @@ async def vault_wise_portfolio(
         }
 
     for inv, opp in opp_rows:
-        vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        vt_val = (
+            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        )
         agg = vault_agg.get(vt_val)
         if not agg:
             continue
@@ -566,7 +576,9 @@ async def vault_wise_portfolio(
     irr_weighted: dict[str, float] = {}
     irr_invested: dict[str, float] = {}
     for inv, opp in opp_rows:
-        vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        vt_val = (
+            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        )
         amt = float(inv.amount)
         if opp.expected_irr is not None:
             irr_weighted[vt_val] = irr_weighted.get(vt_val, 0.0) + amt * float(opp.expected_irr)
@@ -587,7 +599,9 @@ async def vault_wise_portfolio(
         vault_cashflows["wealth"].append((inv_date, -float(inv.amount)))
     # Opportunity investments per vault
     for inv, opp in opp_rows:
-        vt_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        vt_val = (
+            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        )
         inv_date = inv.invested_at or inv.created_at or now
         if vt_val in vault_cashflows:
             vault_cashflows[vt_val].append((inv_date, -float(inv.amount)))
@@ -630,7 +644,9 @@ async def vault_wise_portfolio(
             opportunity_count=w_count,
             investor_count=all_inv_count,
             expected_irr=round(irr_map.get("wealth", 0), 2) if "wealth" in irr_map else None,
-            actual_irr=round(live_xirr.get("wealth") or 0.0, 2) if live_xirr.get("wealth") is not None else None,
+            actual_irr=round(live_xirr.get("wealth") or 0.0, 2)
+            if live_xirr.get("wealth") is not None
+            else None,
             avg_duration_days=round(w_avg_days, 0),
         )
     )
@@ -655,7 +671,9 @@ async def vault_wise_portfolio(
                 opportunity_count=len(a["count"]),
                 investor_count=a["inv_count"],
                 expected_irr=round(irr_map.get(vt_str, 0), 2) if vt_str in irr_map else None,
-                actual_irr=round(live_xirr.get(vt_str) or 0.0, 2) if live_xirr.get(vt_str) is not None else None,
+                actual_irr=round(live_xirr.get(vt_str) or 0.0, 2)
+                if live_xirr.get(vt_str) is not None
+                else None,
                 avg_duration_days=round(avg_d, 0),
             )
         )
@@ -715,10 +733,12 @@ async def portfolio_holdings(
 
     # ── Branch A: property-based investments (wealth vault) ─────────────────
     prop_inv_result = await db.execute(
-        select(Investment).where(
+        select(Investment)
+        .where(
             Investment.user_id == user.id,
             Investment.status == InvestmentStatus.CONFIRMED,
-        ).order_by(Investment.created_at.desc())
+        )
+        .order_by(Investment.created_at.desc())
     )
     prop_investments = list(prop_inv_result.scalars().all())
 
@@ -749,7 +769,9 @@ async def portfolio_holdings(
             current_val = agg["units"] * cur_price
             returns = current_val - invested
             return_pct = round(returns / invested * 100, 2) if invested else 0.0
-            appreciation_pct = round((cur_price - orig_price) / orig_price * 100, 2) if orig_price else 0.0
+            appreciation_pct = (
+                round((cur_price - orig_price) / orig_price * 100, 2) if orig_price else 0.0
+            )
             first_inv: Investment = agg["first_inv"]
 
             items.append(
@@ -814,7 +836,9 @@ async def portfolio_holdings(
         returns_amt = current_val - invested
         return_pct = round(returns_amt / invested * 100, 2) if invested else 0.0
 
-        vault_val = opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        vault_val = (
+            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
+        )
 
         # Payout frequency from safe_vault_data JSONB
         payout_freq: str | None = None
@@ -831,7 +855,9 @@ async def portfolio_holdings(
             "pending": "In Progress",
             "cancelled": "Cancelled",
         }
-        txn_status = txn_status_map.get(inv.status.value if hasattr(inv.status, "value") else str(inv.status), "In Progress")
+        txn_status = txn_status_map.get(
+            inv.status.value if hasattr(inv.status, "value") else str(inv.status), "In Progress"
+        )
 
         # Extract sqft and flat configurations from property_specs JSONB
         specs_sqft, flat_cfgs = _extract_specs(opp.property_specs)
@@ -908,9 +934,7 @@ async def get_snapshot_config(
 async def update_snapshot_config(
     body: SnapshotConfigBody,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(
-        require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-    ),
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     """Update which sections appear in the investor holding snapshot popup (admin only)."""
     result = await db.execute(

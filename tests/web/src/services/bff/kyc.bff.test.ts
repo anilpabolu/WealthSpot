@@ -19,55 +19,55 @@ describe('kycBff', () => {
   describe('getKycStatus', () => {
     it('aggregates profile and documents, computes step progress', async () => {
       vi.mocked(apiGet)
-        .mockResolvedValueOnce({ kyc_status: 'IN_PROGRESS' }) // /users/me
+        .mockResolvedValueOnce({ kycStatus: 'IN_PROGRESS' }) // /auth/me
         .mockResolvedValueOnce([
-          { id: 'd1', document_type: 'PAN', verification_status: 'VERIFIED' },
-          { id: 'd2', document_type: 'AADHAAR', verification_status: 'PENDING' },
+          { id: 'd1', documentType: 'PAN', verificationStatus: 'VERIFIED' },
+          { id: 'd2', documentType: 'AADHAAR', verificationStatus: 'PENDING' },
         ]) // /kyc/documents
 
       const result = await kycBff.getKycStatus()
 
-      expect(result.kyc_status).toBe('IN_PROGRESS')
-      expect(result.steps.pan_uploaded).toBe(true)
-      expect(result.steps.pan_verified).toBe(true)
-      expect(result.steps.aadhaar_uploaded).toBe(true)
-      expect(result.steps.aadhaar_verified).toBe(false)
-      expect(result.steps.selfie_uploaded).toBe(false)
-      expect(result.steps.selfie_verified).toBe(false)
-      // 3 of 6 steps complete: pan_uploaded, pan_verified, aadhaar_uploaded
-      expect(result.progress_percentage).toBe(50)
+      expect(result.kycStatus).toBe('IN_PROGRESS')
+      expect(result.steps.panUploaded).toBe(true)
+      expect(result.steps.panVerified).toBe(true)
+      expect(result.steps.aadhaarUploaded).toBe(true)
+      expect(result.steps.aadhaarVerified).toBe(false)
+      expect(result.steps.selfieUploaded).toBe(false)
+      expect(result.steps.selfieVerified).toBe(false)
+      // 3 of 6 steps complete: panUploaded, panVerified, aadhaarUploaded
+      expect(result.progressPercentage).toBe(50)
     })
 
     it('returns 0% progress when no documents', async () => {
       vi.mocked(apiGet)
-        .mockResolvedValueOnce({ kyc_status: 'NOT_STARTED' })
+        .mockResolvedValueOnce({ kycStatus: 'NOT_STARTED' })
         .mockResolvedValueOnce([])
 
       const result = await kycBff.getKycStatus()
 
-      expect(result.progress_percentage).toBe(0)
-      expect(result.steps.pan_uploaded).toBe(false)
+      expect(result.progressPercentage).toBe(0)
+      expect(result.steps.panUploaded).toBe(false)
     })
 
     it('returns 100% when all verified', async () => {
       vi.mocked(apiGet)
-        .mockResolvedValueOnce({ kyc_status: 'APPROVED' })
+        .mockResolvedValueOnce({ kycStatus: 'APPROVED' })
         .mockResolvedValueOnce([
-          { id: 'd1', document_type: 'PAN', verification_status: 'VERIFIED' },
-          { id: 'd2', document_type: 'AADHAAR', verification_status: 'VERIFIED' },
-          { id: 'd3', document_type: 'SELFIE', verification_status: 'VERIFIED' },
+          { id: 'd1', documentType: 'PAN', verificationStatus: 'VERIFIED' },
+          { id: 'd2', documentType: 'AADHAAR', verificationStatus: 'VERIFIED' },
+          { id: 'd3', documentType: 'SELFIE', verificationStatus: 'VERIFIED' },
         ])
 
       const result = await kycBff.getKycStatus()
-      expect(result.progress_percentage).toBe(100)
+      expect(result.progressPercentage).toBe(100)
     })
   })
 
   describe('uploadDocument', () => {
     it('gets presigned URL, uploads to S3, then notifies backend', async () => {
       vi.mocked(apiPost)
-        .mockResolvedValueOnce({ upload_url: 'https://s3.example.com/upload', file_key: 'kyc/pan.jpg' })
-        .mockResolvedValueOnce({ document_id: 'doc-123' })
+        .mockResolvedValueOnce({ uploadUrl: 'https://s3.example.com/upload', fileKey: 'kyc/pan.jpg' })
+        .mockResolvedValueOnce({ documentId: 'doc-123' })
 
       mockFetch.mockResolvedValueOnce({ ok: true })
 
@@ -94,7 +94,7 @@ describe('kycBff', () => {
         file_key: 'kyc/pan.jpg',
       })
 
-      expect(result.document_id).toBe('doc-123')
+      expect(result.documentId).toBe('doc-123')
     })
   })
 })

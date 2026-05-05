@@ -216,9 +216,7 @@ async def update_phone(
 
 @router.post(
     "/otp/send",
-    dependencies=[
-        Depends(route_limit(name="profile.otp_send", max_requests=5, window_seconds=60))
-    ],
+    dependencies=[Depends(route_limit(name="profile.otp_send", max_requests=5, window_seconds=60))],
 )
 async def send_otp(
     body: OtpSendRequest,

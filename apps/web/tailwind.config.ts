@@ -117,6 +117,11 @@ export default {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'gradient-shift': 'gradient-shift 8s ease infinite',
         'slide-up': 'slide-up 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
+        'arc-spin': 'arc-spin 1.8s ease-in-out infinite',
+        'logo-fade': 'logo-fade 2.5s ease-in-out infinite',
+        'loader-logo-zoom': 'loader-logo-zoom 2.2s ease-in-out infinite',
+        'loader-violet-ring': 'loader-violet-ring 1.65s linear infinite',
+        'loader-ripple': 'loader-ripple 2.4s ease-out infinite',
       },
       keyframes: {
         ticker: {
@@ -182,6 +187,29 @@ export default {
         'slide-up': {
           from: { opacity: '0', transform: 'translateY(20px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'arc-spin': {
+          '0%':   { strokeDashoffset: '150.8' },
+          '50%':  { strokeDashoffset: '37.7' },
+          '100%': { strokeDashoffset: '150.8' },
+        },
+        'logo-fade': {
+          '0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
+          '50%':      { opacity: '1',   transform: 'scale(1.04)' },
+        },
+        'loader-logo-zoom': {
+          '0%, 100%': { transform: 'scale(0.96)' },
+          '50%':      { transform: 'scale(1.08)' },
+        },
+        'loader-violet-ring': {
+          '0%':   { transform: 'rotate(0deg) scale(0.98)', opacity: '0.74' },
+          '50%':  { transform: 'rotate(180deg) scale(1.03)', opacity: '1' },
+          '100%': { transform: 'rotate(360deg) scale(0.98)', opacity: '0.74' },
+        },
+        'loader-ripple': {
+          '0%':   { transform: 'scale(0.72)', opacity: '0.36' },
+          '70%':  { opacity: '0.14' },
+          '100%': { transform: 'scale(1.28)', opacity: '0' },
         },
       },
     },

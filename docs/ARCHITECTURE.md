@@ -30,7 +30,7 @@ All privileged operations are enforced at the API with FastAPI `Depends(require_
 The frontend performs _advisory_ role checks (to hide UI elements) but never _authoritative_ ones.
 
 | Role       | Capabilities                                       |
-|------------|----------------------------------------------------|
+| --- | --- |
 | investor   | View marketplace, invest, view own portfolio       |
 | builder    | Create/manage property listings                    |
 | admin      | Approve listings, soft-delete tiles                |
@@ -39,7 +39,7 @@ The frontend performs _advisory_ role checks (to hide UI elements) but never _au
 
 ### 1.4 Soft Deletes
 
-Resources are __never__ hard-deleted by the user.  
+Resources are **never** hard-deleted by the user.  
 Properties use `status = ARCHIVED` (set via `DELETE /properties/{id}`).  
 Archived items are automatically excluded from all public listing queries.
 
@@ -76,7 +76,7 @@ Marketplace is not a top-level navigation destination. It is accessed via Vault 
 
 ### Base URL
 
-```
+```text
 http://localhost:8000/api/v1   (local dev)
 ```
 
@@ -85,7 +85,7 @@ Vite proxies `/api/v1` → `http://localhost:8000/api/v1` in dev.
 ### Key Endpoints
 
 | Method | Path                          | Auth   | Description                            |
-|--------|-------------------------------|--------|----------------------------------------|
+| --- | --- | --- | --- |
 | POST   | /auth/register                | None   | Register user, auto-generates referral code |
 | POST   | /auth/login                   | None   | Login, returns JWT                     |
 | GET    | /auth/me                      | JWT    | Full profile + KYC docs                |
@@ -99,7 +99,7 @@ Vite proxies `/api/v1` → `http://localhost:8000/api/v1` in dev.
 ### API Client Helpers (`apps/web/src/lib/api.ts`)
 
 | Helper      | Description                    |
-|-------------|--------------------------------|
+| --- | --- |
 | `apiGet`    | GET with JWT auto-attach       |
 | `apiPost`   | POST with JSON body            |
 | `apiPut`    | PUT with JSON body             |
@@ -112,7 +112,7 @@ Vite proxies `/api/v1` → `http://localhost:8000/api/v1` in dev.
 All server state is managed via React Query hooks in `apps/web/src/hooks/`.
 
 | Hook                 | Endpoint              | Cache key              |
-|----------------------|-----------------------|------------------------|
+| --- | --- | --- |
 | `useProperties`      | GET /properties       | `['properties', ...]`  |
 | `useUserProfile`     | GET /auth/me          | `['user', 'me']`       |
 | `useReferralStats`   | GET /referrals/stats  | `['referrals', 'stats']` |
@@ -126,7 +126,7 @@ All server state is managed via React Query hooks in `apps/web/src/hooks/`.
 ## 5. State Management
 
 | Store               | Purpose                                        |
-|---------------------|------------------------------------------------|
+| --- | --- |
 | `useUserStore`      | Logged-in user (role, isAuthenticated)         |
 | `useMarketplaceStore` | Marketplace filters, view mode, pagination   |
 
@@ -149,7 +149,7 @@ They do NOT cache API responses — that is React Query's responsibility.
 The four investor pillars each have a dedicated Contribute page:
 
 | Pillar    | Route                   | Page                       |
-|-----------|-------------------------|----------------------------|
+| --- | --- | --- |
 | Wealth    | /contribute/wealth      | ContributeWealthPage.tsx   |
 | Time      | /contribute/time        | ContributeTimePage.tsx     |
 | Network   | /contribute/network     | ContributeNetworkPage.tsx  |
@@ -162,6 +162,7 @@ These are stub pages, ready for full implementation.
 ## 8. Diagnostic System
 
 `DiagnosticPanel.tsx` provides a developer console overlay with:
+
 - **Category filters**: UI · API · DB · NAV · SYS
 - **Level filters**: info · warn · error · debug
 - **Issue type dropdown**: All · API Errors · Long Tasks · Navigation · Console Errors

@@ -11,7 +11,7 @@ The platform owner already performs a structured 7-category review of every oppo
 ### The 7 Shield Layers
 
 | # | Layer | Performed by | Sub-items |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **Builder** | WealthSpot | Category Grade (A/B/C) · Tenure & sqft delivered · Proprietor profile · Cash flows · Team capabilities |
 | 2 | **Legal** | External law firm | Title deeds · Known legal issues · Location constraints · Encumbrance Certificate · Legal opinion letter |
 | 3 | **Valuation** | External SMEs | Surrounding valuation · Market value · Future scope of appreciation |
@@ -117,7 +117,7 @@ Migration file: `services/api/alembic/versions/041_shield_assessments.py`.
 ### Router: `services/api/app/routers/assessments.py`
 
 | Method | Path | Who | Purpose |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/opportunities/{id}/assessments` | public | Returns `AssessmentSummary`. Non-EOI-approved users get locked doc URLs. |
 | PUT | `/opportunities/{id}/assessments/bulk` | creator | Builder saves/updates answers across sub-items. |
 | POST | `/opportunities/{id}/assessments/{subcode}/review` | admin | `{ action: 'pass' \| 'flag' \| 'na', reviewer_note, risk_severity? }`. |

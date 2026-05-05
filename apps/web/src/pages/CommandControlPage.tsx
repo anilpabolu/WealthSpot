@@ -37,6 +37,7 @@ const BuilderQuestionsTab = lazy(() => import('./control/BuilderQuestionsTab'))
 const CommMappingTab = lazy(() => import('./control/CommMappingTab'))
 const ReferralTrackingTab = lazy(() => import('./control/ReferralTrackingTab'))
 const EOIPipelineTab = lazy(() => import('./control/EOIPipelineTab'))
+const ImageManagementTab = lazy(() => import('./control/ImageManagementTab'))
 const VideoManagementTab = lazy(() => import('./control/VideoManagementTab'))
 const MediaManagementTab = lazy(() => import('./control/MediaManagementTab'))
 const SiteContentTab = lazy(() => import('./control/SiteContentTab'))
@@ -63,6 +64,7 @@ type Section =
   | 'referral-tracking'
   | 'eoi-pipeline'
   | 'media-management'
+  | 'app-images'
   | 'site-content'
   | 'vault-features'
   | 'admin-invites'
@@ -89,6 +91,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
   { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle, group: 'Operations' },
   { id: 'media-management', label: 'Media Manager', icon: Image, group: 'Content' },
+  { id: 'app-images', label: 'Home Images', icon: Image, group: 'Content' },
   { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
   { id: 'site-content', label: 'Site Content (CMS)', icon: FileText, group: 'Content' },
   { id: 'vault-features', label: 'Feature Matrix', icon: Shield, group: 'Settings' },
@@ -239,6 +242,9 @@ export default function CommandControlPage() {
             {activeSection === 'shield-review' && <AdminShieldReviewTab />}
             {activeSection === 'media-management' && (
               <Suspense fallback={<TabFallback />}><MediaManagementTab /></Suspense>
+            )}
+            {activeSection === 'app-images' && (
+              <Suspense fallback={<TabFallback />}><ImageManagementTab /></Suspense>
             )}
             {activeSection === 'site-content' && (
               <Suspense fallback={<TabFallback />}><SiteContentTab /></Suspense>

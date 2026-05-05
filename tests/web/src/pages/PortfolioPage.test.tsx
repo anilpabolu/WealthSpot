@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('@/components/layout/Navbar', () => ({ default: () => <nav data-testid="navbar" /> }))
 vi.mock('@/components/layout/Footer', () => ({ default: () => <footer data-testid="footer" /> }))
@@ -93,12 +94,16 @@ describe('PortfolioPage', () => {
     } as never)
   })
 
-  const renderPage = () =>
-    render(
-      <MemoryRouter>
-        <PortfolioPage />
-      </MemoryRouter>,
+  const renderPage = () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <PortfolioPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
+  }
 
   it('renders portfolio hero', () => {
     renderPage()
