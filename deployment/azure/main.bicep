@@ -119,6 +119,7 @@ module api './modules/api-container-app.bicep' = {
     s3PublicUrl: r2PublicUrl
     s3Bucket: r2Bucket
     kycEndpointUrl: storageKyc.outputs.blobEndpoint
+    acrLoginServer: registry.outputs.loginServer
   }
 }
 

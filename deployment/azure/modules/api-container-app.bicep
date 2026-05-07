@@ -45,6 +45,9 @@ param kycEndpointUrl string
 @description('Azure Blob container name for KYC docs')
 param kycBucket string = 'kyc-documents'
 
+@description('ACR login server (e.g. wealthspotcrprod.azurecr.io)')
+param acrLoginServer string = ''
+
 // ── Key Vault secret references ────────────────────────────────────────────────
 // Container Apps pulls these at startup via the managed identity.
 // Names must match what 02-configure-secrets.sh writes to Key Vault.
@@ -102,6 +105,12 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         keyVaultUrl: secret.keyVaultUrl
         identity: identityId
       }]
+      registries: acrLoginServer != '' ? [
+        {
+          server: acrLoginServer
+          identity: identityId
+        }
+      ] : []
     }
     template: {
       containers: [
