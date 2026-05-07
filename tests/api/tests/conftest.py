@@ -5,7 +5,9 @@ Uses the Docker PostgreSQL instance with isolated transactions.
 Each test runs in a transaction that gets rolled back after the test.
 """
 
-import asyncioimport ssl as _ssl_moduleimport uuid
+import asyncio
+import ssl as _ssl_module
+import uuid
 from typing import AsyncGenerator
 
 import pytest
@@ -84,19 +86,24 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
     """
-    Create a 'test_ws' schema, create all tables there, and drop it after.
+    Create isolated schemas for tests, create all tables there, and drop them after.
+    - test_ws: default schema (all models without explicit schema)
+    - comm: communication models use schema="comm"
     This isolates tests from the dev database completely.
     """
     from sqlalchemy import text
 
     async with TEST_ENGINE.begin() as conn:
         await conn.execute(text("DROP SCHEMA IF EXISTS test_ws CASCADE"))
+        await conn.execute(text("DROP SCHEMA IF EXISTS comm CASCADE"))
         await conn.execute(text("CREATE SCHEMA test_ws"))
-        await conn.execute(text("SET search_path TO test_ws"))
+        await conn.execute(text("CREATE SCHEMA comm"))
+        await conn.execute(text("SET search_path TO test_ws, public"))
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with TEST_ENGINE.begin() as conn:
         await conn.execute(text("DROP SCHEMA IF EXISTS test_ws CASCADE"))
+        await conn.execute(text("DROP SCHEMA IF EXISTS comm CASCADE"))
 
 
 async def override_get_db() -> AsyncGenerator[AsyncSession, None]:

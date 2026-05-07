@@ -16,9 +16,15 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
-    # Explicit python-based ALTER TABLE checks instead of reading external SQL string overlays
+    # Drop constraints first to be idempotent (handles partial prior runs)
+    op.execute("ALTER TABLE transactions DROP CONSTRAINT IF EXISTS chk_transactions_amount_positive")
+    op.execute("ALTER TABLE loans DROP CONSTRAINT IF EXISTS chk_loans_principal_positive")
+    op.execute("ALTER TABLE loans DROP CONSTRAINT IF EXISTS chk_loans_interest_rate_positive")
+    op.execute("ALTER TABLE loans DROP CONSTRAINT IF EXISTS chk_loans_tenure_positive")
+    op.execute("ALTER TABLE opportunities DROP CONSTRAINT IF EXISTS chk_opportunities_target_amount")
+    # Add constraints with correct column names
     op.execute("ALTER TABLE transactions ADD CONSTRAINT chk_transactions_amount_positive CHECK (amount >= 0)")
-    op.execute("ALTER TABLE loans ADD CONSTRAINT chk_loans_principal_positive CHECK (principal_amount >= 0)")
+    op.execute("ALTER TABLE loans ADD CONSTRAINT chk_loans_principal_positive CHECK (principal >= 0)")
     op.execute("ALTER TABLE loans ADD CONSTRAINT chk_loans_interest_rate_positive CHECK (interest_rate >= 0)")
     op.execute("ALTER TABLE loans ADD CONSTRAINT chk_loans_tenure_positive CHECK (tenure_months >= 0)")
     # Additional critical protection for Vault opportunities constraint enforcing non-negative targets

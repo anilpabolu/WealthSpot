@@ -22,7 +22,10 @@ depends_on: Union[str, tuple[str, ...], None] = None
 
 def upgrade() -> None:
     # ── Schema ──────────────────────────────────────────────────────────────
-    op.execute("CREATE SCHEMA IF NOT EXISTS comm")
+    # Drop and recreate to be idempotent (handles partial prior runs that left
+    # tables in comm without recording the migration in alembic_version)
+    op.execute("DROP SCHEMA IF EXISTS comm CASCADE")
+    op.execute("CREATE SCHEMA comm")
 
     # ── user_profiles ───────────────────────────────────────────────────────
     op.create_table(

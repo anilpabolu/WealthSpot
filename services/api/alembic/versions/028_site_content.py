@@ -33,9 +33,11 @@ def upgrade() -> None:
             created_at TIMESTAMPTZ DEFAULT now(),
             updated_at TIMESTAMPTZ DEFAULT now(),
             CONSTRAINT uq_site_content_page_section UNIQUE (page, section_tag)
-        );
-        CREATE INDEX IF NOT EXISTS ix_site_content_page ON site_content(page);
+        )
     """)
+    conn.exec_driver_sql(
+        "CREATE INDEX IF NOT EXISTS ix_site_content_page ON site_content(page)"
+    )
 
     # ── Seed initial content for major pages ─────────────────────────────
     conn.exec_driver_sql("""
