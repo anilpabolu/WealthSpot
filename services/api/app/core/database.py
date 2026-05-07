@@ -3,6 +3,7 @@ Async SQLAlchemy engine & session factory.
 """
 
 import socket as _socket
+import ssl as _ssl_module
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -38,13 +39,25 @@ _socket.getaddrinfo = _ipv4_preferred_getaddrinfo
 
 settings = get_settings()
 
-engine = create_async_engine(
-    settings.database_url,
-    echo=settings.database_echo,
-    pool_size=20,
-    max_overflow=10,
-    pool_pre_ping=True,
-)
+# asyncpg does not support ?ssl=require as a URL query parameter; strip it and
+# pass an SSLContext via connect_args instead.
+_raw_db_url = settings.database_url
+_db_needs_ssl = "ssl=require" in _raw_db_url
+_db_url = _raw_db_url.replace("?ssl=require", "").replace("&ssl=require", "")
+
+_engine_kwargs: dict = {
+    "echo": settings.database_echo,
+    "pool_size": 20,
+    "max_overflow": 10,
+    "pool_pre_ping": True,
+}
+if _db_needs_ssl:
+    _ssl_ctx = _ssl_module.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = _ssl_module.CERT_NONE
+    _engine_kwargs["connect_args"] = {"ssl": _ssl_ctx}
+
+engine = create_async_engine(_db_url, **_engine_kwargs)
 
 async_session_factory = async_sessionmaker(
     engine,

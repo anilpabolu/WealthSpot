@@ -5,6 +5,7 @@ Alembic env.py – async migration support for WealthSpot.
 # ruff: noqa: F401, I001
 
 import asyncio
+import ssl as _ssl_module
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -55,8 +56,14 @@ import app.models.vault_feature_flag as _vault_feature_flag_models  # pyright: i
 config = context.config
 settings = get_settings()
 
-# Override URL from settings
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# asyncpg does not support ?ssl=require as a URL query parameter; strip it.
+# SSL is configured via connect_args in run_async_migrations() below.
+_raw_db_url = settings.database_url
+_db_url_clean = _raw_db_url.replace("?ssl=require", "").replace("&ssl=require", "")
+_db_needs_ssl = "ssl=require" in _raw_db_url
+
+# Override URL from settings (cleaned URL for alembic config)
+config.set_main_option("sqlalchemy.url", _db_url_clean)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -86,11 +93,16 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode with async engine."""
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    engine_kwargs: dict = {"poolclass": pool.NullPool}
+    if _db_needs_ssl:
+        _ssl_ctx = _ssl_module.create_default_context()
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = _ssl_module.CERT_NONE
+        engine_kwargs["connect_args"] = {"ssl": _ssl_ctx}
+
+    connectable = create_async_engine(_db_url_clean, **engine_kwargs)
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

@@ -5,8 +5,7 @@ Uses the Docker PostgreSQL instance with isolated transactions.
 Each test runs in a transaction that gets rolled back after the test.
 """
 
-import asyncio
-import uuid
+import asyncioimport ssl as _ssl_moduleimport uuid
 from typing import AsyncGenerator
 
 import pytest
@@ -49,12 +48,24 @@ async def _noop_dispatch(self, request, call_next):
 RateLimitMiddleware.dispatch = _noop_dispatch
 
 # ── Test engine uses same PostgreSQL but creates/drops a test schema ────────
+# asyncpg does not support ?ssl=require as a URL query parameter; strip it and
+# pass an SSLContext via connect_args instead.
 
-TEST_DB_URL = os.environ.get(
+_raw_db_url = os.environ.get(
     "DATABASE_URL",
     "postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5433/wealthspot",
 )
-TEST_ENGINE = create_async_engine(TEST_DB_URL, echo=False, poolclass=NullPool)
+_needs_ssl = "ssl=require" in _raw_db_url
+TEST_DB_URL = _raw_db_url.replace("?ssl=require", "").replace("&ssl=require", "")
+
+_engine_kwargs: dict = {"echo": False, "poolclass": NullPool}
+if _needs_ssl:
+    _ssl_ctx = _ssl_module.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = _ssl_module.CERT_NONE
+    _engine_kwargs["connect_args"] = {"ssl": _ssl_ctx}
+
+TEST_ENGINE = create_async_engine(TEST_DB_URL, **_engine_kwargs)
 TestSessionFactory = async_sessionmaker(
     TEST_ENGINE,
     class_=AsyncSession,
