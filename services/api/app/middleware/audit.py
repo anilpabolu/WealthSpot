@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import Request
 from sqlalchemy import insert
 
+from app.core.config import get_settings
 from app.core.database import async_session_factory
 from app.models.community import AuditLog
 
@@ -61,6 +62,10 @@ async def log_audit_event(
     request: Request | None = None,
 ) -> None:
     """Fire-and-forget audit log entry."""
+    # Skip audit logging in test environments to avoid writing outside test schema
+    if get_settings().app_env == "testing":
+        return
+
     ip_address = None
     user_agent = None
     if request:
