@@ -55,16 +55,19 @@ jobs:
           echo "full_image=${FULL_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "Image: ${FULL_IMAGE}"
 
-      # az acr build sends the Dockerfile + context to ACR's cloud builder — no local Docker daemon needed
-      - name: Build and push via ACR Tasks
-        run: |
-          az acr build \
-            --registry "$ACR_LOGIN_SERVER" \
-            --image "wealthspot-api:${{ steps.meta.outputs.image_tag }}" \
-            --image "wealthspot-api:latest" \
-            --file services/api/Dockerfile \
-            --platform linux/amd64 \
-            services/api/
+      - name: Log in to ACR
+        run: az acr login --name wealthspotcrprod
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services/api
+          file: services/api/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.meta.outputs.full_image }}
+            ${{ env.ACR_LOGIN_SERVER }}/wealthspot-api:latest
 
   # ── Deploy new revision to Container Apps ────────────────────────────────────
   deploy:
