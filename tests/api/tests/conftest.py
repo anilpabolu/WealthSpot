@@ -50,7 +50,10 @@ RateLimitMiddleware.dispatch = _noop_dispatch
 
 # ── Test engine uses same PostgreSQL but creates/drops a test schema ────────
 
-TEST_DB_URL = "postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5433/wealthspot"
+TEST_DB_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql+asyncpg://wealthspot:wealthspot_dev@localhost:5433/wealthspot",
+)
 TEST_ENGINE = create_async_engine(TEST_DB_URL, echo=False, poolclass=NullPool)
 TestSessionFactory = async_sessionmaker(
     TEST_ENGINE,
