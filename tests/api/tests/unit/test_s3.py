@@ -72,11 +72,12 @@ class TestUploadOpportunityMedia:
 class TestUploadDocument:
     @pytest.mark.asyncio
     async def test_key_format(self, mock_settings):
-        with patch.object(s3_mod, "upload_file", new_callable=AsyncMock) as mock_upload:
-            mock_upload.return_value = "kyc/user1/pan/abc_pan.pdf"
-            await s3_mod.upload_document(BytesIO(b"pdf"), "pan.pdf", "user1", "pan")
-        key_arg = mock_upload.call_args[0][1]
-        assert key_arg.startswith("kyc/user1/pan/")
+        mock_s3 = MagicMock()
+        mock_settings.kyc_aws_s3_bucket = "kyc-bucket"
+        with patch.object(s3_mod, "_get_kyc_s3_client", return_value=mock_s3):
+            with patch.object(s3_mod.anyio.to_thread, "run_sync", new_callable=AsyncMock):
+                result = await s3_mod.upload_document(BytesIO(b"pdf"), "pan.pdf", "user1", "pan")
+        assert result.startswith("kyc/user1/pan/")
 
 
 class TestUploadTemplate:
@@ -93,7 +94,7 @@ class TestGeneratePresignedUrl:
     def test_calls_s3_client(self, mock_settings):
         mock_s3 = MagicMock()
         mock_s3.generate_presigned_url.return_value = "https://signed.example.com/obj?sig=abc"
-        with patch.object(s3_mod, "_get_s3_client", return_value=mock_s3):
+        with patch.object(s3_mod, "_get_kyc_s3_client", return_value=mock_s3):
             url = s3_mod.generate_presigned_url("doc/key.pdf", expires_in=600)
         mock_s3.generate_presigned_url.assert_called_once()
         assert url.startswith("https://")
@@ -101,7 +102,7 @@ class TestGeneratePresignedUrl:
     def test_default_expires_in_3600(self, mock_settings):
         mock_s3 = MagicMock()
         mock_s3.generate_presigned_url.return_value = "url"
-        with patch.object(s3_mod, "_get_s3_client", return_value=mock_s3):
+        with patch.object(s3_mod, "_get_kyc_s3_client", return_value=mock_s3):
             s3_mod.generate_presigned_url("key")
         call_kwargs = mock_s3.generate_presigned_url.call_args
         assert call_kwargs[1]["ExpiresIn"] == 3600

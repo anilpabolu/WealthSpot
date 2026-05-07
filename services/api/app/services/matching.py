@@ -240,19 +240,19 @@ def _compute_answer_score(question: VaultProfileQuestion, answer_value: Any) -> 
       - text: default 50 (neutral) × question weight
     """
     q_weight = float(question.weight or 1.0)
-    options: list[dict] = list(question.options or [])  # type: ignore[arg-type]
+    raw_options = question.options  # preserve original type (list or dict)
+    options: list[dict] = list(raw_options) if isinstance(raw_options, list) else []
 
     if question.question_type == "choice":
         val = answer_value if isinstance(answer_value, str) else str(answer_value)
-        if isinstance(options, list):
-            for opt in options:
-                if opt.get("value") == val:
-                    return float(opt.get("weight", 0.5)) * q_weight * 100
+        for opt in options:
+            if opt.get("value") == val:
+                return float(opt.get("weight", 0.5)) * q_weight * 100
         return 50 * q_weight  # fallback
 
     elif question.question_type == "multi_choice":
         selected = answer_value if isinstance(answer_value, list) else [answer_value]
-        if isinstance(options, list) and selected:
+        if options and selected:
             weights = []
             for opt in options:
                 if opt.get("value") in selected:
@@ -262,9 +262,10 @@ def _compute_answer_score(question: VaultProfileQuestion, answer_value: Any) -> 
         return 50 * q_weight
 
     elif question.question_type in ("scale", "slider"):
-        if isinstance(options, dict):
-            min_val = float(options.get("min", 0))
-            max_val = float(options.get("max", 100))
+        opts = raw_options if isinstance(raw_options, dict) else {}
+        if opts:
+            min_val = float(opts.get("min", 0))
+            max_val = float(opts.get("max", 100))
             raw = float(answer_value) if answer_value is not None else 50
             normalised = (raw - min_val) / (max_val - min_val) if max_val > min_val else 0.5
             return normalised * q_weight * 100

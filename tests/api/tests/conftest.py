@@ -99,7 +99,7 @@ async def setup_db():
         await conn.execute(text("CREATE SCHEMA test_ws"))
         await conn.execute(text("CREATE SCHEMA comm"))
         await conn.execute(text("SET search_path TO test_ws, public"))
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(lambda c: Base.metadata.create_all(c, checkfirst=False))
     yield
     async with TEST_ENGINE.begin() as conn:
         await conn.execute(text("DROP SCHEMA IF EXISTS test_ws CASCADE"))
@@ -144,7 +144,7 @@ async def test_user() -> User:
             phone="+919876543210",
             role=UserRole.INVESTOR,
             is_active=True,
-            referral_code=f"TEST{unique[:4].upper()}",
+            referral_code=f"TEST{unique.upper()}",
         )
         session.add(user)
         await session.commit()
@@ -166,7 +166,7 @@ async def admin_user() -> User:
             role=UserRole.SUPER_ADMIN,
             roles=["super_admin"],
             is_active=True,
-            referral_code=f"ADM{unique[:5].upper()}",
+            referral_code=f"ADM{unique.upper()}",
         )
         session.add(user)
         await session.commit()
@@ -189,7 +189,7 @@ async def builder_user() -> User:
             roles=["builder"],
             is_active=True,
             builder_approved=True,
-            referral_code=f"BLD{unique[:5].upper()}",
+            referral_code=f"BLD{unique.upper()}",
         )
         session.add(user)
         await session.commit()

@@ -47,8 +47,8 @@ _db_url = _raw_db_url.replace("?ssl=require", "").replace("&ssl=require", "")
 
 _engine_kwargs: dict = {
     "echo": settings.database_echo,
-    "pool_size": 20,
-    "max_overflow": 10,
+    "pool_size": 5,
+    "max_overflow": 5,
     "pool_pre_ping": True,
 }
 if _db_needs_ssl:

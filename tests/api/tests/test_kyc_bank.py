@@ -93,9 +93,10 @@ class TestKycSubmit:
 
 @pytest.mark.asyncio
 class TestKycDocumentUpload:
+    @patch("app.routers.kyc.validate_upload", return_value=(True, None))
     @patch("app.routers.kyc.upload_document", new_callable=AsyncMock, side_effect=_fake_upload)
     @patch("app.routers.kyc.generate_presigned_url", side_effect=_fake_presigned)
-    async def test_upload_pan_document(self, mock_presign, mock_upload, client: AsyncClient, test_user: User):
+    async def test_upload_pan_document(self, mock_presign, mock_upload, mock_validate, client: AsyncClient, test_user: User):
         # First submit KYC details
         await client.post(
             f"{KYC_PREFIX}/submit",
@@ -150,9 +151,10 @@ class TestKycDocumentUpload:
 
 @pytest.mark.asyncio
 class TestKycDocumentList:
+    @patch("app.routers.kyc.validate_upload", return_value=(True, None))
     @patch("app.routers.kyc.upload_document", new_callable=AsyncMock, side_effect=_fake_upload)
     @patch("app.routers.kyc.generate_presigned_url", side_effect=_fake_presigned)
-    async def test_list_documents(self, mock_presign, mock_upload, client: AsyncClient, test_user: User):
+    async def test_list_documents(self, mock_presign, mock_upload, mock_validate, client: AsyncClient, test_user: User):
         # Submit + upload a doc
         await client.post(
             f"{KYC_PREFIX}/submit",
@@ -236,9 +238,10 @@ class TestKycSubmitForReview:
         assert resp.status_code == 400
         assert "missing" in resp.json()["detail"].lower()
 
+    @patch("app.routers.kyc.validate_upload", return_value=(True, None))
     @patch("app.routers.kyc.upload_document", new_callable=AsyncMock, side_effect=_fake_upload)
     @patch("app.routers.kyc.generate_presigned_url", side_effect=_fake_presigned)
-    async def test_submit_for_review_success(self, mock_presign, mock_upload, client: AsyncClient, test_user: User):
+    async def test_submit_for_review_success(self, mock_presign, mock_upload, mock_validate, client: AsyncClient, test_user: User):
         """Upload all 3 docs then submit for review."""
         await client.post(
             f"{KYC_PREFIX}/submit",
@@ -268,9 +271,10 @@ class TestKycSubmitForReview:
 
 @pytest.mark.asyncio
 class TestKycDeleteDocument:
+    @patch("app.routers.kyc.validate_upload", return_value=(True, None))
     @patch("app.routers.kyc.upload_document", new_callable=AsyncMock, side_effect=_fake_upload)
     @patch("app.routers.kyc.generate_presigned_url", side_effect=_fake_presigned)
-    async def test_delete_document(self, mock_presign, mock_upload, client: AsyncClient, test_user: User):
+    async def test_delete_document(self, mock_presign, mock_upload, mock_validate, client: AsyncClient, test_user: User):
         await client.post(
             f"{KYC_PREFIX}/submit",
             json={

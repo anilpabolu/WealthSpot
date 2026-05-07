@@ -37,6 +37,8 @@ class TestInvestmentsLifecycle:
             return None
 
         monkeypatch.setattr(investments_router, "log_audit_event", _noop_audit)
+        # Allow payment confirmation without a real Razorpay secret in test env
+        monkeypatch.setattr(investments_router.settings, "razorpay_allow_unsigned_dev", True)
 
         async with TestSessionFactory() as session:
             from sqlalchemy import text

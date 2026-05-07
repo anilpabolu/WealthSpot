@@ -40,11 +40,17 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 async def _safe_mv_query(db: AsyncSession, mv_sql: str, fallback_sql: str) -> list[dict[str, Any]]:
-    """Try querying a materialized view; fall back to direct SQL."""
+    """Try querying a materialized view; fall back to direct SQL.
+
+    Uses a SAVEPOINT so that a failed MV query doesn't reset the session-level
+    search_path that was set by override_get_db in tests.
+    """
     try:
+        await db.execute(text("SAVEPOINT _mv_q"))
         result = await db.execute(text(mv_sql))
+        await db.execute(text("RELEASE SAVEPOINT _mv_q"))
     except Exception:
-        await db.rollback()
+        await db.execute(text("ROLLBACK TO SAVEPOINT _mv_q"))
         result = await db.execute(text(fallback_sql))
     rows = result.mappings().all()
     return [dict(r) for r in rows]
@@ -75,7 +81,7 @@ SELECT
     COALESCE(AVG(o.expected_irr), 0)                      AS avg_expected_irr,
     COALESCE(AVG(o.actual_irr), 0)                        AS avg_actual_irr,
     COUNT(DISTINCT o.creator_id)::int                     AS unique_creators,
-    COALESCE(inv_agg.total_investors, 0)::int             AS total_investors
+    MAX(COALESCE(inv_agg.total_investors, 0))::int        AS total_investors
 FROM opportunities o
 LEFT JOIN (
     SELECT o2.vault_type,
@@ -85,7 +91,7 @@ LEFT JOIN (
     WHERE oi.status = 'confirmed'
     GROUP BY o2.vault_type
 ) inv_agg ON inv_agg.vault_type = o.vault_type
-GROUP BY o.vault_type, inv_agg.total_investors ORDER BY o.vault_type
+GROUP BY o.vault_type ORDER BY o.vault_type
 """
 
 

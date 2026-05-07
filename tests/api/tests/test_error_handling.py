@@ -24,15 +24,15 @@ class TestUnauthenticated:
     """Protected routes must reject requests that carry no token."""
 
     async def test_portfolio_requires_auth(self, client: AsyncClient):
-        resp = await client.get("/api/v1/portfolio")
+        resp = await client.get("/api/v1/portfolio/summary")
         assert resp.status_code == 401
 
     async def test_kyc_requires_auth(self, client: AsyncClient):
-        resp = await client.get("/api/v1/kyc")
+        resp = await client.get("/api/v1/kyc/status")
         assert resp.status_code == 401
 
     async def test_profile_requires_auth(self, client: AsyncClient):
-        resp = await client.get("/api/v1/profile")
+        resp = await client.get("/api/v1/profile/full")
         assert resp.status_code == 401
 
     async def test_notifications_requires_auth(self, client: AsyncClient):
@@ -41,7 +41,7 @@ class TestUnauthenticated:
 
     async def test_unauthenticated_response_has_detail(self, client: AsyncClient):
         """401 response body must include a 'detail' field."""
-        resp = await client.get("/api/v1/portfolio")
+        resp = await client.get("/api/v1/portfolio/summary")
         assert resp.status_code == 401
         data = resp.json()
         assert "detail" in data
@@ -49,7 +49,7 @@ class TestUnauthenticated:
     async def test_invalid_bearer_token_is_rejected(self, client: AsyncClient):
         """A syntactically valid but fake JWT must be rejected as 401."""
         resp = await client.get(
-            "/api/v1/profile",
+            "/api/v1/profile/full",
             headers={"Authorization": "Bearer not.a.real.jwt"},
         )
         assert resp.status_code == 401
@@ -141,7 +141,7 @@ class TestValidationErrors:
     """422 responses must return the standard FastAPI validation error envelope."""
 
     async def test_422_has_detail_array(self, client: AsyncClient, builder_user: User):
-        """422 response must have 'detail' as a list."""
+        """422 response must use the custom validation error envelope."""
         resp = await client.post(
             "/api/v1/properties",
             json={"title": "x"},  # too short + missing required fields
@@ -149,11 +149,12 @@ class TestValidationErrors:
         )
         assert resp.status_code == 422
         data = resp.json()
-        assert "detail" in data
-        assert isinstance(data["detail"], list)
+        assert data.get("code") == "VALIDATION_ERROR"
+        assert "errors" in data
+        assert isinstance(data["errors"], list)
 
     async def test_422_detail_items_have_loc_msg_type(self, client: AsyncClient, builder_user: User):
-        """Each validation error item must have 'loc', 'msg', and 'type' keys."""
+        """Each validation error item must have 'field' and 'message' keys."""
         resp = await client.post(
             "/api/v1/properties",
             json={"title": "x"},
@@ -161,13 +162,12 @@ class TestValidationErrors:
         )
         assert resp.status_code == 422
         data = resp.json()
-        for item in data["detail"]:
-            assert "loc" in item
-            assert "msg" in item
-            assert "type" in item
+        for item in data["errors"]:
+            assert "field" in item
+            assert "message" in item
 
     async def test_422_loc_is_a_list(self, client: AsyncClient, builder_user: User):
-        """'loc' inside each validation error must be a list (field path)."""
+        """'field' inside each validation error must be a string (field path)."""
         resp = await client.post(
             "/api/v1/properties",
             json={"title": "x"},
@@ -175,8 +175,8 @@ class TestValidationErrors:
         )
         assert resp.status_code == 422
         data = resp.json()
-        for item in data["detail"]:
-            assert isinstance(item["loc"], list)
+        for item in data["errors"]:
+            assert isinstance(item["field"], str)
 
     async def test_422_registration_invalid_email(self, client: AsyncClient):
         """Sending an invalid email to registration must return 422."""

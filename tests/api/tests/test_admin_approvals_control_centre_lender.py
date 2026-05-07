@@ -92,8 +92,16 @@ class TestAdminKYC:
         assert row.kyc_status == KycStatus.APPROVED
 
     async def test_reject_kyc_updates_user_db_status(
-        self, client: AsyncClient, admin_user: User, test_user: User
+        self, client: AsyncClient, admin_user: User, test_user: User,
+        monkeypatch: pytest.MonkeyPatch
     ):
+        from app.routers import admin as admin_router
+
+        async def _noop_audit(*args, **kwargs):
+            return None
+
+        monkeypatch.setattr(admin_router, "log_audit_event", _noop_audit)
+
         async with TestSessionFactory() as session:
             await session.execute(text("SET search_path TO test_ws"))
             u = (await session.execute(
