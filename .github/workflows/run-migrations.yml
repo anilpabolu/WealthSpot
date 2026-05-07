@@ -84,6 +84,19 @@ jobs:
             echo "job_suffix=migrate" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Get DATABASE_URL from Key Vault
+        id: dburl
+        run: |
+          KV_NAME=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "properties.configuration.secrets[?name=='database-url'].keyVaultUrl" \
+            -o tsv | head -1)
+          # Extract KV name from URL like https://wealthspot-kv-prod.vault.azure.net/secrets/database-url
+          KV=$(echo "$KV_NAME" | sed 's|https://||' | cut -d'.' -f1)
+          DB_URL=$(az keyvault secret show --vault-name "$KV" --name "database-url" --query "value" -o tsv)
+          echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+
       - name: Create migration job
         id: job
         run: |
@@ -102,7 +115,7 @@ jobs:
             --mi-user-assigned "${{ steps.identity.outputs.identity_id }}" \
             --registry-server "$ACR_LOGIN_SERVER" \
             --registry-identity "${{ steps.identity.outputs.identity_id }}" \
-            --env-vars "APP_ENV=production" \
+            --env-vars "APP_ENV=production" "DATABASE_URL=${{ steps.dburl.outputs.db_url }}" \
             --command "${{ steps.cmd.outputs.command }}" \
             --output none
           echo "Created job: $JOB_NAME"
