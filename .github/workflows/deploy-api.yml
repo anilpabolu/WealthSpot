@@ -109,16 +109,27 @@ jobs:
 
       - name: Wait for new revision to be active
         run: |
-          echo "Waiting 30s for revision rollout..."
-          sleep 30
-          # Check that at least one replica is running
-          RUNNING=$(az containerapp revision list \
+          echo "Waiting up to 3 minutes for revision rollout..."
+          for i in $(seq 1 18); do
+            sleep 10
+            RUNNING=$(az containerapp revision list \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --query "[?properties.active && properties.runningState=='Running'] | length(@)" \
+              -o tsv 2>/dev/null || echo "0")
+            echo "Attempt $i/18 — Active running revisions: $RUNNING"
+            if [[ "$RUNNING" -ge 1 ]]; then
+              echo "Container App is running!"
+              exit 0
+            fi
+          done
+          echo "Timed out waiting for running revision. Fetching revision status for debugging..."
+          az containerapp revision list \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "[?properties.active && properties.runningState=='Running'] | length(@)" \
-            -o tsv)
-          echo "Active running revisions: $RUNNING"
-          [[ "$RUNNING" -ge 1 ]] || { echo "No running revisions found!"; exit 1; }
+            --query "[].{name:name,active:properties.active,state:properties.runningState,health:properties.healthState}" \
+            --output table || true
+          exit 1
 
       - name: Smoke test liveness endpoint
         run: |
