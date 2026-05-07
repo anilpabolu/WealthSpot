@@ -5,12 +5,10 @@ Uses the Docker PostgreSQL instance with isolated transactions.
 Each test runs in a transaction that gets rolled back after the test.
 """
 
-import asyncio
 import ssl as _ssl_module
 import uuid
 from typing import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -73,14 +71,6 @@ TestSessionFactory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Use a single event loop for the entire test session."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
