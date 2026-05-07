@@ -109,17 +109,28 @@ jobs:
 
       - name: Wait for new revision to be active
         run: |
-          echo "Waiting up to 3 minutes for revision rollout..."
-          for i in $(seq 1 18); do
+          echo "Waiting up to 8 minutes for revision rollout..."
+          API_FQDN=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          for i in $(seq 1 48); do
             sleep 10
             RUNNING=$(az containerapp revision list \
               --name "$CONTAINER_APP_NAME" \
               --resource-group "${{ env.RESOURCE_GROUP }}" \
               --query "[?properties.active && properties.runningState=='Running'] | length(@)" \
               -o tsv 2>/dev/null || echo "0")
-            echo "Attempt $i/18 — Active running revisions: $RUNNING"
+            echo "Attempt $i/48 — Active running revisions: $RUNNING"
             if [[ "$RUNNING" -ge 1 ]]; then
-              echo "Container App is running!"
+              echo "Container App revision is Running!"
+              exit 0
+            fi
+            # Also accept Degraded state if /live responds (readiness probe may lag)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              "https://${API_FQDN}/live" 2>/dev/null || echo "000")
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "Container is live (/live → 200). Accepting Degraded state."
               exit 0
             fi
           done

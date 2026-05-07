@@ -276,15 +276,16 @@ async def live() -> dict[str, str]:
 
 @app.get("/ready")
 async def ready() -> JSONResponse:
-    """Readiness probe — runs the same deep checks as /health.
+    """Readiness probe — returns 200 when uvicorn is up and can accept requests.
 
-    Returns 200 only when the API can serve real traffic (DB + Redis OK);
-    503 otherwise so the k8s readinessProbe drains the pod from rotation
-    when a dependency goes down.
+    Does NOT check DB/Redis connectivity. A dependency outage should cause
+    individual endpoint errors, not take the whole service out of rotation.
+    Use /health for deep dependency checks (monitoring/alerting only).
     """
-    payload = await health()
-    code = 200 if payload.get("status") == "ok" else 503
-    return JSONResponse(status_code=code, content=payload)
+    return JSONResponse(
+        status_code=200,
+        content={"status": "ready", "uptime_seconds": round(time.monotonic() - _app_start_time, 1)},
+    )
 
 
 @app.get("/health")
