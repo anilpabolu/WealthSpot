@@ -8,6 +8,7 @@ import { AMENITIES, AMENITY_CATEGORIES, PropertyType } from '@wealthspot/types'
 import type { AmenityCategory } from '@wealthspot/types'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import { useOpportunityFormFlags } from '@/hooks/useControlCentre'
 import { INDIAN_CITIES } from '@/lib/constants'
 import MediaUploadZone from '@/components/MediaUploadZone'
 import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
@@ -175,6 +176,7 @@ export default function BuilderListingNewPage() {
   const saveShield = useSaveAssessmentBulk()
   const uploadShieldDoc = useUploadAssessmentDocument()
   const { isVaultEnabled } = useVaultConfig()
+  const { showInvestmentConfig, showInvestmentDetails, showAmenities } = useOpportunityFormFlags()
 
   const handleChange = (key: keyof OpportunityCreatePayload, value: string | number) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -184,9 +186,23 @@ export default function BuilderListingNewPage() {
   useEffect(() => {
     if (investmentMode === 'lumpsum' && pricePerSqftField && totalProjectAreaSqftField) {
       const computed = Number(pricePerSqftField) * Number(totalProjectAreaSqftField)
-      if (computed > 0) handleChange('targetAmount', computed)
+      if (computed > 0) setForm((prev) => ({ ...prev, targetAmount: computed }))
     }
   }, [pricePerSqftField, totalProjectAreaSqftField, investmentMode])
+
+  // When Investment Config section is hidden, auto-default to lumpsum
+  useEffect(() => {
+    if (!showInvestmentConfig && propertyType && investmentMode === '') {
+      setInvestmentMode('lumpsum')
+    }
+  }, [showInvestmentConfig, propertyType, investmentMode])
+
+  // When Investment Details is hidden, sync targetAmount = minInvestment
+  useEffect(() => {
+    if (!showInvestmentDetails && form.minInvestment && Number(form.minInvestment) > 0) {
+      setForm((prev) => ({ ...prev, targetAmount: Number(prev.minInvestment) }))
+    }
+  }, [showInvestmentDetails, form.minInvestment])
 
   const handleCommunityDetailChange = (key: string, value: string | number | string[]) => {
     setCommunityDetails((prev) => ({ ...prev, [key]: value }))
@@ -743,7 +759,7 @@ export default function BuilderListingNewPage() {
                   })()}
 
                   {/* Investment Mode selector — Wealth Vault only, shown after property type chosen */}
-                  {vaultType === 'wealth' && propertyType && (
+                  {showInvestmentConfig && vaultType === 'wealth' && propertyType && (
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-2">
                         Investment Configuration <span className="text-red-500">*</span>
@@ -784,7 +800,7 @@ export default function BuilderListingNewPage() {
                   )}
 
                   {/* 💰 Investment Details — visible once investmentMode (or safe vault) */}
-                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                  {showInvestmentDetails && propertyType && (vaultType === 'safe' || !!investmentMode) && (
                     <div className="rounded-xl border border-theme p-4 space-y-4">
                       <h4 className="text-sm font-semibold text-theme-primary">💰 Investment Details</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -966,8 +982,24 @@ export default function BuilderListingNewPage() {
                     </div>
                   )}
 
+                  {/* 💰 Min Investment — shown when Investment Details section is off */}
+                  {!showInvestmentDetails && propertyType && (vaultType === 'wealth' || vaultType === 'safe') && (vaultType === 'safe' || !!investmentMode) && (
+                    <div className="rounded-xl border border-theme p-4">
+                      <h4 className="text-sm font-semibold text-theme-primary mb-3">💰 Investment Amount</h4>
+                      <Input
+                        label="Minimum Investment per Investor (₹) *"
+                        type="number"
+                        min={0}
+                        value={form.minInvestment ?? ''}
+                        onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
+                        prefix="₹"
+                        placeholder="e.g. 500000"
+                      />
+                    </div>
+                  )}
+
                   {/* ✨ Amenities */}
-                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (
+                  {showAmenities && propertyType && (vaultType === 'safe' || !!investmentMode) && (
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-3">✨ Amenities</label>
                       <div className="space-y-3">

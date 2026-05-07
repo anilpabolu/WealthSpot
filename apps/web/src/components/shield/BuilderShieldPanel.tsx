@@ -90,7 +90,7 @@ export function BuilderShieldPanel({ opportunityId }: Props) {
             className={data.certified ? 'text-emerald-500' : 'text-theme-tertiary'}
           />
           <h2 className="text-lg font-bold text-theme-primary">
-            WealthSpot Shield — Your Answers
+            WealthSpot Shield — Evidence Vault
           </h2>
         </div>
         <button

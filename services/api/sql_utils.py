@@ -3,8 +3,9 @@
 import re
 from pathlib import Path
 
-from alembic import op
 from sqlalchemy import text
+
+from alembic import op
 
 
 def exec_sql_file(path: Path) -> None:

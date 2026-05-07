@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     celery_broker_url: str = "redis://localhost:6379/1"
 
-    # ── AWS S3 / MinIO ─────────────────────────────────────
+    # ── AWS S3 / MinIO (public media → Cloudflare R2 in production) ─────────────
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
     aws_s3_bucket: str = "wealthspot-media"
@@ -49,6 +49,17 @@ class Settings(BaseSettings):
     s3_public_url: str = (
         ""  # Public URL prefix for media (e.g. http://localhost:9000/wealthspot-media)
     )
+
+    # ── KYC Storage (private docs → Azure Blob Storage in production) ─────────
+    # Uses S3-compatible Azure Blob endpoint via boto3.
+    # endpoint_url: https://<account>.blob.core.windows.net
+    # access_key_id: storage account name
+    # secret_access_key: storage account key (base64)
+    kyc_aws_access_key_id: str = ""
+    kyc_aws_secret_access_key: str = ""
+    kyc_aws_s3_bucket: str = "kyc-documents"  # Azure Blob container name
+    kyc_s3_endpoint_url: str = ""  # e.g. https://wealthspotkycprod.blob.core.windows.net
+    kyc_s3_public_url: str = ""  # Always empty — KYC docs are private, no public URLs
 
     # ── Razorpay ─────────────────────────────────────────
     razorpay_key_id: str = ""
@@ -116,6 +127,12 @@ class Settings(BaseSettings):
                 )
             if self.razorpay_allow_unsigned_dev:
                 raise ValueError("RAZORPAY_ALLOW_UNSIGNED_DEV cannot be true in production")
+            if not self.kyc_aws_s3_bucket:
+                raise ValueError("KYC_AWS_S3_BUCKET must be set in production")
+            if not self.kyc_s3_endpoint_url:
+                raise ValueError(
+                    "KYC_S3_ENDPOINT_URL must be set to the Azure Blob endpoint in production"
+                )
 
             origins = self.cors_origin_list
             if not origins:

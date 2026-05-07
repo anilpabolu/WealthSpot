@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { useDownloadAssessmentDocument } from '@/hooks/useShield'
 import type { AssessmentDocumentRead } from '@/lib/assessments'
 import { SecureDocViewer } from './SecureDocViewer'
@@ -57,7 +57,7 @@ export function ShieldDocLink({ opportunityId, doc }: ShieldDocLinkProps) {
         disabled={download.isPending}
         className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme bg-theme-surface hover:border-primary text-[12px] text-theme-primary transition w-full text-left"
       >
-        <Download size={14} className="text-primary shrink-0" />
+        <Eye size={14} className="text-primary shrink-0" />
         <span className="flex-1 truncate">{doc.filename ?? 'Document'}</span>
         {doc.sizeBytes ? (
           <span className="text-[10px] text-theme-tertiary">

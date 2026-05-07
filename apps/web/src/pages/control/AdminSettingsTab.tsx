@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Edit3, Check, Loader2, ChevronDown, ChevronUp,
   Lock, Unlock, Video, Eye, Play, Bell, FileSpreadsheet,
-  Settings, ClipboardCheck, Building2, Users, Palette,
+  Settings, ClipboardCheck, Building2, Users, Palette, LayoutList,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -897,10 +897,161 @@ function CompanyFormPanel() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  OpportunityFormPanel                                               */
+/* ------------------------------------------------------------------ */
+
+const OPP_FORM_TOGGLE_ITEMS = [
+  {
+    key: 'show_investment_config',
+    label: 'Investment Configuration',
+    emoji: '⚙️',
+    description: 'Show the Lumpsum / Unit Configuration mode selector. When hidden, lumpsum is used by default.',
+  },
+  {
+    key: 'show_investment_details',
+    label: 'Investment Details',
+    emoji: '💰',
+    description: 'Show Price per Sq.Ft, Total Project Area, Target Amount, unit configs, etc. When hidden, only Min Investment is collected.',
+  },
+  {
+    key: 'show_amenities',
+    label: 'Amenities',
+    emoji: '✨',
+    description: 'Show the Amenities selector section on the opportunity creation form.',
+  },
+] as const
+
+function OpportunityFormPanel() {
+  const { data: configs, isLoading, isError, refetch } = useControlConfigs('opportunity_form')
+  const createConfig = useCreateConfig()
+  const updateConfig = useUpdateConfig()
+  const queryClient = useQueryClient()
+  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({})
+  const [seeding, setSeeding] = useState(false)
+  const [toggleError, setToggleError] = useState<string | null>(null)
+  const didSeed = useRef(false)
+
+  const configMap = useMemo(
+    () => new Map((configs ?? []).map((c) => [c.key, c])),
+    [configs]
+  )
+
+  // Auto-seed missing configs on first load
+  useEffect(() => {
+    if (isLoading || isError || didSeed.current || seeding) return
+    didSeed.current = true
+    ;(async () => {
+      setSeeding(true)
+      for (const item of OPP_FORM_TOGGLE_ITEMS) {
+        if (!configMap.has(item.key)) {
+          try {
+            await createConfig.mutateAsync({
+              section: 'opportunity_form',
+              key: item.key,
+              value: false,
+              description: item.description,
+            })
+          } catch {
+            // seed failed — user can retry by reopening
+          }
+        }
+      }
+      setSeeding(false)
+    })()
+  }, [isLoading, isError, seeding, configMap, createConfig])
+
+  if (isLoading || seeding) return <CenteredLoader />
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 space-y-3">
+        <p className="text-sm font-semibold text-red-700 dark:text-red-400">Failed to load opportunity form configuration</p>
+        <button onClick={() => refetch()} className="text-xs font-medium text-primary hover:underline">Retry</button>
+      </div>
+    )
+  }
+
+  const handleToggle = async (key: string) => {
+    const cfg = configMap.get(key)
+    if (!cfg) return
+    const newEnabled = !cfg.isActive
+    setOptimistic((prev) => ({ ...prev, [key]: newEnabled }))
+    setToggleError(null)
+    try {
+      await updateConfig.mutateAsync({ id: cfg.id, isActive: newEnabled })
+      setOptimistic((prev) => { const next = { ...prev }; delete next[key]; return next })
+      queryClient.invalidateQueries({ queryKey: ['control-centre', 'opportunity-form-flags'] })
+    } catch {
+      setOptimistic((prev) => { const next = { ...prev }; delete next[key]; return next })
+      setToggleError(`Failed to toggle ${OPP_FORM_TOGGLE_ITEMS.find((i) => i.key === key)?.label ?? key}. Please try again.`)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <LayoutList className="h-4 w-4 text-theme-tertiary" />
+        <p className="text-xs text-theme-secondary">
+          Toggle optional sections on the opportunity creation form. All are hidden by default. When Investment Details is off, only a minimum investment amount is collected.
+        </p>
+      </div>
+
+      {toggleError && (
+        <div className="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 px-3 py-2">
+          <p className="text-xs text-red-700 dark:text-red-400">{toggleError}</p>
+        </div>
+      )}
+
+      {OPP_FORM_TOGGLE_ITEMS.map((item) => {
+        const cfg = configMap.get(item.key)
+        const serverEnabled = cfg?.isActive === true
+        const isEnabled = item.key in optimistic ? optimistic[item.key] : serverEnabled
+
+        return (
+          <div
+            key={item.key}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+              isEnabled ? 'bg-primary/5 border-primary/20' : 'bg-[var(--bg-surface)] border-theme'
+            }`}
+          >
+            <span className="text-xl shrink-0">{item.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-theme-primary">{item.label}</p>
+              <p className="text-xs text-theme-secondary">{item.description}</p>
+            </div>
+            <button
+              onClick={() => handleToggle(item.key)}
+              disabled={updateConfig.isPending || !cfg}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${
+                isEnabled ? 'bg-primary' : 'bg-[var(--bg-surface-hover)]'
+              } ${!cfg ? 'opacity-50 cursor-not-allowed' : ''}`}
+              role="switch"
+              aria-checked={isEnabled}
+              aria-label={`Toggle ${item.label}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--bg-surface)] shadow ring-0 transition duration-200 ease-in-out ${
+                  isEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        )
+      })}
+
+      <p className="text-[10px] text-theme-tertiary mt-2">
+        Changes take effect immediately on the create opportunity form across all vault types.
+      </p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  AdminSettingsTab (container)                                       */
 /* ------------------------------------------------------------------ */
 
 const ADMIN_SECTIONS = [
+  { key: 'opportunity-form', title: 'Opportunity Form Sections', description: 'Show or hide Investment Configuration, Investment Details, and Amenities sections on the opportunity creation form.', icon: LayoutList },
   { key: 'vaults', title: 'Vault Management', description: 'Enable or disable vaults platform-wide. Disabled vaults show "Coming Soon" everywhere.', icon: Lock },
   { key: 'video-content', title: 'Video Content', description: 'Control video visibility per category — intro, vault, property, and admin video management.', icon: Video },
   { key: 'property-display', title: 'Property Display', description: 'Configure how empty property sections (specs, amenities, configurations) appear on property detail pages.', icon: Eye },
@@ -940,7 +1091,7 @@ export default function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-theme px-5 py-5">
-                  {sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
+                  {sec.key === 'opportunity-form' ? <OpportunityFormPanel /> : sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>

@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { AlertTriangle, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ChevronDown, ChevronRight, EyeOff, ShieldCheck } from 'lucide-react'
 import {
   ASSESSMENT_CATEGORIES,
   findCategory,
   humanStatus,
   iconForCategory,
-  resultColor,
-  resultLabel,
   type AssessmentSubItemRead,
 } from '@/lib/assessments'
 import { useOpportunityAssessments } from '@/hooks/useShield'
@@ -178,24 +176,17 @@ function SubItemRow({
             <span className="text-[13px] font-medium text-theme-primary">
               {sub.label}
             </span>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${resultColor(sub.status)}`}
-            >
-              {resultLabel(sub.status)}
-            </span>
-            <span className="text-[10px] text-theme-tertiary">
-              {humanStatus(sub.status)}
-            </span>
+            {!sub.isPublic && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-theme-tertiary bg-theme-surface rounded-full px-2 py-0.5">
+                <EyeOff size={10} />
+                Hidden from investors
+              </span>
+            )}
           </div>
-          {sub.reviewerNote && (
-            <p className="mt-1 text-[11px] text-theme-secondary italic">
-              Reviewer: {sub.reviewerNote}
-            </p>
-          )}
-          {!!sub.builderAnswer?.text && (
+          {!!(sub.builderAnswer as Record<string, string> | null)?.value && (
             <blockquote className="mt-1.5 pl-3 border-l-2 border-primary/50 text-[11px] text-theme-primary bg-primary/5 rounded-r py-1">
               <span className="text-theme-tertiary font-semibold">Builder answer: </span>
-              {String(sub.builderAnswer.text)}
+              {String((sub.builderAnswer as Record<string, string>).value)}
             </blockquote>
           )}
         </div>

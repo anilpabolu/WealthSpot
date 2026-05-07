@@ -1,5 +1,9 @@
 """
-S3-compatible storage service (works with AWS S3 and MinIO).
+S3-compatible storage service.
+
+Two separate backends:
+  - Media client  → Cloudflare R2  (avatars, opportunity images/videos, templates)
+  - KYC client    → Azure Blob     (PAN, Aadhaar, selfies — private, India-resident)
 """
 
 import uuid
@@ -15,6 +19,7 @@ settings = get_settings()
 
 
 def _get_s3_client() -> Any:
+    """Media bucket client (Cloudflare R2 in production, MinIO in local dev)."""
     extra: dict[str, Any] = {}
     if settings.s3_endpoint_url:
         extra["endpoint_url"] = settings.s3_endpoint_url
@@ -23,6 +28,30 @@ def _get_s3_client() -> Any:
         "s3",
         aws_access_key_id=settings.aws_access_key_id,
         aws_secret_access_key=settings.aws_secret_access_key,
+        region_name=settings.aws_region,
+        config=BotoConfig(signature_version="s3v4"),
+        **extra,
+    )
+
+
+def _get_kyc_s3_client() -> Any:
+    """KYC document client (Azure Blob Storage S3-compatible endpoint in production)."""
+    extra: dict[str, Any] = {}
+    if settings.kyc_s3_endpoint_url:
+        extra["endpoint_url"] = settings.kyc_s3_endpoint_url
+
+    # Falls back to the media client config if KYC-specific credentials are not set
+    # (allows local dev to use a single MinIO bucket without extra config).
+    access_key = settings.kyc_aws_access_key_id or settings.aws_access_key_id
+    secret_key = settings.kyc_aws_secret_access_key or settings.aws_secret_access_key
+    endpoint = settings.kyc_s3_endpoint_url or settings.s3_endpoint_url
+    if endpoint:
+        extra["endpoint_url"] = endpoint
+
+    return cast(Any, boto3).client(
+        "s3",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
         region_name=settings.aws_region,
         config=BotoConfig(signature_version="s3v4"),
         **extra,
@@ -86,9 +115,19 @@ async def upload_document(
     doc_type: str,
     content_type: str = "application/octet-stream",
 ) -> str:
-    """Upload a KYC/builder document to S3 and return the key."""
+    """Upload a KYC document to Azure Blob Storage (private) and return the key."""
     key = f"kyc/{user_id}/{doc_type}/{uuid.uuid4().hex}_{filename}"
-    return await upload_file(file, key, content_type)
+    s3: Any = _get_kyc_s3_client()
+    bucket = settings.kyc_aws_s3_bucket
+    await anyio.to_thread.run_sync(
+        lambda: s3.upload_fileobj(
+            file,
+            bucket,
+            key,
+            ExtraArgs={"ContentType": content_type},
+        )
+    )
+    return key
 
 
 async def upload_template(
@@ -103,12 +142,9 @@ async def upload_template(
 
 
 def generate_presigned_url(key: str, expires_in: int = 3600) -> str:
-    """Generate a presigned download URL for a document."""
-    s3: Any = _get_s3_client()
-    params: dict[str, Any] = {"Bucket": settings.aws_s3_bucket, "Key": key}
-    extra: dict[str, Any] = {}
-    if settings.s3_endpoint_url:
-        extra["ExpiresIn"] = expires_in
+    """Generate a short-lived presigned download URL for a private KYC document."""
+    s3: Any = _get_kyc_s3_client()
+    params: dict[str, Any] = {"Bucket": settings.kyc_aws_s3_bucket, "Key": key}
     return s3.generate_presigned_url(
         "get_object",
         Params=params,

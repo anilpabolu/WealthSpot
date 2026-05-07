@@ -133,6 +133,38 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
     }
 
 
+# ── Public Opportunity Form Flags ────────────────────────────────────────────
+
+
+@router.get("/opportunity-form-flags")
+async def get_opportunity_form_flags(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
+    """Public endpoint: returns which optional sections are visible on the opportunity creation form.
+
+    Reads from PlatformConfig section='opportunity_form'.
+    Missing keys default to False (hidden by default).
+    """
+    result = await db.execute(
+        select(PlatformConfig).where(
+            PlatformConfig.section == "opportunity_form",
+            PlatformConfig.is_active.is_(True),
+        )
+    )
+    configs = {c.key: c for c in result.scalars().all()}
+
+    def _flag(key: str) -> bool:
+        cfg = configs.get(key)
+        if cfg is None:
+            return False
+        # Stored as `is_active` flag — no value needed
+        return bool(cfg.is_active)
+
+    return {
+        "show_investment_config": _flag("show_investment_config"),
+        "show_investment_details": _flag("show_investment_details"),
+        "show_amenities": _flag("show_amenities"),
+    }
+
+
 # ── Public Vault Metrics Config ──────────────────────────────────────────────
 
 # Default metrics per vault (used when no DB config exists yet)

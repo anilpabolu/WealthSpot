@@ -1,0 +1,24 @@
+# azure.yaml — Azure Developer CLI (azd) configuration for WealthSpot
+# https://learn.microsoft.com/azure/developer/azure-developer-cli/azd-schema
+
+name: wealthspot
+metadata:
+  template: wealthspot-hybrid-deployment
+
+# ── Infrastructure ──────────────────────────────────────────────────────────
+infra:
+  provider: bicep
+  path: deployment/azure
+  module: main
+
+# ── Services ────────────────────────────────────────────────────────────────
+services:
+  api:
+    project: services/api
+    language: py
+    host: containerapp
+    docker:
+      path: services/api/Dockerfile
+      context: services/api
+      platform: amd64
+      remoteBuild: true

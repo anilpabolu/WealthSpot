@@ -70,6 +70,24 @@ export function usePublicNotificationsConfig() {
   })
 }
 
+export function useOpportunityFormFlags() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['control-centre', 'opportunity-form-flags'],
+    queryFn: () =>
+      apiGet<{ show_investment_config: boolean; show_investment_details: boolean; show_amenities: boolean }>(
+        '/control-centre/opportunity-form-flags'
+      ),
+    staleTime: 30_000,
+    retry: false,
+  })
+  return {
+    showInvestmentConfig: data?.show_investment_config ?? false,
+    showInvestmentDetails: data?.show_investment_details ?? false,
+    showAmenities: data?.show_amenities ?? false,
+    isLoading,
+  }
+}
+
 export function useCreateConfig() {
   const qc = useQueryClient()
   return useMutation({

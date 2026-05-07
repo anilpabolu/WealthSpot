@@ -208,7 +208,7 @@ async def _load_summary(
                     status=status_val,
                     has_evidence=bool(docs),
                     risk_severity=row.risk_severity if row else None,  # type: ignore[arg-type]
-                    reviewer_note=row.reviewer_note if row else None,
+                    reviewer_note=(row.reviewer_note if row and is_privileged else None),
                     documents=docs,
                     builder_answer=row.builder_answer if row else None,
                     reviewed_at=row.reviewed_at if row else None,

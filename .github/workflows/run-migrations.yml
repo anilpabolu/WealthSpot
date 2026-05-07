@@ -1,0 +1,161 @@
+name: Run Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'migrate' to confirm you want to run migrations"
+        required: true
+        type: string
+      dry_run:
+        description: "Print migration plan without applying (alembic upgrade head --sql)"
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-wealthspot-prod
+  CONTAINER_APP_ENV: cae-wealthspot-prod
+  CONTAINER_APP_NAME: wealthspot-api
+  ACR_LOGIN_SERVER: wealthspotcrprod.azurecr.io
+
+jobs:
+  migrate:
+    name: Alembic Upgrade Head
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate confirmation input
+        run: |
+          if [[ "${{ github.event.inputs.confirm }}" != "migrate" ]]; then
+            echo "Confirmation input must be exactly 'migrate'. Got: '${{ github.event.inputs.confirm }}'"
+            exit 1
+          fi
+          echo "Confirmation accepted. Proceeding with migration."
+
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get current API image
+        id: image
+        run: |
+          IMAGE=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" -o tsv)
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "Using image: $IMAGE"
+
+      - name: Get Container Apps Environment ID
+        id: cae
+        run: |
+          CAE_ID=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "properties.managedEnvironmentId" -o tsv)
+          echo "cae_id=$CAE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Get managed identity resource ID
+        id: identity
+        run: |
+          IDENTITY_ID=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "identity.userAssignedIdentities | keys(@)[0]" -o tsv)
+          echo "identity_id=$IDENTITY_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Set migration command
+        id: cmd
+        run: |
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "command=alembic upgrade head --sql" >> "$GITHUB_OUTPUT"
+            echo "job_suffix=dry-run" >> "$GITHUB_OUTPUT"
+          else
+            echo "command=alembic upgrade head" >> "$GITHUB_OUTPUT"
+            echo "job_suffix=migrate" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create migration job
+        id: job
+        run: |
+          JOB_NAME="migration-${{ steps.cmd.outputs.job_suffix }}-$(date +%Y%m%d%H%M%S)"
+          echo "job_name=$JOB_NAME" >> "$GITHUB_OUTPUT"
+          az containerapp job create \
+            --name "$JOB_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --environment "${{ steps.cae.outputs.cae_id }}" \
+            --trigger-type Manual \
+            --replica-timeout 300 \
+            --replica-retry-limit 0 \
+            --image "${{ steps.image.outputs.image }}" \
+            --cpu "0.5" \
+            --memory "1Gi" \
+            --mi-user-assigned "${{ steps.identity.outputs.identity_id }}" \
+            --registry-server "$ACR_LOGIN_SERVER" \
+            --registry-identity "${{ steps.identity.outputs.identity_id }}" \
+            --env-vars "APP_ENV=production" \
+            --command "${{ steps.cmd.outputs.command }}" \
+            --output none
+          echo "Created job: $JOB_NAME"
+
+      - name: Start migration job
+        id: execution
+        run: |
+          EXEC_NAME=$(az containerapp job start \
+            --name "${{ steps.job.outputs.job_name }}" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "name" -o tsv)
+          echo "execution_name=$EXEC_NAME" >> "$GITHUB_OUTPUT"
+          echo "Execution started: $EXEC_NAME"
+
+      - name: Poll until complete
+        run: |
+          JOB_NAME="${{ steps.job.outputs.job_name }}"
+          EXEC_NAME="${{ steps.execution.outputs.execution_name }}"
+          TIMEOUT=300; ELAPSED=0; STATUS="Running"
+          echo "Waiting for migration to complete..."
+          while [[ "$STATUS" == "Running" || "$STATUS" == "Processing" ]]; do
+            sleep 10; ELAPSED=$((ELAPSED+10))
+            if [[ $ELAPSED -ge $TIMEOUT ]]; then
+              echo "Migration timed out after ${TIMEOUT}s!"
+              exit 1
+            fi
+            STATUS=$(az containerapp job execution show \
+              --name "$JOB_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --job-execution-name "$EXEC_NAME" \
+              --query "properties.status" -o tsv 2>/dev/null || echo "Running")
+            echo "  Status: $STATUS (${ELAPSED}s)"
+          done
+          echo "Final status: $STATUS"
+          [[ "$STATUS" == "Succeeded" ]] || { echo "Migration failed!"; exit 1; }
+
+      - name: Cleanup migration job
+        if: always()
+        run: |
+          az containerapp job delete \
+            --name "${{ steps.job.outputs.job_name }}" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --yes --no-wait --output none 2>/dev/null || true
+          echo "Job cleanup initiated."
+
+      - name: Post migration summary
+        if: success()
+        run: |
+          echo "## Migration Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | \`${{ steps.image.outputs.image }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Dry Run | ${{ github.event.inputs.dry_run }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | ${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Timestamp | $(date -u) |" >> "$GITHUB_STEP_SUMMARY"
