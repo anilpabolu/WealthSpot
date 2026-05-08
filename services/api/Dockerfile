@@ -22,6 +22,8 @@ COPY --from=builder /install /usr/local
 COPY app/ app/
 COPY alembic/ alembic/
 COPY alembic.ini .
+COPY sql_utils.py .
+COPY database/ database/
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

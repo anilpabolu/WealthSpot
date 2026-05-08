@@ -116,7 +116,7 @@ jobs:
             --registry-server "$ACR_LOGIN_SERVER" \
             --registry-identity "${{ steps.identity.outputs.identity_id }}" \
             --env-vars "APP_ENV=production" "DATABASE_URL=${{ steps.dburl.outputs.db_url }}" \
-            --command "${{ steps.cmd.outputs.command }}" \
+            --command "/bin/sh" "-c" "${{ steps.cmd.outputs.command }}" \
             --output none
           echo "Created job: $JOB_NAME"
 
