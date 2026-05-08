@@ -86,7 +86,7 @@ jobs:
         working-directory: services/api
         env:
           DATABASE_URL: ${{ steps.dburl.outputs.db_url }}
-          APP_ENV: production
+          APP_ENV: development
         run: |
           echo "=== DRY RUN: Printing migration SQL ==="
           alembic upgrade head --sql
@@ -96,7 +96,7 @@ jobs:
         working-directory: services/api
         env:
           DATABASE_URL: ${{ steps.dburl.outputs.db_url }}
-          APP_ENV: production
+          APP_ENV: development
         run: |
           echo "=== Running alembic upgrade head ==="
           alembic upgrade head
