@@ -24,14 +24,16 @@ COPY alembic/ alembic/
 COPY alembic.ini .
 COPY sql_utils.py .
 COPY database/ database/
+COPY entrypoint.sh entrypoint.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN adduser --system --no-create-home appuser
+RUN adduser --system --no-create-home appuser && chmod +x /app/entrypoint.sh
 USER appuser
 
 EXPOSE 8000
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
 # ── Development stage ────────────────────────────────────

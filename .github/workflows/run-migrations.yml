@@ -77,10 +77,10 @@ jobs:
         id: cmd
         run: |
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "command=alembic upgrade head --sql" >> "$GITHUB_OUTPUT"
+            echo "dry_run_env=true" >> "$GITHUB_OUTPUT"
             echo "job_suffix=dry-run" >> "$GITHUB_OUTPUT"
           else
-            echo "command=alembic upgrade head" >> "$GITHUB_OUTPUT"
+            echo "dry_run_env=false" >> "$GITHUB_OUTPUT"
             echo "job_suffix=migrate" >> "$GITHUB_OUTPUT"
           fi
 
@@ -115,8 +115,7 @@ jobs:
             --mi-user-assigned "${{ steps.identity.outputs.identity_id }}" \
             --registry-server "$ACR_LOGIN_SERVER" \
             --registry-identity "${{ steps.identity.outputs.identity_id }}" \
-            --env-vars "APP_ENV=production" "DATABASE_URL=${{ steps.dburl.outputs.db_url }}" \
-            --command "/bin/sh" "-c" "${{ steps.cmd.outputs.command }}" \
+            --env-vars "APP_ENV=production" "DATABASE_URL=${{ steps.dburl.outputs.db_url }}" "RUN_MIGRATIONS=true" "DRY_RUN=${{ steps.cmd.outputs.dry_run_env }}" \
             --output none
           echo "Created job: $JOB_NAME"
 
