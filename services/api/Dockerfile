@@ -29,7 +29,9 @@ COPY entrypoint.sh entrypoint.sh
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN adduser --system --no-create-home appuser && chmod +x /app/entrypoint.sh
+RUN adduser --system --no-create-home appuser && \
+    sed -i 's/\r$//' /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 USER appuser
 
 EXPOSE 8000
