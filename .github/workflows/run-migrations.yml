@@ -18,9 +18,8 @@ permissions:
 
 env:
   RESOURCE_GROUP: rg-wealthspot-prod
-  CONTAINER_APP_ENV: cae-wealthspot-prod
   CONTAINER_APP_NAME: wealthspot-api
-  ACR_LOGIN_SERVER: wealthspotcrprod.azurecr.io
+  KV_NAME: wealthspot-kv-prod
 
 jobs:
   migrate:
@@ -38,6 +37,11 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -45,120 +49,58 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Get current API image
-        id: image
-        run: |
-          IMAGE=$(az containerapp show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "properties.template.containers[0].image" -o tsv)
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "Using image: $IMAGE"
-
-      - name: Get Container Apps Environment ID
-        id: cae
-        run: |
-          CAE_ID=$(az containerapp show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "properties.managedEnvironmentId" -o tsv)
-          echo "cae_id=$CAE_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Get managed identity resource ID
-        id: identity
-        run: |
-          IDENTITY_ID=$(az containerapp show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "identity.userAssignedIdentities | keys(@)[0]" -o tsv)
-          echo "identity_id=$IDENTITY_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Set migration command
-        id: cmd
-        run: |
-          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "dry_run_env=true" >> "$GITHUB_OUTPUT"
-            echo "job_suffix=dry-run" >> "$GITHUB_OUTPUT"
-          else
-            echo "dry_run_env=false" >> "$GITHUB_OUTPUT"
-            echo "job_suffix=migrate" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Get DATABASE_URL from Key Vault
         id: dburl
         run: |
-          KV_NAME=$(az containerapp show \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "properties.configuration.secrets[?name=='database-url'].keyVaultUrl" \
-            -o tsv | head -1)
-          # Extract KV name from URL like https://wealthspot-kv-prod.vault.azure.net/secrets/database-url
-          KV=$(echo "$KV_NAME" | sed 's|https://||' | cut -d'.' -f1)
-          DB_URL=$(az keyvault secret show --vault-name "$KV" --name "database-url" --query "value" -o tsv)
+          DB_URL=$(az keyvault secret show \
+            --vault-name "${{ env.KV_NAME }}" \
+            --name "database-url" \
+            --query "value" -o tsv)
           echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+          echo "DATABASE_URL retrieved from Key Vault."
 
-      - name: Create migration job
-        id: job
+      - name: Install migration dependencies
+        working-directory: services/api
         run: |
-          JOB_NAME="migration-${{ steps.cmd.outputs.job_suffix }}-$(date +%Y%m%d%H%M%S)"
-          echo "job_name=$JOB_NAME" >> "$GITHUB_OUTPUT"
-          az containerapp job create \
-            --name "$JOB_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --environment "${{ steps.cae.outputs.cae_id }}" \
-            --trigger-type Manual \
-            --replica-timeout 300 \
-            --replica-retry-limit 0 \
-            --image "${{ steps.image.outputs.image }}" \
-            --cpu "0.5" \
-            --memory "1Gi" \
-            --mi-user-assigned "${{ steps.identity.outputs.identity_id }}" \
-            --registry-server "$ACR_LOGIN_SERVER" \
-            --registry-identity "${{ steps.identity.outputs.identity_id }}" \
-            --env-vars "APP_ENV=production" "DATABASE_URL=${{ steps.dburl.outputs.db_url }}" "RUN_MIGRATIONS=true" "DRY_RUN=${{ steps.cmd.outputs.dry_run_env }}" \
-            --output none
-          echo "Created job: $JOB_NAME"
+          pip install --quiet --upgrade pip
+          pip install --quiet \
+            "alembic>=1.18.0" \
+            "sqlalchemy[asyncio]>=2.0.48" \
+            "asyncpg>=0.29.0" \
+            "pydantic>=2.10.0,<3.0.0" \
+            "pydantic-settings>=2.7.0" \
+            "python-jose[cryptography]>=3.3.0" \
+            "passlib[bcrypt]>=1.7.4" \
+            "itsdangerous>=2.1.0" \
+            "httpx>=0.28.0" \
+            "boto3>=1.42.0" \
+            "redis>=5.1.0" \
+            "celery>=5.6.0" \
+            "sentry-sdk>=2.5.0" \
+            "stripe>=14.0.0" \
+            "razorpay>=2.0.0"
+          echo "Dependencies installed."
 
-      - name: Start migration job
-        id: execution
+      - name: Run migrations (dry run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        working-directory: services/api
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.db_url }}
+          APP_ENV: production
         run: |
-          EXEC_NAME=$(az containerapp job start \
-            --name "${{ steps.job.outputs.job_name }}" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --query "name" -o tsv)
-          echo "execution_name=$EXEC_NAME" >> "$GITHUB_OUTPUT"
-          echo "Execution started: $EXEC_NAME"
+          echo "=== DRY RUN: Printing migration SQL ==="
+          alembic upgrade head --sql
 
-      - name: Poll until complete
+      - name: Run migrations
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        working-directory: services/api
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.db_url }}
+          APP_ENV: production
         run: |
-          JOB_NAME="${{ steps.job.outputs.job_name }}"
-          EXEC_NAME="${{ steps.execution.outputs.execution_name }}"
-          TIMEOUT=300; ELAPSED=0; STATUS="Running"
-          echo "Waiting for migration to complete..."
-          while [[ "$STATUS" == "Running" || "$STATUS" == "Processing" ]]; do
-            sleep 10; ELAPSED=$((ELAPSED+10))
-            if [[ $ELAPSED -ge $TIMEOUT ]]; then
-              echo "Migration timed out after ${TIMEOUT}s!"
-              exit 1
-            fi
-            STATUS=$(az containerapp job execution show \
-              --name "$JOB_NAME" \
-              --resource-group "${{ env.RESOURCE_GROUP }}" \
-              --job-execution-name "$EXEC_NAME" \
-              --query "properties.status" -o tsv 2>/dev/null || echo "Running")
-            echo "  Status: $STATUS (${ELAPSED}s)"
-          done
-          echo "Final status: $STATUS"
-          [[ "$STATUS" == "Succeeded" ]] || { echo "Migration failed!"; exit 1; }
-
-      - name: Cleanup migration job
-        if: always()
-        run: |
-          az containerapp job delete \
-            --name "${{ steps.job.outputs.job_name }}" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --yes --no-wait --output none 2>/dev/null || true
-          echo "Job cleanup initiated."
+          echo "=== Running alembic upgrade head ==="
+          alembic upgrade head
+          echo "=== Migrations complete ==="
 
       - name: Post migration summary
         if: success()
@@ -167,7 +109,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Image | \`${{ steps.image.outputs.image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Dry Run | ${{ github.event.inputs.dry_run }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Triggered by | ${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Timestamp | $(date -u) |" >> "$GITHUB_STEP_SUMMARY"
+
