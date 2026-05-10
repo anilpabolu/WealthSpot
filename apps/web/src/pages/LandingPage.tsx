@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import OnboardingVideo from '@/components/OnboardingVideo'
-import { usePlatformStats } from '@/hooks/usePlatformStats'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { usePublicImage } from '@/hooks/useAppImages'
@@ -10,43 +9,10 @@ import ParticleCanvas from '@/components/ui/ParticleCanvas'
 import GradientMesh from '@/components/ui/GradientMesh'
 import SEOHead from '@/components/SEOHead'
 import {
-  TrendingUp,
-  Users,
   ArrowRight,
   Zap,
-  IndianRupee,
-  MapPin,
-  BadgeCheck,
 } from 'lucide-react'
 
-
-/* ---------- Helpers ---------- */
-function formatINRCompact(n: number): string {
-  if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(1)}Cr`
-  if (n >= 1_00_000) return `₹${(n / 1_00_000).toFixed(1)}L`
-  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)}K`
-  return `₹${n}`
-}
-
-function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }) {
-  const [display, setDisplay] = useState(0)
-  useEffect(() => {
-    if (!value) return
-    let start = 0
-    const duration = 1200
-    const step = (ts: number) => {
-      if (!startTs) startTs = ts
-      const progress = Math.min((ts - startTs) / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      start = Math.round(eased * value)
-      setDisplay(start)
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    let startTs: number | null = null
-    requestAnimationFrame(step)
-  }, [value])
-  return <>{format ? format(display) : display.toLocaleString('en-IN')}</>
-}
 
 
 /* ---------- Hero Image Showcase ---------- */
@@ -149,46 +115,6 @@ function HeroSection() {
 
           {/* Right — Admin-managed home hero image with gold double-border */}
           <HeroImageShowcase />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Platform Stats ---------- */
-function StatsBar() {
-  const { data } = usePlatformStats()
-  const statMembers = useContent('landing', 'stat_members', 'Platform Members')
-  const statCapital = useContent('landing', 'stat_capital', 'Capital Deployed')
-  const statOpportunities = useContent('landing', 'stat_opportunities', 'Live Opportunities')
-  const statMarkets = useContent('landing', 'stat_markets', 'Markets Covered')
-  const statInvestors = useContent('landing', 'stat_investors', 'Verified Investors')
-
-  const stats = [
-    { label: statMembers, icon: Users, value: data?.totalMembers ?? 0 },
-    { label: statCapital, icon: IndianRupee, value: data?.capitalDeployed ?? 0, fmt: formatINRCompact },
-    { label: statOpportunities, icon: TrendingUp, value: data?.activeOpportunities ?? 0 },
-    { label: statMarkets, icon: MapPin, value: data?.marketsCovered ?? 0 },
-    { label: statInvestors, icon: BadgeCheck, value: data?.verifiedInvestors ?? 0 },
-  ]
-
-  return (
-    <section className="bg-[var(--bg-surface)] border-y border-theme">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-          {stats.map((s) => (
-            <div key={s.label} className="flex items-center gap-3">
-              <div className="stat-card-icon bg-primary/10 shrink-0">
-                <s.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-theme-tertiary">{s.label}</p>
-                <p className="font-mono text-lg font-bold text-theme-primary">
-                  <AnimatedNumber value={s.value} format={s.fmt} />
-                </p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
@@ -430,11 +356,7 @@ export default function LandingPage() {
         description="Invest in premium real estate fractionally starting from ₹10,000. Wealth Vault, Safe Vault, and Community Vault on WealthSpot."
         path="/"
       />
-      {/* Hero (2-col with thesis) + metrics fill one viewport */}
-      <div className="flex flex-col h-[calc(100vh-4rem)]">
-        <HeroSection />
-        <StatsBar />
-      </div>
+      <HeroSection />
       <IntroSection />
       <TheVaultsSection />
       <InvestorIdentitiesSection />

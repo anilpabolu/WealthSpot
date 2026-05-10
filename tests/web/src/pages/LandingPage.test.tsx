@@ -68,12 +68,6 @@ describe('LandingPage', () => {
     expect(screen.getByText('Built for those who think beyond conventional investing.')).toBeInTheDocument()
   })
 
-  it('renders platform stats labels', () => {
-    renderPage()
-    expect(screen.getByText('Platform Members')).toBeInTheDocument()
-    expect(screen.getByText('Capital Deployed')).toBeInTheDocument()
-  })
-
   it('renders vault sections', () => {
     renderPage()
     // The page has vault sections mentioning Wealth Vault, Opportunity Vault, Community Vault
