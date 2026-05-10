@@ -189,6 +189,11 @@ function SubItemRow({
               {String((sub.builderAnswer as Record<string, string>).value)}
             </blockquote>
           )}
+          {sub.reviewerNote && (
+            <p className="mt-1.5 text-[11px] text-theme-secondary italic">
+              {sub.reviewerNote}
+            </p>
+          )}
         </div>
       </div>
       {visibleDocs.length > 0 && (

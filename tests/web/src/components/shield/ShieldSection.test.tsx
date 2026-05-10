@@ -28,7 +28,7 @@ const MOCK_SUMMARY = {
           code: 'category_grade',
           label: 'Category Grade',
           status: 'passed',
-          builderAnswer: { text: 'A' },
+          builderAnswer: { value: 'A' },
           reviewerNote: 'Looks good',
           reviewedAt: '2026-01-15T10:00:00Z',
           riskSeverity: null,
