@@ -9,6 +9,12 @@ vi.mock('react-native-mmkv', () => ({
   },
 }))
 
+vi.mock('expo-secure-store', () => ({
+  setItemAsync: vi.fn().mockResolvedValue(undefined),
+  deleteItemAsync: vi.fn().mockResolvedValue(undefined),
+  getItemAsync: vi.fn().mockResolvedValue(null),
+}))
+
 import { useUserStore } from '@/stores/user.store'
 
 const testUser = {

@@ -104,6 +104,7 @@ jobs:
             --name "$CONTAINER_APP_NAME" \
             --resource-group "${{ env.RESOURCE_GROUP }}" \
             --image "${{ needs.build.outputs.full_image }}" \
+            --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
             --output none
           echo "Updated Container App to: ${{ needs.build.outputs.full_image }}"
 

@@ -43,9 +43,9 @@ describe('mobile portfolioBff functional tests', () => {
       const result = await mobilePortfolioBff.getPortfolio()
 
       expect(apiGet).toHaveBeenCalledTimes(3)
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/summary')
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/holdings')
-      expect(apiGet).toHaveBeenCalledWith('/investments/transactions', { params: { limit: 20, sort: '-created_at' } })
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/summary')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/properties')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/transactions', { params: { limit: 20, sort: '-created_at' } })
 
       expect(result.summary.totalInvested).toBe(500000)
       expect(result.holdings).toHaveLength(2)
@@ -76,7 +76,7 @@ describe('mobile portfolioBff functional tests', () => {
 
       const result = await mobilePortfolioBff.getPropertyInvestmentDetail('p1')
 
-      expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/holdings/p1')
+      expect(apiGet).toHaveBeenCalledWith('/portfolio/properties/p1')
       expect(apiGet).toHaveBeenCalledWith('/investments/transactions', { params: { property_id: 'p1', limit: 50 } })
 
       expect(result.holding.propertyId).toBe('p1')

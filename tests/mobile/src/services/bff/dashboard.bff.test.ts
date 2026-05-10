@@ -30,7 +30,7 @@ describe('mobile dashboardBff functional tests', () => {
 
     expect(apiGet).toHaveBeenCalledTimes(4)
     expect(apiGet).toHaveBeenCalledWith('/auth/me')
-    expect(apiGet).toHaveBeenCalledWith('/investments/portfolio/summary')
+    expect(apiGet).toHaveBeenCalledWith('/portfolio/summary')
     expect(apiGet).toHaveBeenCalledWith('/investments/transactions', { params: { limit: 5, sort: '-created_at' } })
     expect(apiGet).toHaveBeenCalledWith('/properties', { params: { status: 'funding', page_size: 3, sort: '-launch_date' } })
 
