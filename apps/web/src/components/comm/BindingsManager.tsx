@@ -3,7 +3,6 @@ import { Plus, Trash2, Loader2, Link } from 'lucide-react'
 import { useCommBindings, useCreateCommBinding, useUpdateCommBinding, useDeleteCommBinding } from '@/hooks/useCommBindings'
 import { useCommEvents } from '@/hooks/useCommEvents'
 import { useCommTemplates } from '@/hooks/useCommTemplates'
-import type { CommBinding } from '@/hooks/useCommBindings'
 
 const CHANNELS = ['email', 'sms', 'whatsapp', 'in_app']
 

@@ -1,5 +1,5 @@
 import { useCommDashboard } from '@/hooks/useCommMessages'
-import { Loader2, Mail, MessageSquare, BellRing, AlertCircle, Clock } from 'lucide-react'
+import { Loader2, AlertCircle, Clock } from 'lucide-react'
 
 function KpiCard({
   label,
@@ -91,10 +91,10 @@ export default function CommDashboard() {
 
       {/* Channel KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <KpiCard label="Email" icon={Mail} {...data.email} />
-        <KpiCard label="SMS" icon={MessageSquare} {...data.sms} />
-        <KpiCard label="WhatsApp" icon={MessageSquare} {...data.whatsapp} />
-        <KpiCard label="In-App" icon={BellRing} {...data.in_app} />
+        <KpiCard label="Email" {...data.email} />
+        <KpiCard label="SMS" {...data.sms} />
+        <KpiCard label="WhatsApp" {...data.whatsapp} />
+        <KpiCard label="In-App" {...data.in_app} />
       </div>
     </div>
   )
