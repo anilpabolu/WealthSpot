@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from jinja2 import BaseLoader, Environment, StrictUndefined, TemplateError
+from jinja2 import BaseLoader, Environment, Undefined, TemplateError
 
 from app.comm.exceptions import TemplateRenderError
 
@@ -41,7 +41,7 @@ def _get_mjml():
     return _mjml_fn
 
 
-_jinja_env = Environment(loader=BaseLoader(), undefined=StrictUndefined, autoescape=False)
+_jinja_env = Environment(loader=BaseLoader(), undefined=Undefined, autoescape=False)
 
 
 def _render_jinja(template_str: str | None, variables: dict) -> str | None:

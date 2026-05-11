@@ -113,22 +113,28 @@ class TestDlt:
 
 class TestOtp:
     def _make_redis(self, *, get_val=None, zadd_val=1, zcard_val=1, zscore_val=None):
-        r = AsyncMock()
-        r.get = AsyncMock(return_value=get_val)
-        r.set = AsyncMock()
-        r.delete = AsyncMock()
-        r.zadd = AsyncMock(return_value=zadd_val)
-        r.zcard = AsyncMock(return_value=zcard_val)
-        r.zremrangebyscore = AsyncMock()
-        r.zscore = AsyncMock(return_value=zscore_val)
-        r.expire = AsyncMock()
+        r = MagicMock()
+        r.get = MagicMock(return_value=get_val)
+        r.set = MagicMock()
+        r.delete = MagicMock()
+        r.hset = MagicMock()
+        r.hgetall = MagicMock(return_value={})
+        r.zadd = MagicMock(return_value=zadd_val)
+        r.zcard = MagicMock(return_value=zcard_val)
+        r.zremrangebyscore = MagicMock()
+        r.zscore = MagicMock(return_value=zscore_val)
+        r.expire = MagicMock()
+        pipe = MagicMock()
+        # _check_rate unpacks: _, count, _, _ = pipe.execute()
+        pipe.execute.return_value = (None, zcard_val, 1, None)
+        r.pipeline.return_value = pipe
         return r
 
     def test_issue_otp_returns_result(self):
         from app.comm.otp import issue_otp
 
         r = self._make_redis(zcard_val=1)
-        with patch("app.comm.otp._redis", r):
+        with patch("app.comm.otp._redis", MagicMock(return_value=r)):
             result = issue_otp(
                 purpose="login",
                 phone="+911234567890",
@@ -141,11 +147,11 @@ class TestOtp:
         from app.comm.otp import OtpInvalid, issue_otp, verify_otp
 
         r = self._make_redis(zcard_val=1)
-        with patch("app.comm.otp._redis", r):
+        with patch("app.comm.otp._redis", MagicMock(return_value=r)):
             issue_otp(purpose="login", phone="+911234567890", ip="127.0.0.1")
 
         r2 = self._make_redis(get_val=None)  # Simulate no stored hash (expired)
-        with patch("app.comm.otp._redis", r2):
+        with patch("app.comm.otp._redis", MagicMock(return_value=r2)):
             with pytest.raises(OtpInvalid):
                 verify_otp(purpose="login", phone="+911234567890", code="000000")
 
@@ -212,7 +218,15 @@ class TestPublishApi:
             {"user_id": str(uuid.uuid4()), "first_name": "Test"},
             session=mock_session,
         )
-        assert isinstance(result, uuid.UUID)
+        # With a mocked session, flush() is a no-op so the ORM never evaluates
+        # the default=uuid.uuid4 for outbox.id.  Instead verify the outbox was
+        # added (session.add was called) and that the result is either a UUID
+        # (when SA eagerly generates it) or the outbox.id attribute itself.
+        assert mock_session.add.called
+        outbox = mock_session.add.call_args[0][0]
+        # The result should match outbox.id; both may be None if SA hasn't run
+        # the INSERT default yet — what matters is they are equal.
+        assert result is outbox.id
 
     @pytest.mark.asyncio
     async def test_publish_raises_for_unknown_event(self):

@@ -37,6 +37,7 @@ from app.models.user import User, UserRole
 # ── Disable rate limiting for tests ─────────────────────────────────────────
 # Monkey-patch the dispatch method to always allow requests during tests.
 from app.middleware.rate_limit import RateLimitMiddleware
+import app.middleware.rate_limit as _rl_mod
 
 _original_dispatch = RateLimitMiddleware.dispatch
 
@@ -46,6 +47,9 @@ async def _noop_dispatch(self, request, call_next):
 
 
 RateLimitMiddleware.dispatch = _noop_dispatch
+
+# Also bypass the route_limit FastAPI dependency (uses in-process memory sliding window).
+_rl_mod._route_check = lambda scope, max_requests, window_seconds: True
 
 # ── Test engine uses same PostgreSQL but creates/drops a test schema ────────
 # asyncpg does not support ?ssl=require as a URL query parameter; strip it and
@@ -64,6 +68,10 @@ if _needs_ssl:
     _ssl_ctx.check_hostname = False
     _ssl_ctx.verify_mode = _ssl_module.CERT_NONE
     _engine_kwargs["connect_args"] = {"ssl": _ssl_ctx}
+
+if "connect_args" not in _engine_kwargs:
+    _engine_kwargs["connect_args"] = {}
+_engine_kwargs["connect_args"]["server_settings"] = {"search_path": "test_ws,public"}
 
 TEST_ENGINE = create_async_engine(TEST_DB_URL, **_engine_kwargs)
 TestSessionFactory = async_sessionmaker(

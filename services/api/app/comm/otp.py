@@ -42,6 +42,7 @@ class OtpResult:
     code: str
     ttl_seconds: int
     delivery: Literal["sms", "voice", "whatsapp", "email", "stub"]
+    issued: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +118,7 @@ def issue_otp(
     length: int = OTP_LENGTH_DEFAULT,
     ttl_seconds: int = OTP_TTL_SECONDS_DEFAULT,
     alphanumeric: bool = False,
-) -> str:
+) -> OtpResult:
     """Generate, store (Redis), and return an OTP code for `phone`.
 
     The code is stored as a salted HMAC hash so a Redis dump never leaks
@@ -145,7 +146,7 @@ def issue_otp(
         },
     )
     r.expire(key, ttl_seconds)
-    return code
+    return OtpResult(code=code, ttl_seconds=ttl_seconds, delivery="stub")
 
 
 def verify_otp(
