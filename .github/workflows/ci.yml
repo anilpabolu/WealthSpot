@@ -126,7 +126,7 @@ jobs:
         working-directory: apps/web
         run: npm run build
         env:
-          VITE_API_BASE_URL: https://api.wealthspot.in
+          VITE_API_BASE_URL: https://api.wealthspot.in/api/v1
       - uses: actions/upload-artifact@v4
         with:
           name: web-dist-ci
