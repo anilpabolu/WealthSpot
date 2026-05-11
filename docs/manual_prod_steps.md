@@ -673,3 +673,20 @@ az role assignment create \
 | [.github/workflows/run-migrations.yml](../.github/workflows/run-migrations.yml) | Manual migrations |
 | [docs/final_deployment.md](final_deployment.md) | Architecture + cost guide |
 | [docs/manual_prod_steps.md](manual_prod_steps.md) | This file |
+
+---
+
+## Pending / Revisit Later
+
+### ⚠️ Rotate Exposed Cloudflare API Tokens
+
+Two Cloudflare API tokens were accidentally committed in plain text in `scripts/add_cf_pages_domain.py` and `scripts/add_dns_records.py` (commit `cfc4b9d`, "prod deployment 1"). They were squashed out of history on 2026-05-11, but anyone who had pulled/cloned before that rebase may still have the old values.
+
+**Action required:**
+
+1. Go to [Cloudflare Dashboard → My Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Find and **revoke** the following tokens (identify by creation date ~2026-05-10):
+   - Pages token (`cfut_EWK…`) — used in `add_cf_pages_domain.py`
+   - Zone/DNS token (`cfut_zH3…`) — used in `add_cf_pages_domain.py` and `add_dns_records.py`
+3. Create replacement tokens with the same permissions and store them securely (e.g., in Azure Key Vault or a local `.env` file that is gitignored).
+4. Update any CI/CD secrets or local scripts that reference the old tokens.

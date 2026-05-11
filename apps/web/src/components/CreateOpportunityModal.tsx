@@ -18,7 +18,6 @@ import {
 import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
-import { useOpportunityFormFlags } from '@/hooks/useControlCentre'
 import { INDIAN_CITIES } from '@/lib/constants'
 import MediaUploadZone from './MediaUploadZone'
 import AddressDialog, { type AddressFields } from './AddressDialog'
@@ -266,7 +265,6 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   const uploadMutation = useUploadOpportunityMedia()
   const { isVaultEnabled } = useVaultConfig()
   const { data: oppFormOptions } = useOpportunityFormOptions()
-  const { showInvestmentConfig, showInvestmentDetails, showAmenities } = useOpportunityFormFlags()
 
   // Reset amenities and unit/plot configs when property type changes
   useEffect(() => {
@@ -286,20 +284,6 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
       if (computed > 0) setForm((prev) => ({ ...prev, targetAmount: computed }))
     }
   }, [pricePerSqftField, totalProjectAreaSqft, investmentMode])
-
-  // When Investment Config section is hidden, auto-default to lumpsum
-  useEffect(() => {
-    if (!showInvestmentConfig && propertyType && investmentMode === '') {
-      setInvestmentMode('lumpsum')
-    }
-  }, [showInvestmentConfig, propertyType, investmentMode])
-
-  // When Investment Details is hidden, sync targetAmount = minInvestment for safe submission
-  useEffect(() => {
-    if (!showInvestmentDetails && form.minInvestment && Number(form.minInvestment) > 0) {
-      setForm((prev) => ({ ...prev, targetAmount: Number(prev.minInvestment) }))
-    }
-  }, [showInvestmentDetails, form.minInvestment])
 
   if (!open) return null
 
@@ -349,10 +333,8 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
 
     if (vaultType === 'wealth' || vaultType === 'safe') {
       if (!propertyType) errors.propertyType = 'Required'
-      if (showInvestmentDetails) {
-        if (!pricePerSqftField) errors.pricePerSqft = 'Required'
-        if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
-      }
+      if (!pricePerSqftField) errors.pricePerSqft = 'Required'
+      if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
 
       if (propertyType) {
         const fc = PROPERTY_FIELD_CONFIG[propertyType]
@@ -362,7 +344,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
           if (!projectOverview.landParcelSqft) errors.landParcelSqft = 'Required'
 
           // Unit/plot config validation only applies when configs are shown
-          const showConfigs = showInvestmentDetails && (vaultType === 'safe' || investmentMode === 'unit_config')
+          const showConfigs = vaultType === 'safe' || investmentMode === 'unit_config'
           if (showConfigs) {
             if (fc.showUnitConfig) {
               const hasValidUnit = unitConfigs.some((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
@@ -388,7 +370,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
           const availableAmenities = AMENITIES.filter(
             (a) => allowedCats.includes(a.category) && !excludeKeys.includes(a.key)
           )
-          if (showAmenities && availableAmenities.length > 0 && selectedAmenities.length === 0) {
+          if (availableAmenities.length > 0 && selectedAmenities.length === 0) {
             errors.amenities = 'Select at least one amenity'
           }
         }
@@ -397,16 +379,11 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
       if (!form.fundingOpenAt) errors.fundingOpenAt = 'Required'
 
       if (vaultType === 'wealth') {
-        if (!showInvestmentConfig && !investmentMode) {
-          // auto-defaulted to lumpsum; treat as set
-        } else if (!investmentMode) {
+        if (!investmentMode) {
           errors.investmentMode = 'Select an investment configuration mode'
         } else if (investmentMode === 'lumpsum') {
+          if (!form.targetAmount) errors.targetAmount = 'Required'
           if (!form.minInvestment) errors.minInvestment = 'Required'
-          if (showInvestmentDetails && !form.targetAmount) errors.targetAmount = 'Required'
-          if (!showInvestmentDetails && !form.targetAmount && form.minInvestment) {
-            // targetAmount will be synced from minInvestment via effect — OK
-          }
         }
         // unit_config: target is auto-computed; no min required
       }
@@ -1268,8 +1245,8 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                           🏗️ Project Overview
                         </h4>
 
-                        {/* Possession Quarter */}
-                        <div className="grid gap-4 grid-cols-1">
+                        {/* Possession Quarter + RERA */}
+                        <div className={`grid gap-4 ${(fc.showPossessionQuarter && fc.showRera) ? 'grid-cols-2' : 'grid-cols-1'}`}>
                           {fc.showPossessionQuarter && (
                             <div>
                               <label className="block text-sm font-medium text-theme-primary mb-1">
@@ -1287,6 +1264,14 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                                 </p>
                               )}
                             </div>
+                          )}
+                          {fc.showRera && (
+                            <Input
+                              label="RERA Number (Optional)"
+                              value={projectOverview.reraNumber}
+                              onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))}
+                              placeholder="e.g. MH/12345"
+                            />
                           )}
                         </div>
 
@@ -1364,7 +1349,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                   })()}
 
                   {/* Investment Mode selector — Wealth Vault only, shown after property type chosen */}
-                  {showInvestmentConfig && vaultType === 'wealth' && propertyType && (
+                  {vaultType === 'wealth' && propertyType && (
                     <div>
                       <label className="block text-sm font-medium text-theme-primary mb-2">
                         Investment Configuration <span className="text-red-500">*</span>
@@ -1410,7 +1395,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                   )}
 
                   {/* 💰 Investment Details — visible once investmentMode (or safe vault) */}
-                  {showInvestmentDetails && propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
                     const fc = (PROPERTY_FIELD_CONFIG[propertyType] ?? PROPERTY_FIELD_CONFIG[PropertyType.FLAT])!
                     return (
                       <div className="rounded-xl border border-theme p-4 space-y-4">
@@ -1732,25 +1717,8 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
                     </div>
                   )}
 
-                  {/* 💰 Min Investment — shown when Investment Details section is off */}
-                  {!showInvestmentDetails && propertyType && (vaultType === 'wealth' || vaultType === 'safe') && (vaultType === 'safe' || !!investmentMode) && (
-                    <div className="rounded-xl border border-theme p-4">
-                      <h4 className="text-sm font-semibold text-theme-primary mb-3">💰 Investment Amount</h4>
-                      <Input
-                        label="Minimum Investment per Investor (₹) *"
-                        type="number"
-                        min={0}
-                        value={form.minInvestment ?? ''}
-                        onChange={(e) => handleChange('minInvestment', Number(e.target.value))}
-                        prefix="₹"
-                        placeholder="e.g. 500000"
-                        errorText={fe('minInvestment') ? 'Required' : undefined}
-                      />
-                    </div>
-                  )}
-
                   {/* ✨ Amenities */}
-                  {showAmenities && propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
+                  {propertyType && (vaultType === 'safe' || !!investmentMode) && (() => {
                     const allowedCats = PROPERTY_AMENITY_CATEGORIES[propertyType] ?? []
                     const excludeKeys = AMENITY_EXCLUDE_BY_TYPE[propertyType] ?? []
                     const visibleCategories = (Object.entries(AMENITY_CATEGORIES) as [AmenityCategory, string][])

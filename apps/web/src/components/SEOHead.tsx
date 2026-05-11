@@ -20,14 +20,14 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_IMAGE = `${BASE_URL}/og-default.png`
 
 export default function SEOHead({
-  title,
+  title: _title,
   description = DEFAULT_DESCRIPTION,
   path = '',
   image = DEFAULT_IMAGE,
   type = 'website',
   noIndex = false,
 }: SEOHeadProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Democratizing Premium Assets`
+  const fullTitle = SITE_NAME
   const canonical = `${BASE_URL}${path}`
 
   return (

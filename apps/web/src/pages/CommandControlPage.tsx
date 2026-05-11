@@ -47,6 +47,7 @@ const VaultMetricsTab = lazy(() => import('./control/VaultMetricsTab'))
 const SnapshotConfigTab = lazy(() => import('./control/SnapshotConfigTab'))
 const DealLifecycleTab = lazy(() => import('./control/DealLifecycleTab'))
 const BuilderUpdatesTab = lazy(() => import('./control/BuilderUpdatesTab'))
+const CommPlatformTab = lazy(() => import('./control/CommPlatformTab'))
 
 /* ------------------------------------------------------------------ */
 /*  Side-nav sections                                                  */
@@ -74,6 +75,7 @@ type Section =
   | 'approvals'
   | 'shield-review'
   | 'snapshot-config'
+  | 'comm-platform'
 
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
@@ -89,6 +91,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'shield-review', label: 'Shield Review', icon: ShieldCheck, group: 'Operations' },
   { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle, group: 'Operations' },
   { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
+  { id: 'comm-platform', label: 'Comm Platform', icon: Mail, group: 'Operations' },
   { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle, group: 'Operations' },
   { id: 'media-management', label: 'Media Manager', icon: Image, group: 'Content' },
   { id: 'app-images', label: 'Home Images', icon: Image, group: 'Content' },
@@ -260,6 +263,11 @@ export default function CommandControlPage() {
             )}
             {activeSection === 'admin-invites' && (
               <Suspense fallback={<TabFallback />}><AdminInvitesTab /></Suspense>
+            )}
+          </SectionErrorBoundary>
+          <SectionErrorBoundary fallbackTitle="Comm Platform failed to load">
+            {activeSection === 'comm-platform' && (
+              <Suspense fallback={<TabFallback />}><CommPlatformTab /></Suspense>
             )}
           </SectionErrorBoundary>
           {activeSection === 'answer-questions' && (

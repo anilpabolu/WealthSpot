@@ -8,7 +8,7 @@ import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
 import { useAppearanceConfig, usePublicNotificationsConfig } from '@/hooks/useControlCentre'
-import { applyThemePalette, clearThemePalette } from '@/lib/colorUtils'
+import { applyThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 import { ToastRibbon } from '@/components/ToastRibbon'
 import { useToastStore } from '@/stores/toastStore'
@@ -114,17 +114,13 @@ export default function App() {
   const { user, isLoaded } = useUser()
   const redirectedRef = useRef(false)
 
-  // Apply saved theme on mount
+  // Force light theme always
   const theme = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
   useEffect(() => {
-    const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-      clearThemePalette()
-    } else {
-      root.classList.remove('dark')
-    }
-  }, [theme])
+    setTheme('light')
+    document.documentElement.classList.remove('dark')
+  }, [setTheme])
 
   // Apply admin-configured light mode background color
   const { data: appearance } = useAppearanceConfig()

@@ -7,12 +7,6 @@ vi.mock('@/components/layout', () => ({
   MainLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
-vi.mock('@/hooks/usePlatformStats', () => ({
-  usePlatformStats: vi.fn(() => ({
-    data: { memberCount: 1200, capitalDeployed: 50000000, opportunities: 45, markets: 8, investors: 300 },
-  })),
-}))
-
 vi.mock('@/hooks/useVaultConfig', () => ({
   useVaultConfig: vi.fn(() => ({
     introVideosEnabled: false,
@@ -51,9 +45,10 @@ describe('LandingPage', () => {
     )
   }
 
-  it('renders hero title', () => {
+  it('renders hero headlines', () => {
     renderPage()
-    expect(screen.getByText('Private Access to Exceptional Real Asset Opportunities.')).toBeInTheDocument()
+    expect(screen.getByText('Invest together in')).toBeInTheDocument()
+    expect(screen.getByText('curated opportunities.')).toBeInTheDocument()
   })
 
   it('does not render hero CTA buttons', () => {
@@ -64,8 +59,7 @@ describe('LandingPage', () => {
 
   it('renders intro section', () => {
     renderPage()
-    expect(screen.getByText('Intro')).toBeInTheDocument()
-    expect(screen.getByText('Built for those who think beyond conventional investing.')).toBeInTheDocument()
+    expect(screen.getByText('Is WealthSpot For Me?')).toBeInTheDocument()
   })
 
   it('renders vault sections', () => {
