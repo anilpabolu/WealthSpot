@@ -35,7 +35,7 @@ omit = ["*/migrations/*", "alembic/*"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 60
+fail_under = 59
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

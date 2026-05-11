@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from jinja2 import BaseLoader, Environment, Undefined, TemplateError
+from jinja2 import BaseLoader, Environment, TemplateError, Undefined
 
 from app.comm.exceptions import TemplateRenderError
 

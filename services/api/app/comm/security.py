@@ -66,7 +66,9 @@ def make_unsubscribe_token(user_id: str, channel: str, event_category: str | Non
     return _serializer(_UNSUB_SALT).dumps(payload)
 
 
-def verify_unsubscribe_token(token: str, *, max_age_seconds: int = 60 * 60 * 24 * 365) -> dict | None:
+def verify_unsubscribe_token(
+    token: str, *, max_age_seconds: int = 60 * 60 * 24 * 365
+) -> dict | None:
     """Verify and decode an unsubscribe token. Default lifetime: 1 year."""
     try:
         raw = _serializer(_UNSUB_SALT).loads(token, max_age=max_age_seconds)
@@ -83,7 +85,9 @@ def make_preferences_token(user_id: str) -> str:
     return _serializer(_PREF_SALT).dumps({"u": user_id})
 
 
-def verify_preferences_token(token: str, *, max_age_seconds: int = 60 * 60 * 24 * 30) -> dict | None:
+def verify_preferences_token(
+    token: str, *, max_age_seconds: int = 60 * 60 * 24 * 30
+) -> dict | None:
     """Verify a preference-center token. Default lifetime: 30 days."""
     try:
         raw = _serializer(_PREF_SALT).loads(token, max_age=max_age_seconds)

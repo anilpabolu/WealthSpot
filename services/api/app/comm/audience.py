@@ -34,9 +34,10 @@ try:
 
     if not _probe_ok:
         # Build a fixed version by re-exec-ing the source with keys() calls replaced.
-        import sys as _sys
         import inspect as _inspect
+        import sys as _sys
         from functools import reduce as _reduce
+
         _src = _inspect.getsource(_json_logic_module.jsonLogic)
         _src_fixed = _src.replace("tests.keys()[0]", "next(iter(tests.keys()))")
         # Provide the globals that json_logic's jsonLogic function depends on.
