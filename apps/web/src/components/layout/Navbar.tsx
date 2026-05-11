@@ -1,11 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Sun, Moon, Vault } from 'lucide-react'
+import { Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
-  useClerk,
 } from '@clerk/react'
 import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
@@ -14,7 +13,6 @@ import { useUserStore } from '@/stores/user.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 import { useOverallProgress } from '@/hooks/useProfiling'
-import { useVaultConfig } from '@/hooks/useVaultConfig'
 import WLogo3D from '@/components/ui/WLogo3D'
 
 const AUTH_NAV_LINKS = [
@@ -40,18 +38,33 @@ export default function Navbar(_props?: NavbarProps) {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const { data: completion } = useProfileCompletionStatus()
   const { data: overall } = useOverallProgress()
-  const theme = useThemeStore((s) => s.theme)
-  const toggleTheme = useThemeStore((s) => s.toggleTheme)
-  const clerk = useClerk()
-  const { introVideosEnabled } = useVaultConfig()
+  useThemeStore((s) => s.theme)
 
-  const handleGetAccess = () => {
-    if (introVideosEnabled) {
-      setShowVideo(true)
-    } else {
-      clerk.openSignUp({ forceRedirectUrl: '/vaults' })
+  // ── Landing-page scroll behaviour ──────────────────────────────────────
+  const isLanding = location.pathname === '/'
+  const [isAtTop, setIsAtTop] = useState(true)
+  const [navVisible, setNavVisible] = useState(true)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    if (!isLanding) return
+    const onScroll = () => {
+      const current = window.scrollY
+      const delta = current - lastScrollY.current
+      if (current <= 10) {
+        setIsAtTop(true)
+        setNavVisible(true)
+      } else {
+        setIsAtTop(false)
+        // Hide when scrolling down past 80px threshold; show on any upward movement
+        if (delta > 5 && current > 80) setNavVisible(false)
+        else if (delta < -5) setNavVisible(true)
+      }
+      lastScrollY.current = current
     }
-  }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isLanding])
 
   const extraLinks = [
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
@@ -68,20 +81,33 @@ export default function Navbar(_props?: NavbarProps) {
 
   return (
     <>
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0c0a1f]/70 backdrop-blur-xl dark:saturate-[180%] border-b border-black/5 dark:border-white/10 transition-colors duration-300">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+    <header
+      className={cn(
+        'z-50 w-full relative',
+        isLanding ? 'fixed top-0' : 'sticky top-0',
+      )}
+      style={{
+        transform: isLanding && !navVisible ? 'translateY(-100%)' : 'translateY(0)',
+        transition: 'transform 0.35s ease, background 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out, -webkit-backdrop-filter 0.3s ease-in-out',
+        background: isLanding && isAtTop ? 'rgba(0, 0, 0, 0)' : 'rgba(38, 50, 50, 0.88)',
+        backdropFilter: isLanding && isAtTop ? 'none' : 'blur(8px)',
+        WebkitBackdropFilter: isLanding && isAtTop ? 'none' : 'blur(8px)',
+        borderBottom: isLanding && isAtTop ? '1px solid rgba(56,73,73,0)' : '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/vaults" className="flex items-center gap-2.5 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={34} spin />
+          <Link to="/vaults" className="flex items-center gap-3 shrink-0" aria-label="WealthSpot Home">
+            <WLogo3D size={88} light />
             <div className="flex flex-col">
               <span
-                className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none"
+                className="text-2xl font-bold tracking-tight text-white leading-none"
                 style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-white/40 leading-none mt-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 leading-none mt-1">
                 Private Wealth Access
               </span>
             </div>
@@ -97,8 +123,8 @@ export default function Navbar(_props?: NavbarProps) {
                   className={cn(
                     'text-sm font-medium transition-colors relative',
                     location.pathname === link.href
-                      ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-indigo-400 after:rounded-full'
-                      : 'text-white/60 hover:text-white'
+                      ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
+                      : 'text-white/70 hover:text-white'
                   )}
                 >
                   {link.label}
@@ -109,19 +135,7 @@ export default function Navbar(_props?: NavbarProps) {
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
-            {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-white/[0.06] border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200"
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-4 w-4 text-[#D4AF37]" />
-              ) : (
-                <Moon className="h-4 w-4 text-indigo-400" />
-              )}
-            </button>
+
             {/* Clerk auth: signed-in → Create Opp + UserButton, signed-out → Sign In / Sign Up */}
             <Show when="signed-in">
               {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
@@ -138,9 +152,8 @@ export default function Navbar(_props?: NavbarProps) {
             <Show when="signed-out">
               <div className="hidden sm:flex items-center gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
-                  <button className="btn-ghost text-sm">Sign In</button>
+                  <button className="text-white/80 hover:text-white text-sm font-semibold px-4 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all">Sign In</button>
                 </SignInButton>
-                <button className="btn-primary text-sm" onClick={handleGetAccess}>Get Access to a Better Opportunity Environment</button>
               </div>
             </Show>
 
@@ -151,9 +164,9 @@ export default function Navbar(_props?: NavbarProps) {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
-                <X className="h-6 w-6 text-white/70" />
+                <X className="h-6 w-6 text-white/80" />
               ) : (
-                <Menu className="h-6 w-6 text-white/70" />
+                <Menu className="h-6 w-6 text-white/80" />
               )}
             </button>
           </div>
@@ -162,7 +175,7 @@ export default function Navbar(_props?: NavbarProps) {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-white/10 animate-fade-up">
+        <div className="md:hidden backdrop-blur-xl border-t border-white/10 animate-fade-up" style={{ background: 'rgba(56, 73, 73, 0.95)' }}>
           <div className="px-4 py-4 space-y-2">
             <Show when="signed-in">
               {allNavLinks.map((link) => (
@@ -173,47 +186,26 @@ export default function Navbar(_props?: NavbarProps) {
                     'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                     location.pathname === link.href
                       ? 'bg-white/10 text-white'
-                      : 'text-white/60 hover:bg-white/5 hover:text-white'
+                      : 'text-white/70 hover:bg-white/5 hover:text-white'
                   )}
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-              {/* Theme toggle in mobile signed-in */}
-              <button
-                onClick={toggleTheme}
-                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors mt-2 border-t border-white/10 pt-3"
-              >
-                {theme === 'dark' ? <Sun className="h-4 w-4 text-[#D4AF37]" /> : <Moon className="h-4 w-4 text-indigo-400" />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </button>
+
             </Show>
             <Show when="signed-out">
               <div className="pt-3 border-t border-white/10 space-y-2">
-                {/* Theme toggle in mobile */}
-                <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-                >
-                  {theme === 'dark' ? <Sun className="h-4 w-4 text-[#D4AF37]" /> : <Moon className="h-4 w-4 text-indigo-400" />}
-                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                </button>
                 <div className="flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button
-                    className="text-white/70 hover:text-white text-sm font-semibold flex-1 text-center px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                    className="text-white/80 hover:text-white text-sm font-semibold flex-1 text-center px-3 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all"
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign In
                   </button>
                 </SignInButton>
-                <button
-                  className="btn-primary text-sm flex-1 text-center"
-                  onClick={() => { setMobileOpen(false); handleGetAccess() }}
-                >
-                  Get Access
-                </button>
                 </div>
               </div>
             </Show>

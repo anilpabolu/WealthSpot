@@ -1,155 +1,570 @@
-import { useState, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
-import { usePublicImage } from '@/hooks/useAppImages'
 import { useClerk } from '@clerk/react'
-import ParticleCanvas from '@/components/ui/ParticleCanvas'
-import GradientMesh from '@/components/ui/GradientMesh'
 import SEOHead from '@/components/SEOHead'
-import {
-  ArrowRight,
-  Zap,
-} from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 
-
-
-/* ---------- Hero Image Showcase ---------- */
-const DEFAULT_HERO_IMAGE = '/wealthspot-investment-journey.png'
-const DEFAULT_HERO_ALT = 'WealthSpot investment journey from opportunity discovery to deal closure'
-
-function HeroImageShowcase() {
-  const { data: managedHero } = usePublicImage('home', 'hero_image')
-  const [imgError, setImgError] = useState(false)
-  const imageSrc = managedHero?.imageUrl || DEFAULT_HERO_IMAGE
-  const imageAlt = managedHero?.altText || DEFAULT_HERO_ALT
-
-  useEffect(() => {
-    setImgError(false)
-  }, [imageSrc])
-
-  return (
-    <div className="relative w-full animate-float lg:scale-[1.04] xl:scale-[1.08]">
-      {!imgError && (
-        <img
-          src={imageSrc}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-4 -z-10 h-[calc(100%-2rem)] w-[calc(100%-2rem)] rounded-[2rem] object-cover opacity-20 blur-2xl saturate-125"
-        />
-      )}
-      <div className="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-[#D4AF37]/18 via-indigo-500/10 to-transparent blur-2xl" />
-
-      <div
-        className="rounded-[2rem] border border-[#D4AF37]/70 bg-gradient-to-br from-[#FFF7B8]/70 via-[#D4AF37]/60 to-[#7A5512]/80 p-[3px]"
-        style={{
-          boxShadow:
-            '0 0 70px rgba(212,175,55,0.24), 0 28px 90px rgba(2,6,23,0.45), inset 0 0 24px rgba(212,175,55,0.08)',
-        }}
-      >
-        <div className="rounded-[1.75rem] bg-slate-950/95 p-[5px]">
-          <div className="relative overflow-hidden rounded-[1.45rem] border border-[#D4AF37]/35 bg-white">
-            <div className="absolute inset-0 pointer-events-none rounded-[1.45rem] ring-1 ring-inset ring-white/40" />
-            {imgError ? (
-              <div className="aspect-[16/9] bg-gradient-to-br from-[#0b1120] via-[#111827] to-[#1a1510] flex flex-col items-center justify-center gap-5 p-10">
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#D4AF37]/70">Investment Journey</p>
-                <p className="font-hero text-4xl sm:text-5xl font-extrabold text-white tracking-tight text-center leading-tight">
-                  WealthSpot<br />Investment Journey
-                </p>
-                <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent rounded-full" />
-                <p className="text-white/40 text-xs text-center font-body leading-relaxed">
-                  Upload or replace the home hero image from Command & Control.
-                </p>
-              </div>
-            ) : (
-              <img
-                src={imageSrc}
-                alt={imageAlt}
-                className="aspect-[16/9] w-full object-contain block"
-                onError={() => setImgError(true)}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+/* ─────────────────────────────────────────────────
+   SHARED TYPE
+───────────────────────────────────────────────── */
+interface WithRequestAccess {
+  onRequestAccess: () => void
 }
 
-/* ---------- Hero ---------- */
-function HeroSection() {
-  const heroBadge = useContent('landing', 'hero_badge', 'Curated access • trusted networks • strategic entry')
-  const heroTitle = useContent('landing', 'hero_title', 'Private Access to Exceptional Real Asset Opportunities.')
-  const heroSubtitle = useContent('landing', 'hero_subtitle', 'A refined platform for discerning investors, strategic partners, and value creators seeking curated entry into early-stage real estate opportunities and relationship-led wealth creation.')
-  const heroItalic = useContent('landing', 'hero_italic', 'For those who understand that wealth is not built by chasing visibility, but by entering with clarity, conviction, and the right people around the table.')
+/* ─────────────────────────────────────────────────
+   SECTION 1 — HERO
+   Full-viewport video background, text anchored bottom-right
+───────────────────────────────────────────────── */
+function HeroSection({ onRequestAccess }: WithRequestAccess) {
+  const headline1a  = useContent('landing', 'hero_headline_1a', 'Invest together in')
+  const headline1b  = useContent('landing', 'hero_headline_1b', 'curated opportunities.')
+  const heroSub     = useContent('landing', 'hero_sub', 'Private market investing for serious individual investors.')
+  const heroCta     = useContent('landing', 'hero_cta', 'Request Access')
+  const heroLink    = useContent('landing', 'hero_link', 'Learn how it works')
+  const heroVideoUrl = useContent('landing', 'hero_video_url', 'https://videos.ctfassets.net/9x3tafuqbgo7/01mmgjnzqBUgPEllSYW8a0/ddb34bd8b12922f0be54332c2313af69/Crowd_Street_1920x960_01-v1-.mp4')
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1 flex items-center">
-      {/* Particle + Gradient overlays */}
-      <ParticleCanvas className="opacity-60" />
-      <GradientMesh />
-      {/* Subtle ambient glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
-      </div>
-      <div className="mx-auto w-full max-w-[100rem] px-6 sm:px-8 lg:px-12 xl:px-14 relative z-10">
-        <div className="grid lg:grid-cols-[0.68fr_1.56fr] gap-10 lg:gap-10 xl:gap-12 items-center">
-          {/* Left — Hero copy */}
-          <div className="space-y-6">
-            <span className="page-hero-badge animate-fade-up" style={{ animationDelay: '0.1s' }}>
-              <Zap className="h-3.5 w-3.5 inline mr-1.5" />
-              {heroBadge}
-            </span>
-            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              {heroTitle}
-            </h1>
-            <p className="text-lg text-white/70 max-w-lg leading-relaxed font-body animate-fade-up" style={{ animationDelay: '0.3s' }}>
-              {heroSubtitle}
-            </p>
-            <p className="text-[15px] text-white/50 italic max-w-lg leading-relaxed font-body">
-              {heroItalic}
-            </p>
-          </div>
+    <section
+      id="hero"
+      className="relative flex min-h-screen flex-col overflow-hidden"
+    >
+      {/* Background video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster="https://framerusercontent.com/images/HvtS6jxxVUt8hghleColt8SgQ8.jpg?width=1440&height=720"
+        className="absolute inset-0 h-full w-full object-cover"
+        src={heroVideoUrl}
+      />
 
-          {/* Right — Admin-managed home hero image with gold double-border */}
-          <HeroImageShowcase />
+      {/* Gradient overlay — transparent top, dark bottom for text legibility */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.62) 100%)' }}
+      />
+
+      {/* Content — pushed to bottom, text right-aligned */}
+      <div className="relative z-10 mt-auto w-full">
+        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-20 lg:pb-28">
+          <div className="flex flex-col items-end text-right max-w-2xl ml-auto">
+
+            {/* headline */}
+            <h1 className="font-hero">
+              <span className="block leading-[1.08] tracking-tight text-white text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-semibold">
+                {headline1a}
+              </span>
+              <span className="block leading-[1.08] tracking-tight text-[#D4AF37] text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-bold italic">
+                {headline1b}
+              </span>
+            </h1>
+
+            {/* sub */}
+            <p className="mt-5 font-body text-[1.05rem] sm:text-lg text-white/80 leading-relaxed max-w-md">
+              {heroSub}
+            </p>
+
+            {/* CTAs */}
+            <div className="mt-8 flex flex-col sm:flex-row items-end gap-4">
+              <button
+                onClick={onRequestAccess}
+                className="inline-flex items-center gap-2.5 rounded-[14px] bg-white px-8 py-3.5 font-body text-[15px] font-semibold text-[rgb(38,50,50)] transition-all duration-200 hover:bg-white/90 hover:scale-[1.03] active:scale-100"
+              >
+                {heroCta}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <a
+                href="#for-me"
+                className="inline-flex items-center gap-2 font-body text-[14px] font-medium text-white/65 transition-colors hover:text-white pb-1"
+              >
+                {heroLink}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-/* ---------- Closing CTA ---------- */
-function ClosingSection({ onRequestAccess }: { onRequestAccess: () => void }) {
-  const closingHeading = useContent('landing', 'closing_heading', 'Where access, judgment, and trust align, wealth has a better place to grow.')
-  const closingBody = useContent('landing', 'closing_body', 'WealthSpot is being created for those who prefer meaningful entry, selective opportunities, and relationships that compound beyond capital alone.')
-  const closingCta1 = useContent('landing', 'closing_cta_1', 'Request Access')
+/* ─────────────────────────────────────────────────
+   SECTION 3 — INVESTMENT JOURNEY
+   Full-width infographic image with overlaid graphics
+───────────────────────────────────────────────── */
+function ForMeSection(_: WithRequestAccess) {
+  const imageUrl = useContent('landing', 'investment_journey_image', '/images/investment-journey.jpg')
+
+  const steps = [
+    { step: '01', title: 'Request Access', body: 'Apply for membership and get verified in under 24 hours.', color: '#D4AF37', rgb: '212,175,55' },
+    { step: '02', title: 'Explore Vaults', body: 'Browse curated opportunities across three investment classes.', color: '#8B5CF6', rgb: '139,92,246' },
+    { step: '03', title: 'Invest & Grow', body: 'Commit capital, track performance, and compound returns.', color: '#10B981', rgb: '16,185,129' },
+  ]
 
   return (
-    <section className="py-20 content-section-bg relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
+    <section
+      id="for-me"
+      className="relative overflow-hidden py-20 sm:py-28"
+      style={{ background: 'linear-gradient(180deg, #080d18 0%, #0b1120 60%, #0a0f1c 100%)' }}
+    >
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-1/3 -left-24 w-[420px] h-[420px] rounded-full bg-[#D4AF37]/5 blur-[130px]" />
+        <div className="absolute bottom-1/3 -right-24 w-[420px] h-[420px] rounded-full bg-indigo-500/7 blur-[130px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-40 bg-[#D4AF37]/4 blur-[80px]" />
       </div>
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37] mb-5">Closing CTA</p>
-        <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-theme-primary leading-[1.15] tracking-tight mb-6">
-          {closingHeading}
+
+      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+
+        {/* Section heading */}
+        <div className="text-center mb-12">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The Journey</p>
+          <h2 className="font-hero text-3xl sm:text-4xl font-bold text-white leading-[1.12] tracking-tight">
+            Your investment journey, simplified.
+          </h2>
+        </div>
+
+        {/* Image with decorative frame + floating badges */}
+        <div className="relative">
+          {/* Corner frame accents */}
+          <div className="absolute -top-3 -left-3 w-14 h-14 border-t-2 border-l-2 border-[#D4AF37]/35 rounded-tl-xl z-10 pointer-events-none" />
+          <div className="absolute -top-3 -right-3 w-14 h-14 border-t-2 border-r-2 border-[#D4AF37]/35 rounded-tr-xl z-10 pointer-events-none" />
+          <div className="absolute -bottom-3 -left-3 w-14 h-14 border-b-2 border-l-2 border-[#D4AF37]/35 rounded-bl-xl z-10 pointer-events-none" />
+          <div className="absolute -bottom-3 -right-3 w-14 h-14 border-b-2 border-r-2 border-[#D4AF37]/35 rounded-br-xl z-10 pointer-events-none" />
+
+          {/* Main image */}
+          <img
+            src={imageUrl}
+            alt="WealthSpot Investment Journey"
+            className="w-full h-auto block rounded-2xl"
+            loading="lazy"
+            style={{ boxShadow: '0 0 80px rgba(0,0,0,0.7), 0 0 140px rgba(212,175,55,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}
+          />
+
+          {/* Floating badge — top right */}
+          <div
+            className="absolute top-5 right-5 sm:top-8 sm:right-8 backdrop-blur-xl rounded-xl px-4 py-3 hidden sm:block"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(212,175,55,0.2)' }}
+          >
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#D4AF37] mb-1">Avg. Target IRR</p>
+            <p className="text-2xl font-bold text-white leading-none">14–22%</p>
+          </div>
+
+          {/* Floating badge — bottom left */}
+          <div
+            className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 backdrop-blur-xl rounded-xl px-4 py-3 hidden sm:block"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(16,185,129,0.2)' }}
+          >
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-emerald-400 mb-1">Access in</p>
+            <p className="text-2xl font-bold text-white leading-none">3 steps</p>
+          </div>
+        </div>
+
+        {/* 3-step flow */}
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-0">
+          {steps.map(({ step, title, body, color, rgb }, i) => (
+            <div key={step} className="flex flex-col sm:flex-row items-start gap-0">
+              <div className="flex sm:flex-col items-start gap-4 sm:gap-0 w-full sm:w-auto px-0 sm:px-6 lg:px-8 relative">
+                {/* connector line between steps */}
+                {i < steps.length - 1 && (
+                  <div
+                    className="hidden sm:block absolute top-4 left-1/2 w-full h-px"
+                    style={{ background: `linear-gradient(90deg, rgba(${rgb},0.4) 0%, rgba(${rgb},0.05) 100%)`, transform: 'translateX(20px)' }}
+                  />
+                )}
+                <div
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-black mb-4"
+                  style={{ border: `1px solid rgba(${rgb},0.35)`, color, background: `rgba(${rgb},0.1)` }}
+                >
+                  {step}
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-[15px] mb-1.5">{title}</p>
+                  <p className="text-white/50 text-[13px] leading-relaxed">{body}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────
+   SECTION — INVESTOR IDENTITIES
+   Four ways to participate in value creation.
+───────────────────────────────────────────────── */
+const INVESTOR_PILLARS = [
+  {
+    number: '01',
+    category: 'CAPITAL',
+    title: 'Money Investor',
+    body: 'Deploy capital into select opportunities with a clear investment thesis and a disciplined entry mindset.',
+    italic: 'Ideal for those who seek real asset exposure with strategic alignment and stronger filters.',
+    accent: '#D4AF37',
+    accentRgb: '212,175,55',
+    tag: 'Most Common',
+  },
+  {
+    number: '02',
+    category: 'CAPABILITY',
+    title: 'Time Investor',
+    body: 'Contribute expertise, leadership, execution, or oversight where active involvement creates real value.',
+    italic: 'This path recognises that serious experience can be as meaningful as capital in the right opportunity.',
+    accent: '#F59E0B',
+    accentRgb: '245,158,11',
+    tag: null,
+  },
+  {
+    number: '03',
+    category: 'CONNECTIONS',
+    title: 'Network Investor',
+    body: 'Open doors through trusted relationships. Introduce co-investors, customers, suppliers, or strategic enablers.',
+    italic: 'Your network becomes a genuine form of investment — and earns accordingly.',
+    accent: '#8B5CF6',
+    accentRgb: '139,92,246',
+    tag: null,
+  },
+  {
+    number: '04',
+    category: 'KNOWLEDGE',
+    title: 'Education Investor',
+    body: 'Share domain expertise, conduct workshops, or provide strategic advisory. Help ventures succeed through what you know.',
+    italic: 'The rarest form of capital. Your insights become equity in the ventures that need them most.',
+    accent: '#10B981',
+    accentRgb: '16,185,129',
+    tag: 'Rarest',
+  },
+]
+
+function InvestorIdentitiesSection() {
+  const [hovered, setHovered] = useState<number | null>(null)
+
+  return (
+    <section
+      id="investor-identities"
+      className="relative overflow-hidden py-20 sm:py-28"
+      style={{ background: 'linear-gradient(180deg, #f5f3ee 0%, #eeeae0 50%, #f0ece2 100%)' }}
+    >
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] rounded-full bg-[#D4AF37]/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-violet-400/8 blur-[100px]" />
+        <div className="absolute top-1/2 -left-20 w-64 h-64 rounded-full bg-emerald-400/6 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+
+        {/* Header row */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-14 sm:mb-16">
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8941F]">Investor Identities</p>
+            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-slate-900 leading-[1.12] tracking-tight max-w-lg">
+              Four ways to participate in value creation.
+            </h2>
+          </div>
+          <p className="font-body text-[14px] text-slate-500 leading-relaxed max-w-xs sm:text-right">
+            Capital is one lens. WealthSpot recognises three others — each just as legitimate.
+          </p>
+        </div>
+
+        {/* 2×2 card grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:gap-6">
+          {INVESTOR_PILLARS.map((pillar, i) => {
+            const isHovered = hovered === i
+            return (
+              <div
+                key={pillar.number}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                className="group relative rounded-2xl overflow-hidden cursor-default transition-transform duration-300"
+                style={{
+                  transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+                  background: `linear-gradient(135deg, rgba(${pillar.accentRgb},0.03) 0%, #0b1022 50%, #080d1a 100%)`,
+                  border: `1px solid rgba(${pillar.accentRgb},${isHovered ? '0.50' : '0.22'})`,
+                  boxShadow: isHovered ? `0 0 40px rgba(${pillar.accentRgb},0.15), 0 8px 32px rgba(0,0,0,0.5)` : '0 4px 20px rgba(0,0,0,0.45)',
+                  transition: 'transform 300ms ease, border-color 300ms ease, box-shadow 300ms ease',
+                }}
+              >
+                <div className="relative p-7 sm:p-8">
+                  {/* Top row: category + optional tag */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.22em]"
+                      style={{ color: pillar.accent }}
+                    >
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full"
+                        style={{ background: pillar.accent }}
+                      />
+                      {pillar.category}
+                    </span>
+                    {pillar.tag && (
+                      <span
+                        className="text-[10px] font-semibold rounded-full px-2 py-0.5"
+                        style={{
+                          background: `rgba(${pillar.accentRgb},0.12)`,
+                          color: pillar.accent,
+                          border: `1px solid rgba(${pillar.accentRgb},0.25)`,
+                        }}
+                      >
+                        {pillar.tag}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Accent rule — expands on hover */}
+                  <div
+                    className="mb-5 h-px rounded-full"
+                    style={{
+                      background: `linear-gradient(90deg, ${pillar.accent}, transparent)`,
+                      width: isHovered ? '80px' : '40px',
+                      transition: 'width 300ms ease',
+                    }}
+                  />
+
+                  {/* Title */}
+                  <h3 className="font-hero text-xl sm:text-2xl font-bold text-white mb-3 leading-snug">
+                    {pillar.title}
+                  </h3>
+
+                  {/* Body */}
+                  <p className="font-body text-[14px] text-white/80 leading-relaxed mb-4">
+                    {pillar.body}
+                  </p>
+
+                  {/* Italic note */}
+                  <p
+                    className="font-body text-[13px] italic leading-relaxed"
+                    style={{ color: `rgba(${pillar.accentRgb},0.85)` }}
+                  >
+                    {pillar.italic}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────
+   SECTION 4 — VAULT IMAGE TILES
+   "The Vaults" — 3 full-bleed image cards
+───────────────────────────────────────────────── */
+const VAULT_GAP  = 28   // px gap between cards
+const VAULT_PEEK = 88   // px of the next card peeking from the right
+
+function VaultCardsSection(_: WithRequestAccess) {
+  const overline = useContent('landing', 'vaults_overline', 'The Vaults')
+  const heading  = useContent('landing', 'vaults_heading', 'Three distinct entry points into the WealthSpot ecosystem.')
+
+  const vaults = [
+    {
+      image:  useContent('landing', 'vault_1_image', '/images/vault-wealth.jpg'),
+      badge:  'Flagship' as const,
+      badgeStyle: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' as const,
+      title:  useContent('landing', 'vault_1_title', 'Wealth Vault'),
+      body:   useContent('landing', 'vault_1_body', 'A premium gateway to curated real estate opportunities positioned around intrinsic value, timing, and long-term appreciation potential.'),
+      italic: useContent('landing', 'vault_1_italic', 'Designed for investors who believe disciplined entry can shape exceptional outcomes.'),
+      locked: false,
+    },
+    {
+      image:  useContent('landing', 'vault_3_image', '/images/vault-safe.jpg'),
+      badge:  'Coming Soon' as const,
+      badgeStyle: 'bg-amber-500/20 text-amber-300 border-amber-500/30' as const,
+      title:  useContent('landing', 'vault_3_title', 'Safe Vault'),
+      body:   useContent('landing', 'vault_3_body', 'A fixed-return layer for those who want predictable income backed by real assets.'),
+      italic: useContent('landing', 'vault_3_italic', 'Being designed for participants who prefer mortgage-backed security, structured payouts, and lower-volatility opportunities.'),
+      locked: true,
+    },
+    {
+      image:  useContent('landing', 'vault_2_image', '/images/vault-community.jpg'),
+      badge:  'Collaborative' as const,
+      badgeStyle: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' as const,
+      title:  useContent('landing', 'vault_2_title', 'Community Vault'),
+      body:   useContent('landing', 'vault_2_body', 'A trusted environment where co-investors, co-partners, and execution-led collaborators can align around opportunity.'),
+      italic: useContent('landing', 'vault_2_italic', 'It exists to help serious people find one another, structure participation intelligently, and move from interest to closure with confidence.'),
+      locked: false,
+    },
+  ]
+
+  const maxIndex = vaults.length - 1   // 1 card visible at a time
+  const [activeIndex, setActiveIndex] = useState(0)
+  const clipperRef = useRef<HTMLDivElement>(null)
+  const [cardWidth, setCardWidth] = useState(0)
+
+  // Measure carousel column width → card = column - peek - gap
+  useLayoutEffect(() => {
+    const el = clipperRef.current
+    if (!el) return
+    const measure = () => setCardWidth(el.clientWidth - VAULT_PEEK - VAULT_GAP)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const translateX = -(activeIndex * (cardWidth + VAULT_GAP))
+
+  return (
+    <section
+      id="vaults"
+      className="py-20 sm:py-28"
+      style={{ background: '#080d1a' }}
+    >
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-10 lg:gap-16 items-start">
+
+          {/* LEFT — overline + heading + arrows */}
+          <div className="flex flex-col">
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">{overline}</p>
+            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-white leading-[1.12] tracking-tight">
+              {heading}
+            </h2>
+
+            {/* Arrows sit below heading */}
+            <div className="flex items-center gap-2 mt-10 lg:mt-auto lg:pt-12">
+              <button
+                aria-label="Previous vault"
+                onClick={() => setActiveIndex(i => Math.max(0, i - 1))}
+                disabled={activeIndex === 0}
+                className="flex items-center justify-center w-11 h-11 rounded-full border border-white/20 text-white transition-all hover:border-[#D4AF37]/60 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                aria-label="Next vault"
+                onClick={() => setActiveIndex(i => Math.min(maxIndex, i + 1))}
+                disabled={activeIndex >= maxIndex}
+                className="flex items-center justify-center w-11 h-11 rounded-full border border-white/20 text-white transition-all hover:border-[#D4AF37]/60 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              {/* dot indicators */}
+              <div className="flex items-center gap-1.5 ml-4">
+                {vaults.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveIndex(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === activeIndex ? 'w-6 bg-[#D4AF37]' : 'w-1.5 bg-white/25 hover:bg-white/50'
+                    }`}
+                    aria-label={`Go to vault ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — overflow-clipped carousel, 1 card + peek */}
+          <div ref={clipperRef} style={{ overflow: 'hidden', position: 'relative' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: `${VAULT_GAP}px`,
+                transform: `translateX(${translateX}px)`,
+                transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
+                userSelect: 'none',
+              }}
+            >
+              {vaults.map((vault, i) => {
+                const isActive = i === activeIndex
+                return (
+                  <div
+                    key={vault.title}
+                    style={{
+                      flex: `0 0 ${cardWidth}px`,
+                      opacity: isActive ? 1 : 0.45,
+                      transition: 'opacity 0.55s ease',
+                    }}
+                    className="group flex flex-col"
+                  >
+                    {/* Large image with overlay */}
+                    <div className="relative overflow-hidden rounded-2xl" style={{ height: '420px' }}>
+                      <img
+                        src={vault.image}
+                        alt={vault.title}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      />
+                      {/* gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+                      {/* badge — top left */}
+                      <div className="absolute top-5 left-5">
+                        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${vault.badgeStyle}`}>
+                          {vault.badge}
+                        </span>
+                      </div>
+
+                      {/* vault name — bottom left */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 className="font-hero text-2xl font-bold text-white leading-tight">
+                          {vault.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Text below image */}
+                    <div className="pt-5 pb-2 flex flex-col gap-3">
+                      <p className="font-body text-[14px] text-white/65 leading-relaxed">{vault.body}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────
+   SECTION 8 — CLOSING CTA
+   "Get direct access to curated investments."
+───────────────────────────────────────────────── */
+function ClosingSection({ onRequestAccess }: WithRequestAccess) {
+  const heading = useContent('landing', 'closing_heading', 'Get direct access to curated investments.')
+  const body    = useContent('landing', 'closing_body', 'WealthSpot is being built for those who prefer meaningful entry, selective opportunities, and relationships that compound beyond capital alone.')
+  const cta     = useContent('landing', 'closing_cta_1', 'Request Access')
+
+  return (
+    <section
+      id="closing"
+      className="relative overflow-hidden py-24 sm:py-32"
+      style={{ background: 'linear-gradient(135deg, #080d1a 0%, #0d1324 50%, #080d1a 100%)' }}
+    >
+      {/* decorative glows */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#D4AF37]/6 blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-indigo-600/8 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-3xl px-6 sm:px-8 text-center">
+        <p className="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Join WealthSpot</p>
+        <h2 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight mb-8">
+          {heading}
         </h2>
-        <p className="text-[15px] text-theme-secondary leading-relaxed font-body max-w-xl mb-8">
-          {closingBody}
-        </p>
-        <div className="w-12 h-px bg-[#D4AF37]/50 mb-6" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]/70 leading-relaxed mb-8">
-          For investors, partners, and contributors who take<br />
-          opportunity seriously.
+        <p className="font-body text-[15px] text-white/55 leading-relaxed max-w-xl mx-auto mb-12">
+          {body}
         </p>
         <button
           onClick={onRequestAccess}
-          className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-3.5 text-sm inline-flex items-center justify-center gap-2"
+          className="inline-flex items-center gap-2.5 rounded-full bg-[#D4AF37] px-10 py-4 font-body text-[15px] font-bold text-slate-900 shadow-[0_0_40px_rgba(212,175,55,0.25)] transition-all duration-300 hover:brightness-110 hover:scale-[1.03] active:scale-100"
         >
-          {closingCta1}
+          {cta}
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
@@ -157,183 +572,9 @@ function ClosingSection({ onRequestAccess }: { onRequestAccess: () => void }) {
   )
 }
 
-/* ---------- Intro ---------- */
-function IntroSection() {
-  const introLabel = useContent('landing', 'intro_label', 'Intro')
-  const introHeading = useContent('landing', 'intro_heading', 'Built for those who think beyond conventional investing.')
-  const introBody1 = useContent('landing', 'intro_body_1', 'WealthSpot is built for individuals who value access over noise, curation over clutter, and long-term positioning over short-term excitement.')
-  const introBody2 = useContent('landing', 'intro_body_2', 'At its core, WealthSpot opens access to select real estate opportunities at earlier stages of value creation, where strategic entry, intrinsic value, and disciplined participation matter most.')
-
-  return (
-    <section className="py-20 content-section-bg relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
-      </div>
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-          {/* Left — Label + Heading */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37] mb-6">{introLabel}</p>
-            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-theme-primary leading-[1.15] tracking-tight">
-              {introHeading}
-            </h2>
-          </div>
-          {/* Right — Body paragraphs */}
-          <div className="space-y-6">
-            <p className="text-[15px] text-theme-secondary leading-relaxed font-body">
-              {introBody1}
-            </p>
-            <p className="text-[15px] text-theme-secondary leading-relaxed font-body">
-              {introBody2}
-            </p>
-            <p className="text-[15px] text-theme-secondary leading-relaxed font-body">
-              This is not a marketplace for everyone. It is a platform for serious participation,
-              trusted relationships, and intelligent wealth-building through capital, capability,
-              and connections.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- The Vaults ---------- */
-function TheVaultsSection() {
-  const vaultsLabel = useContent('landing', 'vaults_label', 'The Vaults')
-  const vaultsHeading = useContent('landing', 'vaults_heading', 'Three distinct entry points into the WealthSpot ecosystem.')
-
-  const vaults = [
-    {
-      badge: 'Flagship',
-      badgeColor: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400',
-      number: '01',
-      title: 'Wealth Vault',
-      body: 'A premium gateway to curated real estate opportunities positioned around intrinsic value, timing, and long-term appreciation potential.',
-      italic: 'Designed for investors who believe disciplined entry can shape exceptional outcomes.',
-    },
-    {
-      badge: 'Collaborative',
-      badgeColor: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400',
-      number: '02',
-      title: 'Community Vault',
-      body: 'A trusted environment where co-investors, co-partners, and execution-led collaborators can align around opportunity.',
-      italic: 'It exists to help serious people find one another, structure participation intelligently, and move from interest to closure with confidence.',
-    },
-    {
-      badge: 'Coming Soon',
-      badgeColor: 'bg-amber-500/20 border-amber-500/40 text-amber-400',
-      number: '03',
-      title: 'Safe Vault',
-      body: 'A fixed-return layer for those who want predictable income backed by real assets.',
-      italic: 'It is being designed for participants who prefer mortgage-backed security, structured payouts, and lower-volatility opportunities.',
-    },
-  ]
-
-  return (
-    <section className="py-20 content-section-bg relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
-      </div>
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37] mb-5">{vaultsLabel}</p>
-        <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-theme-primary leading-[1.15] tracking-tight mb-12">
-          {vaultsHeading}
-        </h2>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vaults.map((v) => (
-            <div
-              key={v.title}
-              className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-7 hover:border-[var(--frame-border-hover)] transition-colors"
-            >
-              <div className="absolute inset-0 content-card-bg rounded-2xl" />
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
-              <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <span className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${v.badgeColor}`}>
-                    {v.badge}
-                  </span>
-                  <span className="text-theme-tertiary font-mono text-sm">{v.number}</span>
-                </div>
-                <h3 className="font-hero text-xl font-bold text-theme-primary mb-4">{v.title}</h3>
-                <p className="text-sm text-theme-secondary leading-relaxed font-body mb-4">{v.body}</p>
-                <p className="text-sm text-theme-tertiary italic leading-relaxed font-body">{v.italic}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Investor Identities ---------- */
-function InvestorIdentitiesSection() {
-  const identitiesLabel = useContent('landing', 'identities_label', 'Investor Identities')
-  const identitiesHeading = useContent('landing', 'identities_heading', 'Three ways to participate in value creation.')
-
-  const identities = [
-    {
-      title: 'Money Investor',
-      badge: 'Capital',
-      body: 'Deploy capital into select opportunities with a clear investment thesis and a disciplined entry mindset.',
-      italic: 'Ideal for those who seek real asset exposure with strategic alignment and stronger filters.',
-    },
-    {
-      title: 'Time Investor',
-      badge: 'Capability',
-      body: 'Contribute expertise, leadership, execution, or oversight where active involvement creates real value.',
-      italic: 'This path recognizes that serious experience can be as meaningful as capital in the right opportunity.',
-    },
-    {
-      title: 'Network Investor',
-      badge: 'Connections',
-      body: 'Open doors through trusted relationships.',
-      italic: 'Whether by introducing co-investors, customers, suppliers, or strategic enablers, your network becomes a genuine form of investment.',
-    },
-  ]
-
-  return (
-    <section className="py-20 content-section-bg relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
-      </div>
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D4AF37] mb-5">{identitiesLabel}</p>
-        <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-theme-primary leading-[1.15] tracking-tight mb-12">
-          {identitiesHeading}
-        </h2>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {identities.map((id) => (
-            <div
-              key={id.title}
-              className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-7 hover:border-[var(--frame-border-hover)] transition-colors"
-            >
-              <div className="absolute inset-0 content-card-bg rounded-2xl" />
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
-              <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-hero text-lg font-bold text-theme-primary">{id.title}</h3>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-theme-tertiary">{id.badge}</span>
-                </div>
-                <p className="text-sm text-theme-secondary leading-relaxed font-body mb-4">{id.body}</p>
-                <p className="text-sm text-theme-tertiary italic leading-relaxed font-body">{id.italic}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-
-
-/* ---------- Landing Page ---------- */
+/* ─────────────────────────────────────────────────
+   PAGE EXPORT
+───────────────────────────────────────────────── */
 export default function LandingPage() {
   const [showVideo, setShowVideo] = useState(false)
   const [videoMode, setVideoMode] = useState<'browse' | 'signup'>('browse')
@@ -353,16 +594,16 @@ export default function LandingPage() {
     <MainLayout>
       <SEOHead
         title="Democratizing Premium Assets"
-        description="Invest in premium real estate fractionally starting from ₹10,000. Wealth Vault, Safe Vault, and Community Vault on WealthSpot."
+        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot — curated opportunities for serious investors."
         path="/"
       />
-      <HeroSection />
-      <IntroSection />
-      <TheVaultsSection />
-      <InvestorIdentitiesSection />
-      <ClosingSection onRequestAccess={() => openVideo('signup')} />
 
-      {/* Video overlay */}
+      <HeroSection       onRequestAccess={() => openVideo('signup')} />
+      <VaultCardsSection onRequestAccess={() => openVideo('signup')} />
+      <InvestorIdentitiesSection />
+      <ForMeSection      onRequestAccess={() => openVideo('browse')} />
+      <ClosingSection    onRequestAccess={() => openVideo('signup')} />
+
       {introVideosEnabled && showVideo && (
         <OnboardingVideo
           mode={videoMode}

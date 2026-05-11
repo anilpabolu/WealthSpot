@@ -2,11 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Responsive base font scaling (Framer-reference) ── */
+html { font-size: 100%; }
+@media (min-width: 744px) and (max-width: 991.98px) { html { font-size: 75%; } }
+@media (max-width: 743.98px) { html { font-size: 62.5%; } }
+
 @layer base {
   /* ───── Theme CSS Custom Properties ───── */
   :root {
-    --bg-base: #FDFBF5;
-    --bg-surface: #FFFEF9;
+    --bg-base: #ffffff;
+    --bg-surface: #f8f9fa;
     --bg-surface-hover: #F5F0E6;
     --bg-card: rgba(255,254,248,0.92);
     --bg-card-border: rgba(209,196,157,0.3);
@@ -477,4 +482,20 @@
   .fade-up-d2 { transition-delay: 0.2s; }
   .fade-up-d3 { transition-delay: 0.3s; }
   .fade-up-d4 { transition-delay: 0.4s; }
+
+  /* Landing page navbar — blur gradient pseudo-element.
+     Blurs the top of the nav and fades the blur out toward the bottom,
+     matching the CrowdStreet-style frosted-glass gradient header. */
+  .nav-scroll-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    transition: backdrop-filter 0.3s ease-in-out, -webkit-backdrop-filter 0.3s ease-in-out;
+  }
 }
