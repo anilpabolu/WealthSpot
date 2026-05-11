@@ -59,7 +59,7 @@ describe('LandingPage', () => {
 
   it('renders intro section', () => {
     renderPage()
-    expect(screen.getByText('Is WealthSpot For Me?')).toBeInTheDocument()
+    expect(screen.getByText('Your investment journey, simplified.')).toBeInTheDocument()
   })
 
   it('renders vault sections', () => {

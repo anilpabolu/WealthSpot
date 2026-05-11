@@ -266,7 +266,7 @@ jobs:
         working-directory: tests
       - name: Serve dist and run E2E tests
         run: |
-          npx vite preview --root apps/web --port 5173 &
+          cd apps/web && npx vite preview --port 5173 &
           sleep 4
           npm run test:web:e2e --workspace=tests
         env:
