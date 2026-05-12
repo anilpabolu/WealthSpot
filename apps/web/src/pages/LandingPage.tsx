@@ -1,7 +1,5 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { MainLayout } from '@/components/layout'
-import OnboardingVideo from '@/components/OnboardingVideo'
-import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
 import SEOHead from '@/components/SEOHead'
@@ -576,18 +574,10 @@ function ClosingSection({ onRequestAccess }: WithRequestAccess) {
    PAGE EXPORT
 ───────────────────────────────────────────────── */
 export default function LandingPage() {
-  const [showVideo, setShowVideo] = useState(false)
-  const [videoMode, setVideoMode] = useState<'browse' | 'signup'>('browse')
-  const { introVideosEnabled } = useVaultConfig()
   const clerk = useClerk()
 
-  const openVideo = (mode: 'browse' | 'signup') => {
-    if (!introVideosEnabled) {
-      clerk.openSignUp({ forceRedirectUrl: '/vaults' })
-      return
-    }
-    setVideoMode(mode)
-    setShowVideo(true)
+  const openVideo = (_mode: 'browse' | 'signup') => {
+    clerk.openSignUp({ forceRedirectUrl: '/vaults' })
   }
 
   return (
@@ -604,13 +594,6 @@ export default function LandingPage() {
       <ForMeSection      onRequestAccess={() => openVideo('browse')} />
       <ClosingSection    onRequestAccess={() => openVideo('signup')} />
 
-      {introVideosEnabled && showVideo && (
-        <OnboardingVideo
-          mode={videoMode}
-          onComplete={() => setShowVideo(false)}
-          onClose={() => setShowVideo(false)}
-        />
-      )}
     </MainLayout>
   )
 }
