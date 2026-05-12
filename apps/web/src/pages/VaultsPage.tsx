@@ -358,6 +358,13 @@ export const ALL_VAULT_METRICS: Record<string, string[]> = {
   community: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered', 'collaboration_rate'],
 }
 
+/* Creative hero images per vault */
+const VAULT_HERO_IMAGES: Record<string, string> = {
+  wealth: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80',
+  safe: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop&q=80',
+  community: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80',
+}
+
 function VaultCard({
   vault,
   stats,
@@ -399,17 +406,20 @@ function VaultCard({
   }
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#111827] overflow-hidden border border-gray-100 dark:border-white/8 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
+    <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.14)] transition-shadow duration-300 group flex flex-col h-[540px]">
 
-      {/* Square image */}
-      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
+      {/* ── SECTION 1 (50%): hero image with text overlay ── */}
+      <div className="relative h-1/2 overflow-hidden">
         <img
-          src={`/images/vault-${vault.id}.jpg`}
+          src={VAULT_HERO_IMAGES[vault.id] ?? `/images/vault-${vault.id}.jpg`}
           alt={vault.title}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
         />
-        {/* Badges overlay top-right */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+        {/* Gradient: transparent top → dark bottom for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/10 pointer-events-none" />
+
+        {/* Top-right badges */}
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
           {comingSoon && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Lock className="h-3 w-3" />
@@ -427,11 +437,12 @@ function VaultCard({
             </button>
           )}
         </div>
-        {/* Profiling circle — bottom-left */}
+
+        {/* Profiling circle — sits just above the text block */}
         {!comingSoon && (
           <button
             onClick={(e) => { e.stopPropagation(); onProfilingCircleClick?.() }}
-            className="absolute bottom-3 left-3 relative h-10 w-10 cursor-pointer hover:scale-110 transition-transform"
+            className="absolute bottom-[72px] left-4 h-9 w-9 cursor-pointer hover:scale-110 transition-transform z-10"
             title={`${Math.round(profilingPct)}% profiled`}
           >
             <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90 drop-shadow-lg">
@@ -444,25 +455,23 @@ function VaultCard({
             </span>
           </button>
         )}
-      </div>
 
-      {/* Content */}
-      <div className="p-6 flex flex-col flex-1 gap-4">
-
-        {/* Title + description */}
-        <div className="space-y-2">
-          <h3 className="font-hero text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-snug">
+        {/* Title + description pinned to bottom of image */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-6 z-10">
+          <h3 className="font-hero text-lg font-bold text-white tracking-tight leading-snug mb-1">
             {vault.title}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-white/60 leading-relaxed font-body">
+          <p className="text-[12px] text-white/80 leading-relaxed font-body line-clamp-2">
             {vault.infoBody}
           </p>
         </div>
+      </div>
 
-        {/* Metrics grid */}
-        {enabledMetrics.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 py-4 border-t border-b border-gray-100 dark:border-white/8">
-            {enabledMetrics.map((key) => {
+      {/* ── SECTION 2 (40%): metrics on light background ── */}
+      <div className="h-[40%] bg-gray-50 dark:bg-[#0d1117] px-4 py-3 flex flex-col justify-center">
+        {enabledMetrics.length > 0 ? (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            {enabledMetrics.slice(0, 4).map((key) => {
               const def = VAULT_METRICS_REGISTRY[key]
               if (!def) return null
               const MetricIcon = def.icon
@@ -470,37 +479,39 @@ function VaultCard({
               return (
                 <div key={key} className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
-                    <MetricIcon className="h-3 w-3 text-gray-400 dark:text-white/30" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30">{def.label}</span>
+                    <MetricIcon className="h-3 w-3 text-gray-400 dark:text-white/30 shrink-0" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30 truncate">{def.label}</span>
                   </div>
                   <p className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">{value}</p>
                 </div>
               )
             })}
           </div>
+        ) : (
+          <p className="text-sm text-gray-400 dark:text-white/30 text-center italic">No metrics available</p>
         )}
+      </div>
 
-        {/* CTA pinned to bottom */}
-        <div className="mt-auto pt-1">
-          {comingSoon ? (
-            <button
-              onClick={onComingSoon}
-              className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-5 py-3 rounded-[14px] border border-gray-200 dark:border-white/15 text-gray-400 dark:text-white/30 cursor-not-allowed transition-colors"
-            >
-              <Lock className="h-4 w-4" />
-              {getVaultComingSoonText(vault.id).button}
-            </button>
-          ) : (
-            <Link
-              to={vault.href}
-              onClick={handleCTAClick}
-              className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-5 py-3 rounded-[14px] border border-gray-800 dark:border-white/20 text-gray-800 dark:text-white bg-transparent hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-200"
-            >
-              {vault.cta}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
-        </div>
+      {/* ── SECTION 3 (10%): CTA button ── */}
+      <div className="h-[10%] bg-white dark:bg-[#111827] border-t border-gray-100 dark:border-white/[0.06] flex items-center px-4">
+        {comingSoon ? (
+          <button
+            onClick={onComingSoon}
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 dark:border-white/15 text-gray-400 dark:text-white/30 cursor-not-allowed"
+          >
+            <Lock className="h-4 w-4" />
+            {getVaultComingSoonText(vault.id).button}
+          </button>
+        ) : (
+          <Link
+            to={vault.href}
+            onClick={handleCTAClick}
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-800 dark:border-white/20 text-gray-800 dark:text-white bg-transparent hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-200"
+          >
+            Explore Investment
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        )}
       </div>
     </div>
   )
