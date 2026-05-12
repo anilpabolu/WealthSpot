@@ -385,8 +385,6 @@ function VaultCard({
   onProfilingCircleClick?: () => void
   onExplore?: () => void
 }) {
-  const Icon = vault.icon
-
   const handleCTAClick = (e: React.MouseEvent) => {
     if (comingSoon) {
       e.preventDefault()
@@ -401,94 +399,93 @@ function VaultCard({
   }
 
   return (
-    <div className="rounded-3xl border border-[var(--frame-border)] bg-white dark:bg-gradient-to-br dark:from-[#161b2e] dark:via-[#1c2240] dark:to-[#141830] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(212,175,55,0.1),0_2px_8px_rgba(0,0,0,0.12)] hover:border-[var(--frame-border-hover)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
-      {/* Header band */}
-      <div className={`bg-gradient-to-r ${vault.color} px-6 py-5 relative overflow-hidden`}>
-        {/* Decorative background glow */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
-        </div>
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-            <Icon className="h-6 w-6 text-white" />
-          </div>
-          <h3 className="font-hero text-xl font-bold text-white flex-1 tracking-tight">{vault.title}</h3>
-          {!comingSoon && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onProfilingCircleClick?.() }}
-              className="shrink-0 relative h-9 w-9 cursor-pointer hover:scale-110 transition-transform"
-              title={`${Math.round(profilingPct)}% profiled — click to ${profilingPct >= 100 ? 'view results' : 'continue'}`}
-            >
-              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                <circle cx="18" cy="18" r="14" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="3" />
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={`${(profilingPct / 100) * 87.96} 87.96`} />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white/90">
-                {Math.round(profilingPct)}%
-              </span>
-            </button>
-          )}
+    <div className="rounded-2xl bg-white dark:bg-[#111827] overflow-hidden border border-gray-100 dark:border-white/8 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group flex flex-col h-full hover:-translate-y-1">
+
+      {/* Square image */}
+      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
+        <img
+          src={`/images/vault-${vault.id}.jpg`}
+          alt={vault.title}
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+        />
+        {/* Badges overlay top-right */}
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
           {comingSoon && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Lock className="h-3 w-3" />
-              Soon
+              Coming Soon
             </span>
           )}
           {onPlayVideo && (
-          <button
-            onClick={onPlayVideo}
-            className="relative shrink-0 group/tip"
-            aria-label={`Watch ${vault.title} intro video`}
-          >
-            <PlayCircle className="h-7 w-7 text-white/70 hover:text-white transition-colors cursor-pointer" />
-            <span className="pointer-events-none absolute -bottom-9 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg z-50">
+            <button
+              onClick={onPlayVideo}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full hover:bg-black/70 transition-colors"
+              aria-label={`Watch ${vault.title} intro video`}
+            >
+              <PlayCircle className="h-3.5 w-3.5" />
               Watch Intro
-            </span>
-          </button>
+            </button>
           )}
         </div>
+        {/* Profiling circle — bottom-left */}
+        {!comingSoon && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onProfilingCircleClick?.() }}
+            className="absolute bottom-3 left-3 relative h-10 w-10 cursor-pointer hover:scale-110 transition-transform"
+            title={`${Math.round(profilingPct)}% profiled`}
+          >
+            <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90 drop-shadow-lg">
+              <circle cx="18" cy="18" r="14" fill="rgba(0,0,0,0.4)" stroke="white" strokeOpacity="0.2" strokeWidth="3" />
+              <circle cx="18" cy="18" r="14" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round"
+                strokeDasharray={`${(profilingPct / 100) * 87.96} 87.96`} />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white">
+              {Math.round(profilingPct)}%
+            </span>
+          </button>
+        )}
       </div>
 
-      {/* Body */}
-      <div className="p-6 space-y-5 flex-1 flex flex-col">
-        {/* Vault description — moved from tooltip */}
+      {/* Content */}
+      <div className="p-6 flex flex-col flex-1 gap-4">
+
+        {/* Title + description */}
         <div className="space-y-2">
-          <p className="text-sm text-gray-600 dark:text-white/80 leading-relaxed font-body">{vault.infoBody}</p>
-          <p className="text-[13px] text-[#D4AF37]/60 italic leading-relaxed font-body">{vault.infoItalic}</p>
+          <h3 className="font-hero text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-snug">
+            {vault.title}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-white/60 leading-relaxed font-body">
+            {vault.infoBody}
+          </p>
         </div>
 
-        {/* Metrics grid — dynamic from config */}
-        <div className="grid grid-cols-2 gap-4">
-          {enabledMetrics.map((key) => {
-            const def = VAULT_METRICS_REGISTRY[key]
-            if (!def) return null
-            const MetricIcon = def.icon
-            const value = def.resolve(stats, vault.id)
-            return (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <MetricIcon className="h-3.5 w-3.5 text-gray-400 dark:text-white/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/40">{def.label}</span>
+        {/* Metrics grid */}
+        {enabledMetrics.length > 0 && (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 py-4 border-t border-b border-gray-100 dark:border-white/8">
+            {enabledMetrics.map((key) => {
+              const def = VAULT_METRICS_REGISTRY[key]
+              if (!def) return null
+              const MetricIcon = def.icon
+              const value = def.resolve(stats, vault.id)
+              return (
+                <div key={key} className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <MetricIcon className="h-3 w-3 text-gray-400 dark:text-white/30" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30">{def.label}</span>
+                  </div>
+                  <p className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">{value}</p>
                 </div>
-                <p className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">
-                  {value}
-                </p>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
 
-        {/* Bottom section: profiling + CTA anchored to card bottom */}
-        <div className="mt-auto space-y-4">
-          {/* Profiling progress */}
-
-
-          {/* CTA */}
+        {/* CTA pinned to bottom */}
+        <div className="mt-auto pt-1">
           {comingSoon ? (
             <button
               onClick={onComingSoon}
-              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-colors bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/40 cursor-not-allowed border border-gray-200 dark:border-white/10"
+              className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-5 py-3 rounded-[14px] border border-gray-200 dark:border-white/15 text-gray-400 dark:text-white/30 cursor-not-allowed transition-colors"
             >
               <Lock className="h-4 w-4" />
               {getVaultComingSoonText(vault.id).button}
@@ -497,7 +494,7 @@ function VaultCard({
             <Link
               to={vault.href}
               onClick={handleCTAClick}
-              className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl transition-all duration-300 bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-slate-900 hover:opacity-90 hover:scale-[1.02] shadow-md"
+              className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-5 py-3 rounded-[14px] border border-gray-800 dark:border-white/20 text-gray-800 dark:text-white bg-transparent hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-200"
             >
               {vault.cta}
               <ArrowRight className="h-4 w-4" />
