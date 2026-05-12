@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Twitter, Linkedin, Instagram, Youtube, ArrowRight, Mail, MapPin } from 'lucide-react'
+import { Twitter, Linkedin, Instagram, Youtube, Mail, MapPin } from 'lucide-react'
 import { useUserStore } from '@/stores/user.store'
 import WLogo3D from '@/components/ui/WLogo3D'
 
@@ -115,14 +115,6 @@ export default function Footer() {
 
           {/* CTA + social column */}
           <div className="flex flex-col gap-6">
-            <div>
-              <Link
-                to="/sign-in"
-                className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/60 px-5 py-2.5 font-body text-sm font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-200"
-              >
-                Request Access <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
             <div>
               <p className="font-body text-[11px] text-white/40 uppercase tracking-[0.16em] mb-3">Find us on social</p>
               <div className="flex items-center gap-2.5 flex-wrap">
