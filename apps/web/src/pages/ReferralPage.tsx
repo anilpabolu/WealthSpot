@@ -53,7 +53,7 @@ export default function ReferralPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{heroBadge}</span>
           <h1 className="page-hero-title">{heroTitle}</h1>
@@ -61,7 +61,7 @@ export default function ReferralPage() {
         </div>
       </section>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container max-w-4xl mx-auto">
 
         {/* Referral Code Card */}

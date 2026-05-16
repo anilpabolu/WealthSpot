@@ -77,7 +77,7 @@ export default function SettingsPage() {
   return (
     <MainLayout>
       {/* Hero section */}
-      <div className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{useContent('settings', 'hero_badge', 'Settings')}</span>
           <h1 className="page-hero-title">{useContent('settings', 'hero_title', 'Mission Control')}</h1>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg flex-1">
         <div className="page-section-container">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar */}

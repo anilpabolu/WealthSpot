@@ -122,6 +122,9 @@ export default {
         'loader-logo-zoom': 'loader-logo-zoom 2.2s ease-in-out infinite',
         'loader-violet-ring': 'loader-violet-ring 1.65s linear infinite',
         'loader-ripple': 'loader-ripple 2.4s ease-out infinite',
+        'loader-gold-ring': 'loader-gold-ring 1.4s linear infinite',
+        'loader-gold-ripple': 'loader-gold-ripple 2.8s ease-out infinite',
+        'loader-bar': 'loader-bar 1.8s ease-in-out infinite',
       },
       keyframes: {
         ticker: {
@@ -210,6 +213,19 @@ export default {
           '0%':   { transform: 'scale(0.72)', opacity: '0.36' },
           '70%':  { opacity: '0.14' },
           '100%': { transform: 'scale(1.28)', opacity: '0' },
+        },
+        'loader-gold-ring': {
+          '0%':   { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        'loader-gold-ripple': {
+          '0%':   { transform: 'scale(0.55)', opacity: '0.65' },
+          '80%':  { opacity: '0.08' },
+          '100%': { transform: 'scale(1.9)', opacity: '0' },
+        },
+        'loader-bar': {
+          '0%':   { left: '-35%' },
+          '100%': { left: '100%' },
         },
       },
     },

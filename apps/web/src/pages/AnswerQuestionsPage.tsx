@@ -159,7 +159,7 @@ export default function AnswerQuestionsPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
+      <section className="page-hero-navbar bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
         <div className="page-hero-content">
           <span className="page-hero-badge">Community</span>
           <h1 className="page-hero-title">Answer Questions</h1>
@@ -167,7 +167,7 @@ export default function AnswerQuestionsPage() {
         </div>
       </section>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container max-w-4xl mx-auto">
 
         {!authorized && (

@@ -270,6 +270,11 @@ html { font-size: 100%; }
     @apply relative overflow-hidden py-10 sm:py-12 lg:py-14;
   }
 
+  /* Navbar-extending hero — pulls behind fixed navbar (-mt-16), clears content with matching padding */
+  .page-hero-navbar {
+    @apply relative overflow-hidden -mt-16 pt-[8.5rem] pb-14 lg:pb-16;
+  }
+
   .page-hero-content {
     @apply mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10;
   }

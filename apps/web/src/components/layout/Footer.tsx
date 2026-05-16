@@ -72,20 +72,20 @@ export default function Footer() {
                 >
                   Wealth<span className="text-[#D4AF37]">Spot</span>
                 </span>
-                <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/50 leading-none mt-0.5">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/65 leading-none mt-0.5">
                   Private Wealth Access
                 </span>
               </div>
             </Link>
-            <p className="font-body text-sm text-white/55 leading-relaxed max-w-[220px]">
+            <p className="font-body text-sm text-white/75 leading-relaxed max-w-[220px]">
               India&apos;s trusted fractional real estate investment platform. Build generational wealth, one fraction at a time.
             </p>
             <div className="space-y-2">
-              <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white/50 hover:text-[#D4AF37] transition-colors">
+              <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white/75 hover:text-[#D4AF37] transition-colors">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
                 hello@wealthspot.in
               </a>
-              <div className="flex items-start gap-2 font-body text-sm text-white/50">
+              <div className="flex items-start gap-2 font-body text-sm text-white/70">
                 <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 Bengaluru, Karnataka, India
               </div>
@@ -95,7 +95,7 @@ export default function Footer() {
           {/* Nav columns */}
           {Object.entries(FOOTER_NAV).map(([category, links]) => (
             <div key={category}>
-              <h3 className="font-body text-[11px] font-bold text-white uppercase tracking-[0.18em] mb-4">
+              <h3 className="font-body text-[11px] font-bold text-[#D4AF37] uppercase tracking-[0.18em] mb-4">
                 {category}
               </h3>
               <ul className="space-y-2.5">
@@ -103,7 +103,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <Link
                       to={link.href}
-                      className="font-body text-sm text-white/55 hover:text-white transition-colors"
+                      className="font-body text-sm text-white/80 hover:text-[#D4AF37] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -116,7 +116,7 @@ export default function Footer() {
           {/* CTA + social column */}
           <div className="flex flex-col gap-6">
             <div>
-              <p className="font-body text-[11px] text-white/40 uppercase tracking-[0.16em] mb-3">Find us on social</p>
+              <p className="font-body text-[11px] font-bold text-[#D4AF37] uppercase tracking-[0.16em] mb-3">Find us on social</p>
               <div className="flex items-center gap-2.5 flex-wrap">
                 {SOCIAL.map((s) => (
                   <a
@@ -140,11 +140,11 @@ export default function Footer() {
 
         {/* Risk disclaimer — two columns */}
         <div className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <p className="font-body text-[11.5px] text-white/60 leading-relaxed">
-            <span className="font-semibold text-white/75">Risk Disclaimer: </span>
+          <p className="font-body text-[11.5px] text-white/70 leading-relaxed">
+            <span className="font-semibold text-[#D4AF37]">Risk Disclaimer: </span>
             Investments in fractional real estate are subject to market risks. Past performance does not guarantee future returns. The projected IRR is an estimate and actual returns may vary. Please read all related documents carefully before investing.
           </p>
-          <p className="font-body text-[11.5px] text-white/60 leading-relaxed">
+          <p className="font-body text-[11.5px] text-white/70 leading-relaxed">
             WealthSpot is a technology platform and does not provide financial advice. Investment opportunities on this platform are intended for informed investors. Please consult a qualified financial advisor before making any investment decisions.
           </p>
         </div>
@@ -152,10 +152,10 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/10 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-5">
-            <Link to="/legal/terms"   className="font-body text-xs text-white/38 hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
-            <Link to="/legal/privacy" className="font-body text-xs text-white/38 hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
+            <Link to="/legal/terms"   className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
+            <Link to="/legal/privacy" className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
           </div>
-          <p className="font-body text-xs text-white/38">
+          <p className="font-body text-xs text-white/55">
             &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.
           </p>
         </div>

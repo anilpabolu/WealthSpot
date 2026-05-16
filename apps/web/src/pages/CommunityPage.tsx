@@ -597,7 +597,7 @@ export default function CommunityPage() {
         noIndex={true}
       />
       {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
+      <div className="page-hero-navbar bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#B45309]">
         <div className="page-hero-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <span className="page-hero-badge">{heroBadge}</span>
@@ -636,7 +636,7 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container">
 
         {/* Search & Sort */}

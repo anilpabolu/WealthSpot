@@ -135,8 +135,8 @@ export default function CommandControlPage() {
       {/* Shared Navbar */}
       <Navbar />
 
-      {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Hero — extends behind the transparent fixed navbar */}
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Super Admin</span>
           <h1 className="page-hero-title">Command & Control</h1>
@@ -200,7 +200,7 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-6 sm:p-8 bg-theme-surface min-w-0">
+        <main className="flex-1 p-6 sm:p-8 content-section-bg min-w-0">
           <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
             {activeSection === 'dashboard' && (
               <Suspense fallback={<TabFallback />}><DashboardTab /></Suspense>

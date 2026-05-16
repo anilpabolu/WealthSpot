@@ -40,14 +40,18 @@ export default function Navbar(_props?: NavbarProps) {
   const { data: overall } = useOverallProgress()
   useThemeStore((s) => s.theme)
 
-  // ── Landing-page scroll behaviour ──────────────────────────────────────
+  // ── Scroll behaviour (all pages) ───────────────────────────────────────
   const isLanding = location.pathname === '/'
   const [isAtTop, setIsAtTop] = useState(true)
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
-    if (!isLanding) return
+    // Reset state on route change
+    setIsAtTop(window.scrollY <= 10)
+    setNavVisible(true)
+    lastScrollY.current = window.scrollY
+
     const onScroll = () => {
       const current = window.scrollY
       const delta = current - lastScrollY.current
@@ -64,7 +68,7 @@ export default function Navbar(_props?: NavbarProps) {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [isLanding])
+  }, [location.pathname])
 
   const extraLinks = [
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
@@ -79,20 +83,33 @@ export default function Navbar(_props?: NavbarProps) {
   })
   const allNavLinks = [...filteredAuthLinks, ...extraLinks]
 
+  // Portal pages have light-cream backgrounds — always keep nav opaque there
+  const isPortal = location.pathname.startsWith('/portal/')
+
+  // Background: landing fully transparent at top; portals always opaque; everything else semi-transparent at top
+  const bgAtTop = isLanding
+    ? 'rgba(0, 0, 0, 0)'
+    : isPortal
+      ? 'rgba(38, 50, 50, 0.88)'
+      : 'rgba(38, 50, 50, 0.4)'
+  const blurAtTop = isLanding ? 'none' : isPortal ? 'blur(8px)' : 'blur(4px)'
+  const borderAtTop = isLanding
+    ? '1px solid rgba(56,73,73,0)'
+    : isPortal
+      ? '1px solid rgba(255,255,255,0.08)'
+      : '1px solid rgba(255,255,255,0.05)'
+
   return (
     <>
     <header
-      className={cn(
-        'z-50 w-full relative',
-        isLanding ? 'fixed top-0' : 'sticky top-0',
-      )}
+      className="z-50 w-full fixed top-0"
       style={{
-        transform: isLanding && !navVisible ? 'translateY(-100%)' : 'translateY(0)',
+        transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'transform 0.35s ease, background 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out, -webkit-backdrop-filter 0.3s ease-in-out',
-        background: isLanding && isAtTop ? 'rgba(0, 0, 0, 0)' : 'rgba(38, 50, 50, 0.88)',
-        backdropFilter: isLanding && isAtTop ? 'none' : 'blur(8px)',
-        WebkitBackdropFilter: isLanding && isAtTop ? 'none' : 'blur(8px)',
-        borderBottom: isLanding && isAtTop ? '1px solid rgba(56,73,73,0)' : '1px solid rgba(255,255,255,0.08)',
+        background: isAtTop ? bgAtTop : 'rgba(38, 50, 50, 0.88)',
+        backdropFilter: isAtTop ? blurAtTop : 'blur(8px)',
+        WebkitBackdropFilter: isAtTop ? blurAtTop : 'blur(8px)',
+        borderBottom: isAtTop ? borderAtTop : '1px solid rgba(255,255,255,0.08)',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">

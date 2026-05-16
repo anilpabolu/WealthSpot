@@ -605,6 +605,7 @@ export default function VaultProfilingPage() {
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
+        <div className="h-16" />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4 animate-pulse">
             <span className="text-6xl">{theme.illustration}</span>
@@ -629,6 +630,7 @@ export default function VaultProfilingPage() {
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
+        <div className="h-16" />
         <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
           <div className="mx-auto max-w-2xl px-6 py-12 space-y-8">
             {/* Archetype Reveal */}
@@ -733,6 +735,7 @@ export default function VaultProfilingPage() {
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
+        <div className="h-16" />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <span className="text-6xl">🚧</span>
@@ -759,6 +762,7 @@ export default function VaultProfilingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface">
       <Navbar />
+      <div className="h-16" />
       <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
         <div className="mx-auto max-w-2xl px-6 py-8 space-y-6">
           {/* Header with progress */}

@@ -29,9 +29,9 @@ export default function PortalLayout({ variant, children }: PortalLayoutProps) {
             : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-base transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-theme-surface transition-colors duration-300">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 pt-16">
         {Sidebar && <Sidebar />}
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
           {children ?? <Outlet />}

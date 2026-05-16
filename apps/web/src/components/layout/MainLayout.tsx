@@ -13,9 +13,9 @@ interface MainLayoutProps {
  */
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-theme-base transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-theme-surface transition-colors duration-300">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-16">
         {children ?? <Outlet />}
       </main>
       <Footer />

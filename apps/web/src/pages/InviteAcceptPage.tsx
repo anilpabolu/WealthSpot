@@ -34,6 +34,7 @@ export default function InviteAcceptPage() {
   return (
     <div className="min-h-screen bg-theme-surface flex flex-col">
       <Navbar />
+      <div className="h-16" />
       <main className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-md w-full rounded-xl border border-theme bg-[var(--bg-surface)] p-8 text-center space-y-4">
           {status === 'loading' && (

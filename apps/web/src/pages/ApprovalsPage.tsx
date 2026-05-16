@@ -1056,9 +1056,9 @@ export default function ApprovalsPage({ embedded }: { embedded?: boolean }) {
         {/* Shared Navbar — hidden when embedded in Command Control */}
         {!embedded && <Navbar />}
 
-        {/* Hero — hidden when embedded */}
+        {/* Hero — hidden when embedded; extends behind the transparent fixed navbar */}
         {!embedded && (
-        <section className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
           <div className="page-hero-content">
             <span className="page-hero-badge">Workflow</span>
             <h1 className="page-hero-title">Approvals</h1>

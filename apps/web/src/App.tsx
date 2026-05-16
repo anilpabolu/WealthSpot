@@ -69,26 +69,117 @@ function PageLoader() {
   const message = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-base">
-      <div className="flex flex-col items-center gap-6">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none">
 
-        {/* Single logo-led progress status */}
-        <div className="relative flex h-36 w-36 items-center justify-center animate-loader-logo-zoom">
-          <div className="absolute inset-1 rounded-full border border-violet-300/45 border-t-violet-100/90 shadow-[0_0_34px_rgba(167,139,250,0.32)] animate-loader-violet-ring" />
-          <div className="absolute -inset-8 rounded-full border border-violet-300/20 bg-violet-400/5 animate-loader-ripple" />
-          <div className="absolute -inset-14 rounded-full border border-violet-300/10 animate-loader-ripple [animation-delay:0.75s]" />
-          <WLogo3D size={94} spin />
+      {/* Dark radial vignette — deep at centre, fades to transparent at edges */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 75% 65% at 50% 50%, rgba(8,13,26,0.95) 0%, rgba(8,13,26,0.82) 35%, rgba(8,13,26,0.48) 60%, rgba(8,13,26,0.10) 85%, transparent 100%)',
+        }}
+      />
+
+      {/* Top gold progress sweep bar */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden">
+        <div
+          className="absolute inset-y-0 animate-[loader-bar_1.8s_ease-in-out_infinite]"
+          style={{
+            width: '35%',
+            background:
+              'linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.55) 30%, #F5E09A 50%, rgba(212,175,55,0.55) 70%, transparent 100%)',
+          }}
+        />
+      </div>
+
+      {/* Centre content */}
+      <div className="relative z-10 flex flex-col items-center gap-7">
+
+        {/* Logo + ring system */}
+        <div className="relative flex items-center justify-center" style={{ width: 192, height: 192 }}>
+
+          {/* Three staggered expanding ripple rings */}
+          {[0, 0.9, 1.8].map((delay, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full border border-[#D4AF37]/30 animate-[loader-gold-ripple_2.8s_ease-out_infinite]"
+              style={{ width: 192, height: 192, animationDelay: `${delay}s` }}
+            />
+          ))}
+
+          {/* Outer dashed counter-rotating ring */}
+          <div
+            className="absolute rounded-full animate-[loader-gold-ring_3.2s_linear_infinite_reverse]"
+            style={{
+              width: 118,
+              height: 118,
+              border: '1px dashed rgba(212,175,55,0.30)',
+            }}
+          />
+
+          {/* Inner fast spinning arc */}
+          <div
+            className="absolute rounded-full animate-[loader-gold-ring_1.35s_linear_infinite]"
+            style={{
+              width: 98,
+              height: 98,
+              border: '1.5px solid transparent',
+              borderTopColor: '#D4AF37',
+              borderRightColor: 'rgba(212,175,55,0.50)',
+            }}
+          />
+
+          {/* Radial gold glow orb */}
+          <div
+            className="absolute rounded-full animate-[pulse-glow_2.2s_ease-in-out_infinite]"
+            style={{
+              width: 76,
+              height: 76,
+              background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, transparent 75%)',
+            }}
+          />
+
+          {/* Logo */}
+          <WLogo3D size={66} />
+
+          {/* Six orbital gold dot particles */}
+          {[0, 60, 120, 180, 240, 300].map((deg, i) => {
+            const rad = (deg * Math.PI) / 180
+            const r = 56
+            return (
+              <div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: 3,
+                  height: 3,
+                  background: '#D4AF37',
+                  left: `calc(50% + ${Math.cos(rad) * r}px - 1.5px)`,
+                  top: `calc(50% + ${Math.sin(rad) * r}px - 1.5px)`,
+                  animation: 'logo-fade 2.2s ease-in-out infinite',
+                  animationDelay: `${i * 0.37}s`,
+                  opacity: 0.75,
+                }}
+              />
+            )
+          })}
         </div>
 
-        {/* Brand text */}
-        <span className="font-display text-lg font-bold text-theme-primary tracking-tight">
-          Wealth<span className="text-[#D4AF37]">Spot</span>
-        </span>
-
-        {/* Rotating message */}
-        <p className="text-sm text-theme-tertiary font-body animate-[logo-fade_2.5s_ease-in-out_infinite]">
-          {message}
-        </p>
+        {/* Brand name + rotating message */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span
+            className="font-display text-base font-bold tracking-tight"
+            style={{ color: 'rgba(255,255,255,0.92)' }}
+          >
+            Wealth<span style={{ color: '#D4AF37' }}>Spot</span>
+          </span>
+          <p
+            className="text-xs font-body animate-[logo-fade_2.5s_ease-in-out_infinite]"
+            style={{ color: 'rgba(255,255,255,0.48)' }}
+          >
+            {message}
+          </p>
+        </div>
       </div>
     </div>
   )

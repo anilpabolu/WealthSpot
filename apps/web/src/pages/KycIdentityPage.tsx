@@ -142,7 +142,7 @@ export default function KycIdentityPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{useContent('kyc', 'hero_badge', 'KYC')}</span>
           <h1 className="page-hero-title">{useContent('kyc', 'hero_title', 'Identity Verification')}</h1>
@@ -150,7 +150,7 @@ export default function KycIdentityPage() {
         </div>
       </section>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container max-w-2xl mx-auto">
 
         {step <= 3 && <StepIndicator currentStep={step} />}

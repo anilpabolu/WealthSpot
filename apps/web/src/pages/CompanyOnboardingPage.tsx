@@ -72,7 +72,7 @@ export default function CompanyOnboardingPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Onboarding</span>
           <h1 className="page-hero-title">Company Onboarding</h1>
@@ -80,7 +80,7 @@ export default function CompanyOnboardingPage() {
         </div>
       </section>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}

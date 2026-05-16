@@ -164,7 +164,7 @@ export default function InvestorDashboardPage() {
         </div>
       </div>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container space-y-8">
           <PortfolioMetrics />
 

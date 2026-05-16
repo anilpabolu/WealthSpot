@@ -32,6 +32,7 @@ export default function PropertyPortfolioDetailPage() {
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface">
       <Navbar />
+      <div className="h-16" />
 
       <main className="flex-1">
         <div className="page-section">

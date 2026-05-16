@@ -32,7 +32,7 @@ export function useVaultConfig() {
   return {
     ...query,
     wealthEnabled: true, // always on
-    safeEnabled: config?.opportunityVaultEnabled ?? false,
+    safeEnabled: config?.opportunityVaultEnabled ?? true,
     communityEnabled: config?.communityVaultEnabled ?? false,
     // Video toggles (per-category)
     introVideosEnabled: config?.introVideosEnabled ?? true,
@@ -43,7 +43,7 @@ export function useVaultConfig() {
     propertyEmptySectionMode: config?.propertyEmptySectionMode ?? 'show_placeholder',
     isVaultEnabled: (vaultId: string): boolean => {
       if (vaultId === 'wealth') return true
-      if (vaultId === 'safe') return config?.opportunityVaultEnabled ?? false
+      if (vaultId === 'safe') return config?.opportunityVaultEnabled ?? true
       if (vaultId === 'community') return config?.communityVaultEnabled ?? false
       return true
     },

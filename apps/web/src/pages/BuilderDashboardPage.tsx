@@ -51,7 +51,7 @@ export default function BuilderDashboardPage() {
         </div>
       </div>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container space-y-6">
 
         {isLoading && (

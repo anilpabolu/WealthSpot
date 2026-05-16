@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Wallet,
   Clock,
-  Network,
   GraduationCap,
   PlayCircle,
   X,
@@ -45,13 +44,6 @@ const VAULT_VIDEO_TAGS: Record<string, string> = {
   safe: 'safe_vault_intro',
   community: 'community_vault_intro',
 }
-const PILLAR_VIDEO_TAGS: Record<string, string> = {
-  'Wealth Investors': 'wealth_investors_pillar',
-  'Time Investors': 'time_investors_pillar',
-  'Network Investors': 'network_investors_pillar',
-  'Education Investors': 'education_investors_pillar',
-}
-
 /* ------------------------------------------------------------------ */
 /*  Vault data                                                         */
 /* ------------------------------------------------------------------ */
@@ -116,57 +108,6 @@ const VAULTS = [
     cta: 'Explore Communities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
     emoji: '🤝',
-  },
-]
-
-/* ------------------------------------------------------------------ */
-/*  4 Investor Pillars                                                 */
-/* ------------------------------------------------------------------ */
-
-const PILLARS = [
-  {
-    title: 'Wealth Investors',
-    subtitle: 'Capital that compounds',
-    icon: Wallet,
-    color: 'from-primary/10 to-primary/5',
-    iconColor: 'text-primary',
-    description:
-      'Deploy capital across vaults and earn passive returns through rental income, equity appreciation, and profit-sharing — all from ₹10,000.',
-    videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    contributeHref: '/contribute/wealth',
-  },
-  {
-    title: 'Time Investors',
-    subtitle: 'Hours that create value',
-    icon: Clock,
-    color: 'from-amber-100 to-amber-50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    description:
-      'Contribute your time and effort to community projects. Mentor founders, manage on-ground execution, or volunteer expertise — earn equity for your hours.',
-    videoSrc: 'https://www.w3schools.com/html/movie.mp4',
-    contributeHref: '/contribute/time',
-  },
-  {
-    title: 'Network Investors',
-    subtitle: 'Connections that catalyse',
-    icon: Network,
-    color: 'from-violet-100 to-violet-50',
-    iconColor: 'text-violet-600 dark:text-violet-400',
-    description:
-      'Open doors with your relationships. Introduce startups to customers, connect projects to suppliers, or bring in co-investors — your network is your investment.',
-    videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
-    contributeHref: '/contribute/network',
-  },
-  {
-    title: 'Education Investors',
-    subtitle: 'Knowledge that empowers',
-    icon: GraduationCap,
-    color: 'from-emerald-100 to-emerald-50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    description:
-      'Share domain expertise, conduct workshops, or provide strategic advisory. Help ventures succeed through the power of what you know.',
-    videoSrc: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
-    contributeHref: '/contribute/education',
   },
 ]
 
@@ -360,9 +301,12 @@ export const ALL_VAULT_METRICS: Record<string, string[]> = {
 
 /* Creative hero images per vault */
 const VAULT_HERO_IMAGES: Record<string, string> = {
-  wealth: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80',
-  safe: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop&q=80',
-  community: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80',
+  // Wealth Vault — luxury real estate, private wealth
+  wealth: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80',
+  // Safe Vault — gold bars, secure fixed returns
+  safe: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800&auto=format&fit=crop&q=80',
+  // Community Vault — people collaborating, co-investing
+  community: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop&q=80',
 }
 
 function VaultCard({
@@ -392,6 +336,7 @@ function VaultCard({
   onProfilingCircleClick?: () => void
   onExplore?: () => void
 }) {
+  const [isHovered, setIsHovered] = useState(false)
   const handleCTAClick = (e: React.MouseEvent) => {
     if (comingSoon) {
       e.preventDefault()
@@ -406,7 +351,34 @@ function VaultCard({
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.14)] transition-shadow duration-300 group flex flex-col h-[540px]">
+    <div
+      className="rounded-2xl overflow-hidden group flex flex-col h-[540px] relative"
+      style={{
+        border: `2px solid ${isHovered ? vault.accentHex : vault.accentHex + '35'}`,
+        transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
+        transition: 'border-color 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* ── Top shimmer bar — glows brighter on hover ── */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[3px] z-20 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent 5%, ${vault.accentHex}bb 35%, ${vault.accentHex} 50%, ${vault.accentHex}bb 65%, transparent 95%)`,
+          opacity: isHovered ? 1 : 0.35,
+          transition: 'opacity 0.3s ease',
+        }}
+      />
+      {/* ── Bottom radial glow — appears on hover ── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-36 z-20 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at 50% 110%, ${vault.accentHex}28 0%, transparent 68%)`,
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.35s ease',
+        }}
+      />
 
       {/* ── SECTION 1 (50%): hero image with text overlay ── */}
       <div className="relative h-1/2 overflow-hidden">
@@ -416,7 +388,16 @@ function VaultCard({
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
         />
         {/* Gradient: transparent top → dark bottom for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5 pointer-events-none" />
+        {/* Hover accent tint over image */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, ${vault.accentHex}35 0%, transparent 60%)`,
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+          }}
+        />
 
         {/* Top-right badges */}
         <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
@@ -456,57 +437,95 @@ function VaultCard({
           </button>
         )}
 
-        {/* Title + description pinned to bottom of image */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-6 z-10">
-          <h3 className="font-hero text-lg font-bold text-white tracking-tight leading-snug mb-1">
+        {/* Title + description pinned to bottom of image — frosted glass backdrop */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-4 pt-8"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 60%, transparent 100%)' }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${vault.riskColor}`}>
+              {vault.risk} Risk
+            </span>
+          </div>
+          <h3 className="font-hero text-[1.05rem] font-bold text-white tracking-tight leading-snug mb-1.5"
+            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}
+          >
             {vault.title}
           </h3>
-          <p className="text-[12px] text-white/80 leading-relaxed font-body line-clamp-2">
+          <p className="text-[11.5px] text-white/85 leading-relaxed font-body line-clamp-2"
+            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
+          >
             {vault.infoBody}
           </p>
         </div>
       </div>
 
-      {/* ── SECTION 2 (40%): metrics on light background ── */}
-      <div className="h-[40%] bg-gray-50 dark:bg-[#0d1117] px-4 py-3 flex flex-col justify-center">
+      {/* ── SECTION 2 (40%): metrics — clean white card ── */}
+      <div
+        className="h-[40%] px-4 py-3 flex flex-col justify-center relative overflow-hidden"
+        style={{
+          background: '#ffffff',
+          borderTop: `2px solid ${vault.accentHex}55`,
+        }}
+      >
+        {/* Decorative accent dot */}
+        <div
+          className="absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-10 pointer-events-none"
+          style={{ backgroundColor: vault.accentHex }}
+        />
         {enabledMetrics.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 relative z-10">
             {enabledMetrics.slice(0, 4).map((key) => {
               const def = VAULT_METRICS_REGISTRY[key]
               if (!def) return null
               const MetricIcon = def.icon
               const value = def.resolve(stats, vault.id)
               return (
-                <div key={key} className="space-y-0.5">
+                <div
+                  key={key}
+                  className="space-y-0.5 pl-2.5"
+                  style={{ borderLeft: `2px solid ${vault.accentHex}55` }}
+                >
                   <div className="flex items-center gap-1.5">
-                    <MetricIcon className="h-3 w-3 text-gray-400 dark:text-white/30 shrink-0" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30 truncate">{def.label}</span>
+                    <MetricIcon className="h-3.5 w-3.5 shrink-0" style={{ color: vault.accentHex + 'cc' }} />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 truncate">{def.label}</span>
                   </div>
-                  <p className="font-mono text-sm font-bold text-gray-800 dark:text-white/90">{value}</p>
+                  <p className="font-mono text-[15px] font-bold text-gray-900">{value}</p>
                 </div>
               )
             })}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 dark:text-white/30 text-center italic">No metrics available</p>
+          <p className="text-sm text-gray-400 text-center italic">No metrics available</p>
         )}
       </div>
 
       {/* ── SECTION 3 (10%): CTA button ── */}
-      <div className="h-[10%] bg-white dark:bg-[#111827] border-t border-gray-100 dark:border-white/[0.06] flex items-center px-4">
+      <div
+        className="h-[10%] flex items-center px-4"
+        style={{
+          background: '#ffffff',
+          borderTop: `1px solid ${vault.accentHex}30`,
+        }}
+      >
         {comingSoon ? (
           <button
             onClick={onComingSoon}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 dark:border-white/15 text-gray-400 dark:text-white/30 cursor-not-allowed"
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-400 cursor-not-allowed"
           >
-            <Lock className="h-4 w-4" />
-            {getVaultComingSoonText(vault.id).button}
+            <Lock className="h-3.5 w-3.5" />
+            Explore Investment
           </button>
         ) : (
           <Link
             to={vault.href}
             onClick={handleCTAClick}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-800 dark:border-white/20 text-gray-800 dark:text-white bg-transparent hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-200"
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border text-gray-800 bg-transparent transition-all duration-200 hover:text-white"
+            style={{
+              borderColor: vault.accentHex + '80',
+              '--hover-bg': vault.accentHex,
+            } as React.CSSProperties}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = vault.accentHex; (e.currentTarget as HTMLElement).style.borderColor = vault.accentHex }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = vault.accentHex + '80' }}
           >
             Explore Investment
             <ArrowRight className="h-4 w-4" />
@@ -521,48 +540,12 @@ function VaultCard({
 /*  Pillar Card                                                        */
 /* ------------------------------------------------------------------ */
 
-function PillarCard({ pillar, onPlayVideo }: { pillar: (typeof PILLARS)[number]; onPlayVideo?: () => void }) {
-  const Icon = pillar.icon
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-[var(--frame-border)] p-5 hover:border-[var(--frame-border-hover)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
-      {/* Dark warm background matching landing page */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#111827]/90 to-[#0f172a] rounded-2xl" />
-      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-2xl" />
-      <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[#D4AF37]/[0.04] blur-2xl pointer-events-none" />
-      <div className="relative z-10">
-        <div className="flex items-start justify-between mb-4">
-          <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
-            <Icon className="h-6 w-6 text-[#D4AF37]" />
-          </div>
-          {onPlayVideo && (
-          <button
-            onClick={onPlayVideo}
-            className="relative group/tip shrink-0"
-            aria-label={`Watch ${pillar.title} explainer video`}
-          >
-            <PlayCircle className="h-5 w-5 text-white/30 hover:text-white/60 transition-colors cursor-pointer" />
-            <span className="pointer-events-none absolute -bottom-8 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-[11px] text-white opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg">
-              Learn more
-            </span>
-          </button>
-          )}
-        </div>
-        <h4 className="font-display text-base font-bold text-white mb-0.5">{pillar.title}</h4>
-        <p className="text-xs font-medium text-[#D4AF37]/60 mb-2">{pillar.subtitle}</p>
-        <p className="text-sm text-white/60 leading-relaxed flex-1">{pillar.description}</p>
-      </div>
-    </div>
-  )
-}
-
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function VaultsPage() {
   const [activeVideo, setActiveVideo] = useState<{ title: string; videoSrc: string } | null>(null)
-  const [activePillarVideo, setActivePillarVideo] = useState<{ title: string; videoSrc: string } | null>(null)
   const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [showCommunityExplore, setShowCommunityExplore] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
@@ -583,10 +566,6 @@ export default function VaultsPage() {
   const heroBadge = useContent('vaults', 'hero_badge', 'Three Vaults. Infinite Possibilities.')
   const heroTitle = useContent('vaults', 'hero_title', 'Pick Your Arena')
   const heroSubtitle = useContent('vaults', 'hero_subtitle', 'Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.')
-  const pillarsLabel = useContent('vaults', 'pillars_label', 'The Four Pillars')
-  const pillarsHeading = useContent('vaults', 'pillars_heading', 'Every Investor Has Something Unique to Offer')
-  const pillarsSubtitle = useContent('vaults', 'pillars_subtitle', "At WealthSpot, investing isn't just about money. We recognise four types of investors — each contributing a different kind of capital to create outsized value together.")
-
   // Fetch profiling progress per vault
   const { data: wealthProgress } = useProfilingProgress('wealth')
   const { data: safeProgress } = useProfilingProgress('safe')
@@ -645,8 +624,8 @@ export default function VaultsPage() {
       {/* Shared Navbar */}
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden py-24 lg:py-28" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}>
+      {/* Hero — extends behind the transparent fixed navbar, matching landing-page behaviour */}
+      <section className="-mt-16 relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}>
         {/* Subtle geometric decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
@@ -655,13 +634,10 @@ export default function VaultsPage() {
         </div>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
           <div className="animate-fade-up">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-6">
-              {heroBadge}
-            </span>
-            <h1 className="font-hero text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-5 tracking-tight leading-[1.1]">
+            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
               {heroTitle}
             </h1>
-            <p className="text-white/60 max-w-2xl text-lg leading-relaxed font-body">
+            <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
               {heroSubtitle}
             </p>
           </div>
@@ -669,7 +645,7 @@ export default function VaultsPage() {
       </section>
 
       {/* Vaults Grid */}
-      <section className="py-16 lg:py-20 content-section-bg relative overflow-hidden">
+      <section className="py-16 lg:py-20 content-section-bg relative overflow-hidden flex-1">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-violet-500/8 blur-3xl" />
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
@@ -708,36 +684,6 @@ export default function VaultsPage() {
         </div>
       </section>
 
-      {/* 4 Investor Pillars — super_admin only */}
-      {userRole === 'super_admin' && (
-      <section className="py-16 lg:py-20 content-section-bg relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/8 blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-          <div className="text-center mb-10 relative z-10">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] dark:text-[#D4AF37]">{pillarsLabel}</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-theme-primary mt-2">
-              {pillarsHeading}
-            </h2>
-            <p className="text-theme-secondary mt-2 max-w-2xl mx-auto">
-              {pillarsSubtitle}
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-            {PILLARS.map((pillar) => (
-              <PillarCard
-                key={pillar.title}
-                pillar={pillar}
-                onPlayVideo={vaultVideosEnabled ? () => setActivePillarVideo({ title: pillar.title, videoSrc: resolveVideo(PILLAR_VIDEO_TAGS[pillar.title], pillar.videoSrc) }) : undefined}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-      )}
-
       <Footer />
     </div>
 
@@ -747,15 +693,6 @@ export default function VaultsPage() {
           title={activeVideo.title}
           videoSrc={activeVideo.videoSrc}
           onClose={() => setActiveVideo(null)}
-        />
-      )}
-
-      {/* Pillar explainer video popup */}
-      {vaultVideosEnabled && activePillarVideo && (
-        <VaultVideoPopup
-          title={activePillarVideo.title}
-          videoSrc={activePillarVideo.videoSrc}
-          onClose={() => setActivePillarVideo(null)}
         />
       )}
 

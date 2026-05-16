@@ -727,6 +727,9 @@ export default function PortfolioPage() {
     return (
       <div className="min-h-screen flex flex-col bg-theme-surface">
         <Navbar />
+      <div className="h-16" />
+
+      {/* Early-return branch (no DNA) */}
         <main className="flex-1 flex items-center justify-center p-8">
           <EmptyState
             icon={Wallet}
@@ -765,8 +768,8 @@ export default function PortfolioPage() {
     <div className="min-h-screen flex flex-col bg-theme-surface">
       <Navbar />
 
-      {/* Hero */}
-      <section className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      {/* Hero — extends behind the transparent fixed navbar */}
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">{heroBadge}</span>
           <h1 className="page-hero-title">{heroTitle}</h1>
@@ -774,7 +777,7 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      <main className="flex-1">
+      <main className="flex-1 content-section-bg">
         <div className="page-section">
           <div className="page-section-container space-y-10">
 

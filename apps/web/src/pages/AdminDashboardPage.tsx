@@ -36,7 +36,7 @@ export default function AdminDashboardPage() {
   return (
     <PortalLayout variant="admin">
       {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
           <span className="page-hero-badge">Admin Console</span>
           <h1 className="page-hero-title">Admin Overview</h1>
@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="page-section">
+      <div className="page-section content-section-bg">
         <div className="page-section-container space-y-6">
 
         {/* WealthSpot Shield */}
