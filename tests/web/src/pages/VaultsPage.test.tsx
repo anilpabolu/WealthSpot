@@ -122,8 +122,8 @@ describe('VaultsPage', () => {
     renderPage()
     // Wealth vault should show investor count of 42
     expect(screen.getByText('42')).toBeInTheDocument()
-    // Cities covered metrics should be present
-    expect(screen.getAllByText('Cities Covered').length).toBeGreaterThanOrEqual(1)
+    // Investors label is present (investor_count is in first 4 visible metrics)
+    expect(screen.getAllByText('Investors').length).toBeGreaterThanOrEqual(1)
   })
 
   it('displays formatted investment amounts', () => {
@@ -141,7 +141,7 @@ describe('VaultsPage', () => {
 
   it('renders CTA buttons for each vault', () => {
     renderPage()
-    expect(screen.getByText('Explore Properties')).toBeInTheDocument()
+    expect(screen.getAllByText('Explore Investment').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders metric labels', () => {

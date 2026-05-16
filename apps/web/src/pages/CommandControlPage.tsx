@@ -22,8 +22,7 @@ import {
   Eye,
   Mail,
 } from 'lucide-react'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import SectionErrorBoundary from '@/components/SectionErrorBoundary'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import VaultAnalyticsDashboard from '@/pages/VaultAnalyticsDashboard'
@@ -131,9 +130,7 @@ export default function CommandControlPage() {
   )
 
   return (
-    <div className="min-h-screen bg-theme-surface flex flex-col">
-      {/* Shared Navbar */}
-      <Navbar />
+    <MainLayout>
 
       {/* Hero — extends behind the transparent fixed navbar */}
       <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
@@ -285,7 +282,6 @@ export default function CommandControlPage() {
           )}
         </main>
       </div>
-      <Footer />
-    </div>
+    </MainLayout>
   )
 }

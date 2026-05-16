@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import { EmptyState, Badge } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useContent } from '@/hooks/useSiteContent'
@@ -725,9 +724,7 @@ export default function PortfolioPage() {
 
   if (isInvestorRole && !progressLoading && !hasAnyDna) {
     return (
-      <div className="min-h-screen flex flex-col bg-theme-surface">
-        <Navbar />
-      <div className="h-16" />
+      <MainLayout>
 
       {/* Early-return branch (no DNA) */}
         <main className="flex-1 flex items-center justify-center p-8">
@@ -739,9 +736,8 @@ export default function PortfolioPage() {
             onAction={() => setShowDnaPicker(true)}
           />
         </main>
-        <Footer />
         <VaultPickerModal open={showDnaPicker} onClose={() => setShowDnaPicker(false)} />
-      </div>
+      </MainLayout>
     )
   }
 
@@ -765,8 +761,7 @@ export default function PortfolioPage() {
   const disabledVaultIds = ['safe', 'community'].filter((id) => !isVaultEnabled(id))
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-surface">
-      <Navbar />
+    <MainLayout>
 
       {/* Hero — extends behind the transparent fixed navbar */}
       <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
@@ -905,7 +900,6 @@ export default function PortfolioPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
+    </MainLayout>
   )
 }

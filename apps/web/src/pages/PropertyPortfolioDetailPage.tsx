@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import { usePropertyInvestmentDetail } from '@/hooks/usePortfolio'
 import {
   ArrowLeft,
@@ -30,9 +29,7 @@ export default function PropertyPortfolioDetailPage() {
   const { data, isLoading, error } = usePropertyInvestmentDetail(propertyId)
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-surface">
-      <Navbar />
-      <div className="h-16" />
+    <MainLayout>
 
       <main className="flex-1">
         <div className="page-section">
@@ -150,7 +147,6 @@ export default function PropertyPortfolioDetailPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
+    </MainLayout>
   )
 }

@@ -156,6 +156,8 @@ export interface OpportunityCreatePayload {
   // Funding schedule
   fundingOpenAt?: string
   closingDate?: string
+  // Builder shield assessment
+  shield_answers?: Record<string, unknown>
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {

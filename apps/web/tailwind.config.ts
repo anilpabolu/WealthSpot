@@ -125,6 +125,7 @@ export default {
         'loader-gold-ring': 'loader-gold-ring 1.4s linear infinite',
         'loader-gold-ripple': 'loader-gold-ripple 2.8s ease-out infinite',
         'loader-bar': 'loader-bar 1.8s ease-in-out infinite',
+        'page-enter': 'page-enter 0.25s ease-out both',
       },
       keyframes: {
         ticker: {
@@ -226,6 +227,10 @@ export default {
         'loader-bar': {
           '0%':   { left: '-35%' },
           '100%': { left: '100%' },
+        },
+        'page-enter': {
+          from: { opacity: '0' },
+          to:   { opacity: '1' },
         },
       },
     },

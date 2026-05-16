@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Twitter, Linkedin, Instagram, Youtube, Mail, MapPin } from 'lucide-react'
-import { useUserStore } from '@/stores/user.store'
 import WLogo3D from '@/components/ui/WLogo3D'
 
 const FOOTER_NAV = {
@@ -30,17 +29,22 @@ const SOCIAL = [
 
 const BG = '#080d1a'
 
-function CompactFooter() {
+function SlimFooter() {
   return (
     <footer style={{ background: BG }} role="contentinfo">
-      <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p className="font-body text-xs text-white/40">
-          &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.
-        </p>
-        <div className="flex items-center gap-5">
-          <Link to="/legal/terms"   className="font-body text-xs text-white/40 hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
-          <Link to="/legal/privacy" className="font-body text-xs text-white/40 hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
+      <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
+          <p className="font-body text-[11px] text-white/35">
+            &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd.
+            <span className="mx-2 text-white/20">·</span>
+            Investments subject to market risks. Past performance is not a guarantee. Not financial advice.
+          </p>
+          <div className="flex items-center gap-4">
+            <a href="mailto:hello@wealthspot.in" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Help</a>
+            <Link to="/legal/terms"   className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Terms</Link>
+            <Link to="/legal/privacy" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Privacy</Link>
+          </div>
         </div>
       </div>
     </footer>
@@ -48,9 +52,9 @@ function CompactFooter() {
 }
 
 export default function Footer() {
-  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const location = useLocation()
 
-  if (isAuthenticated) return <CompactFooter />
+  if (location.pathname !== '/') return <SlimFooter />
 
   return (
     <footer style={{ background: BG }} role="contentinfo">

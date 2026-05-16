@@ -22,8 +22,7 @@ import {
   Save,
   Undo2,
 } from 'lucide-react'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import { useApprovals, useAllApprovals, useReviewApproval, type Approval } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approval.store'
 import { useOpportunity, useUpdateOpportunity, type OpportunityItem } from '@/hooks/useOpportunities'
@@ -1050,11 +1049,8 @@ export default function ApprovalsPage({ embedded }: { embedded?: boolean }) {
     }
   }
 
-  return (
-    <>
-      <div className={embedded ? 'flex flex-col' : 'min-h-screen bg-theme-surface flex flex-col'}>
-        {/* Shared Navbar — hidden when embedded in Command Control */}
-        {!embedded && <Navbar />}
+  const content = (
+    <div className="flex flex-col">
 
         {/* Hero — hidden when embedded; extends behind the transparent fixed navbar */}
         {!embedded && (
@@ -1257,8 +1253,12 @@ export default function ApprovalsPage({ embedded }: { embedded?: boolean }) {
             </>
           )}
         </main>
-        {!embedded && <Footer />}
-      </div>
+    </div>
+  )
+
+  return (
+    <>
+      {embedded ? content : <MainLayout>{content}</MainLayout>}
 
       {/* Detail popup (from board or table click) */}
       {detailApproval && (

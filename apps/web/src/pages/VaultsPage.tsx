@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import SEOHead from '@/components/SEOHead'
 import VaultProfilingModal from '@/components/VaultProfilingModal'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
@@ -13,8 +12,6 @@ import {
   Users,
   ArrowRight,
   Wallet,
-  Clock,
-  GraduationCap,
   PlayCircle,
   X,
   Lock,
@@ -28,7 +25,6 @@ import {
   CalendarClock,
   type LucideIcon,
 } from 'lucide-react'
-import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
 import { useUserStore } from '@/stores/user.store'
 import { useVaultStats, useOpportunities, type OpportunityItem } from '@/hooks/useOpportunities'
@@ -546,11 +542,9 @@ function VaultCard({
 
 export default function VaultsPage() {
   const [activeVideo, setActiveVideo] = useState<{ title: string; videoSrc: string } | null>(null)
-  const [showCreateOpp, setShowCreateOpp] = useState(false)
   const [showCommunityExplore, setShowCommunityExplore] = useState(false)
   const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
   const [profilingVault, setProfilingVault] = useState<string | null>(null)
-  const userRole = useUserStore((s) => s.user?.role)
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const navigate = useNavigate()
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
@@ -563,7 +557,6 @@ export default function VaultsPage() {
   const { data: metricsConfig } = useVaultMetricsConfig()
 
   // CMS content
-  const heroBadge = useContent('vaults', 'hero_badge', 'Three Vaults. Infinite Possibilities.')
   const heroTitle = useContent('vaults', 'hero_title', 'Pick Your Arena')
   const heroSubtitle = useContent('vaults', 'hero_subtitle', 'Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.')
   // Fetch profiling progress per vault
@@ -620,9 +613,7 @@ export default function VaultsPage() {
       path="/vaults"
       noIndex={true}
     />
-    <div className="min-h-screen flex flex-col bg-theme-surface">
-      {/* Shared Navbar */}
-      <Navbar />
+    <MainLayout>
 
       {/* Hero — extends behind the transparent fixed navbar, matching landing-page behaviour */}
       <section className="-mt-16 relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}>
@@ -684,8 +675,7 @@ export default function VaultsPage() {
         </div>
       </section>
 
-      <Footer />
-    </div>
+    </MainLayout>
 
       {/* Vault intro video popup */}
       {vaultVideosEnabled && activeVideo && (
@@ -696,8 +686,6 @@ export default function VaultsPage() {
         />
       )}
 
-      {/* Create Opportunity modal */}
-      <CreateOpportunityModal open={showCreateOpp} onClose={() => setShowCreateOpp(false)} />
 
       {/* Community subtype explore modal */}
       <CommunitySubtypeModal

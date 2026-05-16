@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { apiPost } from '@/lib/api'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 
 type Status = 'loading' | 'success' | 'error'
 
@@ -32,9 +31,7 @@ export default function InviteAcceptPage() {
   }, [token])
 
   return (
-    <div className="min-h-screen bg-theme-surface flex flex-col">
-      <Navbar />
-      <div className="h-16" />
+    <MainLayout>
       <main className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-md w-full rounded-xl border border-theme bg-[var(--bg-surface)] p-8 text-center space-y-4">
           {status === 'loading' && (
@@ -71,7 +68,6 @@ export default function InviteAcceptPage() {
           )}
         </div>
       </main>
-      <Footer />
-    </div>
+    </MainLayout>
   )
 }

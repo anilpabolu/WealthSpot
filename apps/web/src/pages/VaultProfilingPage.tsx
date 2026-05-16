@@ -25,8 +25,7 @@ import {
   Rocket,
   Trophy,
 } from 'lucide-react'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import MainLayout from '@/components/layout/MainLayout'
 import { useThemeStore } from '@/stores/theme.store'
 import { useVaultQuestions, useSubmitVaultAnswers, useProfilingProgress, useMyAnswers } from '@/hooks/useProfiling'
 import type { VaultProfileQuestion, QuestionOption, SliderOptions } from '@/hooks/useProfiling'
@@ -603,16 +602,14 @@ export default function VaultProfilingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-theme-surface">
-        <Navbar />
-        <div className="h-16" />
-        <div className="flex-1 flex items-center justify-center">
+      <MainLayout>
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
           <div className="text-center space-y-4 animate-pulse">
             <span className="text-6xl">{theme.illustration}</span>
             <p className="text-theme-secondary font-body">Loading your profiling journey...</p>
           </div>
         </div>
-      </div>
+      </MainLayout>
     )
   }
 
@@ -628,10 +625,8 @@ export default function VaultProfilingPage() {
     const radarStroke = theme.radarStroke
 
     return (
-      <div className="min-h-screen flex flex-col bg-theme-surface">
-        <Navbar />
-        <div className="h-16" />
-        <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
+      <MainLayout>
+        <div className={`min-h-[calc(100vh-4rem)] bg-gradient-to-br ${theme.bgGradient}`}>
           <div className="mx-auto max-w-2xl px-6 py-12 space-y-8">
             {/* Archetype Reveal */}
             <div className="text-center space-y-4 animate-fade-up">
@@ -725,7 +720,7 @@ export default function VaultProfilingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </MainLayout>
     )
   }
 
@@ -733,10 +728,8 @@ export default function VaultProfilingPage() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-theme-surface">
-        <Navbar />
-        <div className="h-16" />
-        <div className="flex-1 flex items-center justify-center">
+      <MainLayout>
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
           <div className="text-center space-y-4">
             <span className="text-6xl">🚧</span>
             <h2 className="font-display text-xl font-bold text-theme-primary">
@@ -753,17 +746,15 @@ export default function VaultProfilingPage() {
             </button>
           </div>
         </div>
-      </div>
+      </MainLayout>
     )
   }
 
   // ── Questionnaire State ────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-surface">
-      <Navbar />
-      <div className="h-16" />
-      <div className={`flex-1 bg-gradient-to-br ${theme.bgGradient}`}>
+    <MainLayout>
+      <div className={`min-h-[calc(100vh-4rem)] bg-gradient-to-br ${theme.bgGradient}`}>
         <div className="mx-auto max-w-2xl px-6 py-8 space-y-6">
           {/* Header with progress */}
           <div className="space-y-3">
@@ -894,7 +885,6 @@ export default function VaultProfilingPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
+    </MainLayout>
   )
 }

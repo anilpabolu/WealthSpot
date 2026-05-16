@@ -8,7 +8,6 @@ import {
 } from '@clerk/react'
 import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
-import CreateOpportunityModal from '@/components/CreateOpportunityModal'
 import { useUserStore } from '@/stores/user.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
@@ -32,7 +31,6 @@ export default function Navbar(_props?: NavbarProps) {
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
-  const [showCreateOpp, setShowCreateOpp] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
   const userRoles = useUserStore((s) => s.user?.roles ?? [])
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
@@ -157,7 +155,7 @@ export default function Navbar(_props?: NavbarProps) {
             <Show when="signed-in">
               {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
               <button
-                onClick={() => setShowCreateOpp(true)}
+                onClick={() => navigate('/create-opportunity')}
                 className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-xs font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.45)] hover:brightness-110 transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -167,7 +165,13 @@ export default function Navbar(_props?: NavbarProps) {
               <ProfileIndicator size="sm" />
             </Show>
             <Show when="signed-out">
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-3">
+                <Link
+                  to="/about"
+                  className="text-white/75 hover:text-white text-sm font-medium transition-colors"
+                >
+                  About
+                </Link>
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button className="text-white/80 hover:text-white text-sm font-semibold px-4 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all">Sign In</button>
                 </SignInButton>
@@ -214,6 +218,13 @@ export default function Navbar(_props?: NavbarProps) {
             </Show>
             <Show when="signed-out">
               <div className="pt-3 border-t border-white/10 space-y-2">
+                <Link
+                  to="/about"
+                  className="block px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  About
+                </Link>
                 <div className="flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button
@@ -276,8 +287,6 @@ export default function Navbar(_props?: NavbarProps) {
         />
       )}
 
-      {/* Create Opportunity modal */}
-      <CreateOpportunityModal open={showCreateOpp} onClose={() => setShowCreateOpp(false)} />
     </>
   )
 }
