@@ -776,14 +776,16 @@ export default function CreateOpportunityPage() {
                           onMouseEnter={(e) => {
                             setVaultPreview(opt.value)
                             if (!comingSoon) {
-                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentHover
-                              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'
+                              const button = e.currentTarget as HTMLButtonElement
+                              button.style.borderColor = opt.accentHover
+                              button.style.transform = 'translateY(-1px)'
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!comingSoon) {
-                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentBorder
-                              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0px)'
+                              const button = e.currentTarget as HTMLButtonElement
+                              button.style.borderColor = opt.accentBorder
+                              button.style.transform = 'translateY(0px)'
                             }
                           }}
                         >

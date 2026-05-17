@@ -10,7 +10,6 @@ import {
   Pressable,
   Share,
   Clipboard,
-  Alert,
   ActivityIndicator,
 } from 'react-native'
 import { router } from 'expo-router'

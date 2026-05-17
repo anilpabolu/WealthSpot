@@ -34,11 +34,20 @@
     "prepare": "husky || true"
   },
   "lint-staged": {
-    "apps/web/**/*.{ts,tsx}": ["eslint --fix --max-warnings=0"],
-    "apps/mobile/**/*.{ts,tsx}": ["eslint --fix --max-warnings=0"],
-    "services/api/**/*.py": ["ruff check --fix", "ruff format"]
+    "apps/web/**/*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0"
+    ],
+    "apps/mobile/**/*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0"
+    ],
+    "services/api/**/*.py": [
+      "ruff check --fix",
+      "ruff format"
+    ]
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-keywords": "^5.1.0",
     "concurrently": "^9.0.0",
     "husky": "^9.1.0",
     "lint-staged": "^15.2.0",
