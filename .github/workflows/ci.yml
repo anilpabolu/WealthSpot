@@ -11,6 +11,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── DB Governance (PR Gate) ───────────────────────────
+  db-governance:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: SQL migration governance check
+        run: python scripts/check_sql_migration_governance.py
+
+  # ── DB Replay Check Path (Protected Branch Push) ─────
+  db-replay-check:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: DB replay local check (non-DB mode)
+        run: python scripts/run_db_replay_check.py --skip-psql-precheck --skip-alembic
+
   # ── Backend Lint & Type-Check ──────────────────────────
   backend-lint:
     runs-on: ubuntu-latest

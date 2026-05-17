@@ -26,7 +26,6 @@ export interface CompanySummary {
   logoUrl: string | null
   verified: boolean
   entityType: string | null
-  reraNumber: string | null
   website: string | null
   description: string | null
   city: string | null

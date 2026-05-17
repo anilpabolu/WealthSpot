@@ -114,7 +114,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess, vault
   /** Map snake_case API field names to our camelCase form keys */
   const snakeToCamelField: Record<string, string> = {
     company_name: 'companyName', brand_name: 'brandName', entity_type: 'entityType',
-    rera_number: 'reraNumber', contact_name: 'contactName', contact_email: 'contactEmail',
+    contact_name: 'contactName', contact_email: 'contactEmail',
     contact_phone: 'contactPhone', address_line1: 'addressLine1', address_line2: 'addressLine2',
     years_in_business: 'yearsInBusiness', projects_completed: 'projectsCompleted',
     total_area_developed: 'totalAreaDeveloped',
@@ -272,7 +272,6 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess, vault
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="PAN" value={form.pan ?? ''} onChange={(e) => handleChange('pan', e.target.value.toUpperCase())} className="[&_input]:uppercase" placeholder="AAAAA1234A" maxLength={10} error={fieldErrors.pan} />
-                  <Input label="RERA Number" value={form.reraNumber ?? ''} onChange={(e) => handleChange('reraNumber', e.target.value)} placeholder="P52000012345" error={fieldErrors.reraNumber} />
                 </div>
               </div>
 

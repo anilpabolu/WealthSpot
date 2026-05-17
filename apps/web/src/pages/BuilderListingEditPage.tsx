@@ -48,7 +48,7 @@ interface UnitConfigRow {
   bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
 }
 interface PlotConfigRow { id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string }
-interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string }
+interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; landParcelSqft: string }
 const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
 const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
 
@@ -69,7 +69,7 @@ export default function BuilderListingEditPage() {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
   const [pricePerSqftField, setPricePerSqftField] = useState<string>('')
   const [totalProjectAreaSqftField, setTotalProjectAreaSqftField] = useState<string>('')
-  const [projectOverview, setProjectOverview] = useState<ProjectOverview>({ totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' })
+  const [projectOverview, setProjectOverview] = useState<ProjectOverview>({ totalTowers: '', totalFloors: '', possessionQuarter: '', landParcelSqft: '' })
   // Loading state is driven entirely by the mutations — no manual `saving` flag.
   const isSaving = updateMutation.isPending || uploadMutation.isPending
 
@@ -116,7 +116,6 @@ export default function BuilderListingEditPage() {
           totalTowers: String(specs.total_towers ?? ''),
           totalFloors: String(specs.total_floors ?? ''),
           possessionQuarter: (specs.possession_date as string) ?? '',
-          reraNumber: (specs.rera_registration_number as string) ?? '',
           landParcelSqft: String(specs.land_parcel_sqft ?? ''),
         })
         type RawUnitCfg = { bhk_type?: string; carpet_area_sqft?: number; super_built_up_sqft?: number; bathrooms?: number; balconies?: number; total_units?: number; price_per_sqft?: number }
@@ -161,7 +160,6 @@ export default function BuilderListingEditPage() {
       if (propertyType) {
         const base: Record<string, unknown> = {
           property_type: propertyType,
-          ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
           ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
           ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
           ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
@@ -403,7 +401,6 @@ export default function BuilderListingEditPage() {
                         <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
                         <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
                       </div>
-                      <Input label="RERA Number (Optional)" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <Input label="Total Towers" type="number" min={1} value={projectOverview.totalTowers} onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))} placeholder="e.g. 4" />

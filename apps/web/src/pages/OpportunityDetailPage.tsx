@@ -12,7 +12,7 @@ import {
   MapPin, Calendar, Users, Building2,
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
-  X, Globe, Shield, Ruler, FolderKanban, BadgeCheck, FileText,
+  X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -41,7 +41,6 @@ interface CompanyData {
   logoUrl?: string | null
   verified?: boolean
   entityType?: string | null
-  reraNumber?: string | null
   website?: string | null
   description?: string | null
   city?: string | null
@@ -127,15 +126,6 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
 
           {/* Details list */}
           <div className="space-y-3">
-            {company.reraNumber && (
-              <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
-                <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-theme-secondary">RERA Registration</p>
-                  <p className="text-sm font-semibold text-theme-primary">{company.reraNumber}</p>
-                </div>
-              </div>
-            )}
             {(company.city || company.state) && (
               <div className="flex items-center gap-3 p-3 bg-theme-surface rounded-lg">
                 <MapPin className="h-5 w-5 text-theme-tertiary shrink-0" />

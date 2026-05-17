@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   panSchema,
-  reraNumberSchema,
   emailSchema,
   indianPhoneSchema,
   investmentAmountSchema,
@@ -27,20 +26,6 @@ describe('panSchema', () => {
       expect(() => panSchema.parse(val)).toThrow()
     }
   )
-})
-
-describe('reraNumberSchema', () => {
-  it('accepts valid RERA number', () => {
-    expect(reraNumberSchema.parse('P52100001234')).toBe('P52100001234')
-  })
-
-  it('rejects too short', () => {
-    expect(() => reraNumberSchema.parse('AB')).toThrow()
-  })
-
-  it('rejects too long (>100)', () => {
-    expect(() => reraNumberSchema.parse('A'.repeat(101))).toThrow()
-  })
 })
 
 describe('emailSchema', () => {

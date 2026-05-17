@@ -27,6 +27,9 @@
     "test:api": "npm run test:api --workspace=tests",
     "test:e2e": "npm run test:web:e2e --workspace=tests",
     "test:all": "npm run test:api && npm run test:web && npm run test:mobile",
+    "db:check:sql-migrations": "python scripts/check_sql_migration_governance.py",
+    "db:replay:check": "python scripts/run_db_replay_check.py --skip-psql-precheck --skip-alembic",
+    "db:replay:staging": "python scripts/run_db_replay_check.py",
     "clean": "turbo run clean && rimraf node_modules apps/*/node_modules packages/*/node_modules tests/node_modules",
     "prepare": "husky || true"
   },

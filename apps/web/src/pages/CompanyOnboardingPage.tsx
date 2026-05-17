@@ -145,10 +145,6 @@ export default function CompanyOnboardingPage() {
                     <label className={labelClass}>PAN</label>
                     <input value={form.pan ?? ''} onChange={(e) => handleChange('pan', e.target.value.toUpperCase())} className={inputClass} placeholder="AAAAA1234A" maxLength={10} />
                   </div>
-                  <div>
-                    <label className={labelClass}>RERA Number</label>
-                    <input value={form.reraNumber ?? ''} onChange={(e) => handleChange('reraNumber', e.target.value)} className={inputClass} placeholder="P52000012345" />
-                  </div>
                 </div>
               </div>
 

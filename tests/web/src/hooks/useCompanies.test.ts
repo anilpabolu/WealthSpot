@@ -50,7 +50,7 @@ describe('web useCompanies – API layer', () => {
 
   describe('Get company by ID', () => {
     it('fetches company detail', async () => {
-      const detail = { ...makeCompany('c1'), userId: 'u1', cin: null, gstin: null, pan: 'ABCDE1234F', reraNumber: null, website: null, description: 'A build co.', contactName: null, contactEmail: null, contactPhone: null, addressLine1: null, addressLine2: null, state: 'Maharashtra', pincode: '411001', country: 'IN', yearsInBusiness: 3, totalAreaDeveloped: null, verificationStatus: 'pending', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }
+      const detail = { ...makeCompany('c1'), userId: 'u1', cin: null, gstin: null, pan: 'ABCDE1234F', website: null, description: 'A build co.', contactName: null, contactEmail: null, contactPhone: null, addressLine1: null, addressLine2: null, state: 'Maharashtra', pincode: '411001', country: 'IN', yearsInBusiness: 3, totalAreaDeveloped: null, verificationStatus: 'pending', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }
       vi.mocked(apiGet).mockResolvedValueOnce(detail)
       const result = await apiGet<any>('/companies/c1')
       expect(result.id).toBe('c1')

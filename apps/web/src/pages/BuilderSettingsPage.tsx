@@ -9,7 +9,6 @@ import { Loader2, Save, Building2, Shield, Phone, Globe } from 'lucide-react'
 interface BuilderProfile {
   id: string
   companyName: string
-  reraNumber: string | null
   cin: string | null
   gstin: string | null
   website: string | null
@@ -52,7 +51,6 @@ export default function BuilderSettingsPage() {
   const updateMutation = useUpdateBuilderProfile()
   const [form, setForm] = useState({
     companyName: '',
-    reraNumber: '',
     cin: '',
     gstin: '',
     website: '',
@@ -72,7 +70,6 @@ export default function BuilderSettingsPage() {
     if (!profile) return
     setForm({
       companyName: profile.companyName ?? '',
-      reraNumber: profile.reraNumber ?? '',
       cin: profile.cin ?? '',
       gstin: profile.gstin ?? '',
       website: profile.website ?? '',
@@ -93,7 +90,6 @@ export default function BuilderSettingsPage() {
     setSaved(false)
     await updateMutation.mutateAsync({
       company_name: form.companyName || null,
-      rera_number: form.reraNumber || null,
       cin: form.cin || null,
       gstin: form.gstin || null,
       website: form.website || null,
@@ -152,7 +148,6 @@ export default function BuilderSettingsPage() {
               <h2 className="text-sm font-semibold text-theme-primary">Regulatory & Compliance</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input label="RERA Number" value={form.reraNumber} onChange={(e) => setForm((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. P52100000001" />
               <Input label="CIN" value={form.cin} onChange={(e) => setForm((p) => ({ ...p, cin: e.target.value }))} placeholder="Corporate Identity Number" />
               <Input label="GSTIN" value={form.gstin} onChange={(e) => setForm((p) => ({ ...p, gstin: e.target.value }))} placeholder="GST Number" />
             </div>

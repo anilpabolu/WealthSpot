@@ -49,7 +49,6 @@ CREATE TABLE IF NOT EXISTS companies (
     cin             VARCHAR(21),
     gstin           VARCHAR(15),
     pan             VARCHAR(10),
-    rera_number     VARCHAR(50),
     website         TEXT,
     logo_url        TEXT,
     description     TEXT,

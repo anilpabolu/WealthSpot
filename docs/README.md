@@ -1,7 +1,7 @@
 # WealthSpot.in
 
 > Fractional Real Estate Investment Platform for India  
-> SEBI-compliant · RERA-verified · Built with love in Bengaluru
+> SEBI-compliant · Compliance-verified · Built with love in Bengaluru
 
 ---
 
@@ -41,7 +41,7 @@ WealthSpot/
 ## Web Screens (15 pages)
 
 1. **Landing** — `/` — Hero, stats, featured properties, how-it-works, CTA
-2. **Marketplace** — `/marketplace` — Filterable property grid with RERA search
+2. **Marketplace** — `/marketplace` — Filterable property grid with rich search
 3. **Property Detail** — `/marketplace/:slug` — Gallery, funding bar, invest CTA
 4. **Investor Dashboard** — `/portal/investor` — Portfolio overview, metrics
 5. **Investor Portfolio** — `/portal/investor/portfolio` — Holdings, transactions

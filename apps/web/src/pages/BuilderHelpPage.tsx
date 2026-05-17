@@ -28,10 +28,6 @@ const FAQ_ITEMS = [
     a: 'Funding progress shows the percentage of your target amount that has been raised through confirmed investments.',
   },
   {
-    q: 'What is RERA and do I need it?',
-    a: 'RERA (Real Estate Regulatory Authority) registration is mandatory for real estate projects in India. Add your RERA number in Settings to increase investor trust.',
-  },
-  {
     q: 'How do builder updates work?',
     a: 'You can post updates on each listing to keep investors informed about project progress. Updates appear on the public listing page.',
   },

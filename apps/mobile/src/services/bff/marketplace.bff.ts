@@ -48,14 +48,12 @@ export interface PropertyDetailView {
     areaSqft: number | null;
     bedrooms: number | null;
     possessionDate: string | null;
-    reraId: string | null;
     gallery: string[] | null;
     amenities: string[] | null;
     launchDate: string | null;
   };
   builder: {
     companyName: string;
-    reraNumber: string | null;
     verified: boolean;
     logoUrl: string | null;
   };

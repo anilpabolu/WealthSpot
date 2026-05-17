@@ -118,10 +118,10 @@ interface UnitConfigRow {
   bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
 }
 interface PlotConfigRow { id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string }
-interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string }
+interface ProjectOverview { totalTowers: string; totalFloors: string; possessionQuarter: string; landParcelSqft: string }
 const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
 const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
-const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' }
+const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', landParcelSqft: '' }
 
 type CommunityDetailsState = Record<string, string | number | string[]>
 
@@ -150,7 +150,6 @@ export default function BuilderListingNewPage() {
     tenure_months: null,
     mortgage_agreement: { enabled: false, details: '', period_description: '' },
     legal_notarised_doc: false,
-    rera_registration: { enabled: false, rera_number: '' },
     buyback_guarantee: { enabled: false, details: '' },
     capital_protection: false,
     collateral_details: '',
@@ -243,7 +242,6 @@ export default function BuilderListingNewPage() {
     if (propertyType) {
       const base: Record<string, unknown> = {
         property_type: propertyType,
-        ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
         ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
         ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
         ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
@@ -682,31 +680,26 @@ export default function BuilderListingNewPage() {
 
                   {/* 🏗️ Project Overview — visible as soon as property type is set */}
                   {propertyType && (() => {
-                    const PFCFG: Record<string, { showPossessionQuarter: boolean; showRera: boolean; showTotalTowers: boolean; showTotalFloors: boolean }> = {
-                      flat:       { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
-                      villa:      { showPossessionQuarter: true,  showRera: true,  showTotalTowers: false, showTotalFloors: true  },
-                      plot:       { showPossessionQuarter: false, showRera: false, showTotalTowers: false, showTotalFloors: false },
-                      commercial: { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
-                      warehouse:  { showPossessionQuarter: true,  showRera: false, showTotalTowers: false, showTotalFloors: true  },
-                      mixed_use:  { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true  },
+                    const PFCFG: Record<string, { showPossessionQuarter: boolean; showTotalTowers: boolean; showTotalFloors: boolean }> = {
+                      flat:       { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true  },
+                      villa:      { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true  },
+                      plot:       { showPossessionQuarter: false, showTotalTowers: false, showTotalFloors: false },
+                      commercial: { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true  },
+                      warehouse:  { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true  },
+                      mixed_use:  { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true  },
                     }
-                    const DEFAULT_FC = { showPossessionQuarter: true, showRera: true, showTotalTowers: true, showTotalFloors: true }
+                    const DEFAULT_FC = { showPossessionQuarter: true, showTotalTowers: true, showTotalFloors: true }
                     const fc = PFCFG[propertyType] ?? DEFAULT_FC
                     return (
                       <div className="rounded-xl border border-theme p-4 space-y-4">
                         <h4 className="text-sm font-semibold text-theme-primary">🏗️ Project Overview</h4>
 
-                        {(fc.showPossessionQuarter || fc.showRera) && (
-                          <div className={`grid gap-4 ${fc.showPossessionQuarter && fc.showRera ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                            {fc.showPossessionQuarter && (
-                              <div>
-                                <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
-                                <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
-                              </div>
-                            )}
-                            {fc.showRera && (
-                              <Input label="RERA Number (Optional)" value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. MH/12345" />
-                            )}
+                        {fc.showPossessionQuarter && (
+                          <div className="grid gap-4 grid-cols-1">
+                            <div>
+                              <label className="block text-sm font-medium text-theme-primary mb-1">Possession Quarter</label>
+                              <Select value={projectOverview.possessionQuarter} onChange={(v) => setProjectOverview((p) => ({ ...p, possessionQuarter: v }))} placeholder="Select quarter" options={POSSESSION_QUARTERS.map((q) => ({ value: q, label: q }))} />
+                            </div>
                           </div>
                         )}
 

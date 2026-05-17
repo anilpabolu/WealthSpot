@@ -71,7 +71,6 @@ class PropertySpecsFlat(BaseModel):
     land_parcel_area_sqft: float | None = None
     project_total_area_sqft: float | None = None
     possession_quarter: str | None = None  # e.g., "Q3 2027"
-    rera_number: str | None = None
     launch_price_per_sqft: float | None = None
     current_price_per_sqft: float | None = None
     floor_plan_url: str | None = None
@@ -87,7 +86,6 @@ class PropertySpecsVilla(BaseModel):
     project_total_area_sqft: float | None = None
     land_parcel_area_sqft: float | None = None
     possession_quarter: str | None = None
-    rera_number: str | None = None
     current_price_per_sqft: float | None = None
 
 
@@ -102,7 +100,6 @@ class PropertySpecsPlot(BaseModel):
     project_total_area_guntha: float | None = None
     land_parcel_area_sqft: float | None = None
     dtcp_approved: bool = False
-    rera_number: str | None = None
     facing_options: list[str] = []  # ["East", "North", "Corner"]
     conversion_display: AreaConversions | None = None
 
@@ -116,7 +113,6 @@ class PropertySpecsCommercial(BaseModel):
     total_units_in_project: int | None = None
     car_parks_per_unit: int | None = None
     project_total_area_sqft: float | None = None
-    rera_number: str | None = None
     current_price_per_sqft: float | None = None
 
 
@@ -129,7 +125,6 @@ class PropertySpecsWarehouse(BaseModel):
     loading_docks: int | None = None
     power_supply_kva: float | None = None
     project_total_area_sqft: float | None = None
-    rera_number: str | None = None
 
 
 class PropertySpecsMixedUse(BaseModel):
@@ -140,7 +135,6 @@ class PropertySpecsMixedUse(BaseModel):
     residential_units: int | None = None
     commercial_units: int | None = None
     project_total_area_sqft: float | None = None
-    rera_number: str | None = None
 
 
 # Discriminated union — stored as JSONB, parsed by property_type key
@@ -158,11 +152,6 @@ class MortgageAgreementSchema(BaseModel):
     enabled: bool = False
     details: str | None = None
     period_description: str | None = None
-
-
-class ReraRegistrationSchema(BaseModel):
-    enabled: bool = False
-    rera_number: str | None = None
 
 
 class BuybackGuaranteeSchema(BaseModel):
@@ -183,7 +172,6 @@ class SafeVaultDataSchema(BaseModel):
     tenure_months: int | None = None
     mortgage_agreement: MortgageAgreementSchema = MortgageAgreementSchema()
     legal_notarised_doc: bool = False
-    rera_registration: ReraRegistrationSchema = ReraRegistrationSchema()
     buyback_guarantee: BuybackGuaranteeSchema = BuybackGuaranteeSchema()
     capital_protection: bool = False
     collateral_details: str | None = None
@@ -219,7 +207,6 @@ class CompanySummary(BaseModel):
     logo_url: str | None = None
     verified: bool = False
     entity_type: str | None = None
-    rera_number: str | None = None
     website: str | None = None
     description: str | None = None
     city: str | None = None

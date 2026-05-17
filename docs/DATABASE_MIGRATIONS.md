@@ -23,7 +23,12 @@ reads and executes it, maintaining a single source of truth.
 | `012_opportunity_media_missing_columns.sql` | Opportunity media url/is_cover |
 | `013_vault_stats_irr_approval_edit.sql` | Vault stats, IRR, opportunity_investments |
 | `014_performance_indexes.sql` | BRIN, partial, GIN full-text indexes |
+| `014a_safe_vault_rebrand.sql` | Legacy standalone rebrand script (Safe Vault rename) |
 | `015_check_constraints.sql` | CHECK constraints on financial columns |
+| `037a_safe_vault_metrics_rename.sql` | Legacy standalone platform metrics rename script |
+| `038a_toast_interval_config.sql` | Legacy standalone toast interval config script |
+| `048a_remove_rera_fields.sql` | Legacy standalone RERA field removal script |
+| `prechecks/phase1_constraint_precheck.sql` | Read-only report for validating Phase 1 NOT VALID constraints |
 
 ## Recommended: Use Alembic
 
@@ -31,6 +36,33 @@ reads and executes it, maintaining a single source of truth.
 cd services/api
 alembic upgrade head     # applies all migrations via alembic/versions/
 ```
+
+## Governance Check (standalone SQL folder)
+
+Before adding or shipping new SQL files in `services/api/database`, run:
+
+```bash
+npm run db:check:sql-migrations
+```
+
+This catches:
+- Duplicate base version numbers (example: multiple `048_*.sql` files)
+- Invalid migration filename patterns
+- Duplicate suffix collisions (example: multiple `005b_*.sql`)
+
+Checker path: `scripts/check_sql_migration_governance.py`
+
+## Phase 1 Pre-validation Report
+
+Before validating new constraints from `049_phase1_nonbreaking_hardening.sql`, run:
+
+```bash
+psql -U wealthspot -d wealthspot -f services/api/database/prechecks/phase1_constraint_precheck.sql
+```
+
+Expected:
+- `bad_rows = 0` for opportunities target amount check
+- `bad_rows = 0` for opportunity investments amount check
 
 ## Alternative: Apply SQL Directly (dev/docker setup)
 
@@ -48,3 +80,4 @@ docker compose exec -T postgres psql -U wealthspot -d wealthspot < services/api/
 - Requires PostgreSQL 16+ with `uuid-ossp` and `pgcrypto` extensions.
 - `updated_at` columns are auto-managed by triggers.
 - Seed data uses deterministic UUIDs (`a0000000-…`, `b0000000-…`, etc.) for easy cross-referencing.
+- For staged rollout validation, use [docs/STAGING_DB_REPLAY_CHECKLIST.md](docs/STAGING_DB_REPLAY_CHECKLIST.md).

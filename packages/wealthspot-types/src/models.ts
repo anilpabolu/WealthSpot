@@ -91,7 +91,6 @@ export interface Builder {
   id: string;
   user_id: string;
   company_name: string;
-  rera_number: string | null;
   cin: string | null;
   gstin: string | null;
   website: string | null;
@@ -103,7 +102,6 @@ export interface Builder {
 
 export interface BuilderCreate {
   company_name: string;
-  rera_number?: string;
   cin?: string;
   gstin?: string;
   website?: string;
@@ -137,7 +135,6 @@ export interface Property {
   area_sqft: number | null;
   bedrooms: number | null;
   possession_date: string | null;
-  rera_id: string | null;
   cover_image: string | null;
   gallery: string[] | null;
   documents: Record<string, unknown> | null;
@@ -190,7 +187,6 @@ export interface PropertyCreate {
   area_sqft?: number;
   bedrooms?: number;
   possession_date?: string;
-  rera_id?: string;
   cover_image?: string;
   amenities?: string[];
 }
@@ -465,7 +461,6 @@ export interface PropertySpecsFlat {
   land_parcel_area_sqft?: number;
   project_total_area_sqft?: number;
   possession_quarter?: string;
-  rera_number?: string;
   launch_price_per_sqft?: number;
   current_price_per_sqft?: number;
   floor_plan_url?: string;
@@ -479,7 +474,6 @@ export interface PropertySpecsVilla {
   project_total_area_sqft?: number;
   land_parcel_area_sqft?: number;
   possession_quarter?: string;
-  rera_number?: string;
   current_price_per_sqft?: number;
 }
 
@@ -492,7 +486,6 @@ export interface PropertySpecsPlot {
   project_total_area_guntha?: number;
   land_parcel_area_sqft?: number;
   dtcp_approved?: boolean;
-  rera_number?: string;
   facing_options?: string[];
   conversion_display?: AreaConversions;
 }
@@ -504,7 +497,6 @@ export interface PropertySpecsCommercial {
   total_units_in_project?: number;
   car_parks_per_unit?: number;
   project_total_area_sqft?: number;
-  rera_number?: string;
   current_price_per_sqft?: number;
 }
 
@@ -515,7 +507,6 @@ export interface PropertySpecsWarehouse {
   loading_docks?: number;
   power_supply_kva?: number;
   project_total_area_sqft?: number;
-  rera_number?: string;
 }
 
 export interface PropertySpecsMixedUse {
@@ -524,7 +515,6 @@ export interface PropertySpecsMixedUse {
   residential_units?: number;
   commercial_units?: number;
   project_total_area_sqft?: number;
-  rera_number?: string;
 }
 
 export type PropertySpecs =
@@ -539,11 +529,6 @@ export interface SafeVaultMortgageAgreement {
   enabled: boolean;
   details?: string;
   period_description?: string;
-}
-
-export interface SafeVaultReraRegistration {
-  enabled: boolean;
-  rera_number?: string;
 }
 
 export interface SafeVaultBuybackGuarantee {
@@ -562,7 +547,6 @@ export interface SafeVaultConfig {
   tenure_months?: number;
   mortgage_agreement: SafeVaultMortgageAgreement;
   legal_notarised_doc: boolean;
-  rera_registration: SafeVaultReraRegistration;
   buyback_guarantee: SafeVaultBuybackGuarantee;
   capital_protection: boolean;
   collateral_details?: string;

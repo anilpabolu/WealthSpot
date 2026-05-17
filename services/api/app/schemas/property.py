@@ -17,7 +17,6 @@ from app.models.property import AssetType, PropertyStatus
 class BuilderRead(BaseModel):
     id: uuid.UUID
     company_name: str
-    rera_number: str | None = None
     logo_url: str | None = None
     verified: bool
     phone: str | None = None
@@ -53,7 +52,6 @@ class PropertyBase(BaseModel):
     rental_yield: Decimal | None = None
     area_sqft: int | None = None
     possession_date: str | None = None
-    rera_id: str | None = None
     amenities: list[str] | None = None
     highlights: list[str] | None = None
     usp: str | None = None
@@ -101,7 +99,6 @@ class PropertyListItem(BaseModel):
     rental_yield: Decimal | None = None
     investor_count: int
     funding_percentage: float
-    rera_id: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

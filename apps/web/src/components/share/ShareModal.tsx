@@ -289,7 +289,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
       ctx.fillText(infoParts.join(''), 72, y)
     }
 
-    // Company + RERA on right
+    // Company meta on right
     if (opportunity.company?.companyName) {
       ctx.textAlign = 'right'
       ctx.fillStyle = GOLD + 'cc'
@@ -592,7 +592,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
       ry += 36
     }
 
-    // City + Company + RERA
+    // City + Company details
     ry += 2
     const infoLine: string[] = []
     if (opportunity.city) infoLine.push(`📍 ${opportunity.city}`)

@@ -269,7 +269,6 @@ async def get_property(
 class BuilderProfileResponse(BaseModel):
     id: uuid.UUID
     company_name: str
-    rera_number: str | None = None
     cin: str | None = None
     gstin: str | None = None
     website: str | None = None
@@ -321,7 +320,6 @@ async def get_my_builder_profile(
     return BuilderProfileResponse(
         id=builder.id,
         company_name=builder.company_name,
-        rera_number=builder.rera_number,
         cin=builder.cin,
         gstin=builder.gstin,
         website=builder.website,
@@ -343,7 +341,6 @@ async def get_my_builder_profile(
 
 class BuilderProfileUpdate(BaseModel):
     company_name: str | None = None
-    rera_number: str | None = None
     cin: str | None = None
     gstin: str | None = None
     website: str | None = None
@@ -394,7 +391,6 @@ async def update_my_builder_profile(
     return BuilderProfileResponse(
         id=builder.id,
         company_name=builder.company_name,
-        rera_number=builder.rera_number,
         cin=builder.cin,
         gstin=builder.gstin,
         website=builder.website,
@@ -440,7 +436,6 @@ async def get_builder_profile(
     return BuilderProfileResponse(
         id=builder.id,
         company_name=builder.company_name,
-        rera_number=builder.rera_number,
         cin=builder.cin,
         gstin=builder.gstin,
         website=builder.website,
@@ -498,7 +493,6 @@ async def create_property(
         rental_yield=body.rental_yield,
         area_sqft=body.area_sqft,
         possession_date=body.possession_date,
-        rera_id=body.rera_id,
         amenities=body.amenities,
         highlights=body.highlights,
         usp=body.usp,

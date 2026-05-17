@@ -60,7 +60,7 @@ ON CONFLICT (page, section_tag) DO NOTHING;
 INSERT INTO site_content (page, section_tag, value, description) VALUES
   ('marketplace', 'hero_badge',    'Marketplace',                                                                      'Hero badge'),
   ('marketplace', 'hero_title',    'Property Marketplace',                                                             'Hero title'),
-  ('marketplace', 'hero_subtitle', 'Discover RERA-verified investment opportunities across India''s top cities.',       'Hero subtitle'),
+  ('marketplace', 'hero_subtitle', 'Discover curated investment opportunities across India''s top cities.',             'Hero subtitle'),
   ('marketplace', 'empty_title',   'Nothing here yet 🏗️',                                                              'Empty state title'),
   ('marketplace', 'empty_message', 'Tweak those filters — your next opportunity could be one click away.',              'Empty state message')
 ON CONFLICT (page, section_tag) DO NOTHING;

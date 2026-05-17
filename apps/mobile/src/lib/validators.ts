@@ -5,12 +5,6 @@ export const panSchema = z
   .string()
   .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Invalid PAN format (e.g. ABCDE1234F)')
 
-// ─── RERA Number ──────────────────────────────────────
-export const reraNumberSchema = z
-  .string()
-  .min(5, 'RERA number is required')
-  .max(100, 'RERA number too long')
-
 // ─── Email ────────────────────────────────────────────
 export const emailSchema = z
   .string()

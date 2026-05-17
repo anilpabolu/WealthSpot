@@ -46,7 +46,6 @@ describe('mobile useOpportunities – API layer', () => {
           logoUrl: 'https://cdn/logo.png',
           verified: true,
           entityType: 'private_limited',
-          reraNumber: 'RERA-123',
           website: 'https://builder.com',
           description: 'Top builder',
           city: 'Mumbai',

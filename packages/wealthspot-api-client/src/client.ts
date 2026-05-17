@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { convertKeysToCamel } from './transforms'
+import { convertKeysToCamel, convertKeysToSnake } from './transforms'
 import type { ApiClientConfig } from './types'
 
 export interface ApiClient {
@@ -50,6 +50,17 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
   api.interceptors.request.use(
     async (req) => {
+      const contentType = String(req.headers?.['Content-Type'] ?? req.headers?.['content-type'] ?? '')
+      const isJsonBody = contentType === '' || contentType.includes('application/json')
+
+      if (req.params) {
+        req.params = convertKeysToSnake(req.params) as Record<string, unknown>
+      }
+
+      if (isJsonBody && req.data !== undefined) {
+        req.data = convertKeysToSnake(req.data)
+      }
+
       const token = await storage.getAccessToken()
       if (token) {
         req.headers.Authorization = `Bearer ${token}`

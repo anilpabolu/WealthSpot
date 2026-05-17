@@ -57,7 +57,6 @@ class Builder(Base):
         UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
     )
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    rera_number: Mapped[str | None] = mapped_column(String(50))
     cin: Mapped[str | None] = mapped_column(String(21))
     gstin: Mapped[str | None] = mapped_column(String(15))
     website: Mapped[str | None] = mapped_column(Text)
@@ -124,7 +123,6 @@ class Property(Base):
     area_sqft: Mapped[int | None] = mapped_column(Integer)
     bedrooms: Mapped[int | None] = mapped_column(Integer)
     possession_date: Mapped[str | None] = mapped_column(String(20))
-    rera_id: Mapped[str | None] = mapped_column(String(50))
 
     # Media
     cover_image: Mapped[str | None] = mapped_column(Text)

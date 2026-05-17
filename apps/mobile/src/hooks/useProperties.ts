@@ -25,7 +25,6 @@ interface ApiProperty {
   investorCount: number
   fundingPercentage: number
   status: string
-  reraId?: string
   rentalYield?: number
   areaSqft?: number
   bedrooms?: number
@@ -41,7 +40,6 @@ interface ApiProperty {
   builder?: {
     id: string
     companyName: string
-    reraNumber?: string
     logoUrl?: string
     verified: boolean
     phone?: string
@@ -70,7 +68,6 @@ interface ApiProperty {
 export interface PropertyBuilder {
   id: string
   companyName: string
-  reraNumber?: string
   logoUrl?: string
   verified: boolean
   phone?: string
@@ -104,7 +101,6 @@ export interface Property {
   target: number
   investorCount: number
   status: string
-  reraNumber: string
   rentalYield?: number
   areaSqft?: number
   possessionDate?: string
@@ -152,7 +148,6 @@ function mapProperty(p: ApiProperty): Property {
     target: Number(p.targetAmount),
     investorCount: p.investorCount,
     status: p.status,
-    reraNumber: p.reraId ?? '',
     rentalYield: p.rentalYield,
     areaSqft: p.areaSqft,
     possessionDate: p.possessionDate,
@@ -162,7 +157,6 @@ function mapProperty(p: ApiProperty): Property {
     builder: p.builder ? {
       id: p.builder.id,
       companyName: p.builder.companyName,
-      reraNumber: p.builder.reraNumber,
       logoUrl: p.builder.logoUrl,
       verified: p.builder.verified,
       phone: p.builder.phone,
@@ -293,7 +287,6 @@ export function usePropertyAutocomplete(query: string) {
 export interface BuilderProfile {
   id: string
   companyName: string
-  reraNumber?: string
   logoUrl?: string
   verified: boolean
   phone?: string
@@ -312,7 +305,6 @@ export interface BuilderProfile {
 interface ApiBuilderProfile {
   id: string
   company_name: string
-  rera_number?: string
   logo_url?: string
   verified: boolean
   phone?: string
@@ -336,7 +328,6 @@ export function useBuilderProfile(builderId: string) {
       return {
         id: raw.id,
         companyName: raw.company_name,
-        reraNumber: raw.rera_number,
         logoUrl: raw.logo_url,
         verified: raw.verified,
         phone: raw.phone,

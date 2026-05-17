@@ -155,16 +155,16 @@ function generatePossessionQuarters(): string[] {
 const POSSESSION_QUARTERS = generatePossessionQuarters()
 
 interface PropertyFieldConfig {
-  showPossessionQuarter: boolean; showRera: boolean; showTotalTowers: boolean
+  showPossessionQuarter: boolean; showTotalTowers: boolean
   showTotalFloors: boolean; showUnitConfig: boolean; showPlotConfig: boolean; unitConfigLabel: string
 }
 const PROPERTY_FIELD_CONFIG: Record<string, PropertyFieldConfig> = {
-  [PropertyType.FLAT]:       { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'BHK / Unit Configurations' },
-  [PropertyType.VILLA]:      { showPossessionQuarter: true,  showRera: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Villa / Row House Configurations' },
-  [PropertyType.PLOT]:       { showPossessionQuarter: false, showRera: false, showTotalTowers: false, showTotalFloors: false, showUnitConfig: false, showPlotConfig: true,  unitConfigLabel: '' },
-  [PropertyType.COMMERCIAL]: { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
-  [PropertyType.WAREHOUSE]:  { showPossessionQuarter: true,  showRera: false, showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Bay / Unit Configurations' },
-  [PropertyType.MIXED_USE]:  { showPossessionQuarter: true,  showRera: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+  [PropertyType.FLAT]:       { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'BHK / Unit Configurations' },
+  [PropertyType.VILLA]:      { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Villa / Row House Configurations' },
+  [PropertyType.PLOT]:       { showPossessionQuarter: false, showTotalTowers: false, showTotalFloors: false, showUnitConfig: false, showPlotConfig: true,  unitConfigLabel: '' },
+  [PropertyType.COMMERCIAL]: { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+  [PropertyType.WAREHOUSE]:  { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Bay / Unit Configurations' },
+  [PropertyType.MIXED_USE]:  { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
 }
 
 
@@ -194,12 +194,12 @@ interface PlotConfigRow {
   id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string
 }
 interface ProjectOverview {
-  totalTowers: string; totalFloors: string; possessionQuarter: string; reraNumber: string; landParcelSqft: string
+  totalTowers: string; totalFloors: string; possessionQuarter: string; landParcelSqft: string
 }
 
 const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
 const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
-const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', reraNumber: '', landParcelSqft: '' }
+const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', landParcelSqft: '' }
 
 type CommunityDetailsState = Record<string, string | number | string[]>
 
@@ -383,7 +383,6 @@ export default function CreateOpportunityPage() {
     interest_rate: 0, payout_frequency: 'monthly', tenure_months: null,
     mortgage_agreement: { enabled: false, details: '', period_description: '' },
     legal_notarised_doc: false,
-    rera_registration: { enabled: false, rera_number: '' },
     buyback_guarantee: { enabled: false, details: '' },
     capital_protection: false, collateral_details: '',
     land_registration: { enabled: false, details: '' },
@@ -573,7 +572,6 @@ export default function CreateOpportunityPage() {
     if (propertyType) {
       const base: Record<string, unknown> = {
         property_type: propertyType,
-        ...(projectOverview.reraNumber && { rera_registration_number: projectOverview.reraNumber }),
         ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
         ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
         ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
@@ -979,7 +977,7 @@ export default function CreateOpportunityPage() {
                     className={fe('tagline') ? INPUT_ERR_CLS : INPUT_CLS}
                     value={form.tagline ?? ''}
                     onChange={(e) => handleChange('tagline', e.target.value)}
-                    placeholder="e.g. RERA-registered · Fixed 14% returns · 3-year tenure"
+                    placeholder="e.g. Verified docs · Fixed 14% returns · 3-year tenure"
                   />
                   {fe('tagline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
                 </div>
@@ -1037,12 +1035,6 @@ export default function CreateOpportunityPage() {
                               {POSSESSION_QUARTERS.map((q) => <option key={q} value={q}>{q}</option>)}
                             </select>
                             {fe('possessionQuarter') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
-                          </div>
-                        )}
-                        {PROPERTY_FIELD_CONFIG[propertyType]?.showRera && (
-                          <div>
-                            <label className={LABEL_CLS}>RERA Number <span className="text-[#8a9a9a] text-xs">(optional)</span></label>
-                            <input className={INPUT_CLS} value={projectOverview.reraNumber} onChange={(e) => setProjectOverview((p) => ({ ...p, reraNumber: e.target.value }))} placeholder="e.g. P52100012345" />
                           </div>
                         )}
                         {PROPERTY_FIELD_CONFIG[propertyType]?.showTotalTowers && (
@@ -1296,11 +1288,10 @@ export default function CreateOpportunityPage() {
                 {/* Safe toggles */}
                 {[
                   { key: 'mortgage_agreement', label: 'Mortgage Agreement' },
-                  { key: 'rera_registration', label: 'RERA Registration' },
                   { key: 'buyback_guarantee', label: 'Buyback Guarantee' },
                   { key: 'land_registration', label: 'Land Registration' },
                 ].map(({ key, label }) => {
-                  const obj = safeVaultData[key] as { enabled: boolean; details?: string; rera_number?: string; period_description?: string }
+                  const obj = safeVaultData[key] as { enabled: boolean; details?: string; period_description?: string }
                   return (
                     <div key={key} className={CARD_CLS}>
                       <div className="flex items-center justify-between">
@@ -1315,9 +1306,7 @@ export default function CreateOpportunityPage() {
                       </div>
                       {obj.enabled && (
                         <div className="mt-3">
-                          {key === 'rera_registration' ? (
-                            <input className={INPUT_CLS} value={obj.rera_number ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, [key]: { ...obj, rera_number: e.target.value } }))} placeholder="RERA number" />
-                          ) : (
+                          {(
                             <textarea rows={2} className="w-full rounded-lg border border-[#c9d0ce] bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] px-3 py-2.5 text-sm outline-none resize-none" value={obj.details ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, [key]: { ...obj, details: e.target.value } }))} placeholder="Details…" />
                           )}
                         </div>

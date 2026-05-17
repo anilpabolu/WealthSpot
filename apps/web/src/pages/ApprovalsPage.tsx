@@ -399,7 +399,6 @@ function EditCompanyPanel({
     cin: company.cin ?? '',
     gstin: company.gstin ?? '',
     pan: company.pan ?? '',
-    reraNumber: company.reraNumber ?? '',
     website: company.website ?? '',
     description: company.description ?? '',
     contactName: company.contactName ?? '',
@@ -428,7 +427,6 @@ function EditCompanyPanel({
     if (form.cin !== (company.cin ?? '')) data.cin = form.cin
     if (form.gstin !== (company.gstin ?? '')) data.gstin = form.gstin
     if (form.pan !== (company.pan ?? '')) data.pan = form.pan
-    if (form.reraNumber !== (company.reraNumber ?? '')) data.reraNumber = form.reraNumber
     if (form.website !== (company.website ?? '')) data.website = form.website
     if (form.description !== (company.description ?? '')) data.description = form.description
     if (form.contactName !== (company.contactName ?? '')) data.contactName = form.contactName
@@ -488,7 +486,6 @@ function EditCompanyPanel({
       <div className="grid grid-cols-3 gap-3">
         <Input label="GSTIN" value={form.gstin} onChange={(e) => handleChange('gstin', e.target.value)} />
         <Input label="PAN" value={form.pan} onChange={(e) => handleChange('pan', e.target.value)} />
-        <Input label="RERA Number" value={form.reraNumber} onChange={(e) => handleChange('reraNumber', e.target.value)} />
       </div>
 
       {/* Contact */}

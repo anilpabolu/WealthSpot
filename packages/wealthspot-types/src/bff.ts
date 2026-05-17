@@ -186,7 +186,6 @@ export interface MarketplaceView {
 
 export interface PropertyBuilder {
   companyName: string;
-  reraNumber: string | null;
   verified: boolean;
   logoUrl: string | null;
 }
@@ -200,7 +199,6 @@ export interface PropertyDetailView {
     areaSqft: number | null;
     bedrooms: number | null;
     possessionDate: string | null;
-    reraId: string | null;
     gallery: string[] | null;
     documents: Record<string, unknown> | null;
     amenities: string[] | null;

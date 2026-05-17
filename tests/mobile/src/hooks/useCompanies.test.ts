@@ -46,12 +46,12 @@ describe('mobile useCompanies – API layer', () => {
 
   describe('Get company by id', () => {
     it('fetches company detail', async () => {
-      const detail = { ...makeCompany('c1'), userId: 'u1', cin: 'L12345', gstin: null, pan: 'ABCDE1234F', reraNumber: 'RERA123', website: null, description: 'A builder', contactName: null, contactEmail: null, contactPhone: null, addressLine1: null, addressLine2: null, state: 'Maharashtra', pincode: '400001', country: 'IN', yearsInBusiness: 5, totalAreaDeveloped: '50000', verificationStatus: 'approved', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }
+      const detail = { ...makeCompany('c1'), userId: 'u1', cin: 'L12345', gstin: null, pan: 'ABCDE1234F', website: null, description: 'A builder', contactName: null, contactEmail: null, contactPhone: null, addressLine1: null, addressLine2: null, state: 'Maharashtra', pincode: '400001', country: 'IN', yearsInBusiness: 5, totalAreaDeveloped: '50000', verificationStatus: 'approved', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }
       vi.mocked(apiGet).mockResolvedValueOnce(detail)
 
       const result = await apiGet<any>('/companies/c1')
       expect(result.id).toBe('c1')
-      expect(result.reraNumber).toBe('RERA123')
+      expect(result.pan).toBe('ABCDE1234F')
     })
   })
 

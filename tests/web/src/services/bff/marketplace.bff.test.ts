@@ -33,7 +33,7 @@ describe('web marketplaceBff functional tests', () => {
         id: '1',
         slug: 'alpha',
         title: 'Alpha',
-        builder: { company_name: 'BuilderX', verified: true, logo_url: null, rera_number: null },
+        builder: { company_name: 'BuilderX', verified: true, logo_url: null },
       } as any)
       .mockResolvedValueOnce([{ id: '2', slug: 'beta', title: 'Beta' }] as any)
 

@@ -64,7 +64,6 @@ class Company(Base):
     cin: Mapped[str | None] = mapped_column(String(21))
     gstin: Mapped[str | None] = mapped_column(String(15))
     pan: Mapped[str | None] = mapped_column(String(10))
-    rera_number: Mapped[str | None] = mapped_column(String(50))
     website: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)

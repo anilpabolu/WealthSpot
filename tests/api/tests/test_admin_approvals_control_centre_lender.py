@@ -265,7 +265,7 @@ class TestApprovals:
 
         review_resp = await client.post(
             f"/api/v1/approvals/{approval_id}/review",
-            json={"action": "reject", "review_note": "Missing RERA docs"},
+            json={"action": "reject", "review_note": "Missing compliance docs"},
             headers=auth_headers(admin_user),
         )
         assert review_resp.status_code == 200
@@ -274,7 +274,7 @@ class TestApprovals:
         row = await _db_get(ApprovalRequest, uuid.UUID(approval_id))
         assert row is not None
         assert row.status == ApprovalStatus.REJECTED
-        assert row.review_note == "Missing RERA docs"
+        assert row.review_note == "Missing compliance docs"
 
     async def test_review_same_approval_twice_returns_400(
         self, client: AsyncClient, test_user: User, admin_user: User

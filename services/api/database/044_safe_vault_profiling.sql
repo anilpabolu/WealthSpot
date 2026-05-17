@@ -58,7 +58,7 @@ VALUES
 
 (gen_random_uuid(), 'safe', 'security_preferences',
  'Your top priority when selecting a fixed income deal?', 'multi_choice',
- '[{"value":"collateral_ltv","label":"Strong collateral coverage (LTV)","emoji":"🛡️","weight":0.3},{"value":"borrower_quality","label":"Borrower credit quality & track record","emoji":"🏢","weight":0.6},{"value":"return_rate","label":"Interest rate and return on investment","emoji":"📊","weight":0.8},{"value":"payout_frequency","label":"Payout frequency and liquidity","emoji":"⏱️","weight":0.5},{"value":"regulatory","label":"RERA registration or regulatory compliance","emoji":"📋","weight":0.4},{"value":"diversification","label":"Diversification across sectors","emoji":"🎯","weight":0.7}]',
+ '[{"value":"collateral_ltv","label":"Strong collateral coverage (LTV)","emoji":"🛡️","weight":0.3},{"value":"borrower_quality","label":"Borrower credit quality & track record","emoji":"🏢","weight":0.6},{"value":"return_rate","label":"Interest rate and return on investment","emoji":"📊","weight":0.8},{"value":"payout_frequency","label":"Payout frequency and liquidity","emoji":"⏱️","weight":0.5},{"value":"regulatory","label":"Regulatory compliance and approvals","emoji":"📋","weight":0.4},{"value":"diversification","label":"Diversification across sectors","emoji":"🎯","weight":0.7}]',
  1.0, 'risk_appetite', 6,
  'Investors who diversify across 5+ fixed income deals reduce their default risk by 60%.',
  'balance', true);

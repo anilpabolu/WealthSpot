@@ -19,7 +19,6 @@ const makeConfig = (overrides = {}) => ({
   vaultVideosEnabled: false,
   propertyVideosEnabled: true,
   videoManagementEnabled: false,
-  reraDisplayEnabled: true,
   ...overrides,
 })
 

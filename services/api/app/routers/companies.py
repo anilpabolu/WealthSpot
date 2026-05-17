@@ -87,7 +87,6 @@ async def create_company(
         cin=body.cin,
         gstin=body.gstin,
         pan=body.pan,
-        rera_number=body.rera_number,
         website=body.website,
         description=body.description,
         contact_name=body.contact_name,

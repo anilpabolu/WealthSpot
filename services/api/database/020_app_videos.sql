@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_app_videos_active ON app_videos (is_active) WHERE
 
 -- Seed known video slots with sample videos
 INSERT INTO app_videos (page, section_tag, title, description, video_url, is_active, sort_order) VALUES
-  ('vaults', 'wealth_vault_intro',       'Wealth Vault Introduction',       'Introduction to the Wealth Vault — RERA-verified real estate investments.',
+  ('vaults', 'wealth_vault_intro',       'Wealth Vault Introduction',       'Introduction to the Wealth Vault — curated real estate investments.',
    'https://www.w3schools.com/html/mov_bbb.mp4', TRUE, 1),
   ('vaults', 'opportunity_vault_intro',   'Opportunity Vault Introduction',   'Introduction to the Opportunity Vault — high-potential startup investments.',
    'https://www.w3schools.com/html/movie.mp4', TRUE, 2),

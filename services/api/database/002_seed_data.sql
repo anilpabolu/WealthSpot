@@ -22,9 +22,9 @@ UPDATE users SET referred_by = 'a0000000-0000-0000-0000-000000000003' WHERE id =
 -- BUILDER PROFILE
 -- ---------------------------------------------------------------------------
 
-INSERT INTO builders (id, user_id, company_name, rera_number, cin, gstin, website, description, verified) VALUES
+INSERT INTO builders (id, user_id, company_name, cin, gstin, website, description, verified) VALUES
   ('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002',
-   'Rajesh Constructions Pvt Ltd', 'RERA-MH-2024-00123', 'U45400MH2024PTC123456', '27AABCR1234A1Z5',
+  'Rajesh Constructions Pvt Ltd', 'U45400MH2024PTC123456', '27AABCR1234A1Z5',
    'https://rajeshconstructions.example.com',
    'Premium real estate developer operating across Mumbai, Pune, and Bangalore with 15+ years of experience.',
    TRUE);
@@ -33,7 +33,7 @@ INSERT INTO builders (id, user_id, company_name, rera_number, cin, gstin, websit
 -- PROPERTIES (4 properties in various statuses)
 -- ---------------------------------------------------------------------------
 
-INSERT INTO properties (id, builder_id, slug, title, tagline, description, asset_type, status, city, state, locality, address, latitude, longitude, target_amount, raised_amount, min_investment, unit_price, total_units, sold_units, target_irr, rental_yield, area_sqft, bedrooms, possession_date, rera_id, cover_image, amenities, investor_count, launch_date) VALUES
+INSERT INTO properties (id, builder_id, slug, title, tagline, description, asset_type, status, city, state, locality, address, latitude, longitude, target_amount, raised_amount, min_investment, unit_price, total_units, sold_units, target_irr, rental_yield, area_sqft, bedrooms, possession_date, cover_image, amenities, investor_count, launch_date) VALUES
 
   -- Active – funding
   ('c0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
@@ -43,7 +43,7 @@ INSERT INTO properties (id, builder_id, slug, title, tagline, description, asset
    'Mumbai', 'Maharashtra', 'Bandra West', '14th Road, Bandra West, Mumbai 400050',
    19.0596, 72.8295,
    50000000.00, 32500000.00, 25000.00, 50000.00, 1000, 650,
-   14.50, 3.80, 1250, 2, '2026-12', 'RERA-MH-2024-00456',
+  14.50, 3.80, 1250, 2, '2026-12',
    'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00',
    ARRAY['Swimming Pool', 'Gymnasium', 'Clubhouse', 'Garden', 'Parking', '24x7 Security'],
    42, NOW() - INTERVAL '30 days'),
@@ -56,7 +56,7 @@ INSERT INTO properties (id, builder_id, slug, title, tagline, description, asset
    'Bangalore', 'Karnataka', 'Whitefield', 'ITPL Main Road, Whitefield, Bangalore 560066',
    12.9716, 77.7500,
    80000000.00, 20000000.00, 50000.00, 100000.00, 800, 200,
-   16.20, 5.10, 45000, NULL, '2025-06', 'RERA-KA-2024-00789',
+  16.20, 5.10, 45000, NULL, '2025-06',
    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab',
    ARRAY['Central AC', 'Server Room', 'Cafeteria', 'EV Charging', 'Fire Safety', 'Power Backup'],
    18, NOW() - INTERVAL '15 days'),
@@ -82,7 +82,7 @@ INSERT INTO properties (id, builder_id, slug, title, tagline, description, asset
    'Pune', 'Maharashtra', 'Chakan MIDC', 'Plot No. 45, Chakan MIDC, Pune 410501',
    18.7609, 73.8590,
    25000000.00, 25000000.00, 25000.00, 25000.00, 1000, 1000,
-   13.80, 7.20, 100000, NULL, '2025-01', 'RERA-MH-2024-01234',
+  13.80, 7.20, 100000, NULL, '2025-01',
    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d',
    ARRAY['Loading Docks', 'Fire Suppression', '24x7 Security', 'CCTV', 'Wide Roads'],
    68, NOW() - INTERVAL '90 days');

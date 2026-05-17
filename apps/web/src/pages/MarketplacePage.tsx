@@ -50,7 +50,7 @@ const VAULT_HERO_CONFIG: Record<
     accentDot: 'bg-emerald-400',
     accentText: 'text-emerald-400',
     defaultTitle: 'Wealth Vault',
-    defaultSubtitle: "Discover RERA-verified investment opportunities across India\u2019s top cities.",
+    defaultSubtitle: "Discover curated investment opportunities across India\u2019s top cities.",
     shieldNote:
       'Every listing passes through a rigorous 7-layer Shield review \u2014 from builder credibility to exit clauses \u2014 before it earns',
     cmsTag: 'wealth',

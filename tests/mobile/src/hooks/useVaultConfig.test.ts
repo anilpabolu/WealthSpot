@@ -17,7 +17,6 @@ const fullConfig = {
   vaultVideosEnabled: false,
   propertyVideosEnabled: true,
   videoManagementEnabled: true,
-  reraDisplayEnabled: true,
 }
 
 describe('mobile useVaultConfig – API layer', () => {
@@ -49,6 +48,5 @@ describe('mobile useVaultConfig – API layer', () => {
     expect(keys).toContain('opportunityVaultEnabled')
     expect(keys).toContain('communityVaultEnabled')
     expect(keys).toContain('introVideosEnabled')
-    expect(keys).toContain('reraDisplayEnabled')
   })
 })

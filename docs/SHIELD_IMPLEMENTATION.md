@@ -2,7 +2,7 @@
 
 ## Context
 
-Investors on WealthSpot park ₹2.5 Cr+ into real-estate / startup / community deals sight-unseen. Every trust lever we pull today — RERA number, builder verified badge, EOI flow — is either a single checkpoint or a marketing claim. Prospective investors have no way to see *what* diligence the platform actually performed on a deal before it went Live.
+Investors on WealthSpot park ₹2.5 Cr+ into real-estate / startup / community deals sight-unseen. Every trust lever we pull today — regulatory compliance checks, builder verified badge, EOI flow — is either a single checkpoint or a marketing claim. Prospective investors have no way to see *what* diligence the platform actually performed on a deal before it went Live.
 
 The platform owner already performs a structured 7-category review of every opportunity before listing (Builder / Legal / Valuation / Location / Property / Security / Exit). Today that work is invisible to investors, opaque to builders, and tracked in notebooks. This feature turns that diligence into the **soul of the product** — a branded, observable, auditable trust surface.
 

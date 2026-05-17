@@ -72,8 +72,8 @@ describe('mobile adminBff functional tests', () => {
 
     it('calls reject property endpoint with reason', async () => {
       vi.mocked(apiPut).mockResolvedValueOnce({ success: true })
-      await mobileAdminBff.rejectProperty('p1', 'Missing RERA')
-      expect(apiPut).toHaveBeenCalledWith('/admin/properties/p1/reject', { reason: 'Missing RERA' })
+      await mobileAdminBff.rejectProperty('p1', 'Missing compliance docs')
+      expect(apiPut).toHaveBeenCalledWith('/admin/properties/p1/reject', { reason: 'Missing compliance docs' })
     })
   })
 })

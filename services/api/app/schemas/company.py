@@ -19,7 +19,6 @@ class CompanyCreateRequest(BaseModel):
     cin: str | None = Field(None, max_length=21)
     gstin: str | None = Field(None, max_length=15)
     pan: str | None = Field(None, max_length=10)
-    rera_number: str | None = None
     website: str | None = None
     description: str | None = None
     # Contact
@@ -49,7 +48,6 @@ class CompanyRead(BaseModel):
     cin: str | None = None
     gstin: str | None = None
     pan: str | None = None
-    rera_number: str | None = None
     website: str | None = None
     logo_url: str | None = None
     description: str | None = None
@@ -97,7 +95,6 @@ class CompanyUpdateRequest(BaseModel):
     cin: str | None = None
     gstin: str | None = None
     pan: str | None = None
-    rera_number: str | None = None
     website: str | None = None
     description: str | None = None
     contact_name: str | None = None

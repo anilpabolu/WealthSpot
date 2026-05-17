@@ -48,9 +48,9 @@ User-confirmed decisions (binding):
 - Auth: Clerk → backend `/auth/check` + `/auth/me` → Zustand `useUserStore` ([apps/web/src/stores/user.store.ts](apps/web/src/stores/user.store.ts)).
 
 **Domain (event vocabulary, NOT generic SIP/fund terms):**
-Opportunity (Wealth/Safe/Community vault), EOI (Expression of Interest), OpportunityInvestment, Investment (Razorpay-backed), ApprovalRequest, Company (builder verification — RERA/CIN/GSTIN), KYC (PAN/Aadhaar/Selfie), Portfolio. Roles: INVESTOR, BUILDER, LENDER, FOUNDER, COMMUNITY_LEAD, APPROVER, ADMIN, SUPER_ADMIN.
+Opportunity (Wealth/Safe/Community vault), EOI (Expression of Interest), OpportunityInvestment, Investment (Razorpay-backed), ApprovalRequest, Company (builder verification — CIN/GSTIN), KYC (PAN/Aadhaar/Selfie), Portfolio. Roles: INVESTOR, BUILDER, LENDER, FOUNDER, COMMUNITY_LEAD, APPROVER, ADMIN, SUPER_ADMIN.
 
-**India fintech context confirmed**: Razorpay, PAN, Aadhaar, RERA/CIN/GSTIN, pincode, ₹ currency. **No DLT registration today** — to be added.
+**India fintech context confirmed**: Razorpay, PAN, Aadhaar, CIN/GSTIN, pincode, ₹ currency. **No DLT registration today** — to be added.
 
 ---
 

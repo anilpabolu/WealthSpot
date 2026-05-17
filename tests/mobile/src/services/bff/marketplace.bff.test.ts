@@ -35,7 +35,7 @@ describe('mobile marketplaceBff functional tests', () => {
         id: '1',
         slug: 'alpha',
         title: 'Alpha',
-        builder: { companyName: 'BuilderX', verified: true, logoUrl: null, reraNumber: null },
+        builder: { companyName: 'BuilderX', verified: true, logoUrl: null },
       } as any)
       .mockResolvedValueOnce([{ id: '2', slug: 'beta', title: 'Beta' }] as any)
 

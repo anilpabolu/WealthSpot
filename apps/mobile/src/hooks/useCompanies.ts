@@ -22,7 +22,6 @@ export interface CompanyDetail extends CompanyItem {
   cin: string | null
   gstin: string | null
   pan: string | null
-  reraNumber: string | null
   website: string | null
   description: string | null
   contactName: string | null
@@ -54,7 +53,6 @@ export interface CompanyCreatePayload {
   cin?: string
   gstin?: string
   pan?: string
-  reraNumber?: string
   website?: string
   description?: string
   contactName?: string
@@ -101,7 +99,6 @@ export function useCreateCompany() {
         cin: data.cin,
         gstin: data.gstin,
         pan: data.pan,
-        rera_number: data.reraNumber,
         website: data.website,
         description: data.description,
         contact_name: data.contactName,

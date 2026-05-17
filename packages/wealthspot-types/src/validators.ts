@@ -67,12 +67,6 @@ export const unitsSchema = z
 
 // ── Property ──────────────────────────────────────────────────────────────
 
-/** RERA registration ID — alphanumeric, 10–30 chars */
-export const reraIdSchema = z
-  .string()
-  .trim()
-  .regex(/^[A-Z0-9/-]{10,30}$/, "Invalid RERA ID format");
-
 /** Property slug — lowercase kebab-case */
 export const slugSchema = z
   .string()

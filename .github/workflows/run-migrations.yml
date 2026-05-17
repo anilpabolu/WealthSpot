@@ -42,6 +42,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install PostgreSQL client (psql)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -80,6 +85,12 @@ jobs:
             "stripe>=14.0.0" \
             "razorpay>=2.0.0"
           echo "Dependencies installed."
+
+      - name: Preflight replay readiness checks
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.db_url }}
+        run: |
+          python scripts/run_db_replay_check.py --database-url "$DATABASE_URL"
 
       - name: Run migrations (dry run)
         if: ${{ github.event.inputs.dry_run == 'true' }}

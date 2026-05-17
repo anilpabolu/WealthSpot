@@ -77,7 +77,6 @@ CREATE TABLE builders (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id         UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     company_name    VARCHAR(255) NOT NULL,
-    rera_number     VARCHAR(50),
     cin             VARCHAR(21),
     gstin           VARCHAR(15),
     website         TEXT,
@@ -125,7 +124,6 @@ CREATE TABLE properties (
     area_sqft       INTEGER,
     bedrooms        INTEGER,
     possession_date VARCHAR(20),
-    rera_id         VARCHAR(50),
 
     -- Media (PostgreSQL arrays & JSONB)
     cover_image     TEXT,

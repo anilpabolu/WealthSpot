@@ -1,0 +1,132 @@
+name: Staging DB Replay Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'replay-staging' to confirm"
+        required: true
+        type: string
+      keyvault_name:
+        description: "Azure Key Vault name containing staging DB URL"
+        required: true
+        default: wealthspot-kv-prod
+        type: string
+      db_secret_name:
+        description: "Key Vault secret name for staging DATABASE_URL"
+        required: true
+        default: database-url
+        type: string
+      run_smoke:
+        description: "Run smoke validation hook after replay checks"
+        required: false
+        default: false
+        type: boolean
+      smoke_command:
+        description: "Smoke command to run when run_smoke=true"
+        required: false
+        default: bash deployment/scripts/04-validate.sh
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  replay-check:
+    name: Full Replay Readiness (Staging)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate confirmation input
+        run: |
+          if [[ "${{ github.event.inputs.confirm }}" != "replay-staging" ]]; then
+            echo "Confirmation must be exactly 'replay-staging'."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PostgreSQL client (psql)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read DATABASE_URL from Key Vault
+        id: dburl
+        run: |
+          DB_URL=$(az keyvault secret show \
+            --vault-name "${{ github.event.inputs.keyvault_name }}" \
+            --name "${{ github.event.inputs.db_secret_name }}" \
+            --query "value" \
+            --output tsv)
+
+          if [[ -z "$DB_URL" ]]; then
+            echo "DATABASE_URL secret value is empty."
+            exit 1
+          fi
+
+          echo "database_url=$DB_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Install API dependencies for Alembic checks
+        working-directory: services/api
+        run: |
+          pip install --quiet --upgrade pip
+          pip install --quiet \
+            "alembic>=1.18.0" \
+            "sqlalchemy[asyncio]>=2.0.48" \
+            "asyncpg>=0.29.0" \
+            "pydantic>=2.10.0,<3.0.0" \
+            "pydantic-settings>=2.7.0" \
+            "python-jose[cryptography]>=3.3.0" \
+            "passlib[bcrypt]>=1.7.4" \
+            "itsdangerous>=2.1.0" \
+            "httpx>=0.28.0" \
+            "boto3>=1.42.0" \
+            "redis>=5.1.0" \
+            "celery>=5.6.0" \
+            "sentry-sdk>=2.5.0" \
+            "stripe>=14.0.0" \
+            "razorpay>=2.0.0"
+
+      - name: Run full replay readiness checks (without smoke)
+        if: ${{ github.event.inputs.run_smoke != 'true' }}
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.database_url }}
+        run: |
+          python scripts/run_db_replay_check.py --database-url "$DATABASE_URL"
+
+      - name: Run full replay readiness checks (with smoke)
+        if: ${{ github.event.inputs.run_smoke == 'true' }}
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.database_url }}
+        run: |
+          python scripts/run_db_replay_check.py \
+            --database-url "$DATABASE_URL" \
+            --smoke-command "${{ github.event.inputs.smoke_command }}"
+
+      - name: Post run summary
+        if: always()
+        run: |
+          echo "## Staging DB Replay Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | ${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Key Vault | ${{ github.event.inputs.keyvault_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| DB secret | ${{ github.event.inputs.db_secret_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Smoke hook | ${{ github.event.inputs.run_smoke }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Smoke command | ${{ github.event.inputs.smoke_command }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Timestamp (UTC) | $(date -u) |" >> "$GITHUB_STEP_SUMMARY"
