@@ -19,3 +19,7 @@ celerybeat-schedule
 logs/
 *.log
 .coverage
+
+# Generated test artifacts
+tests/test-results/
+tests/playwright-report/
