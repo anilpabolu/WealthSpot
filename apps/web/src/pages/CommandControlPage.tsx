@@ -144,7 +144,7 @@ export default function CommandControlPage() {
       {/* Body */}
       <div className="flex flex-1 w-full">
         {/* Side Nav */}
-        <aside className="w-56 shrink-0 border-r border-theme bg-[var(--bg-surface)] py-6 px-3 hidden md:block">
+        <aside className="w-56 shrink-0 border-r border-theme bg-[var(--bg-surface)] py-5 px-2.5 hidden md:block">
           <nav className="space-y-1">
             {visibleSections.map((s, i) => {
               const Icon = s.icon
@@ -155,13 +155,13 @@ export default function CommandControlPage() {
               return (
                 <div key={s.id}>
                   {showGroup && (
-                    <p className={`text-[10px] font-bold uppercase tracking-wider text-theme-tertiary px-3 ${i > 0 ? 'pt-4' : ''} pb-1`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider text-theme-tertiary px-2.5 ${i > 0 ? 'pt-3' : ''} pb-1`}>
                       {s.group}
                     </p>
                   )}
                   <button
                     onClick={() => setActiveSection(s.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors ${
                       active ? 'bg-primary/5 text-primary' : 'text-theme-secondary hover:bg-theme-surface hover:text-theme-primary'
                     }`}
                   >
@@ -176,7 +176,7 @@ export default function CommandControlPage() {
 
         {/* Mobile section picker */}
         <div className="md:hidden sticky top-16 z-40 bg-[var(--bg-surface)] border-b border-theme overflow-x-auto">
-          <div className="flex items-center gap-1 px-4 py-2">
+          <div className="flex items-center gap-1 px-4 py-1.5">
             {visibleSections.map((s) => {
               const Icon = s.icon
               const active = activeSection === s.id
@@ -184,7 +184,7 @@ export default function CommandControlPage() {
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium px-2.5 py-1.5 rounded-full transition-colors ${
                     active ? 'bg-primary/10 text-primary' : 'text-theme-secondary hover:bg-theme-surface'
                   }`}
                 >
@@ -197,7 +197,7 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-6 sm:p-8 content-section-bg min-w-0">
+        <main className="flex-1 p-5 sm:p-6 content-section-bg min-w-0">
           <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
             {activeSection === 'dashboard' && (
               <Suspense fallback={<TabFallback />}><DashboardTab /></Suspense>

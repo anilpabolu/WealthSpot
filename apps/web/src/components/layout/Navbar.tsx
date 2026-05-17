@@ -79,23 +79,12 @@ export default function Navbar(_props?: NavbarProps) {
     if (!roleMatch) return false
     return true
   })
-  const allNavLinks = [...filteredAuthLinks, ...extraLinks]
+  const allNavLinks = [...filteredAuthLinks, ...extraLinks, { label: 'About', href: '/about' }]
 
-  // Portal pages have light-cream backgrounds — always keep nav opaque there
-  const isPortal = location.pathname.startsWith('/portal/')
-
-  // Background: landing fully transparent at top; portals always opaque; everything else semi-transparent at top
-  const bgAtTop = isLanding
-    ? 'rgba(0, 0, 0, 0)'
-    : isPortal
-      ? 'rgba(38, 50, 50, 0.88)'
-      : 'rgba(38, 50, 50, 0.4)'
-  const blurAtTop = isLanding ? 'none' : isPortal ? 'blur(8px)' : 'blur(4px)'
-  const borderAtTop = isLanding
-    ? '1px solid rgba(56,73,73,0)'
-    : isPortal
-      ? '1px solid rgba(255,255,255,0.08)'
-      : '1px solid rgba(255,255,255,0.05)'
+  // Keep one transparent/blurred top state across pages for consistent behavior.
+  const bgAtTop = isLanding ? 'rgba(0, 0, 0, 0)' : 'rgba(38, 50, 50, 0.4)'
+  const blurAtTop = isLanding ? 'none' : 'blur(4px)'
+  const borderAtTop = isLanding ? '1px solid rgba(56,73,73,0)' : '1px solid rgba(255,255,255,0.05)'
 
   return (
     <>
@@ -166,12 +155,6 @@ export default function Navbar(_props?: NavbarProps) {
             </Show>
             <Show when="signed-out">
               <div className="hidden sm:flex items-center gap-3">
-                <Link
-                  to="/about"
-                  className="text-white/75 hover:text-white text-sm font-medium transition-colors"
-                >
-                  About
-                </Link>
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button className="text-white/80 hover:text-white text-sm font-semibold px-4 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all">Sign In</button>
                 </SignInButton>
@@ -218,13 +201,6 @@ export default function Navbar(_props?: NavbarProps) {
             </Show>
             <Show when="signed-out">
               <div className="pt-3 border-t border-white/10 space-y-2">
-                <Link
-                  to="/about"
-                  className="block px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  About
-                </Link>
                 <div className="flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button

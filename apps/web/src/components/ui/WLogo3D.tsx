@@ -10,7 +10,7 @@ interface WLogo3DProps {
 export default function WLogo3D({ size = 32, light, className }: WLogo3DProps) {
   return (
     <img
-      src={light ? '/wealthspot-logo-light.png' : '/wealthspot-logo.png'}
+      src={light ? '/wealthspot-logo-light.png' : '/favicon.svg'}
       alt="WealthSpot"
       width={size}
       height={size}

@@ -12,6 +12,8 @@ interface PageHeroProps {
   children?: ReactNode
   /** Override the inner content container className — default: max-w-3xl mx-auto px-4 */
   contentClassName?: string
+  /** Compact vertical rhythm for dense layouts */
+  compact?: boolean
 }
 
 /**
@@ -25,6 +27,7 @@ export default function PageHero({
   onBack,
   children,
   contentClassName = 'max-w-3xl mx-auto px-4',
+  compact = false,
 }: PageHeroProps) {
   return (
     <div
@@ -38,7 +41,7 @@ export default function PageHero({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/[0.05] blur-3xl" />
       </div>
 
-      <div className={`relative z-10 ${contentClassName} py-10 sm:py-14`}>
+      <div className={`relative z-10 ${contentClassName} ${compact ? 'py-4 sm:py-5' : 'py-10 sm:py-14'}`}>
         {onBack && (
           <button
             onClick={onBack}

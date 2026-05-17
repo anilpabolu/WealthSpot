@@ -56,6 +56,10 @@ const VAULT_OPTIONS = [
     value: 'wealth',
     label: 'Wealth Vault',
     sublabel: 'Real estate that prints money 🏗️',
+    bestFor: 'Growth seekers',
+    ticket: 'Flexible ticket sizes',
+    timeline: 'Mid to long horizon',
+    unlocks: ['Property specifics', 'Funding design', 'Return mechanics'],
     icon: Building2,
     accent: '#D4AF37',
     accentBg: 'rgba(212,175,55,0.08)',
@@ -66,6 +70,10 @@ const VAULT_OPTIONS = [
     value: 'safe',
     label: 'Safe Vault',
     sublabel: 'Fixed returns · Mortgage-backed 🔒',
+    bestFor: 'Capital protection',
+    ticket: 'Predictable payouts',
+    timeline: 'Defined tenure',
+    unlocks: ['Security terms', 'Tenure & payout', 'Collateral profile'],
     icon: ShieldCheck,
     accent: '#20E3B2',
     accentBg: 'rgba(32,227,178,0.08)',
@@ -76,6 +84,10 @@ const VAULT_OPTIONS = [
     value: 'community',
     label: 'Community Vault',
     sublabel: 'Build together, win together 🐝',
+    bestFor: 'Collaborative builders',
+    ticket: 'Capital + contribution',
+    timeline: 'Milestone driven',
+    unlocks: ['Role model', 'Collaboration terms', 'Execution commitments'],
     icon: Users,
     accent: '#34d399',
     accentBg: 'rgba(52,211,153,0.08)',
@@ -83,6 +95,8 @@ const VAULT_OPTIONS = [
     accentHover: 'rgba(52,211,153,0.5)',
   },
 ] as const
+
+type VaultOptionValue = (typeof VAULT_OPTIONS)[number]['value']
 
 const COMMUNITY_TYPES = ['Sports Complex', 'Co-working Space', 'Local Business', 'Education Centre', 'Healthcare', 'Agriculture', 'Other']
 const COLLABORATION_TYPES = ['Capital + Time', 'Capital Only', 'Time + Network', 'Full Collaboration']
@@ -217,9 +231,9 @@ const INPUT_CLS = 'w-full rounded-lg border border-[#c9d0ce] bg-[#f8faf9] text-[
 const INPUT_ERR_CLS = 'w-full rounded-lg border border-red-500/60 bg-[#f8faf9] text-[#2f4a4a] font-body placeholder-[#768588] px-3 py-2.5 text-sm focus:border-red-500 outline-none'
 const SELECT_CLS = 'w-full rounded-lg border border-[#c9d0ce] bg-[#f8faf9] text-[#2f4a4a] font-body px-3 py-2.5 text-sm focus:border-[#2f4a4a]/45 outline-none appearance-none'
 const SELECT_ERR_CLS = 'w-full rounded-lg border border-red-500/60 bg-[#f8faf9] text-[#2f4a4a] font-body px-3 py-2.5 text-sm outline-none appearance-none'
-const LABEL_CLS = 'block font-body text-[#3d5757] text-sm font-medium mb-1.5'
-const CARD_CLS = 'bg-[#f1f4f3] border border-[#d3dcda] rounded-2xl p-6'
-const SECTION_HEADING = 'font-hero text-[#2f4a4a] font-semibold text-base mb-4'
+const LABEL_CLS = 'block font-body text-[#3d5757] text-sm font-medium mb-1'
+const CARD_CLS = 'bg-[#f1f4f3] border border-[#d3dcda] rounded-2xl p-5'
+const SECTION_HEADING = 'font-hero text-[#2f4a4a] font-semibold text-base mb-3'
 const ERR_MSG = 'text-red-500 text-xs mt-1 flex items-center gap-1'
 const ERR_MSG_LIGHT = 'text-red-500 text-xs mt-1 flex items-center gap-1'
 
@@ -361,6 +375,7 @@ export default function CreateOpportunityPage() {
 
   const [step, setStep] = useState<WizardStep>('vault')
   const [vaultType, setVaultType] = useState('')
+  const [vaultPreview, setVaultPreview] = useState<VaultOptionValue>('wealth')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
   const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: '', title: '' })
@@ -419,6 +434,9 @@ export default function CreateOpportunityPage() {
   const handleVaultSelect = (vault: string) => {
     setVaultType(vault)
     setForm({ ...form, vaultType: vault })
+    if (vault === 'wealth' || vault === 'safe' || vault === 'community') {
+      setVaultPreview(vault)
+    }
     if (vault === 'community') setStep('community-subtype')
     else setStep('details')
   }
@@ -641,6 +659,18 @@ export default function CreateOpportunityPage() {
   }
 
   const currentStepIndex = stepIndex(step, vaultType === 'community')
+  const activeVaultPreview = VAULT_OPTIONS.find((v) => v.value === vaultPreview) ?? VAULT_OPTIONS[0]
+  const isViewportStep = step === 'vault'
+  const vaultBackgroundStyle =
+    step === 'vault'
+      ? {
+          backgroundImage:
+            "linear-gradient(120deg, rgba(8, 12, 26, 0.68) 0%, rgba(10, 16, 34, 0.52) 44%, rgba(12, 20, 40, 0.46) 100%), url('/images/vault-page-background.avif')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }
+      : undefined
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -659,14 +689,19 @@ export default function CreateOpportunityPage() {
   }
 
   return (
-    <MainLayout>
-      <div className="min-h-screen bg-[#F5F3ED]">
+    <MainLayout showFooter={!isViewportStep}>
+      <div
+        className={isViewportStep ? 'min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] bg-[#0b1020] flex flex-col lg:overflow-hidden' : 'min-h-[calc(100vh-4rem)] bg-[#F5F3ED]'}
+        style={vaultBackgroundStyle}
+      >
         <SEOHead noIndex />
         <PageHero
           eyebrow="WealthSpot Platform"
           title="Launch Your Opportunity"
-          subtitle="Create a compelling investment listing for the WealthSpot platform."
+          subtitle={step === 'vault' ? undefined : 'Create a compelling investment listing for the WealthSpot platform.'}
           onBack={() => navigate(-1)}
+          compact={step === 'vault' || step === 'details'}
+          contentClassName={step === 'vault' || step === 'details' ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' : 'max-w-3xl mx-auto px-4'}
         >
         {/* Step progress bar */}
         {step !== 'vault' && step !== 'community-subtype' && (
@@ -689,43 +724,145 @@ export default function CreateOpportunityPage() {
         </PageHero>
 
       {/* Content */}
-      <div className={step === 'shield' || step === 'details' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
+      <div className={step === 'vault' ? 'flex-1 flex lg:overflow-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <div className="space-y-4">
-            <p className="text-slate-500 text-sm">Pick your arena. Each vault unlocks a tailored questionnaire.</p>
-            {VAULT_OPTIONS.map((opt) => {
-              const Icon = opt.icon
-              const comingSoon = !isVaultEnabled(opt.value)
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => !comingSoon && handleVaultSelect(opt.value)}
-                  disabled={comingSoon}
-                  className="w-full flex items-center gap-5 p-5 rounded-xl border transition-all text-left group disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{
-                    background: comingSoon ? 'rgba(0,0,0,0.06)' : opt.accentBg,
-                    borderColor: comingSoon ? 'rgba(0,0,0,0.12)' : opt.accentBorder,
-                  }}
-                  onMouseEnter={(e) => { if (!comingSoon) (e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentHover }}
-                  onMouseLeave={(e) => { if (!comingSoon) (e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentBorder }}
-                >
-                  <div className="h-14 w-14 rounded-xl flex items-center justify-center shrink-0" style={{ background: opt.accentBg }}>
-                    {comingSoon ? <Lock className="h-6 w-6 text-slate-400" /> : <Icon className="h-7 w-7" style={{ color: opt.accent }} />}
+          <section className="h-full w-full px-3 sm:px-6 lg:px-8 py-2 lg:py-3 flex items-center justify-center">
+            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-[0_24px_64px_rgba(6,10,20,0.30)] h-[460px] w-full max-w-[1600px]">
+              <img
+                src="/images/vault-selector-abstract.svg"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover"
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(105deg,rgba(7,13,28,0.74)_0%,rgba(11,19,38,0.62)_45%,rgba(15,24,44,0.32)_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(60%_65%_at_84%_16%,rgba(232,182,74,0.24),transparent_74%)]" />
+              <div className="absolute -top-12 -right-14 h-44 w-44 rounded-full bg-[#e8b64a]/25 blur-3xl" aria-hidden="true" />
+              <div className="absolute -bottom-10 left-8 h-36 w-36 rounded-full bg-[#20E3B2]/20 blur-3xl" aria-hidden="true" />
+              <div className="absolute top-[22%] right-[12%] h-20 w-20 rounded-[22px] border border-white/14 bg-white/[0.04] rotate-12" aria-hidden="true" />
+              <div className="absolute bottom-[16%] right-[28%] h-px w-28 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden="true" />
+              <div className="absolute top-[34%] left-[8%] h-px w-24 bg-gradient-to-r from-transparent via-[#20E3B2]/45 to-transparent" aria-hidden="true" />
+
+              <div className="relative h-full p-3.5 sm:p-4.5 lg:p-5 grid lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-5 items-start">
+                <div className="flex h-full flex-col">
+                  <div className="mb-3.5">
+                    <p className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/85">
+                      Vault Composer
+                    </p>
+                    <h2 className="mt-2.5 font-hero text-white text-[28px] sm:text-[32px] lg:text-[36px] leading-[1.04] font-bold max-w-[16ch]">
+                      Pick your vault.
+                    </h2>
+                    <p className="mt-2 text-[13px] sm:text-sm text-[#d8e2f1]/90 max-w-[52ch] leading-relaxed">
+                      One unified launch frame for all vault types. Choose the path, unlock a tailored questionnaire, and continue with an aligned, high-clarity workflow.
+                    </p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#111827] text-base">{opt.label}</span>
-                      {comingSoon && <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/15 px-2 py-0.5 rounded-full">Coming Soon</span>}
+
+                  <div className="space-y-2.5">
+                    {VAULT_OPTIONS.map((opt) => {
+                      const Icon = opt.icon
+                      const comingSoon = !isVaultEnabled(opt.value)
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => !comingSoon && handleVaultSelect(opt.value)}
+                          onFocus={() => setVaultPreview(opt.value)}
+                          disabled={comingSoon}
+                          className="w-full rounded-xl border px-3.5 sm:px-4 py-2.5 transition-all text-left group disabled:cursor-not-allowed"
+                          style={{
+                            background: comingSoon ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)',
+                            borderColor: comingSoon ? 'rgba(255,255,255,0.14)' : opt.accentBorder,
+                            boxShadow: comingSoon ? 'none' : '0 10px 20px rgba(5,10,22,0.20)',
+                          }}
+                          onMouseEnter={(e) => {
+                            setVaultPreview(opt.value)
+                            if (!comingSoon) {
+                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentHover
+                              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!comingSoon) {
+                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = opt.accentBorder
+                              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0px)'
+                            }
+                          }}
+                        >
+                          <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3">
+                            <div
+                              className="h-[42px] w-[42px] rounded-lg flex items-center justify-center shrink-0 border"
+                              style={{
+                                background: comingSoon ? 'rgba(255,255,255,0.08)' : opt.accentBg,
+                                borderColor: comingSoon ? 'rgba(255,255,255,0.12)' : opt.accentBorder,
+                              }}
+                            >
+                              {comingSoon ? (
+                                <Lock className="h-4 w-4 text-white/65" />
+                              ) : (
+                                <Icon className="h-4.5 w-4.5" style={{ color: opt.accent }} />
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-white text-[14px] sm:text-[15px] leading-tight">{opt.label}</span>
+                                {comingSoon && (
+                                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 bg-amber-500/20 border border-amber-300/25 px-2 py-0.5 rounded-full">
+                                    Coming Soon
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[12px] text-[#d0daea] mt-0.5 truncate sm:whitespace-normal">{opt.sublabel}</p>
+                            </div>
+
+                            {!comingSoon ? (
+                              <ChevronRight className="h-4 w-4 shrink-0" style={{ color: opt.accent }} />
+                            ) : (
+                              <span className="text-xs text-white/50 font-medium">Locked</span>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <aside className="hidden lg:flex h-full flex-col justify-between rounded-2xl border border-white/15 bg-white/[0.07] backdrop-blur-sm p-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/60 font-semibold">Selection Guide</p>
+                    <h3 className="mt-2 text-white font-hero text-[28px] leading-[1.03] max-w-[12ch]">
+                      {activeVaultPreview.label}
+                    </h3>
+                    <p className="mt-2 text-[12px] text-white/70 leading-relaxed">
+                      {activeVaultPreview.sublabel}
+                    </p>
+                  </div>
+                  <div className="space-y-2 text-[12px] text-white/85">
+                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Best for</span><span>{activeVaultPreview.bestFor}</span></p>
+                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Model</span><span>{activeVaultPreview.ticket}</span></p>
+                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Horizon</span><span>{activeVaultPreview.timeline}</span></p>
+                  </div>
+                  <div className="rounded-xl border border-white/15 bg-black/15 px-3 py-2.5">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-white/60 mb-2">What unlocks next</p>
+                    <div className="space-y-1.5 text-[11.5px] text-white/82">
+                      {activeVaultPreview.unlocks.map((item, idx) => (
+                        <p key={item} className="flex items-start gap-2">
+                          <span style={{ color: activeVaultPreview.accent }} className="font-bold">0{idx + 1}</span>
+                          <span>{item}</span>
+                        </p>
+                      ))}
                     </div>
-                    <p className="text-[#4B5563] text-sm mt-0.5">{opt.sublabel}</p>
                   </div>
-                  {!comingSoon && <ChevronRight className="h-5 w-5 shrink-0" style={{ color: opt.accent }} />}
-                </button>
-              )
-            })}
-          </div>
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
+                    <div className="rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/12 px-2.5 py-2 text-[11px] text-[#f2ddb0] text-center">Growth</div>
+                    <div className="rounded-xl border border-[#20E3B2]/35 bg-[#20E3B2]/12 px-2.5 py-2 text-[11px] text-[#9af5df] text-center">Stability</div>
+                    <div className="rounded-xl border border-[#7EE5C0]/35 bg-[#7EE5C0]/12 px-2.5 py-2 text-[11px] text-[#c8fbe9] text-center">Community</div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </section>
         )}
 
         {/* ─── Step: Community Subtype ─── */}
@@ -767,9 +904,9 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Details Form ─── */}
         {step === 'details' && (
-          <div className="pb-24">
+          <div className="w-full lg:h-full">
             <section
-              className="relative overflow-hidden"
+              className="relative overflow-hidden lg:h-full"
               style={{ background: 'linear-gradient(140deg, #d5cac5 0%, #d2bfba 40%, #efb9a7 72%, #f1dfd0 100%)' }}
             >
               <div
@@ -785,30 +922,30 @@ export default function CreateOpportunityPage() {
                 }}
               />
 
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-8 py-12 lg:py-16">
-                <div className="grid gap-8 lg:grid-cols-[40%_60%] lg:gap-12 items-start">
-                  <div className="lg:sticky lg:top-24">
-                    <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#2f4a4a]/20 bg-white/35 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f4a4a] mb-6">
+              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-5">
+                <div className="grid gap-5 lg:grid-cols-[38%_62%] lg:gap-6 items-start">
+                  <div className="lg:pr-2">
+                    <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#2f4a4a]/20 bg-white/35 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f4a4a] mb-3">
                       Listing Builder
                     </p>
-                    <h2 className="font-hero text-[#2f4a4a] text-4xl sm:text-5xl leading-[1.02] font-bold max-w-[18ch]">
+                    <h2 className="font-hero text-[#2f4a4a] text-[30px] sm:text-[36px] leading-[1.03] font-bold max-w-[16ch]">
                       Let's talk about your offering.
                     </h2>
-                    <p className="text-[#2f4a4a]/75 text-base leading-relaxed mt-5 max-w-[38ch]">
+                    <p className="text-[#2f4a4a]/75 text-[15px] leading-relaxed mt-3 max-w-[36ch]">
                       Share the essentials clearly so investors can understand value, safety, and delivery confidence in one quick pass.
                     </p>
-                    <div className="mt-7 space-y-2.5 text-sm text-[#2f4a4a]/80">
+                    <div className="mt-4 space-y-1.5 text-sm text-[#2f4a4a]/80">
                       <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">01</span> Add crisp opportunity basics and positioning.</p>
                       <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">02</span> Enter project and funding numbers with audit-friendly clarity.</p>
                       <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">03</span> Move to Security and Trust after this section is complete.</p>
                     </div>
-                    <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#2f4a4a] text-white px-3 py-1.5 text-xs font-semibold">
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#2f4a4a] text-white px-3 py-1.5 text-xs font-semibold">
                       {vaultType === 'wealth' ? 'Wealth Vault Flow' : vaultType === 'safe' ? 'Safe Vault Flow' : 'Community Vault Flow'}
                     </div>
                   </div>
 
-                  <div className="rounded-3xl border border-white/65 bg-white/40 backdrop-blur-sm p-2 sm:p-3 shadow-[0_16px_50px_rgba(47,74,74,0.12)]">
-                    <div className="rounded-2xl border border-[#d5dddb] bg-[#f7f9f8] p-4 sm:p-6 space-y-6">
+                  <div className="rounded-3xl border border-white/65 bg-white/40 backdrop-blur-sm p-2 sm:p-2.5 shadow-[0_16px_50px_rgba(47,74,74,0.12)]">
+                    <div className="rounded-2xl border border-[#d5dddb] bg-[#f7f9f8] p-4 sm:p-4.5 space-y-4">
 
             {/* Company */}
             <div className={CARD_CLS}>
@@ -825,7 +962,7 @@ export default function CreateOpportunityPage() {
             {/* Basic Info */}
             <div className={CARD_CLS}>
               <h3 className={SECTION_HEADING}>Basic Information</h3>
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div>
                   <label className={LABEL_CLS}>Title <span className="text-red-400">*</span></label>
                   <input
@@ -891,7 +1028,7 @@ export default function CreateOpportunityPage() {
                     {/* Project Overview */}
                     <div className={CARD_CLS}>
                       <h3 className={SECTION_HEADING}>Project Overview</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3.5">
                         {PROPERTY_FIELD_CONFIG[propertyType]?.showPossessionQuarter && (
                           <div>
                             <label className={LABEL_CLS}>Possession Quarter <span className="text-red-400">*</span></label>

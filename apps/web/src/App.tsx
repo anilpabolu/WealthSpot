@@ -5,6 +5,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import DiagnosticPanel, { diagLog } from '@/components/DiagnosticPanel'
 import { useBackendSync, useNotRegistered } from '@/hooks/useBackendSync'
+import { useFavicon } from '@/hooks/useFavicon'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
 import { useAppearanceConfig, usePublicNotificationsConfig } from '@/hooks/useControlCentre'
@@ -91,6 +92,8 @@ export default function App() {
   const navigate = useNavigate()
   const { user, isLoaded } = useUser()
   const redirectedRef = useRef(false)
+
+  useFavicon()
 
   // Force light theme always
   const theme = useThemeStore((s) => s.theme)

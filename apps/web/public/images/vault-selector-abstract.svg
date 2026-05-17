@@ -1,0 +1,52 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="40" x2="1440" y2="940" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#101B2D"/>
+      <stop offset="0.42" stop-color="#1A2B47"/>
+      <stop offset="1" stop-color="#22335B"/>
+    </linearGradient>
+    <radialGradient id="goldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1260 180) rotate(118) scale(360 340)">
+      <stop stop-color="#E3B34E" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#E3B34E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="tealGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(280 760) rotate(124) scale(500 420)">
+      <stop stop-color="#2AD3B3" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#2AD3B3" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mesh1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mesh2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60A5FA" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#34D399" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="blur36" x="0" y="0" width="1600" height="1000" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#goldGlow)"/>
+  <rect width="1600" height="1000" fill="url(#tealGlow)"/>
+
+  <g opacity="0.55" filter="url(#blur36)">
+    <path d="M250 130C355 -18 644 -20 792 122C940 264 872 554 706 690C540 826 272 820 142 666C12 512 145 278 250 130Z" fill="url(#mesh1)"/>
+    <path d="M1138 178C1286 36 1502 128 1556 298C1610 468 1516 714 1348 808C1180 902 930 826 852 640C774 454 990 320 1138 178Z" fill="url(#mesh2)"/>
+  </g>
+
+  <g opacity="0.25">
+    <path d="M78 842C300 694 496 658 676 676" stroke="#8AA2C5" stroke-width="2" stroke-linecap="round"/>
+    <path d="M908 192C1134 176 1298 246 1514 374" stroke="#B8C7DF" stroke-width="2" stroke-linecap="round"/>
+    <path d="M1012 900C1188 786 1332 760 1514 768" stroke="#4FD1C5" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <g opacity="0.2">
+    <circle cx="1278" cy="168" r="4" fill="#F4C96A"/>
+    <circle cx="1312" cy="194" r="3" fill="#F4C96A"/>
+    <circle cx="1344" cy="160" r="2" fill="#F4C96A"/>
+    <circle cx="1080" cy="770" r="3" fill="#5DE2C5"/>
+    <circle cx="1114" cy="744" r="2" fill="#5DE2C5"/>
+    <circle cx="1142" cy="786" r="2" fill="#5DE2C5"/>
+  </g>
+</svg>

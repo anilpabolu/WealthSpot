@@ -272,7 +272,7 @@ html { font-size: 100%; }
 
   /* Navbar-extending hero — pulls behind fixed navbar (-mt-16), clears content with matching padding */
   .page-hero-navbar {
-    @apply relative overflow-hidden -mt-16 pt-[8.5rem] pb-14 lg:pb-16;
+    @apply relative overflow-hidden -mt-16 pt-[8.25rem] pb-10 lg:pb-12;
   }
 
   .page-hero-content {
@@ -289,7 +289,7 @@ html { font-size: 100%; }
 
   .page-hero-badge {
     @apply inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md
-           border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-5;
+           border border-white/10 text-white/90 text-xs font-bold uppercase tracking-widest mb-4;
   }
 
   /* Content section background — theme-aware gradient for rich sections */

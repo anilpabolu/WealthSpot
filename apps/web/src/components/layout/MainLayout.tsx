@@ -5,20 +5,21 @@ import Footer from './Footer'
 
 interface MainLayoutProps {
   children?: ReactNode
+  showFooter?: boolean
 }
 
 /**
  * Main layout wrapper with Navbar + Footer.
  * Used for public pages (Landing, Marketplace, Property Detail, Auth).
  */
-export default function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout({ children, showFooter = true }: MainLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface transition-colors duration-300">
       <Navbar />
       <main className="flex-1 pt-16">
         {children ?? <Outlet />}
       </main>
-      <Footer />
+      {showFooter && <Footer />}
     </div>
   )
 }
