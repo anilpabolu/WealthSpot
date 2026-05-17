@@ -125,10 +125,9 @@ def upgrade() -> None:
     op.create_index("idx_pd_user", "personality_dimensions", ["user_id"])
 
     # ── Seed: Default Vault Profiling Questions ──────────────────────────
-    # Use exec_driver_sql to bypass SQLAlchemy's bind-parameter parsing
-    # (JSONB contains "weight":0.3 which sa.text() misinterprets as :0 bind param)
-    conn = op.get_bind()
-    conn.exec_driver_sql("""
+    # Use op.execute with a raw SQL string so both online and offline ( --sql )
+    # migration modes can emit/execute this JSON-heavy insert safely.
+    op.execute("""
         INSERT INTO vault_profile_questions (vault_type, category, question_text, question_type, options, weight, dimension, sort_order, fun_fact, illustration) VALUES
 
         -- WEALTH VAULT Questions

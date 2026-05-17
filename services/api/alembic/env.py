@@ -73,6 +73,18 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
+    # Compatibility shim: several historical migrations call `conn.exec_driver_sql(...)`.
+    # In offline mode Alembic provides SQLAlchemy MockConnection, which lacks that method.
+    # Alias it to `execute` so `alembic upgrade --sql` can render all migrations.
+    try:
+        from sqlalchemy.engine import mock as _sa_mock
+
+        if not hasattr(_sa_mock.MockConnection, "exec_driver_sql"):
+            _sa_mock.MockConnection.exec_driver_sql = _sa_mock.MockConnection.execute
+    except Exception:
+        # If SQLAlchemy internals change, offline generation may still work without this shim.
+        pass
+
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
