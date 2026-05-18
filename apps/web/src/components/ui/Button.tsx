@@ -22,15 +22,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50',
+    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
   secondary:
-    'bg-white/10 text-white border border-white/20 hover:bg-white/15 disabled:opacity-50',
+    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
   ghost:
-    'text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-40',
+    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-40',
   danger:
     'bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50',
   outline:
-    'border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 disabled:opacity-50',
+    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

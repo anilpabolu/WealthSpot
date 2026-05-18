@@ -22,13 +22,8 @@ from app.models.builder_update import BuilderUpdate, BuilderUpdateAttachment  # 
 from app.models.comm_mapping import OpportunityCommMapping  # noqa: F401
 from app.models.community import (  # noqa: F401
     AuditLog,
-    CommunityPost,
-    CommunityPostLike,
-    CommunityReply,
-    CommunityReplyLike,
     Loan,
     LoanStatus,
-    PostType,
     Referral,
 )
 from app.models.company import Company, EntityType, VerificationStatus  # noqa: F401

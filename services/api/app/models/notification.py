@@ -29,7 +29,6 @@ class NotificationType(str, PyEnum):
     KYC_REJECTED = "kyc_rejected"
     PROPERTY_FUNDED = "property_funded"
     PROPERTY_LISTED = "property_listed"
-    COMMUNITY_REPLY = "community_reply"
     REFERRAL_REWARD = "referral_reward"
     SYSTEM_ANNOUNCEMENT = "system_announcement"
     ENQUIRY = "enquiry"

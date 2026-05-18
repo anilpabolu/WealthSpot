@@ -10,7 +10,6 @@ import {
   Loader2,
   HelpCircle,
   Link2,
-  MessageCircle,
   Gift,
   Kanban,
   ShieldCheck,
@@ -60,7 +59,6 @@ type Section =
   | 'content'
   | 'builder-questions'
   | 'comm-mapping'
-  | 'answer-questions'
   | 'referral-tracking'
   | 'eoi-pipeline'
   | 'media-management'
@@ -91,7 +89,6 @@ const SECTIONS: SideNavItem[] = [
   { id: 'builder-questions', label: 'Builder Questions', icon: HelpCircle, group: 'Operations' },
   { id: 'comm-mapping', label: 'Comm Mapping', icon: Link2, group: 'Operations' },
   { id: 'comm-platform', label: 'Comm Platform', icon: Mail, group: 'Operations' },
-  { id: 'answer-questions', label: 'Answer Questions', icon: MessageCircle, group: 'Operations' },
   { id: 'media-management', label: 'Media Manager', icon: Image, group: 'Content' },
   { id: 'app-images', label: 'Home Images', icon: Image, group: 'Content' },
   { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
@@ -267,19 +264,6 @@ export default function CommandControlPage() {
               <Suspense fallback={<TabFallback />}><CommPlatformTab /></Suspense>
             )}
           </SectionErrorBoundary>
-          {activeSection === 'answer-questions' && (
-            <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold text-theme-primary">Answer Questions</h2>
-              <p className="text-sm text-theme-secondary">Review and respond to community questions submitted by investors.</p>
-              <a
-                href="/community/answer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Go to Answer Questions
-              </a>
-            </div>
-          )}
         </main>
       </div>
     </MainLayout>

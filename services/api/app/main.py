@@ -34,7 +34,6 @@ from app.routers import (
     bank_details,
     builder_updates,
     comm,
-    community,
     companies,
     control_centre,
     devices,
@@ -142,7 +141,6 @@ app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(properties.router, prefix=API_PREFIX)
 app.include_router(investments.router, prefix=API_PREFIX)
 app.include_router(admin.router, prefix=API_PREFIX)
-app.include_router(community.router, prefix=API_PREFIX)
 app.include_router(referrals.router, prefix=API_PREFIX)
 app.include_router(lender.router, prefix=API_PREFIX)
 app.include_router(notifications.router, prefix=API_PREFIX)

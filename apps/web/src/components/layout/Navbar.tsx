@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, X, Plus, PieChart, MessageCircle, Zap, Sparkles, Vault } from 'lucide-react'
+import { Menu, X, Plus, PieChart, Zap, Sparkles, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -18,7 +18,6 @@ const AUTH_NAV_LINKS = [
   { label: 'Vaults', href: '/vaults', icon: Vault },
   { label: 'Portfolio', href: '/portfolio', icon: PieChart, roles: ['investor', 'admin', 'super_admin'] },
   { label: 'My Listings', href: '/portal/builder/listings', icon: Sparkles, roles: ['builder', 'admin', 'super_admin'] },
-  { label: 'Community', href: '/community', icon: MessageCircle, roles: ['super_admin', 'admin'] },
 ] as const
 
 interface NavbarProps {
@@ -39,29 +38,21 @@ export default function Navbar(_props?: NavbarProps) {
   useThemeStore((s) => s.theme)
 
   // ── Scroll behaviour (all pages) ───────────────────────────────────────
-  const isLanding = location.pathname === '/'
-  const [isAtTop, setIsAtTop] = useState(true)
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
     // Reset state on route change
-    setIsAtTop(window.scrollY <= 10)
     setNavVisible(true)
     lastScrollY.current = window.scrollY
 
     const onScroll = () => {
       const current = window.scrollY
       const delta = current - lastScrollY.current
-      if (current <= 10) {
-        setIsAtTop(true)
-        setNavVisible(true)
-      } else {
-        setIsAtTop(false)
-        // Hide when scrolling down past 80px threshold; show on any upward movement
-        if (delta > 5 && current > 80) setNavVisible(false)
-        else if (delta < -5) setNavVisible(true)
-      }
+      if (current <= 10) setNavVisible(true)
+      // Hide when scrolling down past 80px threshold; show on any upward movement
+      else if (delta > 5 && current > 80) setNavVisible(false)
+      else if (delta < -5) setNavVisible(true)
       lastScrollY.current = current
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -80,11 +71,8 @@ export default function Navbar(_props?: NavbarProps) {
     return true
   })
   const allNavLinks = [...filteredAuthLinks, ...extraLinks, { label: 'About', href: '/about' }]
-
-  // Keep one transparent/blurred top state across pages for consistent behavior.
-  const bgAtTop = isLanding ? 'rgba(0, 0, 0, 0)' : 'rgba(38, 50, 50, 0.4)'
-  const blurAtTop = isLanding ? 'none' : 'blur(4px)'
-  const borderAtTop = isLanding ? '1px solid rgba(56,73,73,0)' : '1px solid rgba(255,255,255,0.05)'
+  const publicNavLinks = [{ label: 'About', href: '/about' }]
+  const visibleNavLinks = isAuthenticated ? allNavLinks : publicNavLinks
 
   return (
     <>
@@ -92,11 +80,11 @@ export default function Navbar(_props?: NavbarProps) {
       className="z-50 w-full fixed top-0"
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
-        transition: 'transform 0.35s ease, background 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out, -webkit-backdrop-filter 0.3s ease-in-out',
-        background: isAtTop ? bgAtTop : 'rgba(38, 50, 50, 0.88)',
-        backdropFilter: isAtTop ? blurAtTop : 'blur(8px)',
-        WebkitBackdropFilter: isAtTop ? blurAtTop : 'blur(8px)',
-        borderBottom: isAtTop ? borderAtTop : '1px solid rgba(255,255,255,0.08)',
+        transition: 'transform 0.35s ease',
+        background: 'transparent',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        borderBottom: 'none',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
@@ -117,25 +105,27 @@ export default function Navbar(_props?: NavbarProps) {
             </div>
           </Link>
 
-          {/* Desktop Nav — only visible when signed in */}
-          <Show when="signed-in">
-            <div className="hidden md:flex items-center gap-8 ml-10">
-              {allNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={cn(
-                    'text-sm font-medium transition-colors relative',
-                    location.pathname === link.href
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8 ml-10">
+            {visibleNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  'text-sm font-medium transition-colors relative',
+                  link.label === 'About'
+                    ? location.pathname === link.href
+                      ? 'px-4 py-1.5 rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
+                      : 'px-4 py-1.5 rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
+                    : location.pathname === link.href
                       ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
                       : 'text-white/70 hover:text-white'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </Show>
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
@@ -145,7 +135,7 @@ export default function Navbar(_props?: NavbarProps) {
               {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
               <button
                 onClick={() => navigate('/create-opportunity')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-xs font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.45)] hover:brightness-110 transition-all"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37] text-[#D4AF37] bg-transparent hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Create Opportunity
@@ -156,7 +146,7 @@ export default function Navbar(_props?: NavbarProps) {
             <Show when="signed-out">
               <div className="hidden sm:flex items-center gap-3">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
-                  <button className="text-white/80 hover:text-white text-sm font-semibold px-4 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all">Sign In</button>
+                  <button className="text-[#D4AF37] text-sm font-medium px-4 py-2 rounded-[14px] border border-[#D4AF37] bg-transparent hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all">Sign In</button>
                 </SignInButton>
               </div>
             </Show>
@@ -179,32 +169,33 @@ export default function Navbar(_props?: NavbarProps) {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden backdrop-blur-xl border-t border-white/10 animate-fade-up" style={{ background: 'rgba(56, 73, 73, 0.95)' }}>
+        <div className="md:hidden animate-fade-up" style={{ background: 'transparent', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
           <div className="px-4 py-4 space-y-2">
-            <Show when="signed-in">
-              {allNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={cn(
-                    'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    location.pathname === link.href
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:bg-white/5 hover:text-white'
-                  )}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-
-            </Show>
+            {visibleNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  link.label === 'About'
+                    ? location.pathname === link.href
+                      ? 'rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
+                      : 'rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
+                    : location.pathname === link.href
+                      ? 'text-white font-semibold border border-[#D4AF37]'
+                      : 'text-white/70 hover:text-white border border-transparent hover:border-white/35'
+                )}
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
             <Show when="signed-out">
-              <div className="pt-3 border-t border-white/10 space-y-2">
+              <div className="pt-3 border-t border-white/20 space-y-2">
                 <div className="flex gap-2">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
                   <button
-                    className="text-white/80 hover:text-white text-sm font-semibold flex-1 text-center px-3 py-2 rounded-[14px] border border-white/30 hover:bg-white/10 transition-all"
+                    className="text-[#D4AF37] text-sm font-medium flex-1 text-center px-3 py-2 rounded-[14px] border border-[#D4AF37] bg-transparent hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all"
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign In

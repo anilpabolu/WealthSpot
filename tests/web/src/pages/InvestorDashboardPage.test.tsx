@@ -130,6 +130,6 @@ describe('InvestorDashboardPage', () => {
     renderPage()
     expect(screen.getByText('Browse Properties')).toBeInTheDocument()
     expect(screen.getByText('My Portfolio')).toBeInTheDocument()
-    expect(screen.getByText('Community')).toBeInTheDocument()
+    expect(screen.getByText('Refer & Earn')).toBeInTheDocument()
   })
 })

@@ -223,24 +223,6 @@ async def review_approval(
                 except ValueError:
                     pass  # Invalid role value — skip silently
 
-        # Sync linked community reply to approved
-        if approval.resource_type == "community_reply" and approval.resource_id:
-            from app.models.community import CommunityPost, CommunityReply
-
-            reply_result = await db.execute(
-                select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
-            )
-            reply = reply_result.scalar_one_or_none()
-            if reply and not reply.is_approved:
-                reply.is_approved = True
-                # Increment the parent post reply count
-                post_result = await db.execute(
-                    select(CommunityPost).where(CommunityPost.id == reply.post_id)
-                )
-                post = post_result.scalar_one_or_none()
-                if post:
-                    post.reply_count += 1
-
         # Sync builder approval — activate builder persona
         if approval.resource_type == "builder_approval" and approval.resource_id:
             from app.models.user import User as UserModel
@@ -310,17 +292,6 @@ async def review_approval(
                 UserRole.SUPER_ADMIN,
             ):
                 target_user.role = UserRole.INVESTOR
-
-        # Sync linked community reply — keep rejected (not approved)
-        if approval.resource_type == "community_reply" and approval.resource_id:
-            from app.models.community import CommunityReply
-
-            reply_result = await db.execute(
-                select(CommunityReply).where(CommunityReply.id == _uuid.UUID(approval.resource_id))
-            )
-            reply = reply_result.scalar_one_or_none()
-            if reply:
-                reply.is_approved = False
 
         await create_notification(
             db,

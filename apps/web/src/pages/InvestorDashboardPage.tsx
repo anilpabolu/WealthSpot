@@ -9,7 +9,7 @@ import { formatINRCompact, formatDate } from '@/lib/formatters'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Wallet, TrendingUp, PieChart, Building2, ArrowRight, ArrowUpRight,
-  ArrowDownRight, Users, Gift, CreditCard,
+  ArrowDownRight, Gift, CreditCard,
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 
@@ -186,12 +186,6 @@ export default function InvestorDashboardPage() {
                       <PieChart className="h-5 w-5 text-theme-secondary" />
                     </div>
                     <span className="text-sm font-semibold text-theme-primary">My Portfolio</span>
-                  </Link>
-                  <Link to="/community" className="flex items-center gap-3 p-4 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-all duration-200 hover:shadow-sm group">
-                    <div className="stat-card-icon bg-theme-surface-hover group-hover:scale-110 transition-transform">
-                      <Users className="h-5 w-5 text-theme-secondary" />
-                    </div>
-                    <span className="text-sm font-semibold text-theme-primary">Community</span>
                   </Link>
                   <Link to="/portal/investor/referrals" className="flex items-center gap-3 p-4 bg-theme-surface rounded-2xl hover:bg-[var(--bg-surface-hover)] transition-all duration-200 hover:shadow-sm group">
                     <div className="stat-card-icon bg-theme-surface-hover group-hover:scale-110 transition-transform">

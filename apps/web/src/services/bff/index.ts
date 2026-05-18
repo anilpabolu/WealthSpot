@@ -15,6 +15,5 @@
 export { dashboardBff } from "./dashboard.bff";
 export { marketplaceBff } from "./marketplace.bff";
 export { portfolioBff } from "./portfolio.bff";
-export { communityBff } from "./community.bff";
 export { adminBff } from "./admin.bff";
 export { kycBff } from "./kyc.bff";

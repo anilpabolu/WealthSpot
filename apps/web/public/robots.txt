@@ -5,7 +5,6 @@ Allow: /marketplace/
 Allow: /opportunity/
 Allow: /builder/
 Allow: /vaults
-Allow: /community
 Allow: /referral
 
 # Block authenticated / admin portals

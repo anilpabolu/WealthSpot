@@ -8,16 +8,7 @@ from datetime import UTC, datetime
 from enum import Enum as PyEnum
 from typing import Any
 
-from sqlalchemy import (
-    Boolean,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,116 +18,6 @@ from app.core.database import Base
 def _enum_values(enum_cls: type[PyEnum]) -> Sequence[str]:
     """Extract string values from a Python enum for SQLAlchemy Enum columns."""
     return [member.value for member in enum_cls]
-
-
-# ── Community ────────────────────────────────────────────────────────────────
-
-
-class PostType(str, PyEnum):
-    DISCUSSION = "discussion"
-    QUESTION = "question"
-    POLL = "poll"
-    ANNOUNCEMENT = "announcement"
-    INSIGHT = "insight"
-
-
-class CommunityPost(Base):
-    __tablename__ = "community_posts"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
-    )
-    post_type: Mapped[PostType] = mapped_column(
-        Enum(PostType, native_enum=False, length=20, values_callable=_enum_values),
-        default=PostType.DISCUSSION,
-    )
-    title: Mapped[str] = mapped_column(String(500), nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    category: Mapped[str | None] = mapped_column(String(50))
-    tags: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    upvotes: Mapped[int] = mapped_column(Integer, default=0)
-    reply_count: Mapped[int] = mapped_column(Integer, default=0)
-    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC),
-    )
-
-    author = relationship("User", lazy="joined")
-    replies = relationship("CommunityReply", back_populates="post", lazy="selectin")
-    post_likes = relationship("CommunityPostLike", back_populates="post", lazy="dynamic")
-
-
-class CommunityReply(Base):
-    __tablename__ = "community_replies"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("community_posts.id"), nullable=False, index=True
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
-    )
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    upvotes: Mapped[int] = mapped_column(Integer, default=0)
-    is_approved: Mapped[bool] = mapped_column(Boolean, default=True)
-    approval_request_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("approval_requests.id", ondelete="SET NULL"), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
-
-    post = relationship("CommunityPost", back_populates="replies")
-    author = relationship("User", lazy="joined")
-    likes = relationship("CommunityReplyLike", back_populates="reply", lazy="dynamic")
-
-
-class CommunityPostLike(Base):
-    __tablename__ = "community_post_likes"
-    __table_args__ = (UniqueConstraint("post_id", "user_id", name="uq_post_like_user"),)
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("community_posts.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
-
-    post = relationship("CommunityPost", back_populates="post_likes")
-
-
-class CommunityReplyLike(Base):
-    __tablename__ = "community_reply_likes"
-    __table_args__ = (UniqueConstraint("reply_id", "user_id", name="uq_reply_like_user"),)
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    reply_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("community_replies.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
-
-    reply = relationship("CommunityReply", back_populates="likes")
 
 
 # ── Referral ─────────────────────────────────────────────────────────────────

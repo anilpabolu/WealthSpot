@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
@@ -27,7 +27,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   return (
     <section
       id="hero"
-      className="relative flex min-h-screen flex-col overflow-hidden -mt-16"
+      className="relative flex min-h-[88vh] flex-col overflow-hidden -mt-16"
     >
       {/* Background video */}
       <video
@@ -44,26 +44,32 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
       {/* Gradient overlay — transparent top, dark bottom for text legibility */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.62) 100%)' }}
+        style={{ background: 'linear-gradient(120deg, rgba(6,34,36,0.55) 0%, rgba(6,34,36,0.15) 45%, rgba(0,0,0,0.4) 100%)' }}
       />
 
-      {/* Content — pushed to bottom, text right-aligned */}
+      {/* Angled dark slab to mimic the reference hero composition */}
+      <div
+        className="absolute bottom-0 left-0 h-[38%] w-[46%] bg-black/80 pointer-events-none"
+        style={{ clipPath: 'polygon(0 0, 86% 0, 100% 100%, 0 100%)' }}
+      />
+
+      {/* Content — left-aligned, anchored lower-left */}
       <div className="relative z-10 mt-auto w-full">
-        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-20 lg:pb-28">
+        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-16 lg:pb-20">
           <div className="flex flex-col items-end text-right max-w-2xl ml-auto">
 
             {/* headline */}
             <h1 className="font-hero">
-              <span className="block leading-[1.08] tracking-tight text-white text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-semibold">
+              <span className="block leading-[1.08] tracking-tight text-white text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.35rem] font-semibold" style={{ textShadow: '0 6px 24px rgba(0,0,0,0.45)' }}>
                 {headline1a}
               </span>
-              <span className="block leading-[1.08] tracking-tight text-[#D4AF37] text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-bold italic">
+              <span className="block leading-[1.08] tracking-tight text-[#D4AF37] text-[2.6rem] sm:text-5xl lg:text-[4rem] xl:text-[4.35rem] font-semibold" style={{ textShadow: '0 6px 24px rgba(0,0,0,0.45)' }}>
                 {headline1b}
               </span>
             </h1>
 
             {/* sub */}
-            <p className="mt-5 font-body text-[1.05rem] sm:text-lg text-white/80 leading-relaxed max-w-md">
+            <p className="mt-5 font-body text-[1.02rem] sm:text-lg text-[#F3E5BB] leading-relaxed max-w-md" style={{ textShadow: '0 4px 18px rgba(0,0,0,0.55)' }}>
               {heroSub}
             </p>
 
@@ -71,7 +77,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
             <div className="mt-8 flex flex-col sm:flex-row items-end gap-4">
               <button
                 onClick={onRequestAccess}
-                className="inline-flex items-center gap-2.5 rounded-[14px] bg-white px-8 py-3.5 font-body text-[15px] font-semibold text-[rgb(38,50,50)] transition-all duration-200 hover:bg-white/90 hover:scale-[1.03] active:scale-100"
+                className="inline-flex items-center gap-2.5 rounded-[14px] bg-[#74E6D6] px-8 py-3.5 font-body text-[15px] font-semibold text-[#0A3D3A] transition-all duration-200 hover:bg-[#67D7C8] hover:scale-[1.03] active:scale-100"
               >
                 {heroCta}
                 <ArrowRight className="h-4 w-4" />
@@ -206,8 +212,6 @@ const INVESTOR_PILLARS = [
     title: 'Money Investor',
     body: 'Deploy capital into select opportunities with a clear investment thesis and a disciplined entry mindset.',
     italic: 'Ideal for those who seek real asset exposure with strategic alignment and stronger filters.',
-    accent: '#D4AF37',
-    accentRgb: '212,175,55',
     tag: 'Most Common',
   },
   {
@@ -216,8 +220,6 @@ const INVESTOR_PILLARS = [
     title: 'Time Investor',
     body: 'Contribute expertise, leadership, execution, or oversight where active involvement creates real value.',
     italic: 'This path recognises that serious experience can be as meaningful as capital in the right opportunity.',
-    accent: '#F59E0B',
-    accentRgb: '245,158,11',
     tag: null,
   },
   {
@@ -226,8 +228,6 @@ const INVESTOR_PILLARS = [
     title: 'Network Investor',
     body: 'Open doors through trusted relationships. Introduce co-investors, customers, suppliers, or strategic enablers.',
     italic: 'Your network becomes a genuine form of investment — and earns accordingly.',
-    accent: '#8B5CF6',
-    accentRgb: '139,92,246',
     tag: null,
   },
   {
@@ -236,8 +236,6 @@ const INVESTOR_PILLARS = [
     title: 'Education Investor',
     body: 'Share domain expertise, conduct workshops, or provide strategic advisory. Help ventures succeed through what you know.',
     italic: 'The rarest form of capital. Your insights become equity in the ventures that need them most.',
-    accent: '#10B981',
-    accentRgb: '16,185,129',
     tag: 'Rarest',
   },
 ]
@@ -273,8 +271,8 @@ function InvestorIdentitiesSection() {
           </p>
         </div>
 
-        {/* 2×2 card grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:gap-6">
+        {/* Single-line stackable tile row */}
+        <div className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] gap-5 lg:gap-6 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#4d3a7a_transparent] lg:grid-flow-row lg:grid-cols-4 lg:auto-cols-auto lg:overflow-x-visible">
           {INVESTOR_PILLARS.map((pillar, i) => {
             const isHovered = hovered === i
             return (
@@ -282,12 +280,12 @@ function InvestorIdentitiesSection() {
                 key={pillar.number}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                className="group relative rounded-2xl overflow-hidden cursor-default transition-transform duration-300"
+                className="group relative rounded-2xl overflow-hidden cursor-default transition-transform duration-300 min-h-[360px]"
                 style={{
-                  transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-                  background: `linear-gradient(135deg, rgba(${pillar.accentRgb},0.03) 0%, #0b1022 50%, #080d1a 100%)`,
-                  border: `1px solid rgba(${pillar.accentRgb},${isHovered ? '0.50' : '0.22'})`,
-                  boxShadow: isHovered ? `0 0 40px rgba(${pillar.accentRgb},0.15), 0 8px 32px rgba(0,0,0,0.5)` : '0 4px 20px rgba(0,0,0,0.45)',
+                  transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                  background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                  border: `1px solid ${isHovered ? 'rgba(210,191,245,0.55)' : 'rgba(180,151,235,0.35)'}`,
+                  boxShadow: isHovered ? '0 10px 26px rgba(22,12,52,0.45)' : '0 6px 18px rgba(22,12,52,0.35)',
                   transition: 'transform 300ms ease, border-color 300ms ease, box-shadow 300ms ease',
                 }}
               >
@@ -296,11 +294,11 @@ function InvestorIdentitiesSection() {
                   <div className="flex items-center justify-between mb-6">
                     <span
                       className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.22em]"
-                      style={{ color: pillar.accent }}
+                      style={{ color: '#CDBFF4' }}
                     >
                       <span
                         className="inline-block h-1.5 w-1.5 rounded-full"
-                        style={{ background: pillar.accent }}
+                        style={{ background: '#CDBFF4' }}
                       />
                       {pillar.category}
                     </span>
@@ -308,9 +306,9 @@ function InvestorIdentitiesSection() {
                       <span
                         className="text-[10px] font-semibold rounded-full px-2 py-0.5"
                         style={{
-                          background: `rgba(${pillar.accentRgb},0.12)`,
-                          color: pillar.accent,
-                          border: `1px solid rgba(${pillar.accentRgb},0.25)`,
+                          background: 'rgba(205,191,244,0.12)',
+                          color: '#CDBFF4',
+                          border: '1px solid rgba(205,191,244,0.35)',
                         }}
                       >
                         {pillar.tag}
@@ -322,26 +320,26 @@ function InvestorIdentitiesSection() {
                   <div
                     className="mb-5 h-px rounded-full"
                     style={{
-                      background: `linear-gradient(90deg, ${pillar.accent}, transparent)`,
+                      background: 'linear-gradient(90deg, #CDBFF4, transparent)',
                       width: isHovered ? '80px' : '40px',
                       transition: 'width 300ms ease',
                     }}
                   />
 
                   {/* Title */}
-                  <h3 className="font-hero text-xl sm:text-2xl font-bold text-white mb-3 leading-snug">
+                  <h3 className="font-hero text-xl sm:text-2xl font-bold text-[#F8F5FF] mb-3 leading-snug">
                     {pillar.title}
                   </h3>
 
                   {/* Body */}
-                  <p className="font-body text-[14px] text-white/80 leading-relaxed mb-4">
+                  <p className="font-body text-[14px] text-[#F8F5FF]/90 leading-relaxed mb-4">
                     {pillar.body}
                   </p>
 
                   {/* Italic note */}
                   <p
                     className="font-body text-[13px] italic leading-relaxed"
-                    style={{ color: `rgba(${pillar.accentRgb},0.85)` }}
+                    style={{ color: '#CDBFF4' }}
                   >
                     {pillar.italic}
                   </p>
@@ -400,6 +398,7 @@ function VaultCardsSection(_: WithRequestAccess) {
 
   const maxIndex = vaults.length - 1   // 1 card visible at a time
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const clipperRef = useRef<HTMLDivElement>(null)
   const [cardWidth, setCardWidth] = useState(0)
 
@@ -414,21 +413,30 @@ function VaultCardsSection(_: WithRequestAccess) {
     return () => ro.disconnect()
   }, [])
 
+  // Auto-advance the vault carousel in a loop.
+  useEffect(() => {
+    if (isPaused) return
+    const interval = window.setInterval(() => {
+      setActiveIndex((i) => (i >= maxIndex ? 0 : i + 1))
+    }, 4200)
+    return () => window.clearInterval(interval)
+  }, [isPaused, maxIndex])
+
   const translateX = -(activeIndex * (cardWidth + VAULT_GAP))
 
   return (
     <section
       id="vaults"
-      className="py-20 sm:py-28"
-      style={{ background: '#080d1a' }}
+      className="relative z-20 -mt-[14vh] py-20 sm:py-24"
+      style={{ background: '#ffffff' }}
     >
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+      <div className="mx-[5%] lg:mx-[10%] rounded-3xl bg-white px-6 sm:px-8 lg:px-12 py-8 sm:py-10 shadow-[0_18px_40px_rgba(22,28,45,0.16)]">
         <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-10 lg:gap-16 items-start">
 
           {/* LEFT — overline + heading + arrows */}
           <div className="flex flex-col">
             <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">{overline}</p>
-            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-white leading-[1.12] tracking-tight">
+            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-slate-900 leading-[1.12] tracking-tight">
               {heading}
             </h2>
 
@@ -438,7 +446,7 @@ function VaultCardsSection(_: WithRequestAccess) {
                 aria-label="Previous vault"
                 onClick={() => setActiveIndex(i => Math.max(0, i - 1))}
                 disabled={activeIndex === 0}
-                className="flex items-center justify-center w-11 h-11 rounded-full border border-white/20 text-white transition-all hover:border-[#D4AF37]/60 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
+                className="flex items-center justify-center w-11 h-11 rounded-full border border-slate-300 text-slate-600 transition-all hover:border-[#D4AF37]/70 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -446,7 +454,7 @@ function VaultCardsSection(_: WithRequestAccess) {
                 aria-label="Next vault"
                 onClick={() => setActiveIndex(i => Math.min(maxIndex, i + 1))}
                 disabled={activeIndex >= maxIndex}
-                className="flex items-center justify-center w-11 h-11 rounded-full border border-white/20 text-white transition-all hover:border-[#D4AF37]/60 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
+                className="flex items-center justify-center w-11 h-11 rounded-full border border-slate-300 text-slate-600 transition-all hover:border-[#D4AF37]/70 hover:text-[#D4AF37] disabled:opacity-25 disabled:cursor-default"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -457,7 +465,7 @@ function VaultCardsSection(_: WithRequestAccess) {
                     key={i}
                     onClick={() => setActiveIndex(i)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === activeIndex ? 'w-6 bg-[#D4AF37]' : 'w-1.5 bg-white/25 hover:bg-white/50'
+                      i === activeIndex ? 'w-6 bg-[#D4AF37]' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
                     }`}
                     aria-label={`Go to vault ${i + 1}`}
                   />
@@ -467,7 +475,12 @@ function VaultCardsSection(_: WithRequestAccess) {
           </div>
 
           {/* RIGHT — overflow-clipped carousel, 1 card + peek */}
-          <div ref={clipperRef} style={{ overflow: 'hidden', position: 'relative' }}>
+          <div
+            ref={clipperRef}
+            style={{ overflow: 'hidden', position: 'relative' }}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             <div
               style={{
                 display: 'flex',

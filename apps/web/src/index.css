@@ -148,34 +148,31 @@ html { font-size: 100%; }
 
   /* Primary button — premium gradient style */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-indigo-500 text-white rounded-xl px-5 py-2.5 font-semibold
-           shadow-[0_2px_8px_rgba(99,102,241,0.25)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)]
-           transition-all duration-200
-           hover:brightness-110 hover:scale-[1.01] active:scale-100
-           focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2;
+      @apply bg-transparent text-[#D4AF37] border border-[#D4AF37] rounded-xl px-5 py-2.5 font-medium
+        transition-all duration-200 hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold
+        active:scale-100 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40 focus:ring-offset-2;
   }
   .dark .btn-primary {
-    @apply from-[#D4AF37] to-[#B8860B] text-slate-900 shadow-[0_2px_8px_rgba(212,175,55,0.25)]
-           hover:shadow-[0_4px_20px_rgba(212,175,55,0.4)] hover:-translate-y-px focus:ring-[#D4AF37]/40;
+      @apply bg-transparent text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold focus:ring-[#D4AF37]/40;
   }
 
   /* Secondary button */
   .btn-secondary {
-    @apply border border-gray-300 bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl px-5 py-2.5 font-semibold
-           hover:bg-white hover:border-gray-400 hover:shadow-sm transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
+    @apply bg-transparent text-[#D4AF37] border border-[#D4AF37] rounded-xl px-5 py-2.5 font-medium
+           hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40 focus:ring-offset-2;
   }
   .dark .btn-secondary {
-    @apply border-white/[0.15] bg-white/[0.06] text-white/80 hover:bg-white/10 hover:border-white/25 focus:ring-white/10;
+    @apply bg-transparent text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold focus:ring-[#D4AF37]/40;
   }
 
   /* Ghost button */
   .btn-ghost {
-    @apply text-primary font-semibold hover:bg-primary-light rounded-xl px-3 py-2
-           transition-colors duration-200;
+    @apply bg-transparent text-[#D4AF37] border border-[#D4AF37] rounded-xl px-3 py-2 font-medium
+           transition-colors duration-200 hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold;
   }
   .dark .btn-ghost {
-    @apply text-[#D4AF37] hover:bg-[#D4AF37]/10 border border-white/[0.07] hover:border-white/[0.13];
+    @apply text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold;
   }
 
   /* Danger button */

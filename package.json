@@ -33,18 +33,6 @@
     "clean": "turbo run clean && rimraf node_modules apps/*/node_modules packages/*/node_modules tests/node_modules",
     "prepare": "husky || true"
   },
-  "lint-staged": {
-    "apps/web/**/*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0"
-    ],
-    "apps/mobile/**/*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0"
-    ],
-    "services/api/**/*.py": [
-      "ruff check --fix",
-      "ruff format"
-    ]
-  },
   "devDependencies": {
     "ajv": "^8.20.0",
     "ajv-keywords": "^5.1.0",

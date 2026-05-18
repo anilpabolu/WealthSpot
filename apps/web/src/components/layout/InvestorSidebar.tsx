@@ -7,7 +7,6 @@ import {
   Receipt,
   Landmark,
   FileCheck,
-  Users,
   Share2,
   Bell,
   Settings,
@@ -25,7 +24,6 @@ const INVESTOR_NAV = [
   { label: 'Transactions', href: '/portal/investor/transactions', icon: Receipt, requiresProfile: true },
   { label: 'Lend', href: '/portal/investor/lender', icon: Landmark, requiresProfile: true },
   { label: 'KYC Status', href: '/settings?tab=kyc', icon: FileCheck },
-  { label: 'Community', href: '/community', icon: Users, roles: ['super_admin'] as string[] },
   { label: 'Refer & Earn', href: '/referral', icon: Share2 },
 ]
 

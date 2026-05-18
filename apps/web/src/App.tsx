@@ -36,7 +36,6 @@ const LenderDashboard = lazy(() => import('@/pages/LenderDashboardPage'))
 const KycIdentity = lazy(() => import('@/pages/KycIdentityPage'))
 const Onboarding = lazy(() => import('@/pages/OnboardingPage'))
 const Vaults = lazy(() => import('@/pages/VaultsPage'))
-const Community = lazy(() => import('@/pages/CommunityPage'))
 const Referral = lazy(() => import('@/pages/ReferralPage'))
 const Settings = lazy(() => import('@/pages/SettingsPage'))
 const CommandControl = lazy(() => import('@/pages/CommandControlPage'))
@@ -48,7 +47,6 @@ const ContributeTime = lazy(() => import('@/pages/ContributeTimePage'))
 const ContributeNetwork = lazy(() => import('@/pages/ContributeNetworkPage'))
 const ContributeEducation = lazy(() => import('@/pages/ContributeEducationPage'))
 const CompanyOnboarding = lazy(() => import('@/pages/CompanyOnboardingPage'))
-const AnswerQuestions = lazy(() => import('@/pages/AnswerQuestionsPage'))
 const BuilderProfile = lazy(() => import('@/pages/BuilderProfilePage'))
 const ProfileCompletion = lazy(() => import('@/pages/ProfileCompletionPage'))
 const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetailPage'))
@@ -179,6 +177,8 @@ export default function App() {
           <Route path="/opportunity/:slug" element={<OpportunityDetail />} />
           <Route path="/builder/listings" element={<Navigate to="/portal/builder/listings" replace />} />
           <Route path="/builder/:id" element={<BuilderProfile />} />
+          <Route path="/community" element={<Navigate to="/vaults" replace />} />
+          <Route path="/community/answer" element={<Navigate to="/control-centre" replace />} />
 
           {/* Investor portal */}
           <Route path="/portal/investor" element={<ProtectedRoute><InvestorDashboard /></ProtectedRoute>} />
@@ -209,9 +209,7 @@ export default function App() {
           <Route path="/create-opportunity" element={<ProtectedRoute><CreateOpportunity /></ProtectedRoute>} />
           <Route path="/auth/kyc/identity" element={<ProtectedRoute><KycIdentity /></ProtectedRoute>} />
 
-          {/* Community & Referral */}
-          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-          <Route path="/community/answer" element={<ProtectedRoute><AnswerQuestions /></ProtectedRoute>} />
+          {/* Referral */}
           <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
 
           {/* Approvals & Command Control */}
