@@ -108,7 +108,7 @@ function ForMeSection(_: WithRequestAccess) {
     <section
       id="for-me"
       className="relative overflow-hidden py-20 sm:py-28"
-      style={{ background: 'linear-gradient(180deg, #080d18 0%, #0b1120 60%, #0a0f1c 100%)' }}
+      style={{ background: '#ffffff' }}
     >
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0">
@@ -122,7 +122,7 @@ function ForMeSection(_: WithRequestAccess) {
         {/* Section heading */}
         <div className="text-center mb-12">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The Journey</p>
-          <h2 className="font-hero text-3xl sm:text-4xl font-bold text-white leading-[1.12] tracking-tight">
+          <h2 className="font-hero text-3xl sm:text-4xl font-bold text-slate-900 leading-[1.12] tracking-tight">
             Your investment journey, simplified.
           </h2>
         </div>
@@ -179,7 +179,7 @@ function InvestorIdentitiesSection() {
     <section
       id="investor-identities"
       className="relative overflow-hidden py-20 sm:py-28"
-      style={{ background: 'linear-gradient(180deg, #f5f3ee 0%, #eeeae0 50%, #f0ece2 100%)' }}
+      style={{ background: '#ffffff' }}
     >
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -487,7 +487,7 @@ function ClosingSection({ onRequestAccess }: WithRequestAccess) {
     <section
       id="closing"
       className="relative overflow-hidden py-24 sm:py-32"
-      style={{ background: 'linear-gradient(135deg, #080d1a 0%, #0d1324 50%, #080d1a 100%)' }}
+      style={{ background: '#ffffff' }}
     >
       {/* decorative glows */}
       <div className="pointer-events-none absolute inset-0">
@@ -497,10 +497,10 @@ function ClosingSection({ onRequestAccess }: WithRequestAccess) {
 
       <div className="relative z-10 mx-auto max-w-3xl px-6 sm:px-8 text-center">
         <p className="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Join WealthSpot</p>
-        <h2 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight mb-8">
+        <h2 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-8">
           {heading}
         </h2>
-        <p className="font-body text-[15px] text-white/55 leading-relaxed max-w-xl mx-auto mb-12">
+        <p className="font-body text-[15px] text-slate-700 leading-relaxed max-w-xl mx-auto mb-12">
           {body}
         </p>
         <button

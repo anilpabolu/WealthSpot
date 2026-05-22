@@ -39,6 +39,7 @@ export default function Navbar(_props?: NavbarProps) {
 
   // ── Scroll behaviour (all pages) ───────────────────────────────────────
   const [navVisible, setNavVisible] = useState(true)
+  const [isHeaderLight, setIsHeaderLight] = useState(true)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
@@ -57,6 +58,24 @@ export default function Navbar(_props?: NavbarProps) {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const hero = document.getElementById('hero')
+    if (!hero) {
+      setIsHeaderLight(false)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeaderLight(entry.isIntersecting)
+      },
+      { rootMargin: '-72px 0px 0px 0px', threshold: [0, 0.1] }
+    )
+
+    observer.observe(hero)
+    return () => observer.disconnect()
   }, [location.pathname])
 
   const extraLinks = [
@@ -90,16 +109,24 @@ export default function Navbar(_props?: NavbarProps) {
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/vaults" className="flex items-center gap-3 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={40} />
+          <Link to="/vaults" className="flex items-center gap-2 shrink-0" aria-label="WealthSpot Home">
+            <WLogo3D size={46} light={isHeaderLight} className="transition-all duration-300" />
             <div className="flex flex-col">
               <span
-                className="text-2xl font-bold tracking-tight text-white leading-none"
+                className={cn(
+                  'text-2xl font-bold tracking-tight leading-none',
+                  isHeaderLight ? 'text-white' : 'text-slate-950'
+                )}
                 style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 leading-none mt-1">
+              <span
+                className={cn(
+                  'text-[10px] font-semibold uppercase tracking-[0.25em] leading-none mt-1',
+                  isHeaderLight ? 'text-white/70' : 'text-slate-500'
+                )}
+              >
                 Private Wealth Access
               </span>
             </div>
@@ -118,8 +145,12 @@ export default function Navbar(_props?: NavbarProps) {
                       ? 'px-4 py-1.5 rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
                       : 'px-4 py-1.5 rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
                     : location.pathname === link.href
-                      ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
-                      : 'text-white/70 hover:text-white'
+                      ? isHeaderLight
+                        ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
+                        : 'text-slate-950 after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
+                      : isHeaderLight
+                        ? 'text-white/70 hover:text-white'
+                        : 'text-slate-900/80 hover:text-slate-950'
                 )}
               >
                 {link.label}
@@ -158,9 +189,9 @@ export default function Navbar(_props?: NavbarProps) {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
-                <X className="h-6 w-6 text-white/80" />
+                <X className={cn('h-6 w-6', isHeaderLight ? 'text-white/80' : 'text-slate-900/80')} />
               ) : (
-                <Menu className="h-6 w-6 text-white/80" />
+                <Menu className={cn('h-6 w-6', isHeaderLight ? 'text-white/80' : 'text-slate-900/80')} />
               )}
             </button>
           </div>
@@ -169,7 +200,14 @@ export default function Navbar(_props?: NavbarProps) {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden animate-fade-up" style={{ background: 'transparent', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
+        <div
+          className="md:hidden animate-fade-up"
+          style={{
+            background: 'transparent',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+          }}
+        >
           <div className="px-4 py-4 space-y-2">
             {visibleNavLinks.map((link) => (
               <Link
@@ -182,8 +220,12 @@ export default function Navbar(_props?: NavbarProps) {
                       ? 'rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
                       : 'rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
                     : location.pathname === link.href
-                      ? 'text-white font-semibold border border-[#D4AF37]'
-                      : 'text-white/70 hover:text-white border border-transparent hover:border-white/35'
+                      ? isHeaderLight
+                        ? 'text-white font-semibold border border-[#D4AF37]'
+                        : 'text-slate-950 font-semibold border border-[#D4AF37]'
+                      : isHeaderLight
+                        ? 'text-white/70 hover:text-white border border-transparent hover:border-white/35'
+                        : 'text-slate-900/80 hover:text-slate-950 border border-transparent hover:border-slate-300/50'
                 )}
                 onClick={() => setMobileOpen(false)}
               >

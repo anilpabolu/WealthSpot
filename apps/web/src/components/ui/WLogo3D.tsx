@@ -7,7 +7,7 @@ interface WLogo3DProps {
   className?: string
 }
 
-export default function WLogo3D({ size = 32, className }: WLogo3DProps) {
+export default function WLogo3D({ size = 32, light = true, className }: WLogo3DProps) {
   return (
     <img
       src="/wealthspot-logo-light.png"
@@ -16,7 +16,11 @@ export default function WLogo3D({ size = 32, className }: WLogo3DProps) {
       height={size}
       draggable={false}
       className={cn('shrink-0 object-contain', className)}
-      style={{ width: size, height: size }}
+      style={{
+        width: size,
+        height: size,
+        filter: light ? 'none' : 'invert(1) brightness(0.85)',
+      }}
     />
   )
 }
