@@ -68,7 +68,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="flex flex-col gap-5">
             <Link to="/" className="flex items-center gap-2.5">
-              <WLogo3D size={52} light />
+              <WLogo3D size={36} />
               <div className="flex flex-col">
                 <span
                   className="text-lg font-bold tracking-tight text-white leading-none"

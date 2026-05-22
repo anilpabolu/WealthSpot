@@ -12,11 +12,20 @@ import {
   Settings,
   HelpCircle,
   Vault,
+  type LucideIcon,
 } from 'lucide-react'
 import { useUserStore } from '@/stores/user.store'
 import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
 
-const INVESTOR_NAV = [
+interface InvestorNavItem {
+  label: string
+  href: string
+  icon: LucideIcon
+  requiresProfile?: boolean
+  roles?: string[]
+}
+
+const INVESTOR_NAV: InvestorNavItem[] = [
   { label: 'Dashboard', href: '/portal/investor', icon: LayoutDashboard },
   { label: 'Portfolio', href: '/portal/investor/portfolio', icon: PieChart },
   { label: 'Marketplace', href: '/marketplace', icon: Building2 },
@@ -27,7 +36,7 @@ const INVESTOR_NAV = [
   { label: 'Refer & Earn', href: '/referral', icon: Share2 },
 ]
 
-const INVESTOR_BOTTOM = [
+const INVESTOR_BOTTOM: InvestorNavItem[] = [
   { label: 'Notifications', href: '/portal/investor/notifications', icon: Bell },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Help Center', href: '/help', icon: HelpCircle },
@@ -39,10 +48,10 @@ export default function InvestorSidebar() {
   const { data: profileStatus } = useProfileCompletionStatus()
 
   const visibleNav = INVESTOR_NAV.filter((item) => {
-    if ('roles' in item && item.roles) {
+    if (item.roles) {
       if (!userRole || !item.roles.includes(userRole)) return false
     }
-    if ('requiresProfile' in item && item.requiresProfile) {
+    if (item.requiresProfile) {
       if (!profileStatus?.isComplete) return false
     }
     return true

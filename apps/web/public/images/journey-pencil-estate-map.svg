@@ -1,0 +1,79 @@
+<svg width="900" height="520" viewBox="0 0 900 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="2" seed="11" result="noise"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+    </filter>
+    <pattern id="farmHatch" patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(26)">
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#627086" stroke-opacity="0.28" stroke-width="1"/>
+    </pattern>
+    <pattern id="plotGrid" patternUnits="userSpaceOnUse" width="30" height="30">
+      <rect x="0" y="0" width="30" height="30" fill="none" stroke="#677489" stroke-opacity="0.28" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#EEF2F8"/>
+  <rect x="0" y="0" width="900" height="520" fill="#24344A" filter="url(#paperNoise)" opacity="0.35"/>
+
+  <g stroke="#4A5A72" stroke-opacity="0.55" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M451 260 C387 225, 317 210, 244 204" stroke-width="2.1"/>
+    <path d="M451 260 C515 225, 584 210, 656 198" stroke-width="2.1"/>
+    <path d="M451 260 C398 300, 342 336, 282 370" stroke-width="2.1"/>
+    <path d="M451 260 C509 303, 571 334, 637 366" stroke-width="2.1"/>
+
+    <path d="M451 260 C389 238, 327 236, 270 250" stroke-width="1.2" stroke-opacity="0.35"/>
+    <path d="M451 260 C515 242, 575 242, 633 255" stroke-width="1.2" stroke-opacity="0.35"/>
+    <path d="M451 260 C413 286, 376 315, 338 350" stroke-width="1.2" stroke-opacity="0.35"/>
+    <path d="M451 260 C491 287, 530 315, 568 349" stroke-width="1.2" stroke-opacity="0.35"/>
+  </g>
+
+  <g stroke="#44566F" stroke-opacity="0.7" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="108" y="96" width="44" height="106" stroke-width="2"/>
+    <rect x="160" y="82" width="42" height="120" stroke-width="2"/>
+    <rect x="210" y="102" width="36" height="100" stroke-width="2"/>
+    <path d="M108 116 H152 M108 136 H152 M108 156 H152 M108 176 H152" stroke-width="1" stroke-opacity="0.45"/>
+    <path d="M160 104 H202 M160 126 H202 M160 148 H202 M160 170 H202" stroke-width="1" stroke-opacity="0.45"/>
+    <path d="M210 122 H246 M210 144 H246 M210 166 H246" stroke-width="1" stroke-opacity="0.45"/>
+    <path d="M96 208 H260" stroke-width="2"/>
+  </g>
+
+  <g stroke="#44566F" stroke-opacity="0.7" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M642 101 L674 74 L708 101 V176 H642 Z" stroke-width="2"/>
+    <path d="M720 118 L749 91 L780 118 V183 H720 Z" stroke-width="2"/>
+    <path d="M791 106 L819 84 L848 106 V170 H791 Z" stroke-width="2"/>
+    <path d="M674 74 L674 100 M749 91 L749 118 M819 84 L819 106" stroke-width="1.2" stroke-opacity="0.45"/>
+    <path d="M666 138 H684 M738 146 H760 M807 140 H833" stroke-width="1" stroke-opacity="0.45"/>
+  </g>
+
+  <g stroke="#455770" stroke-opacity="0.66" fill="none" stroke-linejoin="round">
+    <rect x="120" y="336" width="80" height="54" fill="url(#farmHatch)" stroke-width="2"/>
+    <rect x="205" y="328" width="88" height="62" fill="url(#farmHatch)" stroke-width="2"/>
+    <rect x="126" y="396" width="96" height="58" fill="url(#farmHatch)" stroke-width="2"/>
+    <rect x="228" y="398" width="86" height="58" fill="url(#farmHatch)" stroke-width="2"/>
+    <path d="M110 328 C170 314, 250 316, 322 329" stroke-width="1.2" stroke-opacity="0.4"/>
+  </g>
+
+  <g stroke="#455770" stroke-opacity="0.68" fill="none" stroke-linejoin="round">
+    <rect x="600" y="332" width="236" height="138" fill="url(#plotGrid)" stroke-width="2"/>
+    <path d="M600 378 H836 M600 424 H836" stroke-width="1" stroke-opacity="0.45"/>
+    <path d="M648 332 V470 M696 332 V470 M744 332 V470 M792 332 V470" stroke-width="1" stroke-opacity="0.45"/>
+  </g>
+
+  <g stroke="#4A5A72" stroke-opacity="0.52" fill="none" stroke-linecap="round">
+    <ellipse cx="451" cy="260" rx="96" ry="54" stroke-width="1.8"/>
+    <ellipse cx="451" cy="260" rx="132" ry="74" stroke-width="1.2" stroke-dasharray="4 9" stroke-opacity="0.38"/>
+    <ellipse cx="451" cy="260" rx="56" ry="30" stroke-width="1" stroke-dasharray="2 6" stroke-opacity="0.32"/>
+    <path d="M420 244 C431 257, 440 274, 451 283 C463 274, 472 257, 483 244" stroke-width="2" stroke-opacity="0.42"/>
+    <path d="M417 281 C433 270, 469 270, 486 281" stroke-width="1.5" stroke-opacity="0.38"/>
+  </g>
+
+  <g stroke="#3E506A" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M55 248 C148 210, 228 190, 332 178" stroke-width="1"/>
+    <path d="M552 170 C666 176, 764 194, 867 231" stroke-width="1"/>
+    <path d="M54 286 C143 316, 208 344, 300 402" stroke-width="1"/>
+    <path d="M587 401 C661 350, 740 316, 857 286" stroke-width="1"/>
+  </g>
+</svg>

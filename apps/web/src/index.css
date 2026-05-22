@@ -403,6 +403,55 @@ html { font-size: 100%; }
   }
 }
 
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.boot-splash--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-splash__logo {
+  animation: splash-logo-breathe 1.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes splash-logo-breathe {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash {
+    transition: none;
+  }
+
+  .boot-splash__logo {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '@clerk/react'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -13,6 +13,7 @@ import { applyThemePalette } from '@/lib/colorUtils'
 import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 import { ToastRibbon } from '@/components/ToastRibbon'
 import { useToastStore } from '@/stores/toastStore'
+import SplashScreen from './components/SplashScreen'
 
 // Lazy-loaded route components
 const Landing = lazy(() => import('@/pages/LandingPage'))
@@ -90,6 +91,22 @@ export default function App() {
   const navigate = useNavigate()
   const { user, isLoaded } = useUser()
   const redirectedRef = useRef(false)
+  const [showBootSplash, setShowBootSplash] = useState(true)
+  const [bootSplashExiting, setBootSplashExiting] = useState(false)
+
+  useEffect(() => {
+    const startExitTimer = window.setTimeout(() => {
+      setBootSplashExiting(true)
+    }, 1400)
+    const unmountTimer = window.setTimeout(() => {
+      setShowBootSplash(false)
+    }, 1800)
+
+    return () => {
+      window.clearTimeout(startExitTimer)
+      window.clearTimeout(unmountTimer)
+    }
+  }, [])
 
   useFavicon()
 
@@ -104,11 +121,12 @@ export default function App() {
   // Apply admin-configured light mode background color
   const { data: appearance } = useAppearanceConfig()
   useEffect(() => {
+    if (showBootSplash) return
     const color = appearance?.lightModeBgColor || '#FDFBF5'
     if (theme !== 'dark') {
       applyThemePalette(color)
     }
-  }, [appearance, theme])
+  }, [appearance, showBootSplash, theme])
 
   // Sync toast dismiss interval from DB config
   const { data: notifConfig } = usePublicNotificationsConfig()
@@ -161,6 +179,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      {showBootSplash && <SplashScreen exiting={bootSplashExiting} />}
       <NotRegisteredBanner />
       <ToastRibbon />
       {wsUser &&

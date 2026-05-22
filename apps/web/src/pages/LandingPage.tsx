@@ -4,6 +4,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
 import SEOHead from '@/components/SEOHead'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import JourneyConstellation from '@/components/landing/JourneyConstellation'
 
 /* ─────────────────────────────────────────────────
    SHARED TYPE
@@ -103,14 +104,6 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
    Full-width infographic image with overlaid graphics
 ───────────────────────────────────────────────── */
 function ForMeSection(_: WithRequestAccess) {
-  const imageUrl = useContent('landing', 'investment_journey_image', '/images/investment-journey.jpg')
-
-  const steps = [
-    { step: '01', title: 'Request Access', body: 'Apply for membership and get verified in under 24 hours.', color: '#D4AF37', rgb: '212,175,55' },
-    { step: '02', title: 'Explore Vaults', body: 'Browse curated opportunities across three investment classes.', color: '#8B5CF6', rgb: '139,92,246' },
-    { step: '03', title: 'Invest & Grow', body: 'Commit capital, track performance, and compound returns.', color: '#10B981', rgb: '16,185,129' },
-  ]
-
   return (
     <section
       id="for-me"
@@ -134,68 +127,7 @@ function ForMeSection(_: WithRequestAccess) {
           </h2>
         </div>
 
-        {/* Image with decorative frame + floating badges */}
-        <div className="relative">
-          {/* Corner frame accents */}
-          <div className="absolute -top-3 -left-3 w-14 h-14 border-t-2 border-l-2 border-[#D4AF37]/35 rounded-tl-xl z-10 pointer-events-none" />
-          <div className="absolute -top-3 -right-3 w-14 h-14 border-t-2 border-r-2 border-[#D4AF37]/35 rounded-tr-xl z-10 pointer-events-none" />
-          <div className="absolute -bottom-3 -left-3 w-14 h-14 border-b-2 border-l-2 border-[#D4AF37]/35 rounded-bl-xl z-10 pointer-events-none" />
-          <div className="absolute -bottom-3 -right-3 w-14 h-14 border-b-2 border-r-2 border-[#D4AF37]/35 rounded-br-xl z-10 pointer-events-none" />
-
-          {/* Main image */}
-          <img
-            src={imageUrl}
-            alt="WealthSpot Investment Journey"
-            className="w-full h-auto block rounded-2xl"
-            loading="lazy"
-            style={{ boxShadow: '0 0 80px rgba(0,0,0,0.7), 0 0 140px rgba(212,175,55,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}
-          />
-
-          {/* Floating badge — top right */}
-          <div
-            className="absolute top-5 right-5 sm:top-8 sm:right-8 backdrop-blur-xl rounded-xl px-4 py-3 hidden sm:block"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(212,175,55,0.2)' }}
-          >
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#D4AF37] mb-1">Avg. Target IRR</p>
-            <p className="text-2xl font-bold text-white leading-none">14–22%</p>
-          </div>
-
-          {/* Floating badge — bottom left */}
-          <div
-            className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 backdrop-blur-xl rounded-xl px-4 py-3 hidden sm:block"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(16,185,129,0.2)' }}
-          >
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-emerald-400 mb-1">Access in</p>
-            <p className="text-2xl font-bold text-white leading-none">3 steps</p>
-          </div>
-        </div>
-
-        {/* 3-step flow */}
-        <div className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-0">
-          {steps.map(({ step, title, body, color, rgb }, i) => (
-            <div key={step} className="flex flex-col sm:flex-row items-start gap-0">
-              <div className="flex sm:flex-col items-start gap-4 sm:gap-0 w-full sm:w-auto px-0 sm:px-6 lg:px-8 relative">
-                {/* connector line between steps */}
-                {i < steps.length - 1 && (
-                  <div
-                    className="hidden sm:block absolute top-4 left-1/2 w-full h-px"
-                    style={{ background: `linear-gradient(90deg, rgba(${rgb},0.4) 0%, rgba(${rgb},0.05) 100%)`, transform: 'translateX(20px)' }}
-                  />
-                )}
-                <div
-                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-black mb-4"
-                  style={{ border: `1px solid rgba(${rgb},0.35)`, color, background: `rgba(${rgb},0.1)` }}
-                >
-                  {step}
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-[15px] mb-1.5">{title}</p>
-                  <p className="text-white/50 text-[13px] leading-relaxed">{body}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <JourneyConstellation />
       </div>
     </section>
   )

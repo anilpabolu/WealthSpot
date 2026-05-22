@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useThemeStore } from '@/stores/theme.store'
 
-const FAVICON_VERSION = '20260517'
+const FAVICON_VERSION = '20260520'
 const LIGHT_FAVICON = `/wealthspot-logo-light.png?v=${FAVICON_VERSION}`
-const DARK_FAVICON = `/favicon.svg?v=${FAVICON_VERSION}`
+const DARK_FAVICON = `/wealthspot-logo-light.png?v=${FAVICON_VERSION}`
 const SYSTEM_DARK_QUERY = '(prefers-color-scheme: dark)'
 const DYNAMIC_FAVICON_ID = 'wealthspot-dynamic-favicon'
 
@@ -42,14 +42,8 @@ function applyFavicon(theme: 'dark' | 'light') {
     head.appendChild(dynamicLink)
   }
 
-  if (theme === 'dark') {
-    dynamicLink.type = 'image/svg+xml'
-    dynamicLink.href = DARK_FAVICON
-    return
-  }
-
   dynamicLink.type = 'image/png'
-  dynamicLink.href = LIGHT_FAVICON
+  dynamicLink.href = theme === 'dark' ? DARK_FAVICON : LIGHT_FAVICON
 }
 
 export function useFavicon() {

@@ -91,7 +91,7 @@ export default function Navbar(_props?: NavbarProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/vaults" className="flex items-center gap-3 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={88} light />
+            <WLogo3D size={40} />
             <div className="flex flex-col">
               <span
                 className="text-2xl font-bold tracking-tight text-white leading-none"
