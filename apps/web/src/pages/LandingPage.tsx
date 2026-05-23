@@ -6,17 +6,17 @@ import SEOHead from '@/components/SEOHead'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import JourneyConstellation from '@/components/landing/JourneyConstellation'
 
-/* ─────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    SHARED TYPE
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface WithRequestAccess {
   onRequestAccess: () => void
 }
 
-/* ─────────────────────────────────────────────────
-   SECTION 1 — HERO
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION 1 â€” HERO
    Full-viewport video background, text anchored bottom-right
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function HeroSection({ onRequestAccess }: WithRequestAccess) {
   const headline1a  = useContent('landing', 'hero_headline_1a', 'Invest together in')
   const headline1b  = useContent('landing', 'hero_headline_1b', 'curated opportunities.')
@@ -28,7 +28,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[88vh] flex-col overflow-hidden -mt-16"
+      className="relative flex min-h-screen flex-col overflow-hidden"
     >
       {/* Background video */}
       <video
@@ -42,7 +42,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
         src={heroVideoUrl}
       />
 
-      {/* Gradient overlay — transparent top, dark bottom for text legibility */}
+      {/* Gradient overlay â€” transparent top, dark bottom for text legibility */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ background: 'linear-gradient(120deg, rgba(6,34,36,0.55) 0%, rgba(6,34,36,0.15) 45%, rgba(0,0,0,0.4) 100%)' }}
@@ -54,7 +54,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
         style={{ clipPath: 'polygon(0 0, 86% 0, 100% 100%, 0 100%)' }}
       />
 
-      {/* Content — left-aligned, anchored lower-left */}
+      {/* Content â€” left-aligned, anchored lower-left */}
       <div className="relative z-10 mt-auto w-full">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-16 lg:pb-20">
           <div className="flex flex-col items-end text-right max-w-2xl ml-auto">
@@ -99,10 +99,10 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   )
 }
 
-/* ─────────────────────────────────────────────────
-   SECTION 3 — INVESTMENT JOURNEY
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION 3 â€” INVESTMENT JOURNEY
    Full-width infographic image with overlaid graphics
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ForMeSection(_: WithRequestAccess) {
   return (
     <section
@@ -133,10 +133,10 @@ function ForMeSection(_: WithRequestAccess) {
   )
 }
 
-/* ─────────────────────────────────────────────────
-   SECTION — INVESTOR IDENTITIES
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION â€” INVESTOR IDENTITIES
    Four ways to participate in value creation.
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const INVESTOR_PILLARS = [
   {
     number: '01',
@@ -159,7 +159,7 @@ const INVESTOR_PILLARS = [
     category: 'CONNECTIONS',
     title: 'Network Investor',
     body: 'Open doors through trusted relationships. Introduce co-investors, customers, suppliers, or strategic enablers.',
-    italic: 'Your network becomes a genuine form of investment — and earns accordingly.',
+    italic: 'Your network becomes a genuine form of investment â€” and earns accordingly.',
     tag: null,
   },
   {
@@ -199,7 +199,7 @@ function InvestorIdentitiesSection() {
             </h2>
           </div>
           <p className="font-body text-[14px] text-slate-500 leading-relaxed max-w-xs sm:text-right">
-            Capital is one lens. WealthSpot recognises three others — each just as legitimate.
+            Capital is one lens. WealthSpot recognises three others â€” each just as legitimate.
           </p>
         </div>
 
@@ -248,7 +248,7 @@ function InvestorIdentitiesSection() {
                     )}
                   </div>
 
-                  {/* Accent rule — expands on hover */}
+                  {/* Accent rule â€” expands on hover */}
                   <div
                     className="mb-5 h-px rounded-full"
                     style={{
@@ -287,10 +287,10 @@ function InvestorIdentitiesSection() {
   )
 }
 
-/* ─────────────────────────────────────────────────
-   SECTION 4 — VAULT IMAGE TILES
-   "The Vaults" — 3 full-bleed image cards
-───────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION 4 â€” VAULT IMAGE TILES
+   "The Vaults" â€” 3 full-bleed image cards
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const VAULT_GAP  = 28   // px gap between cards
 const VAULT_PEEK = 88   // px of the next card peeking from the right
 
@@ -334,7 +334,7 @@ function VaultCardsSection(_: WithRequestAccess) {
   const clipperRef = useRef<HTMLDivElement>(null)
   const [cardWidth, setCardWidth] = useState(0)
 
-  // Measure carousel column width → card = column - peek - gap
+  // Measure carousel column width â†’ card = column - peek - gap
   useLayoutEffect(() => {
     const el = clipperRef.current
     if (!el) return
@@ -365,7 +365,7 @@ function VaultCardsSection(_: WithRequestAccess) {
       <div className="mx-[5%] lg:mx-[10%] rounded-3xl bg-white px-6 sm:px-8 lg:px-12 py-8 sm:py-10 shadow-[0_18px_40px_rgba(22,28,45,0.16)]">
         <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-10 lg:gap-16 items-start">
 
-          {/* LEFT — overline + heading + arrows */}
+          {/* LEFT â€” overline + heading + arrows */}
           <div className="flex flex-col">
             <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">{overline}</p>
             <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-slate-900 leading-[1.12] tracking-tight">
@@ -406,7 +406,7 @@ function VaultCardsSection(_: WithRequestAccess) {
             </div>
           </div>
 
-          {/* RIGHT — overflow-clipped carousel, 1 card + peek */}
+          {/* RIGHT â€” overflow-clipped carousel, 1 card + peek */}
           <div
             ref={clipperRef}
             style={{ overflow: 'hidden', position: 'relative' }}
@@ -444,14 +444,14 @@ function VaultCardsSection(_: WithRequestAccess) {
                       {/* gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
-                      {/* badge — top left */}
+                      {/* badge â€” top left */}
                       <div className="absolute top-5 left-5">
                         <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${vault.badgeStyle}`}>
                           {vault.badge}
                         </span>
                       </div>
 
-                      {/* vault name — bottom left */}
+                      {/* vault name â€” bottom left */}
                       <div className="absolute bottom-0 left-0 right-0 p-6">
                         <h3 className="font-hero text-2xl font-bold text-white leading-tight">
                           {vault.title}
@@ -474,10 +474,10 @@ function VaultCardsSection(_: WithRequestAccess) {
   )
 }
 
-/* ─────────────────────────────────────────────────
-   SECTION 8 — CLOSING CTA
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION 8 â€” CLOSING CTA
    "Get direct access to curated investments."
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ClosingSection({ onRequestAccess }: WithRequestAccess) {
   const heading = useContent('landing', 'closing_heading', 'Get direct access to curated investments.')
   const body    = useContent('landing', 'closing_body', 'WealthSpot is being built for those who prefer meaningful entry, selective opportunities, and relationships that compound beyond capital alone.')
@@ -515,9 +515,9 @@ function ClosingSection({ onRequestAccess }: WithRequestAccess) {
   )
 }
 
-/* ─────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    PAGE EXPORT
-───────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function LandingPage() {
   const clerk = useClerk()
 
@@ -529,7 +529,7 @@ export default function LandingPage() {
     <MainLayout>
       <SEOHead
         title="Democratizing Premium Assets"
-        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot — curated opportunities for serious investors."
+        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot â€” curated opportunities for serious investors."
         path="/"
       />
 

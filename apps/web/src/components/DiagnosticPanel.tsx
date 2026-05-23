@@ -24,7 +24,7 @@ const CATEGORY_CONFIG: Record<LogCategory, { label: string; color: string; bg: s
   api:    { label: 'API',    color: 'text-cyan-400',   bg: 'bg-cyan-500/10' },
   db:     { label: 'DB',     color: 'text-amber-400',  bg: 'bg-amber-500/10' },
   nav:    { label: 'NAV',    color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  system: { label: 'SYS',    color: 'text-theme-tertiary',   bg: 'bg-gray-500/10' },
+  system: { label: 'SYS',    color: 'text-white/70',   bg: 'bg-gray-500/10' },
   auth:   { label: 'AUTH',   color: 'text-rose-400',   bg: 'bg-rose-500/10' },
 }
 
@@ -39,7 +39,7 @@ const LEVEL_COLORS: Record<LogLevel, string> = {
   info:  'text-blue-400',
   warn:  'text-amber-400',
   error: 'text-red-400',
-  debug: 'text-theme-secondary',
+  debug: 'text-white/60',
 }
 
 // ─── Global log bus ───────────────────────────────────
@@ -100,6 +100,9 @@ export function diagApiTrace(method: string, url: string) {
 
 // ─── Component ────────────────────────────────────────
 export default function DiagnosticPanel() {
+  // Do not expose diagnostics in production builds
+  if (import.meta.env.MODE === 'production') return null
+
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -260,7 +263,7 @@ export default function DiagnosticPanel() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-[9999] h-10 w-10 rounded-full bg-gray-900 text-green-400 flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors border border-gray-700"
+        className="fixed bottom-4 right-4 z-[9999] h-10 w-10 rounded-full bg-white/5 text-white flex items-center justify-center shadow-lg hover:bg-white/10 transition-colors border border-white/10"
         title="Open Diagnostics"
       >
         <Terminal className="h-4 w-4" />
@@ -276,7 +279,7 @@ export default function DiagnosticPanel() {
   // ─── Panel ────────────────────────────────────────
   return (
     <div
-      className="fixed bottom-4 right-4 z-[9999] flex flex-col bg-gray-950 border border-gray-700 shadow-2xl"
+      className="fixed bottom-4 right-4 z-[9999] flex flex-col bg-gray-950/80 border border-white/10 shadow-2xl"
       style={{
         width: minimized ? 260 : 520,
         height: minimized ? 36 : 420,
@@ -285,27 +288,27 @@ export default function DiagnosticPanel() {
       }}
     >
       {/* ── Title bar ──────────────────────────────── */}
-      <div className="flex items-center justify-between px-3 h-9 bg-gray-900 rounded-t-lg border-b border-gray-700 shrink-0">
+      <div className="flex items-center justify-between px-3 h-9 bg-gray-900/80 rounded-t-lg border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
-          <Terminal className="h-3.5 w-3.5 text-green-400" />
-          <span className="text-xs font-bold text-white/80 tracking-wide">DIAGNOSTICS</span>
+          <Terminal className="h-3.5 w-3.5 text-white" />
+          <span className="text-xs font-bold text-white/90 tracking-wide">DIAGNOSTICS</span>
           <span className="text-[10px] text-white/60">{filteredLogs.length}/{logs.length}</span>
         </div>
         <div className="flex items-center gap-0.5">
-          <button onClick={() => setShowFilters(!showFilters)} className="p-1 text-theme-secondary hover:text-theme-tertiary transition-colors" title="Filter categories">
+          <button onClick={() => setShowFilters(!showFilters)} className="p-1 text-white/60 hover:text-white transition-colors" title="Filter categories">
             <Filter className="h-3 w-3" />
           </button>
-          <button onClick={handleCopy} className="p-1 text-theme-secondary hover:text-theme-tertiary transition-colors" title="Copy filtered logs">
-            {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+          <button onClick={handleCopy} className="p-1 text-white/60 hover:text-white transition-colors" title="Copy filtered logs">
+            {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3 text-white" />}
           </button>
-          <button onClick={handleClear} className="p-1 text-theme-secondary hover:text-theme-tertiary transition-colors" title="Clear all logs">
+          <button onClick={handleClear} className="p-1 text-white/60 hover:text-white transition-colors" title="Clear all logs">
             <Trash2 className="h-3 w-3" />
           </button>
-          <button onClick={() => setMinimized(!minimized)} className="p-1 text-theme-secondary hover:text-theme-tertiary transition-colors" title={minimized ? 'Expand' : 'Minimize'}>
+          <button onClick={() => setMinimized(!minimized)} className="p-1 text-white/60 hover:text-white transition-colors" title={minimized ? 'Expand' : 'Minimize'}>
             {minimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
           </button>
-          <button onClick={() => { setOpen(false); setMinimized(false) }} className="p-1 text-theme-secondary hover:text-red-400 transition-colors" title="Close">
-            <X className="h-3 w-3" />
+          <button onClick={() => { setOpen(false); setMinimized(false) }} className="p-1 text-white/60 hover:text-red-400 transition-colors" title="Close">
+            <X className="h-3 w-3 text-white" />
           </button>
         </div>
       </div>
@@ -329,7 +332,7 @@ export default function DiagnosticPanel() {
                       className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
                         active
                           ? `${cfg.bg} ${cfg.color} border border-current/20`
-                          : 'text-theme-secondary bg-gray-800/50 border border-gray-800 line-through'
+                          : 'text-white/60 bg-white/5 border border-white/10 line-through'
                       }`}
                     >
                       {cfg.label}
@@ -350,8 +353,8 @@ export default function DiagnosticPanel() {
                       onClick={() => toggleLevel(lvl)}
                       className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
                         active
-                          ? `${LEVEL_COLORS[lvl]} bg-gray-800 border border-current/20`
-                          : 'text-theme-secondary bg-gray-800/50 border border-gray-800 line-through'
+                          ? `${LEVEL_COLORS[lvl]} bg-white/5 border border-current/20`
+                          : 'text-white/60 bg-white/5 border border-white/10 line-through'
                       }`}
                     >
                       {LEVEL_ICONS[lvl]} {lvl}
@@ -365,7 +368,7 @@ export default function DiagnosticPanel() {
                 <select
                   value={issueType}
                   onChange={(e) => setIssueType(e.target.value)}
-                  className="text-[10px] bg-gray-800 text-theme-tertiary border border-gray-700 rounded px-1.5 py-0.5 outline-none"
+                  className="text-[10px] bg-white/5 text-white/80 border border-white/10 rounded px-1.5 py-0.5 outline-none"
                 >
                   <option value="all">All Issues</option>
                   <option value="api_errors">API Errors</option>
@@ -378,7 +381,7 @@ export default function DiagnosticPanel() {
                   placeholder="Search messages…"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  className="flex-1 text-[10px] bg-gray-800 text-theme-tertiary border border-gray-700 rounded px-2 py-0.5 outline-none placeholder-gray-600"
+                  className="flex-1 text-[10px] bg-white/5 text-white/80 border border-white/10 rounded px-2 py-0.5 outline-none placeholder-white/50"
                 />
               </div>
             </div>
@@ -387,7 +390,7 @@ export default function DiagnosticPanel() {
           {/* ── Log entries ────────────────────────── */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden text-[11px] leading-[18px]">
             {filteredLogs.length === 0 && (
-              <p className="text-theme-secondary text-center py-10">No log entries match the active filters.</p>
+              <p className="text-white/60 text-center py-10">No log entries match the active filters.</p>
             )}
             {filteredLogs.map((entry) => {
               const cfg = CATEGORY_CONFIG[entry.category]
@@ -401,12 +404,12 @@ export default function DiagnosticPanel() {
                     onClick={hasDetail ? () => toggleExpand(entry.id) : undefined}
                   >
                     {/* Step number */}
-                    <span className="text-theme-primary shrink-0 w-7 text-right tabular-nums">
+                    <span className="text-white/90 shrink-0 w-7 text-right tabular-nums">
                       {entry.step.toString().padStart(3, '0')}
                     </span>
 
                     {/* Timestamp */}
-                    <span className="text-theme-secondary shrink-0">{entry.timestamp}</span>
+                    <span className="text-white/60 shrink-0">{entry.timestamp}</span>
 
                     {/* Category badge */}
                     <span className={`shrink-0 px-1.5 py-px rounded text-[9px] font-bold ${cfg.bg} ${cfg.color}`}>
@@ -419,16 +422,16 @@ export default function DiagnosticPanel() {
                     </span>
 
                     {/* Message */}
-                    <span className="text-theme-tertiary break-all flex-1">
+                    <span className="text-white/80 break-all flex-1">
                       {entry.message}
                       {entry.duration != null && (
-                        <span className="text-theme-secondary ml-1">({entry.duration}ms)</span>
+                        <span className="text-white/60 ml-1">({entry.duration}ms)</span>
                       )}
                     </span>
 
                     {/* Expand chevron */}
                     {hasDetail && (
-                      <span className="shrink-0 text-theme-secondary">
+                      <span className="shrink-0 text-white/60">
                         {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                       </span>
                     )}
@@ -436,12 +439,12 @@ export default function DiagnosticPanel() {
                     {/* Per-entry copy */}
                     <button
                       onClick={(e) => handleCopyEntry(entry, e)}
-                      className="shrink-0 p-0.5 text-theme-primary hover:text-theme-tertiary transition-colors opacity-0 group-hover/entry:opacity-100"
+                      className="shrink-0 p-0.5 text-white/90 hover:text-white transition-colors opacity-0 group-hover/entry:opacity-100"
                       title="Copy this entry"
                     >
                       {copiedEntryId === entry.id
                         ? <Check className="h-3 w-3 text-green-400" />
-                        : <Clipboard className="h-3 w-3" />}
+                        : <Clipboard className="h-3 w-3 text-white" />}
                     </button>
                   </div>
 
@@ -449,12 +452,12 @@ export default function DiagnosticPanel() {
                   {isExpanded && (
                     <div className="px-2 pb-2 pl-[76px]">
                       {entry.traceId && (
-                        <div className="text-[10px] text-theme-secondary">
+                        <div className="text-[10px] text-white/60">
                           trace: <span className="text-cyan-600 dark:text-cyan-400 font-bold">{entry.traceId}</span>
                         </div>
                       )}
                       {entry.detail && (
-                        <pre className="text-[10px] text-theme-secondary whitespace-pre-wrap mt-0.5 bg-gray-900 rounded px-2 py-1 border border-gray-800">
+                        <pre className="text-[10px] text-white/60 whitespace-pre-wrap mt-0.5 bg-gray-900 rounded px-2 py-1 border border-gray-800">
                           {entry.detail}
                         </pre>
                       )}
@@ -466,7 +469,7 @@ export default function DiagnosticPanel() {
           </div>
 
           {/* ── Status bar ─────────────────────────── */}
-          <div className="flex items-center justify-between px-3 h-6 border-t border-gray-800 bg-gray-900/50 text-[9px] text-theme-secondary shrink-0 rounded-b-lg">
+          <div className="flex items-center justify-between px-3 h-6 border-t border-gray-800 bg-gray-900/50 text-[9px] text-white/60 shrink-0 rounded-b-lg">
             <span>
               {logs.filter((l) => l.level === 'error').length} errors
               {' · '}

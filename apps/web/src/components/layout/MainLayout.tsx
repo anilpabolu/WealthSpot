@@ -16,7 +16,7 @@ export default function MainLayout({ children, showFooter = true }: MainLayoutPr
   return (
     <div className="min-h-screen flex flex-col bg-theme-surface transition-colors duration-300">
       <Navbar />
-      <main className="flex-1 pt-16">
+      <main className="flex-1">
         {children ?? <Outlet />}
       </main>
       {showFooter && <Footer />}

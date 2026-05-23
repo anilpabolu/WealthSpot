@@ -99,10 +99,18 @@ export default function Navbar(_props?: NavbarProps) {
   const publicNavLinks = [{ label: 'About', href: '/about' }]
   const visibleNavLinks = isAuthenticated ? allNavLinks : publicNavLinks
 
+  // ── Pill nav link classes (consistent across all links) ────────────────
+  const pillLink = (isActive: boolean) =>
+    isActive
+      ? 'px-4 py-1.5 rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
+      : isHeaderLight
+        ? 'px-4 py-1.5 rounded-full border border-white/50 text-white font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+        : 'px-4 py-1.5 rounded-full border border-slate-300 text-slate-700 font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+
   return (
     <>
     <header
-      className={cn('z-50 w-full fixed top-0', isHeaderLight && 'relative nav-scroll-gradient')}
+      className={cn('z-50 w-full fixed top-0')}
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'transform 0.35s ease',
@@ -138,25 +146,15 @@ export default function Navbar(_props?: NavbarProps) {
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8 ml-10">
+          {/* Desktop Nav — all pills, consistent style */}
+          <div className="hidden md:flex items-center gap-3 ml-10">
             {visibleNavLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  'text-sm font-medium transition-colors relative',
-                  link.label === 'About'
-                    ? location.pathname === link.href
-                      ? 'px-4 py-1.5 rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
-                      : 'px-4 py-1.5 rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
-                    : location.pathname === link.href
-                      ? isHeaderLight
-                        ? 'text-white after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
-                        : 'text-slate-950 after:absolute after:-bottom-[1.19rem] after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37] after:rounded-full'
-                      : isHeaderLight
-                        ? 'text-white/70 hover:text-white'
-                        : 'text-slate-900/80 hover:text-slate-950'
+                  'text-sm transition-all duration-200',
+                  pillLink(location.pathname === link.href)
                 )}
               >
                 {link.label}
@@ -195,9 +193,9 @@ export default function Navbar(_props?: NavbarProps) {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
-                <X className={cn('h-6 w-6', isHeaderLight ? 'text-white/80' : 'text-slate-900/80')} />
+                <X className={cn('h-6 w-6', isHeaderLight ? 'text-white' : 'text-slate-900/80')} />
               ) : (
-                <Menu className={cn('h-6 w-6', isHeaderLight ? 'text-white/80' : 'text-slate-900/80')} />
+                <Menu className={cn('h-6 w-6', isHeaderLight ? 'text-white' : 'text-slate-900/80')} />
               )}
             </button>
           </div>
@@ -209,9 +207,10 @@ export default function Navbar(_props?: NavbarProps) {
         <div
           className="md:hidden animate-fade-up"
           style={{
-            background: 'transparent',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
+            background: isHeaderLight ? 'rgba(10,30,40,0.85)' : 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: isHeaderLight ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(15,23,42,0.08)',
           }}
         >
           <div className="px-4 py-4 space-y-2">
@@ -220,18 +219,12 @@ export default function Navbar(_props?: NavbarProps) {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  link.label === 'About'
-                    ? location.pathname === link.href
-                      ? 'rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
-                      : 'rounded-full border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold'
-                    : location.pathname === link.href
-                      ? isHeaderLight
-                        ? 'text-white font-semibold border border-[#D4AF37]'
-                        : 'text-slate-950 font-semibold border border-[#D4AF37]'
-                      : isHeaderLight
-                        ? 'text-white/70 hover:text-white border border-transparent hover:border-white/35'
-                        : 'text-slate-900/80 hover:text-slate-950 border border-transparent hover:border-slate-300/50'
+                  'block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                  location.pathname === link.href
+                    ? 'border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
+                    : isHeaderLight
+                      ? 'border border-white/40 text-white hover:border-[#D4AF37] hover:text-[#D4AF37]'
+                      : 'border border-slate-300 text-slate-700 hover:border-[#D4AF37] hover:text-[#D4AF37]'
                 )}
                 onClick={() => setMobileOpen(false)}
               >

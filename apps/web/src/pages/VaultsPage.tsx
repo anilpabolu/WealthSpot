@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import SEOHead from '@/components/SEOHead'
 import VaultProfilingModal from '@/components/VaultProfilingModal'
-import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
-import { useProfilingProgress, useOverallProgress, useRecordExplorer } from '@/hooks/useProfiling'
+
+import { useOverallProgress, useRecordExplorer } from '@/hooks/useProfiling'
 import {
   Building2,
   Compass,
@@ -296,246 +296,256 @@ export const ALL_VAULT_METRICS: Record<string, string[]> = {
   community: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered', 'collaboration_rate'],
 }
 
-/* Creative hero images per vault */
+/* Creative hero images per vault — higher quality, verified relevant */
 const VAULT_HERO_IMAGES: Record<string, string> = {
   // Wealth Vault — luxury real estate, private wealth
-  wealth: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80',
+  wealth: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&auto=format&fit=crop&q=90',
   // Safe Vault — gold bars, secure fixed returns
-  safe: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800&auto=format&fit=crop&q=80',
-  // Community Vault — people collaborating, co-investing
-  community: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop&q=80',
+  safe:   'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=1400&auto=format&fit=crop&q=90',
+  // Community Vault — business professionals collaborating
+  community: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1400&auto=format&fit=crop&q=90',
 }
+
+/* ------------------------------------------------------------------ */
+/*  Vault Card — single full-height image, blurred glass metrics panel */
+/* ------------------------------------------------------------------ */
 
 function VaultCard({
   vault,
   stats,
   opportunities: _opportunities,
-  profilingPct,
   archetype: _archetype,
   comingSoon,
   enabledMetrics,
   onPlayVideo,
   onComingSoon,
   onCommunityExplore,
-  onProfilingCircleClick,
   onExplore,
 }: {
   vault: (typeof VAULTS)[number]
   stats?: { totalInvested: number; investorCount: number; opportunityCount: number; explorerCount: number; dnaInvestorCount: number; minInvestment: number | null; avgTicketSize: number | null; citiesCovered: number; sectorsCovered: number; coInvestorCount: number; coPartnerCount: number; platformUsersCount: number; listingsCount: number; avgInterestRate: number | null; avgTenureMonths: number | null; mortgageCoveragePct: number | null; avgProjectSize: number | null; collaborationRate: number | null }
   opportunities: OpportunityItem[]
-  profilingPct: number
   archetype?: string | null
   comingSoon: boolean
   enabledMetrics: string[]
   onPlayVideo?: () => void
   onComingSoon: () => void
   onCommunityExplore?: () => void
-  onProfilingCircleClick?: () => void
   onExplore?: () => void
 }) {
   const [isHovered, setIsHovered] = useState(false)
+
   const handleCTAClick = (e: React.MouseEvent) => {
-    if (comingSoon) {
-      e.preventDefault()
-      onComingSoon()
-    } else if (vault.id === 'community' && onCommunityExplore) {
-      e.preventDefault()
-      onCommunityExplore()
-    }
-    if (!comingSoon) {
-      onExplore?.()
-    }
+    if (comingSoon) { e.preventDefault(); onComingSoon() }
+    else if (vault.id === 'community' && onCommunityExplore) { e.preventDefault(); onCommunityExplore() }
+    if (!comingSoon) onExplore?.()
   }
+
+  const imgSrc = VAULT_HERO_IMAGES[vault.id] ?? `/images/vault-${vault.id}.jpg`
 
   return (
     <div
       className="rounded-2xl overflow-hidden group flex flex-col h-[540px] relative"
       style={{
-        border: `2px solid ${isHovered ? GOLD_ACCENT : GOLD_ACCENT + '35'}`,
-        transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
-        transition: 'border-color 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+        border: `1.5px solid ${isHovered ? GOLD_ACCENT : GOLD_ACCENT + '30'}`,
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'border-color 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease',
+        boxShadow: isHovered
+          ? `0 20px 48px rgba(0,0,0,0.6), 0 0 0 1px ${GOLD_ACCENT}25`
+          : '0 4px 24px rgba(0,0,0,0.35)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* ── Top shimmer bar — glows brighter on hover ── */}
+      {/* Gold shimmer bar */}
       <div
-        className="absolute top-0 left-0 right-0 h-[3px] z-20 pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-30 pointer-events-none"
         style={{
-          background: `linear-gradient(90deg, transparent 5%, ${GOLD_ACCENT}bb 35%, ${GOLD_ACCENT} 50%, ${GOLD_ACCENT}bb 65%, transparent 95%)`,
+          height: '2px',
+          background: `linear-gradient(90deg, transparent 5%, ${GOLD_ACCENT}aa 35%, ${GOLD_ACCENT} 50%, ${GOLD_ACCENT}aa 65%, transparent 95%)`,
           opacity: isHovered ? 1 : 0.35,
           transition: 'opacity 0.3s ease',
         }}
       />
-      {/* ── Bottom radial glow — appears on hover ── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-36 z-20 pointer-events-none"
+
+      {/* Single full-height background image */}
+      <img
+        src={imgSrc}
+        alt={vault.title}
+        className="absolute inset-0 w-full h-full object-cover"
         style={{
-          background: `radial-gradient(ellipse at 50% 110%, ${GOLD_ACCENT}28 0%, transparent 68%)`,
+          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+          transition: 'transform 0.7s ease-out',
+        }}
+      />
+
+      {/* Content layout: flex-col fills full card height */}
+      <div className="relative z-10 h-full flex flex-col">
+
+        {/* ─── TOP SECTION: clear image, vault info pinned to bottom ─── */}
+        <div className="flex-1 relative flex flex-col min-h-0">
+          {/* Top vignette — contrast for badges */}
+          <div
+            className="absolute top-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
+          />
+          {/* Bottom fade into info strip */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.25) 65%, transparent 100%)' }}
+          />
+
+          {/* Badges — top right */}
+          <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
+            {comingSoon && (
+              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-black/55 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/15">
+                <Lock className="h-3 w-3" />
+                Coming Soon
+              </span>
+            )}
+            {onPlayVideo && (
+              <button
+                onClick={onPlayVideo}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-black/55 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/15 hover:bg-black/75 transition-colors"
+                aria-label={`Watch ${vault.title} intro video`}
+              >
+                <PlayCircle className="h-3.5 w-3.5" />
+                Watch Intro
+              </button>
+            )}
+          </div>
+
+          {/* Vault info — pinned to bottom of clear section */}
+          <div className="relative z-10 mt-auto px-4 pb-3 pt-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${vault.riskColor}`}>
+                {vault.risk} Risk
+              </span>
+            </div>
+            <h3
+              className="font-hero text-[1.05rem] font-bold text-[#D4AF37] tracking-tight leading-snug mb-1"
+              style={{ textShadow: '0 1px 8px rgba(0,0,0,0.7)' }}
+            >
+              {vault.title}
+            </h3>
+            <p
+              className="text-[11px] text-white/85 leading-relaxed font-body line-clamp-2"
+              style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
+            >
+              {vault.infoBody}
+            </p>
+          </div>
+        </div>
+
+        {/* ─── METRICS SECTION: blurred glass over the same image ─── */}
+        <div
+          className="relative flex flex-col"
+          style={{ flexBasis: '40%', flexShrink: 0 }}
+        >
+          {/* Backdrop blur — blurs the underlying vault image */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backdropFilter: 'blur(22px) saturate(0.5) brightness(0.28)',
+              WebkitBackdropFilter: 'blur(22px) saturate(0.5) brightness(0.28)',
+            }}
+          />
+          {/* Subtle dark tint overlay */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(4,8,18,0.40)' }}
+          />
+          {/* Gold hairline top divider */}
+          <div
+            className="absolute top-0 left-0 right-0 pointer-events-none"
+            style={{ height: '1px', background: `linear-gradient(90deg, transparent 5%, ${GOLD_ACCENT}55 50%, transparent 95%)` }}
+          />
+
+          {/* Metrics grid */}
+          <div className="relative z-10 flex-1 px-4 pt-3 pb-2 min-h-0">
+            {enabledMetrics.length > 0 ? (
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 content-center h-full">
+                {enabledMetrics.slice(0, 4).map((key) => {
+                  const def = VAULT_METRICS_REGISTRY[key]
+                  if (!def) return null
+                  const MetricIcon = def.icon
+                  const value = def.resolve(stats, vault.id)
+                  return (
+                    <div
+                      key={key}
+                      className="space-y-0.5 pl-2"
+                      style={{ borderLeft: `2px solid ${GOLD_ACCENT}55` }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <MetricIcon className="h-3 w-3 shrink-0" style={{ color: GOLD_ACCENT + 'cc' }} />
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50 truncate">
+                          {def.label}
+                        </span>
+                      </div>
+                      <p className="font-mono text-sm font-bold text-white leading-none">{value}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-white/40 text-center italic flex items-center justify-center h-full">
+                No metrics available
+              </p>
+            )}
+          </div>
+
+          {/* CTA button */}
+          <div
+            className="relative z-10 px-4 pb-3 pt-2"
+            style={{ borderTop: `1px solid ${GOLD_ACCENT}22` }}
+          >
+            {comingSoon ? (
+              <button
+                onClick={onComingSoon}
+                className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-1.5 rounded-xl border border-white/20 text-white/40 cursor-not-allowed"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Explore Investment
+              </button>
+            ) : (
+              <Link
+                to={vault.href}
+                onClick={handleCTAClick}
+                className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-1.5 rounded-xl border text-white bg-transparent transition-all duration-200"
+                style={{ borderColor: `${GOLD_ACCENT}65` }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.background = GOLD_ACCENT
+                  el.style.borderColor = GOLD_ACCENT
+                  el.style.color = '#0D1324'
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.background = 'transparent'
+                  el.style.borderColor = `${GOLD_ACCENT}65`
+                  el.style.color = '#ffffff'
+                }}
+              >
+                Explore Investment
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom hover glow */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-20 z-20 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at 50% 110%, ${GOLD_ACCENT}22 0%, transparent 65%)`,
           opacity: isHovered ? 1 : 0,
           transition: 'opacity 0.35s ease',
         }}
       />
-
-      {/* ── SECTION 1 (50%): hero image with text overlay ── */}
-      <div className="relative h-1/2 overflow-hidden">
-        <img
-          src={VAULT_HERO_IMAGES[vault.id] ?? `/images/vault-${vault.id}.jpg`}
-          alt={vault.title}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-        />
-        {/* Gradient: transparent top → dark bottom for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5 pointer-events-none" />
-        {/* Hover accent tint over image */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(to top, ${vault.accentHex}35 0%, transparent 60%)`,
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.4s ease',
-          }}
-        />
-
-        {/* Top-right badges */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
-          {comingSoon && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <Lock className="h-3 w-3" />
-              Coming Soon
-            </span>
-          )}
-          {onPlayVideo && (
-            <button
-              onClick={onPlayVideo}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full hover:bg-black/70 transition-colors"
-              aria-label={`Watch ${vault.title} intro video`}
-            >
-              <PlayCircle className="h-3.5 w-3.5" />
-              Watch Intro
-            </button>
-          )}
-        </div>
-
-        {/* Profiling circle — sits just above the text block */}
-        {!comingSoon && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onProfilingCircleClick?.() }}
-            className="absolute bottom-[72px] left-4 h-9 w-9 cursor-pointer hover:scale-110 transition-transform z-10"
-            title={`${Math.round(profilingPct)}% profiled`}
-          >
-            <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90 drop-shadow-lg">
-              <circle cx="18" cy="18" r="14" fill="rgba(0,0,0,0.4)" stroke="white" strokeOpacity="0.2" strokeWidth="3" />
-              <circle cx="18" cy="18" r="14" fill="none" stroke="#D4AF37" strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={`${(profilingPct / 100) * 87.96} 87.96`} />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white">
-              {Math.round(profilingPct)}%
-            </span>
-          </button>
-        )}
-
-        {/* Title + description pinned to bottom of image — frosted glass backdrop */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-4 pt-8"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 60%, transparent 100%)' }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${vault.riskColor}`}>
-              {vault.risk} Risk
-            </span>
-          </div>
-          <h3 className="font-hero text-[1.05rem] font-bold text-white tracking-tight leading-snug mb-1.5"
-            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}
-          >
-            {vault.title}
-          </h3>
-          <p className="text-[11.5px] text-white/85 leading-relaxed font-body line-clamp-2"
-            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
-          >
-            {vault.infoBody}
-          </p>
-        </div>
-      </div>
-
-      {/* ── SECTION 2 (40%): metrics — clean white card ── */}
-      <div
-        className="h-[40%] px-4 py-3 flex flex-col justify-center relative overflow-hidden"
-        style={{
-          background: '#ffffff',
-          borderTop: `2px solid ${vault.accentHex}55`,
-        }}
-      >
-        {/* Decorative accent dot */}
-        <div
-          className="absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-10 pointer-events-none"
-          style={{ backgroundColor: vault.accentHex }}
-        />
-        {enabledMetrics.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 relative z-10">
-            {enabledMetrics.slice(0, 4).map((key) => {
-              const def = VAULT_METRICS_REGISTRY[key]
-              if (!def) return null
-              const MetricIcon = def.icon
-              const value = def.resolve(stats, vault.id)
-              return (
-                <div
-                  key={key}
-                  className="space-y-0.5 pl-2.5"
-                  style={{ borderLeft: `2px solid ${GOLD_ACCENT}55` }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <MetricIcon className="h-3.5 w-3.5 shrink-0" style={{ color: GOLD_ACCENT + 'cc' }} />
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 truncate">{def.label}</span>
-                  </div>
-                  <p className="font-mono text-[15px] font-bold text-gray-900">{value}</p>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-400 text-center italic">No metrics available</p>
-        )}
-      </div>
-
-      {/* ── SECTION 3 (10%): CTA button ── */}
-      <div
-        className="h-[10%] flex items-center px-4"
-        style={{
-          background: '#ffffff',
-          borderTop: `1px solid ${vault.accentHex}30`,
-        }}
-      >
-        {comingSoon ? (
-          <button
-            onClick={onComingSoon}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-400 cursor-not-allowed"
-          >
-            <Lock className="h-3.5 w-3.5" />
-            Explore Investment
-          </button>
-        ) : (
-          <Link
-            to={vault.href}
-            onClick={handleCTAClick}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border text-gray-900 bg-transparent transition-all duration-200 hover:text-[#0D1324]"
-            style={{
-              borderColor: GOLD_ACCENT + '80',
-              '--hover-bg': GOLD_ACCENT,
-            } as React.CSSProperties}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = GOLD_ACCENT; (e.currentTarget as HTMLElement).style.borderColor = GOLD_ACCENT; (e.currentTarget as HTMLElement).style.color = '#0D1324' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = GOLD_ACCENT + '80'; (e.currentTarget as HTMLElement).style.color = '#111827' }}
-          >
-            Explore Investment
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        )}
-      </div>
     </div>
   )
 }
-
-/* ------------------------------------------------------------------ */
-/*  Pillar Card                                                        */
-/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -551,52 +561,33 @@ export default function VaultsPage() {
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
   const { mutate: recordExplorer } = useRecordExplorer()
 
-  // Profile completion (for % circle navigation logic)
-  const { data: profileCompletion } = useProfileCompletionStatus()
-
-  // Fetch vault metrics config (which metrics to show per vault)
+  
   const { data: metricsConfig } = useVaultMetricsConfig()
 
-  // CMS content
-  const heroTitle = useContent('vaults', 'hero_title', 'Pick Your Arena')
-  const heroSubtitle = useContent('vaults', 'hero_subtitle', 'Each vault is designed for a different investment class — real estate, startups, or community ventures. Find the one that matches your ambition.')
-  // Fetch profiling progress per vault
-  const { data: wealthProgress } = useProfilingProgress('wealth')
-  const { data: safeProgress } = useProfilingProgress('safe')
-  const { data: communityProgress } = useProfilingProgress('community')
+  const heroTitle    = useContent('vaults', 'hero_title',    'Pick Your Arena')
+  const heroSubtitle = useContent('vaults', 'hero_subtitle', 'Each vault is a distinct investment class \u2014 real estate, fixed-income, or collaborative ventures. Find the one that matches your ambition.')
+
   const { data: overall } = useOverallProgress()
-  const profilingMap: Record<string, number> = {
-    wealth: wealthProgress?.completionPct ?? 0,
-    safe: safeProgress?.completionPct ?? 0,
-    community: communityProgress?.completionPct ?? 0,
-  }
   const archetypeMap: Record<string, string | null> = {
-    wealth: overall?.vaults.wealth?.archetype ?? null,
-    safe: overall?.vaults.safe?.archetype ?? null,
+    wealth:    overall?.vaults.wealth?.archetype    ?? null,
+    safe:      overall?.vaults.safe?.archetype      ?? null,
     community: overall?.vaults.community?.archetype ?? null,
   }
 
-  // Fetch real vault stats from API
   const { data: vaultStatsData } = useVaultStats()
-  const statsMap = new Map(
-    (vaultStatsData ?? []).map((s) => [s.vaultType, s])
-  )
+  const statsMap = new Map((vaultStatsData ?? []).map((s) => [s.vaultType, s]))
 
-  // Fetch all opportunities per vault for vault-card mini-lists
-  const { data: wealthOpps } = useOpportunities({ vaultType: 'wealth' })
-  const { data: safeOpps } = useOpportunities({ vaultType: 'safe' })
+  const { data: wealthOpps }    = useOpportunities({ vaultType: 'wealth' })
+  const { data: safeOpps }      = useOpportunities({ vaultType: 'safe' })
   const { data: communityOpps } = useOpportunities({ vaultType: 'community' })
   const oppsMap: Record<string, OpportunityItem[]> = {
-    wealth: wealthOpps?.items ?? [],
-    safe: safeOpps?.items ?? [],
+    wealth:    wealthOpps?.items    ?? [],
+    safe:      safeOpps?.items      ?? [],
     community: communityOpps?.items ?? [],
   }
 
-  // Fetch managed video URLs — override hardcoded defaults
   const { data: managedVideos } = usePublicVideos('vaults')
-  const videoUrlMap = new Map(
-    (managedVideos ?? []).map((v) => [v.sectionTag, v.videoUrl])
-  )
+  const videoUrlMap = new Map((managedVideos ?? []).map((v) => [v.sectionTag, v.videoUrl]))
   const resolveVideo = (tag: string | undefined, fallback: string): string =>
     (tag ? videoUrlMap.get(tag) : undefined) ?? fallback
 
@@ -608,13 +599,13 @@ export default function VaultsPage() {
 
   return (
     <>
-    <SEOHead
-      title="Investment Vaults"
-      description="Explore WealthSpot's three investment vaults: Wealth Vault for real estate, Safe Vault for fixed-return mortgage-backed opportunities, and Community Vault for collaborative investing."
-      path="/vaults"
-      noIndex={true}
-    />
-    <MainLayout>
+      <SEOHead
+        title="Investment Vaults"
+        description="Explore WealthSpot's three investment vaults: Wealth Vault for real estate, Safe Vault for fixed-return mortgage-backed opportunities, and Community Vault for collaborative investing."
+        path="/vaults"
+        noIndex={true}
+      />
+      <MainLayout>
 
       {/* Hero — extends behind the transparent fixed navbar, matching landing-page behaviour */}
       <section id="hero" className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16">
@@ -647,36 +638,32 @@ export default function VaultsPage() {
             {VAULTS.map((vault) => {
               const comingSoon = !isVaultEnabled(vault.id)
               return (
-                <VaultCard
-                  key={vault.id}
-                  vault={vault}
-                  stats={statsMap.get(vault.id)}
-                  opportunities={oppsMap[vault.id] ?? []}
-                  profilingPct={profilingMap[vault.id] ?? 0}
-                  archetype={archetypeMap[vault.id]}
-                  comingSoon={comingSoon}
-                  enabledMetrics={metricsConfig?.[vault.id] ?? ALL_VAULT_METRICS[vault.id] ?? []}
-                  onPlayVideo={vaultVideosEnabled ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) }) : undefined}
-                  onComingSoon={() => showComingSoon(vault.id)}
-                  onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
-                  onExplore={() => { if (isAuthenticated) recordExplorer(vault.id) }}
-                  onProfilingCircleClick={() => {
-                    if (!profileCompletion?.isComplete) {
-                      navigate('/profile/complete')
-                    } else if ((profilingMap[vault.id] ?? 0) >= 100) {
-                      navigate(`/vault-profiling?vault=${vault.id}`)
-                    } else {
-                      setProfilingVault(vault.id)
-                    }
-                  }}
-                />
-              )
-            })}
+                <div key={vault.id} className="h-[540px]">
+                  <VaultCard
+                      vault={vault}
+                      stats={statsMap.get(vault.id)}
+                      opportunities={oppsMap[vault.id] ?? []}
+                      
+                      archetype={archetypeMap[vault.id]}
+                      comingSoon={comingSoon}
+                      enabledMetrics={metricsConfig?.[vault.id] ?? ALL_VAULT_METRICS[vault.id] ?? []}
+                      onPlayVideo={
+                        vaultVideosEnabled
+                          ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })
+                          : undefined
+                      }
+                      onComingSoon={() => showComingSoon(vault.id)}
+                      onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
+                      onExplore={() => { if (isAuthenticated) recordExplorer(vault.id) }}
+                      
+                    />
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      </section>
-
-    </MainLayout>
+        </section>
+      </MainLayout>
 
       {/* Vault intro video popup */}
       {vaultVideosEnabled && activeVideo && (
@@ -686,7 +673,6 @@ export default function VaultsPage() {
           onClose={() => setActiveVideo(null)}
         />
       )}
-
 
       {/* Community subtype explore modal */}
       <CommunitySubtypeModal
