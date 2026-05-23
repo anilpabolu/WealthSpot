@@ -12,13 +12,23 @@ interface PageHeroProps {
   children?: ReactNode
   /** Override the inner content container className — default: max-w-3xl mx-auto px-4 */
   contentClassName?: string
-  /** Compact vertical rhythm for dense layouts */
+  /**
+   * Compact mode: slim strip matching VaultsPage height.
+   * Non-compact: standard padding for wizard/form flows.
+   */
   compact?: boolean
+  /** Optional id attribute for navbar scroll detection */
+  id?: string
+  /**
+   * If true, hero spans full viewport height (vault step wizard).
+   * Content is pinned to the bottom.
+   */
+  fullHeight?: boolean
 }
 
 /**
  * Shared hero banner used across all authenticated app pages.
- * Gradient + blur orbs match VaultsPage exactly.
+ * Always extends behind the transparent fixed navbar (-mt-16).
  */
 export default function PageHero({
   eyebrow,
@@ -28,37 +38,58 @@ export default function PageHero({
   children,
   contentClassName = 'max-w-3xl mx-auto px-4',
   compact = false,
+  id,
+  fullHeight = false,
 }: PageHeroProps) {
   return (
     <div
-      className="relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}
+      id={id}
+      className={[
+        'relative overflow-hidden -mt-16',
+        fullHeight ? 'min-h-screen flex flex-col' : '',
+      ].join(' ')}
+      style={{ background: 'linear-gradient(135deg, #07101f 0%, #0f1b3a 50%, #07101f 100%)' }}
     >
-      {/* Blur orbs — match VaultsPage depth */}
+      {/* Blur orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/[0.08] blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/[0.05] blur-3xl" />
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-32 rounded-full bg-indigo-500/15 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-32 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
-      <div className={`relative z-10 ${contentClassName} ${compact ? 'py-4 sm:py-5' : 'py-10 sm:py-14'}`}>
+      <div
+        className={[
+          'relative z-10',
+          contentClassName,
+          fullHeight ? 'mt-auto' : '',
+          // compact = slim strip; non-compact = more breathing room for wizard steps
+          compact
+            ? 'pt-[8.5rem] pb-14 lg:pb-16'
+            : fullHeight
+              ? 'pt-16 pb-8'
+              : 'pt-[5.5rem] pb-6',
+        ].join(' ')}
+      >
         {onBack && (
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-white/50 hover:text-white/80 font-body text-sm mb-6 transition-colors"
+            className="flex items-center gap-1.5 text-white/50 hover:text-white/80 font-body text-sm mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
         )}
         {eyebrow && (
-          <p className="font-body text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37] mb-3">
+          <p className="font-body text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37] mb-2">
             {eyebrow}
           </p>
         )}
-        <h1 className="font-hero text-2xl sm:text-3xl font-bold text-white mb-2">{title}</h1>
+        <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+          {title}
+        </h1>
         {subtitle && (
-          <p className="font-body text-white/60 text-sm sm:text-base">{subtitle}</p>
+          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+            {subtitle}
+          </p>
         )}
         {children}
       </div>

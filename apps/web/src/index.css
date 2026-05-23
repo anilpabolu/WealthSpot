@@ -272,6 +272,11 @@ html { font-size: 100%; }
     @apply relative overflow-hidden -mt-16 pt-[8.25rem] pb-10 lg:pb-12;
   }
 
+  /* Compact hero strip — matches the VaultsPage header height */
+  .page-hero-compact {
+    @apply relative overflow-hidden -mt-16 pt-[8.5rem] pb-14 lg:pb-16;
+  }
+
   .page-hero-content {
     @apply mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10;
   }

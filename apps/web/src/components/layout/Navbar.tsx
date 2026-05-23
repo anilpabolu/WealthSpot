@@ -60,23 +60,27 @@ export default function Navbar(_props?: NavbarProps) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [location.pathname])
 
+  // Paths that use dark hero strips extending behind the transparent navbar
+  const isHeroPage = (
+    location.pathname === '/' ||
+    location.pathname.startsWith('/vaults') ||
+    location.pathname === '/create-opportunity' ||
+    location.pathname === '/portfolio' ||
+    location.pathname === '/control-centre' ||
+    location.pathname.startsWith('/portal/builder/listings/new')
+  )
+
   useEffect(() => {
     const updateHeaderMode = () => {
       const hero = document.getElementById('hero')
-      // Keep header light (transparent/white-text) on pages that extend behind it
-      // (landing and vaults) so the navbar matches landing behaviour even if
-      // hero geometry is not yet available or content loads late.
+      // Keep header light (transparent/white-text) on pages that extend behind it.
       if (!hero) {
-        if (location.pathname === '/' || location.pathname.startsWith('/vaults')) {
-          setIsHeaderLight(true)
-        } else {
-          setIsHeaderLight(false)
-        }
+        setIsHeaderLight(isHeroPage)
         return
       }
 
       const heroBottom = hero.getBoundingClientRect().bottom
-      setIsHeaderLight(heroBottom > 72 || location.pathname === '/' || location.pathname.startsWith('/vaults'))
+      setIsHeaderLight(heroBottom > 72 || isHeroPage)
     }
 
     updateHeaderMode()
@@ -170,7 +174,7 @@ export default function Navbar(_props?: NavbarProps) {
               {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
               <button
                 onClick={() => navigate('/create-opportunity')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37] text-[#D4AF37] bg-transparent hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37]/60 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Create Opportunity
@@ -181,7 +185,7 @@ export default function Navbar(_props?: NavbarProps) {
             <Show when="signed-out">
               <div className="hidden sm:flex items-center gap-3">
                 <SignInButton mode="modal" forceRedirectUrl="/vaults">
-                  <button className="text-[#D4AF37] text-sm font-medium px-4 py-2 rounded-[14px] border border-[#D4AF37] bg-transparent hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold transition-all">Sign In</button>
+                  <button className="text-[#D4AF37] text-sm font-medium px-4 py-2 rounded-[14px] border border-[#D4AF37]/60 bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] transition-all">Sign In</button>
                 </SignInButton>
               </div>
             </Show>

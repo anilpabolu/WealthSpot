@@ -711,7 +711,6 @@ export default function PortfolioPage() {
   const hasAnyDna = overallProgress ? Object.values(overallProgress.vaults).some((v) => v.isComplete) : false
 
   // CMS content (hooks must be called before any early return)
-  const heroBadge = useContent('portfolio', 'hero_badge', 'Portfolio')
   const heroTitle = useContent('portfolio', 'hero_title', 'The War Chest')
   const heroSubtitle = useContent('portfolio', 'hero_subtitle', 'Your empire-in-progress \u2014 every asset, every return, all in one place.')
   const sectionVaults = useContent('portfolio', 'section_vaults', 'Vault-Wise Breakdown')
@@ -763,12 +762,15 @@ export default function PortfolioPage() {
   return (
     <MainLayout>
 
-      {/* Hero — extends behind the transparent fixed navbar */}
-      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      {/* Hero — compact strip matching VaultsPage */}
+      <section id="hero" className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">{heroBadge}</span>
-          <h1 className="page-hero-title">{heroTitle}</h1>
-          <p className="page-hero-subtitle">{heroSubtitle}</p>
+          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+            {heroTitle}
+          </h1>
+          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+            {heroSubtitle}
+          </p>
         </div>
       </section>
 

@@ -129,12 +129,15 @@ export default function CommandControlPage() {
   return (
     <MainLayout>
 
-      {/* Hero — extends behind the transparent fixed navbar */}
-      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      {/* Hero — compact strip matching VaultsPage */}
+      <section id="hero" className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <div className="page-hero-content">
-          <span className="page-hero-badge">Super Admin</span>
-          <h1 className="page-hero-title">Command & Control</h1>
-          <p className="page-hero-subtitle">Manage users, configurations, content, and platform-wide settings from one place.</p>
+          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+            Command &amp; Control
+          </h1>
+          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+            Manage users, configurations, content, and platform-wide settings from one place.
+          </p>
         </div>
       </section>
 
