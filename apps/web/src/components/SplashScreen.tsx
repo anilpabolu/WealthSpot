@@ -3,6 +3,13 @@ type SplashScreenProps = {
 }
 
 export default function SplashScreen({ exiting }: SplashScreenProps) {
+  // Don't show the splash when landing directly on pages that render
+  // behind the header (e.g. /vaults) — it can cover the hero and confuse
+  // header contrast detection. This keeps startup UX consistent.
+  if (typeof window !== 'undefined' && location.pathname.startsWith('/vaults')) {
+    return null
+  }
+
   return (
     <div
       className={`boot-splash${exiting ? ' boot-splash--exit' : ''}`}

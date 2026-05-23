@@ -10,7 +10,7 @@ interface WLogo3DProps {
 export default function WLogo3D({ size = 32, light = true, className }: WLogo3DProps) {
   return (
     <img
-      src="/wealthspot-logo-light.png"
+      src={light ? '/wealthspot-logo-light.png' : '/wealthspot-logo-dark.png'}
       alt="WealthSpot"
       width={size}
       height={size}
@@ -19,7 +19,6 @@ export default function WLogo3D({ size = 32, light = true, className }: WLogo3DP
       style={{
         width: size,
         height: size,
-        filter: light ? 'none' : 'invert(1) brightness(0.85)',
       }}
     />
   )

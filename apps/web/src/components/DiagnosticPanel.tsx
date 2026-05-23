@@ -288,8 +288,8 @@ export default function DiagnosticPanel() {
       <div className="flex items-center justify-between px-3 h-9 bg-gray-900 rounded-t-lg border-b border-gray-700 shrink-0">
         <div className="flex items-center gap-2">
           <Terminal className="h-3.5 w-3.5 text-green-400" />
-          <span className="text-xs font-bold text-theme-tertiary tracking-wide">DIAGNOSTICS</span>
-          <span className="text-[10px] text-theme-secondary">{filteredLogs.length}/{logs.length}</span>
+          <span className="text-xs font-bold text-white/80 tracking-wide">DIAGNOSTICS</span>
+          <span className="text-[10px] text-white/60">{filteredLogs.length}/{logs.length}</span>
         </div>
         <div className="flex items-center gap-0.5">
           <button onClick={() => setShowFilters(!showFilters)} className="p-1 text-theme-secondary hover:text-theme-tertiary transition-colors" title="Filter categories">

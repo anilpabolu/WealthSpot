@@ -40,6 +40,7 @@ const VAULT_VIDEO_TAGS: Record<string, string> = {
   safe: 'safe_vault_intro',
   community: 'community_vault_intro',
 }
+const GOLD_ACCENT = '#D4AF37'
 /* ------------------------------------------------------------------ */
 /*  Vault data                                                         */
 /* ------------------------------------------------------------------ */
@@ -51,7 +52,7 @@ const VAULTS = [
     icon: Building2,
     color: 'from-[#1B2A4A] via-[#2D4A7A] to-[#1B3A5A]',
     accent: 'text-[#D4AF37]',
-    accentHex: '#D4AF37',
+    accentHex: GOLD_ACCENT,
     bg: 'bg-[#F5F0E1]',
     border: 'border-[#D4AF37]/20',
     hoverShadow: 'hover:shadow-vault-wealth',
@@ -59,7 +60,7 @@ const VAULTS = [
     infoBody: 'A premium gateway to curated real estate opportunities positioned around intrinsic value, timing, and long-term appreciation potential.',
     infoItalic: 'Designed for investors who believe disciplined entry can shape exceptional outcomes.',
     risk: 'Moderate',
-    riskColor: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30',
+    riskColor: 'text-[#D4AF37] bg-[#D4AF37]/10',
     href: '/marketplace?vault=wealth',
     cta: 'Explore Properties',
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
@@ -70,16 +71,16 @@ const VAULTS = [
     title: 'Safe Vault',
     icon: Rocket,
     color: 'from-[#0D4A3A] via-[#145C47] to-[#0A3A2E]',
-    accent: 'text-[#20E3B2]',
-    accentHex: '#20E3B2',
+    accent: 'text-[#D4AF37]',
+    accentHex: GOLD_ACCENT,
     bg: 'bg-[#F0FBF8]',
     border: 'border-[#20E3B2]/20',
     hoverShadow: 'hover:shadow-vault-opportunity',
-    borderLeft: 'border-l-[#20E3B2]',
+    borderLeft: 'border-l-[#D4AF37]',
     infoBody: 'A fixed-return investment secured by mortgage agreements on real property. Earn interest monthly, quarterly, or yearly — backed by tangible assets.',
     infoItalic: 'Designed for investors who want predictable yields with real-estate-grade security and zero equity risk.',
     risk: 'Low–Moderate',
-    riskColor: 'text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30',
+    riskColor: 'text-[#D4AF37] bg-[#D4AF37]/10',
     href: '/marketplace?vault=safe',
     cta: 'Explore Safe Investments',
     videoSrc: 'https://www.w3schools.com/html/movie.mp4',
@@ -90,16 +91,16 @@ const VAULTS = [
     title: 'Community Vault',
     icon: Users,
     color: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
-    accent: 'text-[#065F46]',
-    accentHex: '#065F46',
+    accent: 'text-[#D4AF37]',
+    accentHex: GOLD_ACCENT,
     bg: 'bg-[#FFFBEB]',
     border: 'border-[#065F46]/20',
     hoverShadow: 'hover:shadow-vault-community',
-    borderLeft: 'border-l-[#065F46]',
+    borderLeft: 'border-l-[#D4AF37]',
     infoBody: 'A trusted environment where co-investors, co-partners, and execution-led collaborators can align around opportunity.',
     infoItalic: 'It exists to help serious people find one another, structure participation intelligently, and move from interest to closure with confidence.',
     risk: 'Low–Moderate',
-    riskColor: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30',
+    riskColor: 'text-[#D4AF37] bg-[#D4AF37]/10',
     href: '/marketplace?vault=community',
     cta: 'Explore Communities',
     videoSrc: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
@@ -350,7 +351,7 @@ function VaultCard({
     <div
       className="rounded-2xl overflow-hidden group flex flex-col h-[540px] relative"
       style={{
-        border: `2px solid ${isHovered ? vault.accentHex : vault.accentHex + '35'}`,
+        border: `2px solid ${isHovered ? GOLD_ACCENT : GOLD_ACCENT + '35'}`,
         transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
         transition: 'border-color 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
       }}
@@ -361,7 +362,7 @@ function VaultCard({
       <div
         className="absolute top-0 left-0 right-0 h-[3px] z-20 pointer-events-none"
         style={{
-          background: `linear-gradient(90deg, transparent 5%, ${vault.accentHex}bb 35%, ${vault.accentHex} 50%, ${vault.accentHex}bb 65%, transparent 95%)`,
+          background: `linear-gradient(90deg, transparent 5%, ${GOLD_ACCENT}bb 35%, ${GOLD_ACCENT} 50%, ${GOLD_ACCENT}bb 65%, transparent 95%)`,
           opacity: isHovered ? 1 : 0.35,
           transition: 'opacity 0.3s ease',
         }}
@@ -370,7 +371,7 @@ function VaultCard({
       <div
         className="absolute bottom-0 left-0 right-0 h-36 z-20 pointer-events-none"
         style={{
-          background: `radial-gradient(ellipse at 50% 110%, ${vault.accentHex}28 0%, transparent 68%)`,
+          background: `radial-gradient(ellipse at 50% 110%, ${GOLD_ACCENT}28 0%, transparent 68%)`,
           opacity: isHovered ? 1 : 0,
           transition: 'opacity 0.35s ease',
         }}
@@ -479,10 +480,10 @@ function VaultCard({
                 <div
                   key={key}
                   className="space-y-0.5 pl-2.5"
-                  style={{ borderLeft: `2px solid ${vault.accentHex}55` }}
+                  style={{ borderLeft: `2px solid ${GOLD_ACCENT}55` }}
                 >
                   <div className="flex items-center gap-1.5">
-                    <MetricIcon className="h-3.5 w-3.5 shrink-0" style={{ color: vault.accentHex + 'cc' }} />
+                    <MetricIcon className="h-3.5 w-3.5 shrink-0" style={{ color: GOLD_ACCENT + 'cc' }} />
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 truncate">{def.label}</span>
                   </div>
                   <p className="font-mono text-[15px] font-bold text-gray-900">{value}</p>
@@ -515,13 +516,13 @@ function VaultCard({
           <Link
             to={vault.href}
             onClick={handleCTAClick}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border text-gray-800 bg-transparent transition-all duration-200 hover:text-white"
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border text-gray-900 bg-transparent transition-all duration-200 hover:text-[#0D1324]"
             style={{
-              borderColor: vault.accentHex + '80',
-              '--hover-bg': vault.accentHex,
+              borderColor: GOLD_ACCENT + '80',
+              '--hover-bg': GOLD_ACCENT,
             } as React.CSSProperties}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = vault.accentHex; (e.currentTarget as HTMLElement).style.borderColor = vault.accentHex }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = vault.accentHex + '80' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = GOLD_ACCENT; (e.currentTarget as HTMLElement).style.borderColor = GOLD_ACCENT; (e.currentTarget as HTMLElement).style.color = '#0D1324' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = GOLD_ACCENT + '80'; (e.currentTarget as HTMLElement).style.color = '#111827' }}
           >
             Explore Investment
             <ArrowRight className="h-4 w-4" />
@@ -616,12 +617,12 @@ export default function VaultsPage() {
     <MainLayout>
 
       {/* Hero — extends behind the transparent fixed navbar, matching landing-page behaviour */}
-      <section className="-mt-16 relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #4f46e5 70%, #6366f1 100%)' }}>
-        {/* Subtle geometric decoration */}
+      <section id="hero" className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16">
+        {/* Subtle geometric decoration (lighter, purple-tinted to match landing) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/8 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/5 blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
         </div>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
           <div className="animate-fade-up">

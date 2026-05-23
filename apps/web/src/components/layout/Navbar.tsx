@@ -61,21 +61,27 @@ export default function Navbar(_props?: NavbarProps) {
   }, [location.pathname])
 
   useEffect(() => {
-    const hero = document.getElementById('hero')
-    if (!hero) {
-      setIsHeaderLight(false)
-      return
+    const updateHeaderMode = () => {
+      const hero = document.getElementById('hero')
+      // Keep header light (transparent/white-text) on pages that extend behind it
+      // (landing and vaults) so the navbar matches landing behaviour even if
+      // hero geometry is not yet available or content loads late.
+      if (!hero) {
+        if (location.pathname === '/' || location.pathname.startsWith('/vaults')) {
+          setIsHeaderLight(true)
+        } else {
+          setIsHeaderLight(false)
+        }
+        return
+      }
+
+      const heroBottom = hero.getBoundingClientRect().bottom
+      setIsHeaderLight(heroBottom > 72 || location.pathname === '/' || location.pathname.startsWith('/vaults'))
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsHeaderLight(entry.isIntersecting)
-      },
-      { rootMargin: '-72px 0px 0px 0px', threshold: [0, 0.1] }
-    )
-
-    observer.observe(hero)
-    return () => observer.disconnect()
+    updateHeaderMode()
+    window.addEventListener('scroll', updateHeaderMode, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeaderMode)
   }, [location.pathname])
 
   const extraLinks = [
@@ -96,21 +102,21 @@ export default function Navbar(_props?: NavbarProps) {
   return (
     <>
     <header
-      className="z-50 w-full fixed top-0"
+      className={cn('z-50 w-full fixed top-0', isHeaderLight && 'relative nav-scroll-gradient')}
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'transform 0.35s ease',
-        background: 'transparent',
-        backdropFilter: 'none',
-        WebkitBackdropFilter: 'none',
-        borderBottom: 'none',
+        background: isHeaderLight ? 'transparent' : 'rgba(255,255,255,0.95)',
+        backdropFilter: isHeaderLight ? 'none' : 'blur(18px)',
+        WebkitBackdropFilter: isHeaderLight ? 'none' : 'blur(18px)',
+        borderBottom: isHeaderLight ? 'none' : '1px solid rgba(15,23,42,0.06)',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/vaults" className="flex items-center gap-2 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={46} light={isHeaderLight} className="transition-all duration-300" />
+          <Link to="/vaults" className="flex items-center gap-0.5 shrink-0" aria-label="WealthSpot Home">
+            <WLogo3D size={54} light={isHeaderLight} className="transition-all duration-300" />
             <div className="flex flex-col">
               <span
                 className={cn(
