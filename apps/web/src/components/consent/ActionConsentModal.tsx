@@ -2,7 +2,7 @@ import { ShieldAlert, X } from 'lucide-react'
 import { useState } from 'react'
 
 export interface ActionConsentModalProps {
-  onConsent: () => void
+  onConsent: (consented: boolean) => void
   onDecline: () => void
   title?: string
   disclaimerText?: string
@@ -15,11 +15,12 @@ export function ActionConsentModal({
   disclaimerText = 'I acknowledge the risks of real estate investing and knowingly and willingly agree to proceed with this operation. I understand that my consent and device details will be recorded for compliance purposes.',
 }: ActionConsentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isChecked, setIsChecked] = useState(false)
 
   const handleConsent = async () => {
     setIsSubmitting(true)
     try {
-      await onConsent()
+      await onConsent(isChecked)
     } finally {
       setIsSubmitting(false)
     }
@@ -45,14 +46,20 @@ export function ActionConsentModal({
             {disclaimerText}
           </div>
 
+          <div className="flex gap-3 pt-2 items-center px-2">
+            <input
+              type="checkbox"
+              id="action-consent-checkbox"
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
+              className="w-5 h-5 rounded border-theme-border bg-theme-surface-hover text-primary focus:ring-primary focus:ring-offset-theme-surface"
+            />
+            <label htmlFor="action-consent-checkbox" className="text-sm text-theme-secondary font-medium cursor-pointer">
+              I agree to the terms
+            </label>
+          </div>
+
           <div className="flex gap-3 pt-2">
-            <button
-              onClick={onDecline}
-              disabled={isSubmitting}
-              className="btn-secondary flex-1 py-3 font-semibold"
-            >
-              I Decline
-            </button>
             <button
               onClick={handleConsent}
               disabled={isSubmitting}
@@ -61,7 +68,7 @@ export function ActionConsentModal({
               {isSubmitting ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                'I Consent'
+                'Ok'
               )}
             </button>
           </div>
