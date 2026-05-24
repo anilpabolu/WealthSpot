@@ -75,7 +75,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
             </p>
 
             {/* CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row items-end gap-4">
+            <div className="mt-8 flex flex-col sm:flex-row items-end sm:items-center justify-end gap-4 sm:gap-6">
               <button
                 onClick={onRequestAccess}
                 className="inline-flex items-center gap-2.5 rounded-[14px] bg-[#74E6D6] px-8 py-3.5 font-body text-[15px] font-semibold text-[#0A3D3A] transition-all duration-200 hover:bg-[#67D7C8] hover:scale-[1.03] active:scale-100"

@@ -262,19 +262,24 @@ html { font-size: 100%; }
     color: var(--text-primary);
   }
 
+  /* Shared Page hero background override */
+  .page-hero,
+  .page-hero-navbar,
+  .page-hero-compact {
+    background-image: linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+  }
+
   /* Page hero section */
   .page-hero {
-    @apply relative overflow-hidden py-10 sm:py-12 lg:py-14;
+    @apply relative overflow-hidden pt-[5.5rem] pb-[4.5rem] lg:pt-[6.5rem] lg:pb-[5.5rem];
   }
 
   /* Navbar-extending hero — pulls behind fixed navbar (-mt-16), clears content with matching padding */
-  .page-hero-navbar {
-    @apply relative overflow-hidden -mt-16 pt-[8.25rem] pb-10 lg:pb-12;
-  }
-
-  /* Compact hero strip — matches the VaultsPage header height */
+  .page-hero-navbar,
   .page-hero-compact {
-    @apply relative overflow-hidden -mt-16 pt-[8.5rem] pb-14 lg:pb-16;
+    @apply relative overflow-hidden -mt-16 pt-[9.5rem] pb-[4.5rem] lg:pt-[10.5rem] lg:pb-[5.5rem];
   }
 
   .page-hero-content {
@@ -296,7 +301,7 @@ html { font-size: 100%; }
 
   /* Content section background — theme-aware gradient for rich sections */
   .content-section-bg {
-    background: linear-gradient(135deg, #FDFBF5 0%, #F5F0E1 50%, #FDFBF5 100%);
+    background: #ffffff;
   }
   .dark .content-section-bg {
     background: linear-gradient(135deg, #100e25 0%, #1a1640 50%, #100e25 100%);

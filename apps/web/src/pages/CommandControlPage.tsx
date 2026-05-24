@@ -153,11 +153,11 @@ export default function CommandControlPage() {
       {/* Body */}
       <div className="flex flex-1 w-full relative">
         {/* Side Nav */}
-        <aside className="w-64 shrink-0 border-r border-theme/20 py-5 px-3 hidden md:block sticky top-[4rem] h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden" style={{ background: 'transparent' }}>
+        <aside className="relative hidden md:flex flex-col w-64 shrink-0 border-r border-theme/20 sticky top-[4rem] h-[calc(100vh-4rem)] overflow-hidden" style={{ background: 'transparent' }}>
           {/* Background image with dark overlay for text legibility */}
           <div
             aria-hidden="true"
-            className="fixed top-[4rem] left-0 bottom-0 w-64 pointer-events-none -z-10"
+            className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: `url(${sidebarBg})`,
               backgroundSize: 'cover',
@@ -167,11 +167,12 @@ export default function CommandControlPage() {
           />
           {/* Dark gradient overlay so white text stays readable */}
           <div
-            className="fixed top-[4rem] left-0 bottom-0 w-64 pointer-events-none bg-gradient-to-b from-slate-950/80 via-slate-900/90 to-slate-950/95 -z-10"
+            className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-950/80 via-slate-900/90 to-slate-950/95"
             aria-hidden="true"
           />
 
-          <nav className="space-y-1.5 relative z-10">
+          <div className="relative z-10 flex flex-col h-full overflow-y-auto px-3 py-5">
+            <nav className="space-y-1.5">
             {visibleSections.map((s, i) => {
               const Icon = s.icon
               const active = activeSection === s.id
@@ -196,6 +197,7 @@ export default function CommandControlPage() {
               )
             })}
           </nav>
+          </div>
         </aside>
 
         {/* Mobile section picker */}

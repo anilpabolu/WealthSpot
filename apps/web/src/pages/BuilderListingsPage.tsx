@@ -170,7 +170,7 @@ export default function BuilderListingsPage() {
       hero={
         <section
           id="hero"
-          className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.25rem] pb-10 px-6 lg:px-8"
+          className="page-hero relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.25rem] pb-10 px-6 lg:px-8"
         >
           {/* Blur orbs — matching VaultsPage */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">

@@ -48,7 +48,11 @@ export default function PageHero({
         'relative overflow-hidden -mt-16',
         fullHeight ? 'min-h-screen flex flex-col' : '',
       ].join(' ')}
-      style={{ background: 'linear-gradient(135deg, #07101f 0%, #0f1b3a 50%, #07101f 100%)' }}
+      style={{
+        backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
     >
       {/* Blur orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
