@@ -44,9 +44,19 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_consent_logs_consent_type"), "consent_logs", ["consent_type"], unique=False
+        op.f("ix_consent_logs_consent_type"),
+        "consent_logs",
+        ["consent_type"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("ix_consent_logs_target_id"), "consent_logs", ["target_id"], unique=False)
+    op.create_index(
+        op.f("ix_consent_logs_target_id"),
+        "consent_logs",
+        ["target_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.drop_index(op.f("idx_admin_invites_email"), if_exists=True, table_name="admin_invites")
     op.drop_index(op.f("idx_admin_invites_token"), if_exists=True, table_name="admin_invites")
     op.create_table_comment(
@@ -170,16 +180,32 @@ def upgrade() -> None:
         op.f("idx_approval_requests_status"), if_exists=True, table_name="approval_requests"
     )
     op.create_index(
-        op.f("ix_approval_requests_category"), "approval_requests", ["category"], unique=False
+        op.f("ix_approval_requests_category"),
+        "approval_requests",
+        ["category"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_approval_requests_created_at"), "approval_requests", ["created_at"], unique=False
+        op.f("ix_approval_requests_created_at"),
+        "approval_requests",
+        ["created_at"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_approval_requests_reviewer_id"), "approval_requests", ["reviewer_id"], unique=False
+        op.f("ix_approval_requests_reviewer_id"),
+        "approval_requests",
+        ["reviewer_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_approval_requests_status"), "approval_requests", ["status"], unique=False
+        op.f("ix_approval_requests_status"),
+        "approval_requests",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_table_comment(
         "approval_requests",
@@ -204,7 +230,13 @@ def upgrade() -> None:
     )
     op.drop_index(op.f("idx_audit_logs_resource"), if_exists=True, table_name="audit_logs")
     op.drop_index(op.f("idx_bank_details_user_id"), if_exists=True, table_name="bank_details")
-    op.create_index(op.f("ix_bank_details_user_id"), "bank_details", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_bank_details_user_id"),
+        "bank_details",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_table_comment(
         "bank_details",
         "Bank details with encrypted sensitive fields",
@@ -325,7 +357,9 @@ def upgrade() -> None:
     op.drop_index(op.f("idx_companies_user_id"), if_exists=True, table_name="companies")
     op.drop_index(op.f("idx_companies_verified"), if_exists=True, table_name="companies")
     op.drop_index(op.f("ix_companies_approval_id"), if_exists=True, table_name="companies")
-    op.create_index(op.f("ix_companies_user_id"), "companies", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_companies_user_id"), "companies", ["user_id"], unique=False, if_not_exists=True
+    )
     op.drop_table_comment(
         "companies",
         existing_comment="Builder/developer company profiles for opportunity creation",
@@ -344,7 +378,11 @@ def upgrade() -> None:
     )
     op.drop_index(op.f("ix_eoi_qa_eoi_id"), if_exists=True, table_name="eoi_question_answers")
     op.create_index(
-        op.f("ix_eoi_question_answers_eoi_id"), "eoi_question_answers", ["eoi_id"], unique=False
+        op.f("ix_eoi_question_answers_eoi_id"),
+        "eoi_question_answers",
+        ["eoi_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(op.f("idx_eoi_stage_history_eoi"), if_exists=True, table_name="eoi_stage_history")
     op.drop_index(
@@ -387,10 +425,15 @@ def upgrade() -> None:
         "expressions_of_interest",
         ["status"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_index(op.f("idx_group_messages_group_id"), if_exists=True, table_name="group_messages")
     op.create_index(
-        op.f("ix_group_messages_group_id"), "group_messages", ["group_id"], unique=False
+        op.f("ix_group_messages_group_id"),
+        "group_messages",
+        ["group_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_table_comment(
         "group_messages", existing_comment="Messages sent to role groups", schema=None
@@ -496,9 +539,19 @@ def upgrade() -> None:
     )
     op.drop_index(op.f("idx_notifications_user_id"), if_exists=True, table_name="notifications")
     op.create_index(
-        op.f("ix_notifications_created_at"), "notifications", ["created_at"], unique=False
+        op.f("ix_notifications_created_at"),
+        "notifications",
+        ["created_at"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_notifications_user_id"),
+        "notifications",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.drop_table_comment(
         "notifications", existing_comment="In-app, email, push notification tracking", schema=None
     )
@@ -558,11 +611,25 @@ def upgrade() -> None:
         op.f("ix_opportunities_investment_mode"), if_exists=True, table_name="opportunities"
     )
     op.drop_constraint(op.f("opportunities_slug_key"), "opportunities", type_="unique")
-    op.create_index(op.f("ix_opportunities_city"), "opportunities", ["city"], unique=False)
-    op.create_index(op.f("ix_opportunities_slug"), "opportunities", ["slug"], unique=True)
-    op.create_index(op.f("ix_opportunities_status"), "opportunities", ["status"], unique=False)
     op.create_index(
-        op.f("ix_opportunities_vault_type"), "opportunities", ["vault_type"], unique=False
+        op.f("ix_opportunities_city"), "opportunities", ["city"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("ix_opportunities_slug"), "opportunities", ["slug"], unique=True, if_not_exists=True
+    )
+    op.create_index(
+        op.f("ix_opportunities_status"),
+        "opportunities",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_opportunities_vault_type"),
+        "opportunities",
+        ["vault_type"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_constraint(op.f("opportunities_company_id_fkey"), "opportunities", type_="foreignkey")
     op.create_foreign_key(None, "opportunities", "companies", ["company_id"], ["id"])
@@ -582,6 +649,7 @@ def upgrade() -> None:
         "opportunity_application_answers",
         ["user_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_index(op.f("ix_oa_category"), if_exists=True, table_name="opportunity_assessments")
     op.drop_index(op.f("ix_oa_opportunity"), if_exists=True, table_name="opportunity_assessments")
@@ -591,18 +659,21 @@ def upgrade() -> None:
         "opportunity_assessments",
         ["category_code"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_opportunity_assessments_opportunity_id"),
         "opportunity_assessments",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_opportunity_assessments_status"),
         "opportunity_assessments",
         ["status"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_comm_mappings",
@@ -621,6 +692,7 @@ def upgrade() -> None:
         "opportunity_comm_mappings",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("idx_ocq_opportunity"), if_exists=True, table_name="opportunity_custom_questions"
@@ -630,6 +702,7 @@ def upgrade() -> None:
         "opportunity_custom_questions",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_constraint(
         op.f("uq_opportunity_documents_opp_doc_type"), "opportunity_documents", type_="unique"
@@ -684,18 +757,21 @@ def upgrade() -> None:
         "opportunity_investments",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_opportunity_investments_status"),
         "opportunity_investments",
         ["status"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_opportunity_investments_user_id"),
         "opportunity_investments",
         ["user_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_table_comment(
         "opportunity_investments",
@@ -718,9 +794,14 @@ def upgrade() -> None:
         "opportunity_likes",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_opportunity_likes_user_id"), "opportunity_likes", ["user_id"], unique=False
+        op.f("ix_opportunity_likes_user_id"),
+        "opportunity_likes",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_media",
@@ -762,6 +843,7 @@ def upgrade() -> None:
         "opportunity_media",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_index(op.f("ix_orf_opportunity"), if_exists=True, table_name="opportunity_risk_flags")
     op.create_index(
@@ -769,6 +851,7 @@ def upgrade() -> None:
         "opportunity_risk_flags",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "personality_dimensions",
@@ -835,6 +918,7 @@ def upgrade() -> None:
         "personality_dimensions",
         ["user_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "platform_configs",
@@ -864,9 +948,19 @@ def upgrade() -> None:
     op.drop_index(
         op.f("uq_platform_configs_section_key"), if_exists=True, table_name="platform_configs"
     )
-    op.create_index(op.f("ix_platform_configs_key"), "platform_configs", ["key"], unique=False)
     op.create_index(
-        op.f("ix_platform_configs_section"), "platform_configs", ["section"], unique=False
+        op.f("ix_platform_configs_key"),
+        "platform_configs",
+        ["key"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_platform_configs_section"),
+        "platform_configs",
+        ["section"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_table_comment(
         "platform_configs",
@@ -883,9 +977,14 @@ def upgrade() -> None:
         "profile_match_scores",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_profile_match_scores_user_id"), "profile_match_scores", ["user_id"], unique=False
+        op.f("ix_profile_match_scores_user_id"),
+        "profile_match_scores",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "properties",
@@ -958,6 +1057,7 @@ def upgrade() -> None:
         "property_referral_codes",
         ["user_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "referrals",
@@ -1050,12 +1150,20 @@ def upgrade() -> None:
     )
     op.drop_index(op.f("ix_user_activities_type"), if_exists=True, table_name="user_activities")
     op.create_index(
-        op.f("ix_user_activities_activity_type"), "user_activities", ["activity_type"], unique=False
+        op.f("ix_user_activities_activity_type"),
+        "user_activities",
+        ["activity_type"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(op.f("idx_user_points_action"), if_exists=True, table_name="user_points")
     op.drop_index(op.f("idx_user_points_user_id"), if_exists=True, table_name="user_points")
-    op.create_index(op.f("ix_user_points_action"), "user_points", ["action"], unique=False)
-    op.create_index(op.f("ix_user_points_user_id"), "user_points", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_user_points_action"), "user_points", ["action"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("ix_user_points_user_id"), "user_points", ["user_id"], unique=False, if_not_exists=True
+    )
     op.drop_table_comment(
         "user_points",
         existing_comment="Gamification: tracks points earned by users for contributions",
@@ -1064,7 +1172,11 @@ def upgrade() -> None:
     op.drop_index(op.f("idx_upa_user_vault"), if_exists=True, table_name="user_profile_answers")
     op.drop_constraint(op.f("uq_user_profile_answer"), "user_profile_answers", type_="unique")
     op.create_index(
-        op.f("ix_user_profile_answers_user_id"), "user_profile_answers", ["user_id"], unique=False
+        op.f("ix_user_profile_answers_user_id"),
+        "user_profile_answers",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "users",
@@ -1203,6 +1315,7 @@ def upgrade() -> None:
         "vault_profile_questions",
         ["vault_type"],
         unique=False,
+        if_not_exists=True,
     )
     # ### end Alembic commands ###
 
@@ -1217,6 +1330,7 @@ def downgrade() -> None:
         "vault_profile_questions",
         ["vault_type", "is_active", "sort_order"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_table_comment(
         "vault_feature_flags",
@@ -1230,7 +1344,11 @@ def downgrade() -> None:
         postgresql_nulls_not_distinct=False,
     )
     op.create_index(
-        op.f("idx_vff_vault_role"), "vault_feature_flags", ["vault_type", "role"], unique=False
+        op.f("idx_vff_vault_role"),
+        "vault_feature_flags",
+        ["vault_type", "role"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_unique_constraint(
         op.f("uq_vault_explorer_user_vault"),
@@ -1239,41 +1357,79 @@ def downgrade() -> None:
         postgresql_nulls_not_distinct=False,
     )
     op.drop_constraint(None, "users", type_="foreignkey")
-    op.create_index(op.f("ix_users_referred_by"), "users", ["referred_by"], unique=False)
     op.create_index(
-        op.f("ix_users_builder_approved_by"), "users", ["builder_approved_by"], unique=False
+        op.f("ix_users_referred_by"), "users", ["referred_by"], unique=False, if_not_exists=True
     )
     op.create_index(
-        op.f("idx_users_roles"), "users", ["roles"], unique=False, postgresql_using="gin"
+        op.f("ix_users_builder_approved_by"),
+        "users",
+        ["builder_approved_by"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_users_role"), "users", ["role"], unique=False)
-    op.create_index(op.f("idx_users_referral_code"), "users", ["referral_code"], unique=False)
     op.create_index(
-        op.f("idx_users_profile_completion"), "users", ["profile_completion_pct"], unique=False
+        op.f("idx_users_roles"),
+        "users",
+        ["roles"],
+        unique=False,
+        postgresql_using="gin",
+        if_not_exists=True,
+    )
+    op.create_index(op.f("idx_users_role"), "users", ["role"], unique=False, if_not_exists=True)
+    op.create_index(
+        op.f("idx_users_referral_code"),
+        "users",
+        ["referral_code"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_users_profile_completion"),
+        "users",
+        ["profile_completion_pct"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_users_primary_role_created"),
         "users",
         ["primary_role", "created_at"],
         unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_users_primary_role"), "users", ["primary_role"], unique=False)
-    op.create_index(op.f("idx_users_phone_verified"), "users", ["phone_verified"], unique=False)
+    op.create_index(
+        op.f("idx_users_primary_role"), "users", ["primary_role"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("idx_users_phone_verified"),
+        "users",
+        ["phone_verified"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_index(
         op.f("idx_users_phone_unique"),
         "users",
         ["phone"],
         unique=True,
         postgresql_where="((phone IS NOT NULL) AND ((phone)::text <> ''::text))",
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_users_email_verified"), "users", ["email_verified"], unique=False)
-    op.create_index(op.f("idx_users_city"), "users", ["city"], unique=False)
+    op.create_index(
+        op.f("idx_users_email_verified"),
+        "users",
+        ["email_verified"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(op.f("idx_users_city"), "users", ["city"], unique=False, if_not_exists=True)
     op.create_index(
         op.f("idx_users_builder_approved"),
         "users",
         ["builder_approved"],
         unique=False,
         postgresql_where="(builder_approved = true)",
+        if_not_exists=True,
     )
     op.alter_column(
         "users",
@@ -1376,7 +1532,11 @@ def downgrade() -> None:
         postgresql_nulls_not_distinct=False,
     )
     op.create_index(
-        op.f("idx_upa_user_vault"), "user_profile_answers", ["user_id", "vault_type"], unique=False
+        op.f("idx_upa_user_vault"),
+        "user_profile_answers",
+        ["user_id", "vault_type"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_table_comment(
         "user_points",
@@ -1386,13 +1546,25 @@ def downgrade() -> None:
     )
     op.drop_index(op.f("ix_user_points_user_id"), if_exists=True, table_name="user_points")
     op.drop_index(op.f("ix_user_points_action"), if_exists=True, table_name="user_points")
-    op.create_index(op.f("idx_user_points_user_id"), "user_points", ["user_id"], unique=False)
-    op.create_index(op.f("idx_user_points_action"), "user_points", ["action"], unique=False)
+    op.create_index(
+        op.f("idx_user_points_user_id"),
+        "user_points",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_user_points_action"), "user_points", ["action"], unique=False, if_not_exists=True
+    )
     op.drop_index(
         op.f("ix_user_activities_activity_type"), if_exists=True, table_name="user_activities"
     )
     op.create_index(
-        op.f("ix_user_activities_type"), "user_activities", ["activity_type"], unique=False
+        op.f("ix_user_activities_type"),
+        "user_activities",
+        ["activity_type"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "user_activities",
@@ -1420,9 +1592,15 @@ def downgrade() -> None:
         ondelete="RESTRICT",
     )
     op.create_index(
-        op.f("idx_txn_type_created"), "transactions", ["type", "created_at"], unique=False
+        op.f("idx_txn_type_created"),
+        "transactions",
+        ["type", "created_at"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_transactions_type"), "transactions", ["type"], unique=False)
+    op.create_index(
+        op.f("idx_transactions_type"), "transactions", ["type"], unique=False, if_not_exists=True
+    )
     op.alter_column(
         "transactions",
         "created_at",
@@ -1464,7 +1642,13 @@ def downgrade() -> None:
         existing_comment=None,
         schema=None,
     )
-    op.create_index(op.f("idx_referrals_code_used"), "referrals", ["code_used"], unique=False)
+    op.create_index(
+        op.f("idx_referrals_code_used"),
+        "referrals",
+        ["code_used"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.alter_column(
         "referrals",
         "created_at",
@@ -1505,8 +1689,20 @@ def downgrade() -> None:
         if_exists=True,
         table_name="property_referral_codes",
     )
-    op.create_index(op.f("ix_prop_ref_user"), "property_referral_codes", ["user_id"], unique=False)
-    op.create_index(op.f("ix_prop_ref_code"), "property_referral_codes", ["code"], unique=False)
+    op.create_index(
+        op.f("ix_prop_ref_user"),
+        "property_referral_codes",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_prop_ref_code"),
+        "property_referral_codes",
+        ["code"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.alter_column(
         "property_referral_codes",
         "created_at",
@@ -1534,12 +1730,14 @@ def downgrade() -> None:
         unique=False,
         postgresql_ops={"title": "gin_trgm_ops"},
         postgresql_using="gin",
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_properties_status_created"),
         "properties",
         ["status", sa.literal_column("created_at DESC")],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_properties_locality_trgm"),
@@ -1548,12 +1746,14 @@ def downgrade() -> None:
         unique=False,
         postgresql_ops={"locality": "gin_trgm_ops"},
         postgresql_using="gin",
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_properties_created_at"),
         "properties",
         [sa.literal_column("created_at DESC")],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_properties_active"),
@@ -1561,6 +1761,7 @@ def downgrade() -> None:
         ["city", "asset_type"],
         unique=False,
         postgresql_where="((status)::text <> ALL ((ARRAY['archived'::character varying, 'rejected'::character varying])::text[]))",
+        if_not_exists=True,
     )
     op.alter_column(
         "properties",
@@ -1611,12 +1812,15 @@ def downgrade() -> None:
         ["user_id", "opportunity_id"],
         postgresql_nulls_not_distinct=False,
     )
-    op.create_index(op.f("idx_pms_user"), "profile_match_scores", ["user_id"], unique=False)
+    op.create_index(
+        op.f("idx_pms_user"), "profile_match_scores", ["user_id"], unique=False, if_not_exists=True
+    )
     op.create_index(
         op.f("idx_pms_opportunity_score"),
         "profile_match_scores",
         ["opportunity_id", sa.literal_column("overall_score DESC")],
         unique=False,
+        if_not_exists=True,
     )
     op.create_table_comment(
         "platform_configs",
@@ -1629,12 +1833,26 @@ def downgrade() -> None:
     )
     op.drop_index(op.f("ix_platform_configs_key"), if_exists=True, table_name="platform_configs")
     op.create_index(
-        op.f("uq_platform_configs_section_key"), "platform_configs", ["section", "key"], unique=True
+        op.f("uq_platform_configs_section_key"),
+        "platform_configs",
+        ["section", "key"],
+        unique=True,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_platform_configs_section"), "platform_configs", ["section"], unique=False
+        op.f("idx_platform_configs_section"),
+        "platform_configs",
+        ["section"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_platform_configs_key"), "platform_configs", ["key"], unique=False)
+    op.create_index(
+        op.f("idx_platform_configs_key"),
+        "platform_configs",
+        ["key"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.alter_column(
         "platform_configs",
         "updated_at",
@@ -1667,7 +1885,9 @@ def downgrade() -> None:
         ["user_id", "vault_type"],
         postgresql_nulls_not_distinct=False,
     )
-    op.create_index(op.f("idx_pd_user"), "personality_dimensions", ["user_id"], unique=False)
+    op.create_index(
+        op.f("idx_pd_user"), "personality_dimensions", ["user_id"], unique=False, if_not_exists=True
+    )
     op.alter_column(
         "personality_dimensions",
         "collaboration_score",
@@ -1728,7 +1948,11 @@ def downgrade() -> None:
         op.f("ix_opportunity_risk_flags_opportunity_id"), table_name="opportunity_risk_flags"
     )
     op.create_index(
-        op.f("ix_orf_opportunity"), "opportunity_risk_flags", ["opportunity_id"], unique=False
+        op.f("ix_orf_opportunity"),
+        "opportunity_risk_flags",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("ix_opportunity_media_opportunity_id"), if_exists=True, table_name="opportunity_media"
@@ -1738,13 +1962,28 @@ def downgrade() -> None:
         "opportunity_media",
         ["opportunity_id", "assessment_category_code", "assessment_subcategory_code"],
         unique=False,
-    )
-    op.create_index(op.f("idx_opp_media_type"), "opportunity_media", ["media_type"], unique=False)
-    op.create_index(
-        op.f("idx_opp_media_opportunity_id"), "opportunity_media", ["opportunity_id"], unique=False
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_opp_media_opp_id"), "opportunity_media", ["opportunity_id"], unique=False
+        op.f("idx_opp_media_type"),
+        "opportunity_media",
+        ["media_type"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_opp_media_opportunity_id"),
+        "opportunity_media",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_opp_media_opp_id"),
+        "opportunity_media",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_media",
@@ -1781,9 +2020,19 @@ def downgrade() -> None:
     op.drop_index(
         op.f("ix_opportunity_likes_opportunity_id"), if_exists=True, table_name="opportunity_likes"
     )
-    op.create_index(op.f("ix_opp_likes_user_id"), "opportunity_likes", ["user_id"], unique=False)
     op.create_index(
-        op.f("ix_opp_likes_opportunity_id"), "opportunity_likes", ["opportunity_id"], unique=False
+        op.f("ix_opp_likes_user_id"),
+        "opportunity_likes",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_opp_likes_opportunity_id"),
+        "opportunity_likes",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_likes",
@@ -1812,28 +2061,39 @@ def downgrade() -> None:
         op.f("ix_opportunity_investments_opportunity_id"), table_name="opportunity_investments"
     )
     op.create_index(
-        op.f("idx_opp_investments_user"), "opportunity_investments", ["user_id"], unique=False
+        op.f("idx_opp_investments_user"),
+        "opportunity_investments",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_opp_investments_status"), "opportunity_investments", ["status"], unique=False
+        op.f("idx_opp_investments_status"),
+        "opportunity_investments",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_opp_investments_opportunity"),
         "opportunity_investments",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_opp_investments_opp_status"),
         "opportunity_investments",
         ["opportunity_id", "status"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_opp_inv_status_created"),
         "opportunity_investments",
         ["status", "created_at"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_investments",
@@ -1878,6 +2138,7 @@ def downgrade() -> None:
         "opportunity_custom_questions",
         ["opportunity_id", "sort_order"],
         unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("ix_opportunity_comm_mappings_opportunity_id"), table_name="opportunity_comm_mappings"
@@ -1887,6 +2148,7 @@ def downgrade() -> None:
         "opportunity_comm_mappings",
         ["opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "opportunity_comm_mappings",
@@ -1906,12 +2168,26 @@ def downgrade() -> None:
     op.drop_index(
         op.f("ix_opportunity_assessments_category_code"), table_name="opportunity_assessments"
     )
-    op.create_index(op.f("ix_oa_status"), "opportunity_assessments", ["status"], unique=False)
     op.create_index(
-        op.f("ix_oa_opportunity"), "opportunity_assessments", ["opportunity_id"], unique=False
+        op.f("ix_oa_status"),
+        "opportunity_assessments",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_oa_category"), "opportunity_assessments", ["category_code"], unique=False
+        op.f("ix_oa_opportunity"),
+        "opportunity_assessments",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_oa_category"),
+        "opportunity_assessments",
+        ["category_code"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("ix_opportunity_application_answers_user_id"),
@@ -1928,6 +2204,7 @@ def downgrade() -> None:
         "opportunity_application_answers",
         ["user_id", "opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_table_comment(
         "opportunities",
@@ -1955,27 +2232,56 @@ def downgrade() -> None:
         postgresql_nulls_not_distinct=False,
     )
     op.create_index(
-        op.f("ix_opportunities_investment_mode"), "opportunities", ["investment_mode"], unique=False
+        op.f("ix_opportunities_investment_mode"),
+        "opportunities",
+        ["investment_mode"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("ix_opportunities_approval_id"), "opportunities", ["approval_id"], unique=False
+        op.f("ix_opportunities_approval_id"),
+        "opportunities",
+        ["approval_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_opportunities_vault_type"), "opportunities", ["vault_type"], unique=False
+        op.f("idx_opportunities_vault_type"),
+        "opportunities",
+        ["vault_type"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_opportunities_vault_status"),
         "opportunities",
         ["vault_type", "status"],
         unique=False,
-    )
-    op.create_index(op.f("idx_opportunities_status"), "opportunities", ["status"], unique=False)
-    op.create_index(op.f("idx_opportunities_slug"), "opportunities", ["slug"], unique=False)
-    op.create_index(
-        op.f("idx_opportunities_creator"), "opportunities", ["creator_id"], unique=False
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_opportunities_company"), "opportunities", ["company_id"], unique=False
+        op.f("idx_opportunities_status"),
+        "opportunities",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_opportunities_slug"), "opportunities", ["slug"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("idx_opportunities_creator"),
+        "opportunities",
+        ["creator_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_opportunities_company"),
+        "opportunities",
+        ["company_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_opportunities_community_subtype"),
@@ -1983,12 +2289,21 @@ def downgrade() -> None:
         ["community_subtype"],
         unique=False,
         postgresql_where="(community_subtype IS NOT NULL)",
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_opportunities_city"), "opportunities", ["city"], unique=False)
     op.create_index(
-        op.f("idx_opp_vault_status"), "opportunities", ["vault_type", "status"], unique=False
+        op.f("idx_opportunities_city"), "opportunities", ["city"], unique=False, if_not_exists=True
     )
-    op.create_index(op.f("idx_opp_company"), "opportunities", ["company_id"], unique=False)
+    op.create_index(
+        op.f("idx_opp_vault_status"),
+        "opportunities",
+        ["vault_type", "status"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_opp_company"), "opportunities", ["company_id"], unique=False, if_not_exists=True
+    )
     op.alter_column(
         "opportunities",
         "updated_at",
@@ -2032,12 +2347,19 @@ def downgrade() -> None:
     )
     op.drop_index(op.f("ix_notifications_user_id"), if_exists=True, table_name="notifications")
     op.drop_index(op.f("ix_notifications_created_at"), if_exists=True, table_name="notifications")
-    op.create_index(op.f("idx_notifications_user_id"), "notifications", ["user_id"], unique=False)
+    op.create_index(
+        op.f("idx_notifications_user_id"),
+        "notifications",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_index(
         op.f("idx_notifications_user_created"),
         "notifications",
         ["user_id", sa.literal_column("created_at DESC")],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_notifications_unread"),
@@ -2045,8 +2367,15 @@ def downgrade() -> None:
         ["user_id"],
         unique=False,
         postgresql_where="(read_at IS NULL)",
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_notifications_is_read"), "notifications", ["is_read"], unique=False)
+    op.create_index(
+        op.f("idx_notifications_is_read"),
+        "notifications",
+        ["is_read"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.alter_column(
         "notifications",
         "created_at",
@@ -2061,9 +2390,17 @@ def downgrade() -> None:
         nullable=True,
         existing_server_default=sa.text("false"),
     )
-    op.create_index(op.f("idx_loans_status"), "loans", ["status"], unique=False)
-    op.create_index(op.f("idx_loans_lender_status"), "loans", ["lender_id", "status"], unique=False)
-    op.create_index(op.f("idx_loans_lender"), "loans", ["lender_id", "status"], unique=False)
+    op.create_index(op.f("idx_loans_status"), "loans", ["status"], unique=False, if_not_exists=True)
+    op.create_index(
+        op.f("idx_loans_lender_status"),
+        "loans",
+        ["lender_id", "status"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_loans_lender"), "loans", ["lender_id", "status"], unique=False, if_not_exists=True
+    )
     op.alter_column(
         "loans",
         "created_at",
@@ -2111,17 +2448,28 @@ def downgrade() -> None:
         ondelete="RESTRICT",
     )
     op.create_index(
-        op.f("idx_investments_user_status"), "investments", ["user_id", "status"], unique=False
+        op.f("idx_investments_user_status"),
+        "investments",
+        ["user_id", "status"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_investments_status"), "investments", ["status"], unique=False)
+    op.create_index(
+        op.f("idx_investments_status"), "investments", ["status"], unique=False, if_not_exists=True
+    )
     op.create_index(
         op.f("idx_investments_razorpay_order_id"),
         "investments",
         ["razorpay_order_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_inv_status_created"), "investments", ["status", "created_at"], unique=False
+        op.f("idx_inv_status_created"),
+        "investments",
+        ["status", "created_at"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "investments",
@@ -2142,18 +2490,21 @@ def downgrade() -> None:
         "investment_transaction_records",
         ["user_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_investment_txn_records_opp_inv_id"),
         "investment_transaction_records",
         ["opportunity_investment_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("ix_investment_txn_records_legacy_inv_id"),
         "investment_transaction_records",
         ["legacy_investment_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_table_comment(
         "indian_pincodes",
@@ -2173,31 +2524,65 @@ def downgrade() -> None:
     )
     op.drop_index(op.f("ix_group_messages_group_id"), if_exists=True, table_name="group_messages")
     op.create_index(
-        op.f("idx_group_messages_group_id"), "group_messages", ["group_id"], unique=False
+        op.f("idx_group_messages_group_id"),
+        "group_messages",
+        ["group_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("ix_expressions_of_interest_status"),
         if_exists=True,
         table_name="expressions_of_interest",
     )
-    op.create_index(op.f("ix_eoi_user_id"), "expressions_of_interest", ["user_id"], unique=False)
-    op.create_index(op.f("ix_eoi_status"), "expressions_of_interest", ["status"], unique=False)
     op.create_index(
-        op.f("ix_eoi_opportunity_id"), "expressions_of_interest", ["opportunity_id"], unique=False
+        op.f("ix_eoi_user_id"),
+        "expressions_of_interest",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_eoi_user_id"), "expressions_of_interest", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_eoi_status"),
+        "expressions_of_interest",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("ix_eoi_opportunity_id"),
+        "expressions_of_interest",
+        ["opportunity_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_eoi_user_id"),
+        "expressions_of_interest",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_index(
         op.f("idx_eoi_status_opid"),
         "expressions_of_interest",
         ["status", "opportunity_id"],
         unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_eoi_status"), "expressions_of_interest", ["status"], unique=False)
+    op.create_index(
+        op.f("idx_eoi_status"),
+        "expressions_of_interest",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_index(
         op.f("idx_eoi_opportunity_status"),
         "expressions_of_interest",
         ["opportunity_id", "status"],
         unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "expressions_of_interest",
@@ -2225,14 +2610,25 @@ def downgrade() -> None:
         "eoi_stage_history",
         ["eoi_id", "status"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_eoi_stage_history_eoi"), "eoi_stage_history", ["eoi_id"], unique=False
+        op.f("idx_eoi_stage_history_eoi"),
+        "eoi_stage_history",
+        ["eoi_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.drop_index(
         op.f("ix_eoi_question_answers_eoi_id"), if_exists=True, table_name="eoi_question_answers"
     )
-    op.create_index(op.f("ix_eoi_qa_eoi_id"), "eoi_question_answers", ["eoi_id"], unique=False)
+    op.create_index(
+        op.f("ix_eoi_qa_eoi_id"),
+        "eoi_question_answers",
+        ["eoi_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.alter_column(
         "eoi_question_answers",
         "created_at",
@@ -2245,6 +2641,7 @@ def downgrade() -> None:
         "eoi_form_options",
         ["field_name", "is_active"],
         unique=False,
+        if_not_exists=True,
     )
     op.add_column(
         "companies",
@@ -2257,17 +2654,32 @@ def downgrade() -> None:
         schema=None,
     )
     op.drop_index(op.f("ix_companies_user_id"), if_exists=True, table_name="companies")
-    op.create_index(op.f("ix_companies_approval_id"), "companies", ["approval_id"], unique=False)
-    op.create_index(op.f("idx_companies_verified"), "companies", ["verified"], unique=False)
-    op.create_index(op.f("idx_companies_user_id"), "companies", ["user_id"], unique=False)
-    op.create_index(op.f("idx_companies_user"), "companies", ["user_id"], unique=False)
-    op.create_index(op.f("idx_companies_name"), "companies", ["company_name"], unique=False)
+    op.create_index(
+        op.f("ix_companies_approval_id"),
+        "companies",
+        ["approval_id"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_companies_verified"), "companies", ["verified"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("idx_companies_user_id"), "companies", ["user_id"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("idx_companies_user"), "companies", ["user_id"], unique=False, if_not_exists=True
+    )
+    op.create_index(
+        op.f("idx_companies_name"), "companies", ["company_name"], unique=False, if_not_exists=True
+    )
     op.create_index(
         op.f("idx_companies_cin"),
         "companies",
         ["cin"],
         unique=True,
         postgresql_where="(cin IS NOT NULL)",
+        if_not_exists=True,
     )
     op.alter_column(
         "companies",
@@ -2348,7 +2760,11 @@ def downgrade() -> None:
         existing_server_default=sa.text("false"),
     )
     op.create_index(
-        op.f("ix_builder_updates_creator_id"), "builder_updates", ["creator_id"], unique=False
+        op.f("ix_builder_updates_creator_id"),
+        "builder_updates",
+        ["creator_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "builder_questions",
@@ -2382,12 +2798,19 @@ def downgrade() -> None:
         "bank_details", existing_comment="Bank details with encrypted sensitive fields", schema=None
     )
     op.drop_index(op.f("ix_bank_details_user_id"), if_exists=True, table_name="bank_details")
-    op.create_index(op.f("idx_bank_details_user_id"), "bank_details", ["user_id"], unique=False)
+    op.create_index(
+        op.f("idx_bank_details_user_id"),
+        "bank_details",
+        ["user_id"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.create_index(
         op.f("idx_audit_logs_resource"),
         "audit_logs",
         ["resource_type", "resource_id"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_audit_logs_created_brin"),
@@ -2395,12 +2818,14 @@ def downgrade() -> None:
         ["created_at"],
         unique=False,
         postgresql_using="brin",
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_audit_logs_created_at"),
         "audit_logs",
         [sa.literal_column("created_at DESC")],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_audit_logs_actor"),
@@ -2408,6 +2833,7 @@ def downgrade() -> None:
         ["actor_id"],
         unique=False,
         postgresql_where="(actor_id IS NOT NULL)",
+        if_not_exists=True,
     )
     op.alter_column(
         "audit_logs",
@@ -2435,25 +2861,46 @@ def downgrade() -> None:
         op.f("ix_approval_requests_category"), if_exists=True, table_name="approval_requests"
     )
     op.create_index(
-        op.f("idx_approval_requests_status"), "approval_requests", ["status"], unique=False
+        op.f("idx_approval_requests_status"),
+        "approval_requests",
+        ["status"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_approval_requests_reviewer"), "approval_requests", ["reviewer_id"], unique=False
+        op.f("idx_approval_requests_reviewer"),
+        "approval_requests",
+        ["reviewer_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_approval_requests_requester"), "approval_requests", ["requester_id"], unique=False
+        op.f("idx_approval_requests_requester"),
+        "approval_requests",
+        ["requester_id"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_approval_requests_created_at"), "approval_requests", ["created_at"], unique=False
+        op.f("idx_approval_requests_created_at"),
+        "approval_requests",
+        ["created_at"],
+        unique=False,
+        if_not_exists=True,
     )
     op.create_index(
         op.f("idx_approval_requests_category_status"),
         "approval_requests",
         ["category", "status"],
         unique=False,
+        if_not_exists=True,
     )
     op.create_index(
-        op.f("idx_approval_requests_category"), "approval_requests", ["category"], unique=False
+        op.f("idx_approval_requests_category"),
+        "approval_requests",
+        ["category"],
+        unique=False,
+        if_not_exists=True,
     )
     op.alter_column(
         "approval_requests",
@@ -2482,17 +2929,30 @@ def downgrade() -> None:
         ["page", "section_tag"],
         postgresql_nulls_not_distinct=False,
     )
-    op.create_index(op.f("ix_app_videos_uploaded_by"), "app_videos", ["uploaded_by"], unique=False)
     op.create_index(
-        op.f("idx_app_videos_page_section"), "app_videos", ["page", "section_tag"], unique=False
+        op.f("ix_app_videos_uploaded_by"),
+        "app_videos",
+        ["uploaded_by"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_app_videos_page"), "app_videos", ["page"], unique=False)
+    op.create_index(
+        op.f("idx_app_videos_page_section"),
+        "app_videos",
+        ["page", "section_tag"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_app_videos_page"), "app_videos", ["page"], unique=False, if_not_exists=True
+    )
     op.create_index(
         op.f("idx_app_videos_active"),
         "app_videos",
         ["is_active"],
         unique=False,
         postgresql_where="(is_active = true)",
+        if_not_exists=True,
     )
     op.alter_column(
         "app_videos",
@@ -2529,15 +2989,22 @@ def downgrade() -> None:
         postgresql_nulls_not_distinct=False,
     )
     op.create_index(
-        op.f("idx_app_images_page_section"), "app_images", ["page", "section_tag"], unique=False
+        op.f("idx_app_images_page_section"),
+        "app_images",
+        ["page", "section_tag"],
+        unique=False,
+        if_not_exists=True,
     )
-    op.create_index(op.f("idx_app_images_page"), "app_images", ["page"], unique=False)
+    op.create_index(
+        op.f("idx_app_images_page"), "app_images", ["page"], unique=False, if_not_exists=True
+    )
     op.create_index(
         op.f("idx_app_images_active"),
         "app_images",
         ["is_active"],
         unique=False,
         postgresql_where="(is_active = true)",
+        if_not_exists=True,
     )
     op.alter_column(
         "app_images",
@@ -2572,8 +3039,20 @@ def downgrade() -> None:
         existing_comment="Invite tokens for admin/super_admin role onboarding",
         schema=None,
     )
-    op.create_index(op.f("idx_admin_invites_token"), "admin_invites", ["token"], unique=False)
-    op.create_index(op.f("idx_admin_invites_email"), "admin_invites", ["email"], unique=False)
+    op.create_index(
+        op.f("idx_admin_invites_token"),
+        "admin_invites",
+        ["token"],
+        unique=False,
+        if_not_exists=True,
+    )
+    op.create_index(
+        op.f("idx_admin_invites_email"),
+        "admin_invites",
+        ["email"],
+        unique=False,
+        if_not_exists=True,
+    )
     op.drop_index(op.f("ix_consent_logs_target_id"), if_exists=True, table_name="consent_logs")
     op.drop_index(op.f("ix_consent_logs_consent_type"), if_exists=True, table_name="consent_logs")
     op.drop_table("consent_logs")
