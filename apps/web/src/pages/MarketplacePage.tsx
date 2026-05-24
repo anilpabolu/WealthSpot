@@ -349,7 +349,7 @@ export default function MarketplacePage() {
         path="/marketplace"
       />
       {/* Hero — diagonal ribbon split (vault-aware) */}
-      <div className="relative overflow-hidden bg-slate-900" style={{ minHeight: 340 }}>
+      <div className="relative overflow-hidden bg-slate-900 -mt-16 pt-[8.5rem] pb-14 lg:pb-16" style={{ minHeight: 340 }}>
         {/* Particle + Gradient overlays */}
         <ParticleCanvas className="opacity-40 z-[0]" />
         <GradientMesh className="z-[0]" />
@@ -368,7 +368,7 @@ export default function MarketplacePage() {
         <div className={`absolute inset-0 z-[1] bg-gradient-to-br ${hero.mobileGradient} lg:hidden`} />
 
         {/* Content overlay */}
-        <div className="relative z-[3] mx-auto max-w-7xl px-6 sm:px-8 lg:pl-6 lg:pr-6 py-10 sm:py-12 lg:py-14">
+        <div className="relative z-[3] mx-auto max-w-7xl px-6 sm:px-8 lg:pl-6 lg:pr-6">
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8 lg:gap-0 items-center">
             {/* Left — vault info */}
             <div className="lg:pr-12">

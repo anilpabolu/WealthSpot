@@ -47,6 +47,7 @@ export default function Navbar(_props?: NavbarProps) {
   const isHeroPage = (
     location.pathname === '/' ||
     location.pathname.startsWith('/vaults') ||
+    location.pathname.startsWith('/marketplace') ||
     location.pathname === '/about' ||
     location.pathname === '/create-opportunity' ||
     location.pathname === '/portfolio' ||
@@ -250,24 +251,6 @@ export default function Navbar(_props?: NavbarProps) {
         </div>
       )}
     </header>
-
-      {/* Profile completion banner — unmissable for incomplete profiles */}
-      {isAuthenticated && completion && !completion.isComplete && location.pathname !== '/profile/complete' && (
-        <div
-          className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white cursor-pointer hover:opacity-95 transition-opacity"
-          onClick={() => navigate('/profile/complete')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/profile/complete') }}
-        >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2">
-            <Zap className="h-4 w-4 shrink-0" />
-            <p className="text-sm font-semibold">
-              ⚡ Your investor profile is {completion.profileCompletionPct}% ready — complete it to unlock your full potential & start investing!
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Vault profiling banner — softer prompt after profile is done */}
       {isAuthenticated && completion?.isComplete && overall && !overall.isFullyProfiled && location.pathname !== '/vaults' && (
