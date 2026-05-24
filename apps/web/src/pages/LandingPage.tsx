@@ -56,7 +56,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
 
       {/* Content â€” left-aligned, anchored lower-left */}
       <div className="relative z-10 mt-auto w-full">
-        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-32 lg:pb-[18vh]">
+        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-16 lg:pb-20">
           <div className="flex flex-col items-end text-right max-w-2xl ml-auto">
 
             {/* headline */}
@@ -359,7 +359,7 @@ function VaultCardsSection(_: WithRequestAccess) {
   return (
     <section
       id="vaults"
-      className="relative z-20 -mt-[14vh] py-20 sm:py-24"
+      className="relative z-20 py-20 sm:py-24"
       style={{ background: '#ffffff' }}
     >
       <div className="mx-[5%] lg:mx-[10%] rounded-3xl bg-white px-6 sm:px-8 lg:px-12 py-8 sm:py-10 shadow-[0_18px_40px_rgba(22,28,45,0.16)]">
