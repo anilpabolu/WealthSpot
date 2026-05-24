@@ -28,7 +28,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   return (
     <section
       id="hero"
-      className="relative flex h-screen min-h-[600px] flex-col overflow-hidden"
+      className="relative flex min-h-[100dvh] flex-col overflow-hidden"
     >
       {/* Background video */}
       <video
