@@ -28,7 +28,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   return (
     <section
       id="hero"
-      className="relative flex h-[calc(100vh-4.5rem)] min-h-[500px] flex-col overflow-hidden"
+      className="relative flex h-screen min-h-[600px] flex-col overflow-hidden"
     >
       {/* Background video */}
       <video
@@ -56,7 +56,7 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
 
       {/* Content â€” left-aligned, anchored lower-left */}
       <div className="relative z-10 mt-auto w-full">
-        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-16 lg:pb-20">
+        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-32 lg:pb-[18vh]">
           <div className="flex flex-col items-end text-right max-w-2xl ml-auto">
 
             {/* headline */}
