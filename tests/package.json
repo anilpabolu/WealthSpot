@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test:web": "vitest run -c web/vitest.config.ts",
+    "test:web:local": "vitest run -c web/vitest.config.ts --mode local",
+    "test:web:production": "vitest run -c web/vitest.config.ts --mode production",
     "test:web:functional": "vitest run -c web/vitest.functional.config.ts",
     "test:web:coverage": "vitest run -c web/vitest.config.ts --coverage",
     "test:web:e2e": "playwright test -c web/playwright.config.ts",
@@ -12,8 +14,12 @@
     "test:mobile:functional": "vitest run -c mobile/vitest.functional.config.ts",
     "test:mobile:coverage": "vitest run -c mobile/vitest.config.ts --coverage",
     "test:api": "cd api && pytest",
+    "test:api:local": "cd ../services/api && copy .env.local .env && cd ../../tests/api && pytest",
+    "test:api:production": "cd ../services/api && copy .env.production .env && cd ../../tests/api && pytest",
     "test:api:coverage": "cd api && pytest --cov=app --cov-report=term-missing",
     "test:all": "npm run test:web && npm run test:mobile && npm run test:api",
+    "test:local": "npm run test:api:local && npm run test:web:local",
+    "test:production": "npm run test:api:production && npm run test:web:production",
     "test": "npm run test:all"
   },
   "devDependencies": {

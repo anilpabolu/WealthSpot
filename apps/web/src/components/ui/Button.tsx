@@ -22,15 +22,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
+    'border border-[#8B6914] dark:border-[#D4AF37] bg-transparent text-[#8B6914] dark:text-[#D4AF37] hover:bg-[#8B6914] dark:hover:bg-[#D4AF37] hover:text-white dark:hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
   secondary:
-    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
+    'border border-[#8B6914] dark:border-[#D4AF37] bg-transparent text-[#8B6914] dark:text-[#D4AF37] hover:bg-[#8B6914] dark:hover:bg-[#D4AF37] hover:text-white dark:hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
   ghost:
-    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-40',
+    'border border-[#8B6914] dark:border-[#D4AF37] bg-transparent text-[#8B6914] dark:text-[#D4AF37] hover:bg-[#8B6914] dark:hover:bg-[#D4AF37] hover:text-white dark:hover:text-[#0D1324] hover:font-semibold disabled:opacity-40',
   danger:
     'bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50',
   outline:
-    'border border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
+    'border border-[#8B6914] dark:border-[#D4AF37] bg-transparent text-[#8B6914] dark:text-[#D4AF37] hover:bg-[#8B6914] dark:hover:bg-[#D4AF37] hover:text-white dark:hover:text-[#0D1324] hover:font-semibold disabled:opacity-50',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

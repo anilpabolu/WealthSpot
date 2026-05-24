@@ -39,7 +39,7 @@ function ToastItem({ toast }: { toast: Toast }) {
 
   return (
     <div
-      className="relative flex items-start gap-3 rounded-xl border border-white/10 bg-white/10 px-4 py-3 shadow-xl backdrop-blur-md animate-in slide-in-from-right-8 duration-300 min-w-[280px] max-w-sm"
+      className="relative flex items-start gap-3 rounded-xl border border-theme bg-[var(--bg-surface)] px-4 py-3 shadow-xl backdrop-blur-md animate-in slide-in-from-right-8 duration-300 min-w-[280px] max-w-sm"
       role="alert"
     >
       {/* Left accent bar */}
@@ -48,15 +48,15 @@ function ToastItem({ toast }: { toast: Toast }) {
       <IconEl className={`mt-0.5 h-5 w-5 shrink-0 ${icon}`} />
 
       <div className="flex-1 pr-1">
-        <p className="text-sm font-semibold text-white leading-snug">{toast.title}</p>
+        <p className="text-sm font-semibold text-theme-primary leading-snug">{toast.title}</p>
         {toast.message && (
-          <p className="mt-0.5 text-xs text-white/70 leading-snug">{toast.message}</p>
+          <p className="mt-0.5 text-xs text-theme-secondary leading-snug">{toast.message}</p>
         )}
       </div>
 
       <button
         onClick={() => removeToast(toast.id)}
-        className="mt-0.5 shrink-0 rounded p-0.5 text-white/50 hover:text-white transition-colors"
+        className="mt-0.5 shrink-0 rounded p-0.5 text-theme-tertiary hover:text-theme-primary transition-colors"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />
