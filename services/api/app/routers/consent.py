@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("", response_model=ConsentResponse)
-def record_consent(
+async def record_consent(
     payload: ConsentCreate,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     ip_address = request.client.host if request.client else None
@@ -35,8 +35,8 @@ def record_consent(
     )
 
     db.add(log)
-    db.commit()
-    db.refresh(log)
+    await db.commit()
+    await db.refresh(log)
 
     logger.info(
         f"Consent logged: user={current_user.id} type={payload.consent_type} consented={payload.consented}"
