@@ -154,7 +154,6 @@ export default function BuilderListingsPage() {
   const [investorsPopup, setInvestorsPopup] = useState<{ opportunityId: string; title: string } | null>(null)
   const { listings, isLoading } = useBuilderListings()
 
-  const heroBadge = useContent('builder_listings', 'hero_badge', 'Builder Portal')
   const heroTitle = useContent('builder_listings', 'hero_title', 'My Listings')
   const heroSubtitle = useContent('builder_listings', 'hero_subtitle', 'Manage and track your property listings')
 

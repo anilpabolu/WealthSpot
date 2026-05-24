@@ -6,7 +6,6 @@ import {
   Scale, TrendingUp, MapPin, DoorOpen,
 } from 'lucide-react'
 import SEOHead from '@/components/SEOHead'
-import PageHero from '@/components/PageHero'
 import MainLayout from '@/components/layout/MainLayout'
 import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
