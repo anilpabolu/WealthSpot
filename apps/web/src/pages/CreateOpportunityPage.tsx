@@ -19,6 +19,7 @@ import { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
 import { type BuilderAnswer } from '@/components/shield/BuilderShieldStep'
 import { ASSESSMENT_CATEGORIES } from '@/lib/assessments'
 import { useToastStore } from '@/stores/toastStore'
+import { useUserStore } from '@/stores/user.store'
 import { PropertyType } from '@wealthspot/types'
 
 // ─── Constants (ported from CreateOpportunityModal) ───────────────────────────
@@ -368,6 +369,14 @@ const SHIELD_META: Record<string, ShieldMetaEntry> = {
 
 export default function CreateOpportunityPage() {
   const navigate = useNavigate()
+  const user = useUserStore((s) => s.user)
+
+  // Block non-admins
+  useEffect(() => {
+    if (user && !['admin', 'super_admin'].includes(user.primaryRole)) {
+      navigate('/vaults')
+    }
+  }, [user, navigate])
 
   const [step, setStep] = useState<WizardStep>('vault')
   const [vaultType, setVaultType] = useState('')

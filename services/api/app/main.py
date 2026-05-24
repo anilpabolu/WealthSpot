@@ -35,6 +35,7 @@ from app.routers import (
     builder_updates,
     comm,
     companies,
+    consent,
     control_centre,
     devices,
     eoi,
@@ -172,6 +173,7 @@ app.include_router(appreciation.router, prefix=API_PREFIX)
 app.include_router(appreciation.property_router, prefix=API_PREFIX)
 app.include_router(assessments.router, prefix=API_PREFIX)
 app.include_router(comm.router, prefix=API_PREFIX)
+app.include_router(consent.router, prefix=API_PREFIX)
 
 
 # ── Global exception handlers ────────────────────────────────────────────────

@@ -9,7 +9,7 @@ test.describe('API Health & Integration', () => {
   })
 
   test('API docs endpoint accessible', async ({ request }) => {
-    const response = await request.get(`${apiBase}/docs`)
+    const response = await request.get(`${apiBase}/api/docs`)
     expect(response.status()).toBe(200)
   })
 

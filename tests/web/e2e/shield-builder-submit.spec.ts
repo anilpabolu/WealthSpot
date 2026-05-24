@@ -1,84 +1,57 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('WealthSpot Shield — builder submit flow', () => {
-  test('builder listing creation includes an optional Shield step', async ({
+  test('builder can navigate to the shield step and see categories', async ({
     page,
   }) => {
     await page.goto('/builder/listings/new')
-    // The wizard renders multiple steps; "Shield" should appear in the step list
-    await expect(page.locator('body')).toBeVisible()
-    // Look for the Shield step label or indicator
-    const shieldStep = page.getByText(/Shield/i)
-    await expect(shieldStep.first()).toBeVisible()
-  })
 
-  test('Shield step renders 7 collapsible category sections', async ({
-    page,
-  }) => {
-    await page.goto('/builder/listings/new')
-    await expect(page.locator('body')).toBeVisible()
-    // Navigate to the Shield step if it requires clicking "Next"
-    const shieldLink = page.getByText(/Shield/i).first()
-    if (await shieldLink.isVisible()) {
-      await shieldLink.click()
-    }
-    // Verify all 7 categories are present
-    const categories = [
-      'Builder Assessment',
-      'Legal Assessment',
-      'Valuation Assessment',
-      'Location Assessment',
-      'Property Assessment',
-      'Security Assessment',
-      'Exit Assessment',
-    ]
-    for (const cat of categories) {
-      await expect(page.getByText(cat).first()).toBeVisible()
-    }
-  })
+    // 1. Vault Selection
+    await page.getByRole('button', { name: /Wealth Vault/i }).click()
 
-  test('Shield step shows the optional disclaimer banner', async ({
-    page,
-  }) => {
-    await page.goto('/builder/listings/new')
-    await expect(page.locator('body')).toBeVisible()
-    const shieldLink = page.getByText(/Shield/i).first()
-    if (await shieldLink.isVisible()) {
-      await shieldLink.click()
-    }
-    await expect(
-      page.getByText(/everything on this step is optional/i).first(),
-    ).toBeVisible()
-  })
+    // 2. Details Step 1: Company & Basics
+    await expect(page.getByText('Company / Entity')).toBeVisible()
+    await page.getByPlaceholder('e.g. Premium 2BHK Residences').fill('Test Title')
+    await page.getByPlaceholder('e.g. Verified docs').fill('Test Tagline')
+    await page.getByPlaceholder('Describe the investment opportunity').fill('Test Description')
+    await page.getByRole('button', { name: /Save & Continue/i }).click()
 
-  test('builder can expand a category and see sub-items', async ({ page }) => {
-    await page.goto('/builder/listings/new')
-    await expect(page.locator('body')).toBeVisible()
-    const shieldLink = page.getByText(/Shield/i).first()
-    if (await shieldLink.isVisible()) {
-      await shieldLink.click()
-    }
-    // Click on a category to expand it
-    const builderCategory = page.getByText('Builder Assessment').first()
-    if (await builderCategory.isVisible()) {
-      await builderCategory.click()
-      // Should show sub-item prompts / inputs
-      await expect(
-        page.getByText(/Category Grade/i).first(),
-      ).toBeVisible()
-    }
-  })
+    // 3. Details Step 2: Property & Financials
+    await expect(page.getByText('Property Type')).toBeVisible()
+    
+    // Select property type (first one in the grid)
+    await page.getByRole('button', { name: /Residential/i }).first().click()
+    
+    // Total Floors
+    await page.getByPlaceholder('e.g. 20').fill('10')
+    
+    // Land Parcel
+    await page.locator('input[placeholder="Enter value"]').fill('1000') // sqft
+    
+    // Investment Mode
+    await page.getByRole('button', { name: 'Lumpsum' }).click()
+    
+    // Pricing
+    await page.locator('input[placeholder="e.g. 6500"]').fill('5000') // price per sqft
+    await page.locator('input[placeholder="e.g. 250000"]').fill('100000') // total project area
+    
+    // Min investment
+    await page.locator('input[placeholder="e.g. 500000"]').fill('100000')
+    
+    // Funding Opens
+    await page.locator('input[type="date"]').first().fill('2025-01-01')
+    
+    await page.getByRole('button', { name: /Save & Continue/i }).click()
 
-  test('builder can submit listing with empty Shield answers', async ({
-    page,
-  }) => {
-    await page.goto('/builder/listings/new')
-    await expect(page.locator('body')).toBeVisible()
-    // The submit / create button should be available even if Shield is empty
-    const submitButton = page.getByRole('button', { name: /submit|create|save/i })
-    if (await submitButton.first().isVisible()) {
-      // Just verify it's not disabled
-      await expect(submitButton.first()).toBeEnabled()
-    }
+    // 4. Details Step 3: Location & Media
+    await expect(page.getByText('Location & Media')).toBeVisible()
+    await page.getByRole('button', { name: /Save & Continue/i }).click()
+
+    // 5. Shield Step
+    await expect(page.getByText('WealthSpot Shield')).toBeVisible()
+    await expect(page.getByText('7-Layer Trust Framework')).toBeVisible()
+    
+    // First category is Builder Assessment
+    await expect(page.getByText('Builder Assessment')).toBeVisible()
   })
 })

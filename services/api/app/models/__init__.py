@@ -27,6 +27,7 @@ from app.models.community import (  # noqa: F401
     Referral,
 )
 from app.models.company import Company, EntityType, VerificationStatus  # noqa: F401
+from app.models.consent_log import ConsentLog  # noqa: F401
 from app.models.device import DevicePlatform, UserDevice  # noqa: F401
 from app.models.eoi_form_option import EoiFormOption  # noqa: F401
 from app.models.eoi_stage_history import EoiStageHistory  # noqa: F401

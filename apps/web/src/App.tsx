@@ -14,6 +14,7 @@ import PersonaSelectionModal from '@/components/PersonaSelectionModal'
 import { ToastRibbon } from '@/components/ToastRibbon'
 import { useToastStore } from '@/stores/toastStore'
 import SplashScreen from './components/SplashScreen'
+import { GlobalConsentGate } from '@/components/consent/GlobalConsentGate'
 
 // Lazy-loaded route components
 const Landing = lazy(() => import('@/pages/LandingPage'))
@@ -181,8 +182,9 @@ export default function App() {
         !wsUser.personaSelectedAt &&
         !['admin', 'super_admin'].includes(wsUser.primaryRole) &&
         <PersonaSelectionModal />}
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+      <GlobalConsentGate>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/about" element={<About />} />
@@ -253,10 +255,11 @@ export default function App() {
           <Route path="/vault-profiling" element={<ProtectedRoute><VaultProfiling /></ProtectedRoute>} />
           <Route path="/vault-analytics" element={<ProtectedRoute><VaultAnalytics /></ProtectedRoute>} />
 
-          {/* 404 catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            {/* 404 catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </GlobalConsentGate>
       <DiagnosticPanel />
     </ErrorBoundary>
   )

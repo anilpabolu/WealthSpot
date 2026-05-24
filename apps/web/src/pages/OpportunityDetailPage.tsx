@@ -23,6 +23,8 @@ import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
 import { ShieldSection } from '@/components/shield/ShieldSection'
+import { ActionConsentModal } from '@/components/consent/ActionConsentModal'
+import { useRecordConsent } from '@/hooks/useConsent'
 import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
 import { AMENITIES, AMENITY_CATEGORIES } from '@wealthspot/types'
 import type { AmenityCategory } from '@wealthspot/types'
@@ -289,6 +291,8 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
 
 function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
+  const [showEOIConsent, setShowEOIConsent] = useState(false)
+  const recordConsent = useRecordConsent()
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
   const isClosed = opportunity.status === 'closed'
 
@@ -325,7 +329,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
         {/* Express Interest button */}
         {!isClosed ? (
           <button
-            onClick={() => setShowEOI(true)}
+            onClick={() => setShowEOIConsent(true)}
             className="btn-primary w-full text-base py-3 inline-flex items-center justify-center gap-2"
           >
             <HandCoins className="h-5 w-5" />
@@ -342,6 +346,22 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           Your contact details will not be shared.
         </p>
       </div>
+
+      {showEOIConsent && (
+        <ActionConsentModal
+          title="Expression of Interest Consent"
+          onConsent={async () => {
+            await recordConsent.mutateAsync({
+              consent_type: 'EOI',
+              consented: true,
+              target_id: opportunity.id
+            })
+            setShowEOIConsent(false)
+            setShowEOI(true)
+          }}
+          onDecline={() => setShowEOIConsent(false)}
+        />
+      )}
 
       {showEOI && (
         <ExpressInterestModal

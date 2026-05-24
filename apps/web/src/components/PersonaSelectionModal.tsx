@@ -21,23 +21,9 @@ const PERSONAS = [
       </svg>
     ),
   },
-  {
-    id: 'builder' as const,
-    title: 'Builder',
-    subtitle: 'List properties and connect with investors',
-    icon: (
-      <svg viewBox="0 0 48 48" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M24 6L4 20h40L24 6Z" className="fill-amber-100 dark:fill-amber-900/40 stroke-amber-600 dark:stroke-amber-400" />
-        <rect x="8" y="20" width="32" height="22" rx="1" className="fill-amber-50 dark:fill-amber-950/30 stroke-amber-600 dark:stroke-amber-400" />
-        <rect x="18" y="28" width="12" height="14" rx="1" className="fill-amber-200 dark:fill-amber-800/40 stroke-amber-600 dark:stroke-amber-400" />
-        <circle cx="24" cy="14" r="2" className="fill-amber-400 stroke-amber-600 dark:stroke-amber-400" />
-      </svg>
-    ),
-    notice: 'Builder access requires admin approval. You can explore the dashboard while verification is in progress.',
-  },
 ]
 
-type PersonaId = 'investor' | 'builder'
+type PersonaId = 'investor'
 
 export default function PersonaSelectionModal() {
   const { user, setUser } = useUserStore()
@@ -135,13 +121,6 @@ export default function PersonaSelectionModal() {
             )
           })}
         </div>
-
-        {/* Builder notice */}
-        {selected === 'builder' && (
-          <div className="mx-6 mt-1 mb-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-300">
-            Builder access requires admin approval. You can explore the dashboard while verification is in progress.
-          </div>
-        )}
 
         {error && (
           <div className="mx-6 mt-1 mb-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300">

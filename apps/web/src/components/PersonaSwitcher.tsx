@@ -10,7 +10,6 @@ import { useUserStore } from '@/stores/user.store'
 
 const PERSONA_META: Record<string, { label: string; color: string; bg: string }> = {
   investor: { label: 'Investor', color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800' },
-  builder:  { label: 'Builder',  color: 'text-amber-700 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800' },
 }
 
 export default function PersonaSwitcher() {

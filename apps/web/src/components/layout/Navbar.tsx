@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, X, Plus, PieChart, Zap, Sparkles, Vault } from 'lucide-react'
+import { Menu, X, Plus, PieChart, Sparkles, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -17,7 +17,7 @@ import WLogo3D from '@/components/ui/WLogo3D'
 const AUTH_NAV_LINKS = [
   { label: 'Vaults', href: '/vaults', icon: Vault },
   { label: 'Portfolio', href: '/portfolio', icon: PieChart, roles: ['investor', 'admin', 'super_admin'] },
-  { label: 'My Listings', href: '/portal/builder/listings', icon: Sparkles, roles: ['builder', 'admin', 'super_admin'] },
+  { label: 'My Listings', href: '/portal/builder/listings', icon: Sparkles, roles: ['admin', 'super_admin'] },
 ] as const
 
 interface NavbarProps {
@@ -169,7 +169,7 @@ export default function Navbar(_props?: NavbarProps) {
             
             {/* Clerk auth: signed-in → Create Opp + UserButton, signed-out → Sign In / Sign Up */}
             <Show when="signed-in">
-              {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
+              {(userRoles.includes('admin') || userRoles.includes('super_admin')) && (
               <button
                 onClick={() => navigate('/create-opportunity')}
                 className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37]/60 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"

@@ -30,8 +30,6 @@ export default function BuilderDashboardPage() {
   const emptyTitle = useContent('builder_dashboard', 'empty_title', 'No Properties Yet')
   const emptyMessage = useContent('builder_dashboard', 'empty_message', 'Create your first listing!')
   const errorMessage = useContent('builder_dashboard', 'error_message', 'Failed to load dashboard data. Please try again later.')
-  const verifyTitle = useContent('builder_dashboard', 'verify_title', 'Verification pending')
-  const verifyMessage = useContent('builder_dashboard', 'verify_message', 'Your builder profile is awaiting admin verification. Some features may be limited.')
 
   return (
     <PortalLayout 
@@ -145,16 +143,7 @@ export default function BuilderDashboardPage() {
               )}
             </div>
 
-            {/* Verification notice */}
-            {data?.builder && !data.builder.verified && (
-              <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-theme-primary">{verifyTitle}</p>
-                  <p className="text-xs text-theme-secondary mt-0.5">{verifyMessage}</p>
-                </div>
-              </div>
-            )}
+
           </>
         )}
         </div>
