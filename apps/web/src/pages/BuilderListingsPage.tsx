@@ -170,7 +170,12 @@ export default function BuilderListingsPage() {
       hero={
         <section
           id="hero"
-          className="page-hero relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.25rem] pb-10 px-6 lg:px-8"
+          className="page-hero-navbar relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16 -mt-16"
+          style={{
+            backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
         >
           {/* Blur orbs — matching VaultsPage */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -178,13 +183,14 @@ export default function BuilderListingsPage() {
             <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
           </div>
-          <div className="page-hero-content">
-            <div className="animate-fade-up flex flex-col gap-5 sm:gap-0 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <span className="page-hero-badge">{heroBadge}</span>
-                <h1 className="page-hero-title">{heroTitle}</h1>
-                <p className="page-hero-subtitle">{heroSubtitle}</p>
-              </div>
+          <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+            <div className="animate-fade-up">
+              <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+                {heroTitle}
+              </h1>
+              <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+                {heroSubtitle}
+              </p>
             </div>
           </div>
         </section>

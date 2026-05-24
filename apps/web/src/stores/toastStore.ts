@@ -19,7 +19,7 @@ interface ToastState {
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
-  dismissInterval: 3000,
+  dismissInterval: 6000,
 
   addToast: (toast) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`

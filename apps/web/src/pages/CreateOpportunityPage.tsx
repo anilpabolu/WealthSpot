@@ -213,9 +213,11 @@ const EMPTY_ADDRESS: AddressFields = {
 const PAGE_ACCENT = '#D4AF37'
 
 // ─── Shield validation helper ─────────────────────────────────────────────────
-function getShieldValidationErrors(answers: Record<string, BuilderAnswer>): string[] {
+function getShieldValidationErrors(answers: Record<string, BuilderAnswer>, categoryIndex?: number): string[] {
   const errors: string[] = []
-  for (const cat of ASSESSMENT_CATEGORIES) {
+  const categories = categoryIndex !== undefined ? [ASSESSMENT_CATEGORIES[categoryIndex]] : ASSESSMENT_CATEGORIES
+  for (const cat of categories) {
+    if (!cat) continue
     for (const sub of cat.subItems) {
       if (sub.requiresDocument) continue
       const val = answers[sub.code]?.value
@@ -237,19 +239,12 @@ const LABEL_CLS = 'block font-body text-[#3d5757] text-sm font-medium mb-1'
 const CARD_CLS = 'bg-[#f1f4f3] border border-[#d3dcda] rounded-2xl p-5'
 const SECTION_HEADING = 'font-hero text-[#2f4a4a] font-semibold text-base mb-3'
 const ERR_MSG = 'text-red-500 text-xs mt-1 flex items-center gap-1'
-const ERR_MSG_LIGHT = 'text-red-500 text-xs mt-1 flex items-center gap-1'
 
 // Step definitions
 type WizardStep = 'vault' | 'community-subtype' | 'details' | 'shield' | 'uploading'
 
-const STEP_LABELS = ['Vault', 'Details', 'Security & Trust', 'Submit']
 
-function stepIndex(step: WizardStep, _isComm: boolean): number {
-  if (step === 'vault' || step === 'community-subtype') return 0
-  if (step === 'details') return 1
-  if (step === 'shield') return 2
-  return 3
-}
+
 
 // ─── Shield section metadata ──────────────────────────────────────────────────
 
@@ -405,7 +400,9 @@ export default function CreateOpportunityPage() {
   const [landParcelUnit, setLandParcelUnit] = useState<LandUnit>('sqft')
   const [landParcelRawValue, setLandParcelRawValue] = useState<string>('')
   const [shieldAnswers, setShieldAnswers] = useState<Record<string, BuilderAnswer>>({})
-  const [shieldAttempted, setShieldAttempted] = useState(false)
+  const [detailsStepIndex, setDetailsStepIndex] = useState(0)
+  const [shieldStepIndex, setShieldStepIndex] = useState(0)
+  const [shieldStepAttempted, setShieldStepAttempted] = useState(false)
 
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
@@ -548,23 +545,85 @@ export default function CreateOpportunityPage() {
     setSubmitAttempted(true)
     const errors = validateForm()
     setFormErrors(errors)
-    if (Object.keys(errors).length > 0) {
+    
+    const step0Keys = ['title', 'tagline', 'description']
+    let currentStepErrors = []
+    
+    if (detailsStepIndex === 0) {
+      currentStepErrors = Object.keys(errors).filter(k => step0Keys.includes(k))
+    } else if (detailsStepIndex === 1) {
+      currentStepErrors = Object.keys(errors).filter(k => !step0Keys.includes(k))
+    }
+
+    if (currentStepErrors.length > 0) {
       useToastStore.getState().addToast({ type: 'error', title: 'Required fields missing', message: 'Please fill all required information before continuing.' })
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
-    setStep('shield')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    if (detailsStepIndex < 2) {
+      setDetailsStepIndex(prev => prev + 1)
+      setSubmitAttempted(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      setStep('shield')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handleDetailsBack = () => {
+    if (detailsStepIndex > 0) {
+      setDetailsStepIndex(prev => prev - 1)
+      setSubmitAttempted(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      if (vaultType === 'community') setStep('community-subtype')
+      else setStep('vault')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handleShieldNext = async () => {
+    setShieldStepAttempted(true)
+    const errors = getShieldValidationErrors(shieldAnswers, shieldStepIndex)
+    
+    if (errors.length > 0) {
+      useToastStore.getState().addToast({
+        type: 'error',
+        title: 'Required fields missing',
+        message: 'Please answer all mandatory questions in this section.',
+      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (shieldStepIndex < ASSESSMENT_CATEGORIES.length - 1) {
+      setShieldStepIndex((prev) => prev + 1)
+      setShieldStepAttempted(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      handleSubmit()
+    }
+  }
+
+  const handleShieldBack = () => {
+    if (shieldStepIndex > 0) {
+      setShieldStepIndex((prev) => prev - 1)
+      setShieldStepAttempted(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      setStep('details')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const handleSubmit = async () => {
-    setShieldAttempted(true)
     const shieldErrors = getShieldValidationErrors(shieldAnswers)
     if (shieldErrors.length > 0) {
       useToastStore.getState().addToast({
         type: 'error',
         title: 'Shield questionnaire incomplete',
-        message: `Please answer all ${shieldErrors.length} required question(s) before submitting.`,
+        message: `Please answer all required question(s) before submitting.`,
       })
       return
     }
@@ -658,18 +717,7 @@ export default function CreateOpportunityPage() {
     }
   }
 
-  const currentStepIndex = stepIndex(step, vaultType === 'community')
   const activeVaultPreview = VAULT_OPTIONS.find((v) => v.value === vaultPreview) ?? VAULT_OPTIONS[0]
-  const vaultBackgroundStyle =
-    step === 'vault'
-      ? {
-          backgroundImage:
-            "linear-gradient(120deg, rgba(8, 12, 26, 0.78) 0%, rgba(10, 16, 34, 0.62) 44%, rgba(12, 20, 40, 0.52) 100%), url('/images/create-opportunity-background.avif')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }
-      : undefined
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -689,46 +737,70 @@ export default function CreateOpportunityPage() {
 
   return (
     <MainLayout showFooter={true}>
-      <div
-        className="min-h-screen flex flex-col bg-[#0b1020]"
-        style={vaultBackgroundStyle}
-      >
+      <div className="min-h-screen flex flex-col bg-[#f8faf9]">
         <SEOHead noIndex />
-        <PageHero
-          id="hero"
-          eyebrow="WealthSpot Platform"
-          title="Launch Your Opportunity"
-          subtitle={step === 'vault' ? 'Select your investment vault to get started.' : 'Create a compelling investment listing for the WealthSpot platform.'}
-          compact={true}
-          contentClassName={step === 'vault' || step === 'details' ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' : 'max-w-3xl mx-auto px-4'}
-        >
-        {/* Step progress bar */}
+        {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
-          <div className="flex items-center gap-2 mt-4">
-            {STEP_LABELS.map((label, i) => {
-              const done = i < currentStepIndex
-              const active = i === currentStepIndex
-              return (
-                <div key={label} className="flex items-center gap-2 flex-1">
-                  <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className={`h-1.5 w-full rounded-full transition-all ${done ? 'bg-[#D4AF37]' : active ? 'bg-white' : 'bg-white/20'}`} />
-                    <span className={`text-[10px] font-medium ${done ? 'text-[#D4AF37]' : active ? 'text-white' : 'text-white/30'}`}>{label}</span>
+          <div className="bg-white border-b border-[#e1e7e5] px-4 py-4 sticky top-0 z-50">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <button onClick={() => setStep('vault')} className="flex items-center gap-2 text-[#2f4a4a] hover:text-[#D4AF37] transition-colors font-semibold">
+                <ArrowLeft className="h-4 w-4" /> Exit
+              </button>
+              
+              <div className="flex items-center gap-6 md:gap-12 flex-1 justify-center">
+                {[
+                  { id: 'details', label: 'Details', icon: Building2, active: step === 'details' },
+                  { id: 'shield', label: 'Security', icon: ShieldCheck, active: step === 'shield' },
+                  { id: 'submit', label: 'Review', icon: CheckCircle2, active: false }
+                ].map((s, i) => (
+                  <div key={s.id} className="flex items-center gap-3">
+                    <div className={`flex items-center gap-2 ${s.active ? 'text-[#D4AF37]' : (step === 'shield' && s.id === 'details') ? 'text-[#D4AF37]' : 'text-[#a0afaf]'}`}>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors ${s.active ? 'border-[#D4AF37] bg-[#D4AF37]/10' : (step === 'shield' && s.id === 'details') ? 'border-[#D4AF37] bg-[#D4AF37] text-white' : 'border-[#d4dcda] bg-[#f1f4f3]'}`}>
+                        <s.icon className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-bold hidden md:block">{s.label}</span>
+                    </div>
+                    {i < 2 && <ChevronRight className="h-4 w-4 text-[#d4dcda] mx-2 hidden md:block" />}
                   </div>
-                  {i < STEP_LABELS.length - 1 && <ChevronRight className="h-3 w-3 text-white/20 shrink-0 -mt-3" />}
-                </div>
-              )
-            })}
+                ))}
+              </div>
+            </div>
           </div>
         )}
-        </PageHero>
 
       {/* Content */}
-      <div className={step === 'vault' ? 'flex-1 flex lg:overflow-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
+      <div className={step === 'vault' ? 'flex-1 flex flex-col lg:overflow-x-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
+
+        {step === 'vault' && (
+          <section id="hero" className="relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16 -mt-16"
+            style={{
+              backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}>
+            {/* Subtle geometric decoration */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+              <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+            </div>
+            <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+              <div className="animate-fade-up">
+                <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+                  Create Opportunity
+                </h1>
+                <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+                  List your new investment class — real estate, fixed-income, or collaborative ventures. Find the one that matches your ambition.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="h-full w-full px-3 sm:px-6 lg:px-8 py-8 lg:py-12 flex items-center justify-center">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-[0_24px_64px_rgba(6,10,20,0.30)] h-[460px] w-full max-w-[1600px]">
+          <section className="flex-1 w-full px-3 sm:px-6 lg:px-8 pb-20 flex items-start justify-center mt-20">
+            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0">
               <img
                 src="/images/vault-selector-abstract.svg"
                 alt=""
@@ -905,48 +977,38 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Details Form ─── */}
         {step === 'details' && (
-          <div className="w-full lg:h-full">
-            <section
-              className="relative overflow-hidden lg:h-full"
-              style={{ background: 'linear-gradient(140deg, #d5cac5 0%, #d2bfba 40%, #efb9a7 72%, #f1dfd0 100%)' }}
-            >
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(58% 45% at 20% 92%, rgba(187,84,55,0.35), transparent 72%), radial-gradient(44% 38% at 84% 6%, rgba(255,255,255,0.42), transparent 72%), linear-gradient(160deg, rgba(255,255,255,0.2), rgba(255,255,255,0))',
-                }}
-              />
-              <div
-                className="absolute inset-0 pointer-events-none opacity-55"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(170deg, transparent 0 26px, rgba(255,255,255,0.08) 26px 27px), repeating-linear-gradient(20deg, transparent 0 42px, rgba(48,73,73,0.06) 42px 43px)',
-                }}
-              />
-
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-5">
-                <div className="grid gap-5 lg:grid-cols-[38%_62%] lg:gap-6 items-start">
-                  <div className="lg:pr-2">
-                    <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#2f4a4a]/20 bg-white/35 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f4a4a] mb-3">
-                      Listing Builder
-                    </p>
-                    <h2 className="font-hero text-[#2f4a4a] text-[30px] sm:text-[36px] leading-[1.03] font-bold max-w-[16ch]">
-                      Let's talk about your offering.
-                    </h2>
-                    <p className="text-[#2f4a4a]/75 text-[15px] leading-relaxed mt-3 max-w-[36ch]">
-                      Share the essentials clearly so investors can understand value, safety, and delivery confidence in one quick pass.
-                    </p>
-                    <div className="mt-4 space-y-1.5 text-sm text-[#2f4a4a]/80">
-                      <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">01</span> Add crisp opportunity basics and positioning.</p>
-                      <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">02</span> Enter project and funding numbers with audit-friendly clarity.</p>
-                      <p className="flex items-start gap-2"><span className="text-[#2f4a4a] font-bold">03</span> Move to Security and Trust after this section is complete.</p>
-                    </div>
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#2f4a4a] text-white px-3 py-1.5 text-xs font-semibold">
-                      {vaultType === 'wealth' ? 'Wealth Vault Flow' : vaultType === 'safe' ? 'Safe Vault Flow' : 'Community Vault Flow'}
-                    </div>
+          <div className="pb-10 max-w-3xl mx-auto w-full px-4 pt-10">
+            <div className={CARD_CLS + " p-0 overflow-hidden shadow-sm"}>
+              
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#2B4EF5] to-[#516FF7] p-6 text-white flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+                    {detailsStepIndex === 0 && <Building2 className="h-6 w-6 text-white" />}
+                    {detailsStepIndex === 1 && <Wallet className="h-6 w-6 text-white" />}
+                    {detailsStepIndex === 2 && <MapPin className="h-6 w-6 text-white" />}
                   </div>
+                  <div>
+                    <h2 className="text-xl font-bold font-hero">
+                      {detailsStepIndex === 0 && "Company & Basics"}
+                      {detailsStepIndex === 1 && "Property & Financials"}
+                      {detailsStepIndex === 2 && "Location & Media"}
+                    </h2>
+                    <p className="text-white/80 text-sm mt-0.5">
+                      {detailsStepIndex === 0 && "Tell us about the offering"}
+                      {detailsStepIndex === 1 && "Set the investment terms"}
+                      {detailsStepIndex === 2 && "Where is it located?"}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold border border-white/10">
+                  Step {detailsStepIndex + 1}/3
+                </div>
+              </div>
 
-                  <div className="rounded-3xl border border-white/65 bg-white/40 backdrop-blur-sm p-2 sm:p-2.5 shadow-[0_16px_50px_rgba(47,74,74,0.12)]">
-                    <div className="rounded-2xl border border-[#d5dddb] bg-[#f7f9f8] p-4 sm:p-4.5 space-y-4">
+              <div className="p-6 space-y-5 bg-white">
+                {detailsStepIndex === 0 && (
+                  <>
 
             {/* Company */}
             <div className={CARD_CLS}>
@@ -998,7 +1060,12 @@ export default function CreateOpportunityPage() {
               </div>
             </div>
 
-            {/* ─── Wealth Vault Fields ─── */}
+                              </>
+                )}
+                
+                {detailsStepIndex === 1 && (
+                  <>
+                    {/* ─── Wealth Vault Fields ─── */}
             {vaultType === 'wealth' && (
               <>
                 {/* Property Type */}
@@ -1485,7 +1552,12 @@ export default function CreateOpportunityPage() {
               </div>
             )}
 
-            {/* Location */}
+                              </>
+                )}
+                
+                {detailsStepIndex === 2 && (
+                  <>
+                    {/* Location */}
             <div className={CARD_CLS}>
               <h3 className={SECTION_HEADING}>Location</h3>
               <AddressDialog
@@ -1507,71 +1579,66 @@ export default function CreateOpportunityPage() {
               <MediaUploadZone images={mediaItems} onChange={setMediaItems} />
             </div>
 
-            {/* Bottom nav */}
-            <div className="sticky bottom-0 bg-[#f7f9f8]/95 border-t border-[#d5dddb] px-4 py-4 flex items-center justify-between rounded-b-xl backdrop-blur-sm">
-              <button
-                type="button"
-                onClick={() => {
-                  if (vaultType === 'community') setStep('community-subtype')
-                  else setStep('vault')
-                }}
-                className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2.5 rounded-lg border border-[#ccd5d3] hover:border-[#8ba0a0]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handleDetailsNext}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm transition-all"
-                style={{ background: '#D4AF37', color: '#0d1324' }}
-              >
-                Next: Security & Trust
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
-            </section>
+
+              {/* Bottom nav */}
+              <div className="bg-[#fcfdfd] border-t border-[#d5dddb] p-4 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleDetailsBack}
+                  className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-[#607474]">Previous</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDetailsNext}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm text-white transition-all shadow-sm hover:shadow-md bg-gradient-to-r from-[#506df5] to-[#3a58eb]"
+                >
+                  Save & Continue <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* ─── Step: Shield ─── */}
         {step === 'shield' && (
-          <div className="pb-28">
-            {shieldAttempted && (() => {
-              const errors = getShieldValidationErrors(shieldAnswers)
-              if (errors.length === 0) return null
-              return (
-                <div className="max-w-5xl mx-auto px-4 pt-6">
-                  <div className="rounded-xl border border-red-500/40 bg-red-500/8 p-4 flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-400 text-sm font-semibold">{errors.length} question(s) need answers</p>
-                      <p className="text-red-400/70 text-xs mt-0.5">Scroll through each section and fill all required fields.</p>
-                    </div>
+          <div className="pb-10 max-w-4xl mx-auto w-full px-4 pt-6">
+            <div className={CARD_CLS + " p-0 overflow-hidden shadow-sm mb-6"}>
+              <div className="bg-gradient-to-r from-[#2B4EF5] to-[#516FF7] p-6 text-white flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <ShieldCheck className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold font-hero">
+                      WealthSpot Shield
+                    </h2>
+                    <p className="text-white/80 text-sm mt-0.5">
+                      7-Layer Trust Framework
+                    </p>
                   </div>
                 </div>
-              )
-            })()}
-
-            <div className="bg-[#080d18] border-b border-white/[0.06] px-6 py-8">
-              <div className="max-w-5xl mx-auto flex items-start gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-6 w-6 text-indigo-400" />
+                <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold border border-white/10">
+                  Step {shieldStepIndex + 1}/{ASSESSMENT_CATEGORIES.length}
                 </div>
-                <div>
-                  <h2 className="font-hero text-white font-bold text-xl">WealthSpot Shield — 7-Layer Trust Framework</h2>
-                  <p className="text-white/55 text-sm mt-1 max-w-2xl">
-                    Each section below represents one trust layer. Answer all required fields and attach evidence where marked. Our review team verifies every submission before the listing goes live.
-                  </p>
-                </div>
+              </div>
+              <div className="px-6 py-4 bg-white/50 border-b border-[#e1e7e5] flex items-center gap-1">
+                 {ASSESSMENT_CATEGORIES.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all flex-1 ${i === shieldStepIndex ? 'bg-[#516FF7]' : i < shieldStepIndex ? 'bg-[#516FF7]/40' : 'bg-[#dde4e2]'}`}
+                    />
+                  ))}
               </div>
             </div>
 
-            {ASSESSMENT_CATEGORIES.map((cat, catIdx) => {
+            {(() => {
+              const cat = ASSESSMENT_CATEGORIES[shieldStepIndex]!
               const meta = SHIELD_META[cat.code]!
               const filledCount = cat.subItems.filter((sub) => {
                 if (sub.requiresDocument) return true
@@ -1580,254 +1647,186 @@ export default function CreateOpportunityPage() {
               }).length
               const total = cat.subItems.length
               const allFilled = filledCount === total
-              const hasError = shieldAttempted && !allFilled
+              const hasError = shieldStepAttempted && !allFilled
 
               return (
-                <div key={cat.code}>
-                  <section className="relative overflow-hidden" style={{ background: meta.gradient }}>
-                    <div
-                      className="absolute inset-0 opacity-100 pointer-events-none"
-                      style={{
-                        backgroundImage: meta.pattern,
-                        backgroundSize:
-                          cat.code === 'builder' || cat.code === 'security'
-                            ? '28px 28px'
-                            : cat.code === 'legal'
-                              ? '18px 18px'
-                              : cat.code === 'property'
-                                ? '40px 40px'
-                                : cat.code === 'exit'
-                                  ? '20px 20px'
-                                  : '100% 100%',
-                      }}
-                    />
-                    <div
-                      className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full blur-[100px] pointer-events-none"
-                      style={{ backgroundColor: meta.accentHex + '18' }}
-                    />
-                    <div
-                      className="absolute -bottom-24 -left-24 w-[22rem] h-[22rem] rounded-full blur-[80px] pointer-events-none"
-                      style={{ backgroundColor: meta.accentHex + '10' }}
-                    />
-
-                    <div className="relative max-w-7xl mx-auto px-4 sm:px-8 py-14 lg:py-20">
-                      <div className="grid gap-10 lg:grid-cols-[42%_58%] lg:gap-16 items-start">
-                        <div className="lg:sticky lg:top-24">
-                          <div
-                            className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-6 border"
-                            style={{ color: meta.accentHex, borderColor: meta.accentHex + '40', backgroundColor: meta.accentHex + '12' }}
-                          >
-                            Layer {catIdx + 1} of {ASSESSMENT_CATEGORIES.length}
-                          </div>
-                          <div
-                            className="h-16 w-16 rounded-2xl flex items-center justify-center mb-5 border"
-                            style={{ backgroundColor: meta.accentHex + '1a', borderColor: meta.accentHex + '35' }}
-                          >
-                            {getCatIcon(cat.icon, 'h-8 w-8')}
-                          </div>
-                          <h3 className="font-hero text-white font-bold text-2xl sm:text-3xl leading-tight mb-2">{cat.name}</h3>
-                          <p className="text-base font-semibold mb-4" style={{ color: meta.accentHex }}>{meta.tagline}</p>
-                          <p className="text-white/50 text-sm leading-relaxed mb-7">{cat.fullDescription}</p>
-                          <ul className="space-y-2.5 mb-8">
-                            {meta.bullets.map((b) => (
-                              <li key={b} className="flex items-start gap-2.5 text-sm text-white/65">
-                                <span
-                                  className="mt-1 h-4 w-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-black"
-                                  style={{ backgroundColor: meta.accentHex + '28', color: meta.accentHex }}
-                                >✓</span>
-                                {b}
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="flex flex-wrap gap-2">
-                            {meta.stats.map((s) => (
-                              <span
-                                key={s}
-                                className="text-[11px] font-semibold px-3 py-1.5 rounded-full border"
-                                style={{ color: meta.accentHex, borderColor: meta.accentHex + '35', backgroundColor: meta.accentHex + '0e' }}
-                              >
-                                {s}
-                              </span>
-                            ))}
-                          </div>
+                <div className={CARD_CLS + " mb-6"}>
+                  <div className="flex flex-col md:flex-row gap-6 mb-6 pb-6 border-b border-[#d3dcda]">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 border"
+                          style={{ backgroundColor: meta.accentHex + '1a', borderColor: meta.accentHex + '35' }}
+                        >
+                          {getCatIcon(cat.icon, 'h-6 w-6')}
                         </div>
-
-                        <div className="rounded-2xl overflow-hidden border" style={{ borderColor: hasError ? '#ef444460' : '#d2dbd9', backgroundColor: '#f5f7f6' }}>
-                          <div className="px-6 py-4 flex items-center justify-between border-b" style={{ backgroundColor: '#eef2f1', borderColor: '#d2dbd9' }}>
-                            <div className="flex items-center gap-2.5">
-                              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#dfe8e6', color: '#2f4a4a' }}>
-                                {getCatIcon(cat.icon, 'h-4 w-4')}
-                              </div>
-                              <span className="text-[#2f4a4a] font-semibold text-sm">{cat.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {allFilled ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : hasError ? <AlertCircle className="h-4 w-4 text-red-500" /> : null}
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: allFilled ? '#10b98120' : '#dfe8e6', color: allFilled ? '#15803d' : '#2f4a4a' }}>
-                                {filledCount}/{total}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="h-1 bg-[#dde4e2]">
-                            <div className="h-full transition-all duration-500" style={{ width: `${(filledCount / total) * 100}%`, backgroundColor: allFilled ? '#10b981' : '#2f4a4a' }} />
-                          </div>
-
-                          <div className="bg-[#f7f9f8] divide-y divide-[#d9e1df]">
-                            {cat.subItems.map((sub) => {
-                              const answer = shieldAnswers[sub.code]
-                              const val = answer?.value ?? ''
-                              const files = answer?.files ?? []
-                              const isEmpty = !sub.requiresDocument && (!val || String(val).trim() === '')
-                              const showErr = shieldAttempted && isEmpty
-
-                              const setVal = (v: string) => {
-                                setShieldAnswers((prev) => ({
-                                  ...prev,
-                                  [sub.code]: {
-                                    categoryCode: cat.code,
-                                    subcategoryCode: sub.code,
-                                    value: v,
-                                    files: prev[sub.code]?.files ?? [],
-                                    isPublic: prev[sub.code]?.isPublic ?? true,
-                                  },
-                                }))
-                              }
-                              const setFiles = (f: File[]) => {
-                                setShieldAnswers((prev) => ({
-                                  ...prev,
-                                  [sub.code]: {
-                                    categoryCode: cat.code,
-                                    subcategoryCode: sub.code,
-                                    value: prev[sub.code]?.value ?? '',
-                                    files: f,
-                                    isPublic: prev[sub.code]?.isPublic ?? true,
-                                  },
-                                }))
-                              }
-
-                              return (
-                                <div key={sub.code} className={`px-6 py-5 ${showErr ? 'bg-red-50' : ''}`}>
-                                  <label className={`block text-sm font-semibold mb-0.5 ${showErr ? 'text-red-500' : 'text-[#2f4a4a]'}`}>
-                                    {sub.label}
-                                    {!sub.requiresDocument && <span className="text-red-400 ml-1">*</span>}
-                                  </label>
-                                  <p className="text-[#6f8181] text-[11px] mb-3 leading-relaxed">{sub.promptForBuilder}</p>
-
-                                  {sub.inputType === 'select' ? (
-                                    <select
-                                      className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-[#f8faf9] text-[#2f4a4a] outline-none appearance-none ${showErr ? 'border-red-500/60' : 'border-[#c9d0ce]'} focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20`}
-                                      value={val}
-                                      onChange={(e) => setVal(e.target.value)}
-                                    >
-                                      <option value="">— Select —</option>
-                                      {sub.options?.map((o) => <option key={o} value={o}>{o}</option>)}
-                                    </select>
-                                  ) : sub.inputType === 'boolean' ? (
-                                    <div className="flex items-center gap-6 text-sm">
-                                      {['yes', 'no'].map((v) => (
-                                        <label key={v} className="flex items-center gap-2 cursor-pointer group">
-                                          <input type="radio" name={`shield-${sub.code}`} value={v} checked={val === v} onChange={() => setVal(v)} className="sr-only" />
-                                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${val === v ? 'border-transparent' : 'border-[#95a4a4]'}`} style={val === v ? { backgroundColor: '#2f4a4a', borderColor: '#2f4a4a' } : {}}>
-                                            {val === v && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
-                                          </div>
-                                          <span className="text-[#607474] capitalize group-hover:text-[#2f4a4a] transition-colors">{v}</span>
-                                        </label>
-                                      ))}
-                                    </div>
-                                  ) : sub.inputType === 'number' ? (
-                                    <input
-                                      type="number"
-                                      className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-[#f8faf9] text-[#2f4a4a] outline-none ${showErr ? 'border-red-500/60' : 'border-[#c9d0ce]'} focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20`}
-                                      value={val}
-                                      onChange={(e) => setVal(e.target.value)}
-                                      placeholder="Enter a number"
-                                    />
-                                  ) : (
-                                    <textarea
-                                      rows={3}
-                                      className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] outline-none resize-none ${showErr ? 'border-red-500/60' : 'border-[#c9d0ce]'} focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20`}
-                                      value={val}
-                                      onChange={(e) => setVal(e.target.value)}
-                                      placeholder="Your answer…"
-                                    />
-                                  )}
-
-                                  {sub.requiresDocument && (
-                                    <div className="mt-3 flex items-center gap-2">
-                                      <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-[#2f4a4a] border-[#c8d3d0] bg-[#edf3f1]">
-                                        <span>📎 Attach evidence</span>
-                                        <input
-                                          type="file"
-                                          className="hidden"
-                                          multiple
-                                          accept=".pdf,.doc,.docx,.xls,.xlsx"
-                                          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                                        />
-                                      </label>
-                                      {files.length > 0 && <span className="text-xs text-[#6f8181]">{files.length} file(s) queued</span>}
-                                    </div>
-                                  )}
-
-                                  {showErr && (
-                                    <p className={ERR_MSG_LIGHT}>
-                                      <AlertCircle className="h-3 w-3" /> Required
-                                    </p>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
+                        <div>
+                          <h3 className="font-hero text-[#2f4a4a] font-bold text-xl">{cat.name}</h3>
+                          <p className="text-sm font-semibold" style={{ color: meta.accentHex }}>{meta.tagline}</p>
                         </div>
                       </div>
-                    </div>
-                  </section>
-
-                  {catIdx < ASSESSMENT_CATEGORIES.length - 1 && (
-                    <div
-                      className="relative flex items-center justify-center py-7"
-                      style={{
-                        background: `linear-gradient(180deg, ${meta.gradient.match(/#[0-9a-f]{6}/gi)?.[2] ?? '#0d1324'} 0%, ${SHIELD_META[ASSESSMENT_CATEGORIES[catIdx + 1]!.code]!.gradient.match(/#[0-9a-f]{6}/gi)?.[0] ?? '#0d1324'} 100%)`,
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        {[0, 1, 2].map((i) => (
-                          <div
-                            key={i}
-                            className={`rounded-full transition-all ${i === 1 ? 'h-2 w-2' : 'h-1.5 w-1.5 opacity-40'}`}
-                            style={{ backgroundColor: i === 1 ? meta.accentHex : '#ffffff' }}
-                          />
+                      <p className="text-[#607474] text-sm leading-relaxed mb-4">{cat.fullDescription}</p>
+                      <ul className="space-y-2">
+                        {meta.bullets.map((b) => (
+                          <li key={b} className="flex items-start gap-2 text-sm text-[#3d5757]">
+                            <span
+                              className="mt-1 h-3.5 w-3.5 rounded-full flex items-center justify-center shrink-0 text-[8px] font-black"
+                              style={{ backgroundColor: meta.accentHex + '28', color: meta.accentHex }}
+                            >✓</span>
+                            {b}
+                          </li>
                         ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {hasError && (
+                    <div className="mb-5 rounded-xl border border-red-500/40 bg-red-50 p-4 flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-600 text-sm font-semibold">Please answer all required questions below</p>
+                        <p className="text-red-500/80 text-xs mt-0.5">We need this information to proceed to the next step.</p>
                       </div>
                     </div>
                   )}
+
+                  <div className="space-y-5">
+                    {cat.subItems.map((sub) => {
+                      const answer = shieldAnswers[sub.code]
+                      const val = answer?.value ?? ''
+                      const files = answer?.files ?? []
+                      const isEmpty = !sub.requiresDocument && (!val || String(val).trim() === '')
+                      const showErr = shieldStepAttempted && isEmpty
+
+                      const setVal = (v: string) => {
+                        setShieldAnswers((prev) => ({
+                          ...prev,
+                          [sub.code]: {
+                            categoryCode: cat.code,
+                            subcategoryCode: sub.code,
+                            value: v,
+                            files: prev[sub.code]?.files ?? [],
+                            isPublic: prev[sub.code]?.isPublic ?? true,
+                          },
+                        }))
+                      }
+                      const setFiles = (f: File[]) => {
+                        setShieldAnswers((prev) => ({
+                          ...prev,
+                          [sub.code]: {
+                            categoryCode: cat.code,
+                            subcategoryCode: sub.code,
+                            value: prev[sub.code]?.value ?? '',
+                            files: f,
+                            isPublic: prev[sub.code]?.isPublic ?? true,
+                          },
+                        }))
+                      }
+
+                      return (
+                        <div key={sub.code} className={`p-4 rounded-xl border ${showErr ? 'border-red-300 bg-red-50/50' : 'border-[#d3dcda] bg-white'}`}>
+                          <label className={`block text-sm font-semibold mb-1 ${showErr ? 'text-red-600' : 'text-[#2f4a4a]'}`}>
+                            {sub.label}
+                            {!sub.requiresDocument && <span className="text-red-500 ml-1">*</span>}
+                          </label>
+                          <p className="text-[#6f8181] text-[11px] mb-3 leading-relaxed">{sub.promptForBuilder}</p>
+
+                          {sub.inputType === 'select' ? (
+                            <select
+                              className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white text-[#2f4a4a] outline-none appearance-none ${showErr ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-200' : 'border-[#c9d0ce] focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20'}`}
+                              value={val}
+                              onChange={(e) => setVal(e.target.value)}
+                            >
+                              <option value="">— Select —</option>
+                              {sub.options?.map((o) => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                          ) : sub.inputType === 'boolean' ? (
+                            <div className="flex items-center gap-6 text-sm mt-1">
+                              {['yes', 'no'].map((v) => (
+                                <label key={v} className="flex items-center gap-2 cursor-pointer group">
+                                  <input type="radio" name={`shield-${sub.code}`} value={v} checked={val === v} onChange={() => setVal(v)} className="sr-only" />
+                                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${val === v ? 'border-transparent' : 'border-[#95a4a4]'}`} style={val === v ? { backgroundColor: '#2f4a4a', borderColor: '#2f4a4a' } : {}}>
+                                    {val === v && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                  </div>
+                                  <span className="text-[#607474] capitalize group-hover:text-[#2f4a4a] transition-colors">{v}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : sub.inputType === 'number' ? (
+                            <input
+                              type="number"
+                              className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white text-[#2f4a4a] outline-none ${showErr ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-200' : 'border-[#c9d0ce] focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20'}`}
+                              value={val}
+                              onChange={(e) => setVal(e.target.value)}
+                              placeholder="Enter a number"
+                            />
+                          ) : (
+                            <textarea
+                              rows={3}
+                              className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white text-[#2f4a4a] placeholder-[#768588] outline-none resize-none ${showErr ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-200' : 'border-[#c9d0ce] focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20'}`}
+                              value={val}
+                              onChange={(e) => setVal(e.target.value)}
+                              placeholder="Your answer…"
+                            />
+                          )}
+
+                          {sub.requiresDocument && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-[#2f4a4a] border-[#c8d3d0] bg-[#edf3f1] hover:bg-[#e4ecea]">
+                                <span>📎 Attach evidence</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  multiple
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                  onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                                />
+                              </label>
+                              {files.length > 0 && <span className="text-xs text-[#6f8181] font-semibold">{files.length} file(s) queued</span>}
+                            </div>
+                          )}
+
+                          {showErr && (
+                            <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium">
+                              <AlertCircle className="h-3.5 w-3.5" /> This field is required
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )
-            })}
+            })()}
 
-            <div className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-md bg-[#f7f9f8]/90 border-t border-[#d5dddb] px-4 py-4 flex items-center justify-between">
+            <div className="bg-white border border-[#d5dddb] rounded-xl p-4 flex items-center justify-between shadow-sm mt-2">
               <button
                 type="button"
-                onClick={() => { setStep('details'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2.5 rounded-lg border border-[#ccd5d3] hover:border-[#8ba0a0]"
+                onClick={handleShieldBack}
+                className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Details
+                {shieldStepIndex === 0 ? 'Back to Details' : 'Previous'}
               </button>
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={handleShieldNext}
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
-                style={{ background: '#D4AF37', color: '#0d1324' }}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm text-white transition-all hover:shadow-md disabled:opacity-50 shadow-sm bg-gradient-to-r from-[#506df5] to-[#3a58eb]"
               >
-                {createMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                {shieldStepIndex === ASSESSMENT_CATEGORIES.length - 1 ? (
+                  createMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                  ) : (
+                    <><ShieldCheck className="h-4 w-4" /> Submit for Approval</>
+                  )
                 ) : (
-                  <><ShieldCheck className="h-4 w-4" /> Submit for Approval</>
+                  <>Save & Continue <ChevronRight className="h-4 w-4" /></>
                 )}
               </button>
             </div>
           </div>
+
         )}
 
       </div>

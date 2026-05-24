@@ -139,7 +139,7 @@ export default function CommandControlPage() {
     <MainLayout>
 
       {/* Hero — compact strip matching VaultsPage */}
-      <section id="hero" className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      <section id="hero" className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.5rem] pb-14 lg:pb-16">
         <div className="page-hero-content">
           <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
             Command &amp; Control
