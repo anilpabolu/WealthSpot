@@ -6,17 +6,26 @@ import InvestorSidebar from './InvestorSidebar'
 import BuilderSidebar from './BuilderSidebar'
 import AdminSidebar from './AdminSidebar'
 import LenderSidebar from './LenderSidebar'
+import { cn } from '@/lib/utils'
 
 interface PortalLayoutProps {
   variant: 'investor' | 'builder' | 'admin' | 'lender'
+  /**
+   * Optional full-width hero section rendered in the main column.
+   * Starts at top-0 so it bleeds under the transparent navbar.
+   */
+  hero?: ReactNode
   children?: ReactNode
 }
 
 /**
- * Portal layout with Navbar + Sidebar.
- * Used for all dashboard pages.
+ * Portal layout: fixed Navbar + sticky Sidebar + Main Content.
+ * 
+ * Sidebar extends to top-0 to provide a dark background behind the transparent navbar.
+ * Main content is pushed down by 4rem (pt-16) UNLESS a hero is provided, 
+ * in which case the hero starts at top-0 to bleed under the navbar.
  */
-export default function PortalLayout({ variant, children }: PortalLayoutProps) {
+export default function PortalLayout({ variant, hero, children }: PortalLayoutProps) {
   const Sidebar =
     variant === 'investor'
       ? InvestorSidebar
@@ -29,14 +38,24 @@ export default function PortalLayout({ variant, children }: PortalLayoutProps) {
             : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-surface transition-colors duration-300">
+    <div className="min-[100dvh] flex flex-col bg-theme-surface transition-colors duration-300">
       <Navbar />
-      <div className="flex flex-1 pt-16">
+
+      {/* Full-width hero rendered above the sidebar split */}
+      {hero}
+
+      <div className="flex flex-1 items-stretch relative">
+        {/* Sidebar: natural document flow, sticky below navbar */}
         {Sidebar && <Sidebar />}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
-          {children ?? <Outlet />}
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-x-hidden min-w-0">
+          <div className={cn("flex-1", !hero && "pt-16")}>
+            {children ?? <Outlet />}
+          </div>
         </main>
       </div>
+
       <Footer />
     </div>
   )

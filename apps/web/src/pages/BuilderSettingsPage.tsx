@@ -116,12 +116,26 @@ export default function BuilderSettingsPage() {
   }
 
   return (
-    <PortalLayout variant="builder">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="section-title text-2xl">Settings</h1>
-          <p className="text-theme-secondary mt-1">Manage your builder profile and company information</p>
+    <PortalLayout 
+      variant="builder"
+      hero={
+        <div id="hero" className="page-hero pt-[8.25rem] pb-10 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+            <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+          </div>
+          <div className="page-hero-content flex items-center justify-between px-6 lg:px-8">
+            <div className="animate-fade-up">
+              <span className="page-hero-badge">Builder Portal</span>
+              <h1 className="page-hero-title">Settings</h1>
+              <p className="page-hero-subtitle">Manage your builder profile and company information.</p>
+            </div>
+          </div>
         </div>
+      }
+    >
+      <div className="p-6 lg:p-8 max-w-3xl mx-auto space-y-6 content-section-bg min-h-full">
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Company Info */}

@@ -11,39 +11,27 @@ import { ArrowRight, Target, Users, Shield, Zap, TrendingUp, Globe, Heart, Light
 function HeroSection() {
   return (
     <section
-      className="relative flex min-h-[70vh] flex-col overflow-hidden -mt-16"
-      style={{ background: 'linear-gradient(135deg, #080d1a 0%, #0d1324 45%, #0f1a2e 70%, #080d1a 100%)' }}
+      id="hero"
+      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
     >
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-[#D4AF37]/6 blur-3xl" />
-        <div className="absolute top-1/4 -right-32 w-[400px] h-[400px] rounded-full bg-indigo-600/8 blur-3xl" />
-        <div className="absolute bottom-0 -left-20 w-[300px] h-[300px] rounded-full bg-violet-600/6 blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
       </div>
 
-      {/* Corner bracket accents */}
-      <div className="pointer-events-none absolute inset-x-8 top-24 bottom-8 hidden lg:block">
-        <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#D4AF37]/20 rounded-tl-xl" />
-        <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#D4AF37]/20 rounded-tr-xl" />
-        <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-[#D4AF37]/20 rounded-bl-xl" />
-        <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#D4AF37]/20 rounded-br-xl" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 mt-auto w-full">
-        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 pb-20 lg:pb-28">
-          <div className="max-w-3xl">
-            <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
-              Our Story
-            </p>
-            <h1 className="font-hero text-[2.4rem] sm:text-5xl lg:text-[4rem] font-bold text-white leading-[1.08] tracking-tight">
-              Built on the belief that{' '}
-              <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
-            </h1>
-            <p className="mt-6 font-body text-[1.05rem] sm:text-lg text-white/70 leading-relaxed max-w-xl">
-              WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
-            </p>
-          </div>
+      <div className="page-hero-content">
+        <div className="animate-fade-up max-w-3xl">
+          <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
+            Our Story
+          </p>
+          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+            Built on the belief that{' '}
+            <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
+          </h1>
+          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+            WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
+          </p>
         </div>
       </div>
     </section>

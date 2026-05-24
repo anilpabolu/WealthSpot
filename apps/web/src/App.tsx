@@ -112,11 +112,6 @@ export default function App() {
 
   // Force light theme always
   const theme = useThemeStore((s) => s.theme)
-  const setTheme = useThemeStore((s) => s.setTheme)
-  useEffect(() => {
-    setTheme('light')
-    document.documentElement.classList.remove('dark')
-  }, [setTheme])
 
   // Apply admin-configured light mode background color
   const { data: appearance } = useAppearanceConfig()

@@ -3,7 +3,7 @@ import StatusBadge from '@/components/wealth/StatusBadge'
 import FundingBar from '@/components/wealth/FundingBar'
 import { formatINRCompact } from '@/lib/formatters'
 import { Link } from 'react-router-dom'
-import { PlusCircle, Building2, Search, Eye, Edit, Trash2, Loader2, Users, X } from 'lucide-react'
+import { Building2, Search, Eye, Edit, Trash2, Loader2, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { DataTable, Select, type Column } from '@/components/ui'
 import { useContent } from '@/hooks/useSiteContent'
@@ -154,6 +154,10 @@ export default function BuilderListingsPage() {
   const [investorsPopup, setInvestorsPopup] = useState<{ opportunityId: string; title: string } | null>(null)
   const { listings, isLoading } = useBuilderListings()
 
+  const heroBadge = useContent('builder_listings', 'hero_badge', 'Builder Portal')
+  const heroTitle = useContent('builder_listings', 'hero_title', 'My Listings')
+  const heroSubtitle = useContent('builder_listings', 'hero_subtitle', 'Manage and track your property listings')
+
   const filtered = listings.filter((l) => {
     if (search && !l.title.toLowerCase().includes(search.toLowerCase())) return false
     if (statusFilter && l.status !== statusFilter) return false
@@ -161,7 +165,32 @@ export default function BuilderListingsPage() {
   })
 
   return (
-    <PortalLayout variant="builder">
+    <PortalLayout 
+      variant="builder"
+      hero={
+        <section
+          id="hero"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.25rem] pb-10 px-6 lg:px-8"
+        >
+          {/* Blur orbs — matching VaultsPage */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+            <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+          </div>
+          <div className="page-hero-content">
+            <div className="animate-fade-up flex flex-col gap-5 sm:gap-0 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <span className="page-hero-badge">{heroBadge}</span>
+                <h1 className="page-hero-title">{heroTitle}</h1>
+                <p className="page-hero-subtitle">{heroSubtitle}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      }
+    >
+      {/* Investor list popup (portal) */}
       {investorsPopup && (
         <InvestorListPopup
           opportunityId={investorsPopup.opportunityId}
@@ -169,138 +198,134 @@ export default function BuilderListingsPage() {
           onClose={() => setInvestorsPopup(null)}
         />
       )}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="section-title text-2xl">{useContent('builder_listings', 'page_title', 'My Listings')}</h1>
-            <p className="text-theme-secondary mt-1">{useContent('builder_listings', 'page_subtitle', 'Manage and track your property listings')}</p>
-          </div>
-          <Link to="/portal/builder/listings/new" className="btn-primary inline-flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Add Property
-          </Link>
-        </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
-            <input
-              type="search"
-              placeholder="Search listings..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-surface)] border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+      {/* Main content — sits beside the sidebar */}
+      <div className="content-section-bg min-h-full">
+        <div className="p-6 lg:p-8 space-y-6">
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
+              <input
+                type="search"
+                placeholder="Search listings..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-surface)] border border-[#D4AF37]/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37] transition-all"
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: '', label: 'All Statuses' },
+                { value: 'live', label: 'Live' },
+                { value: 'upcoming', label: 'Upcoming' },
+                { value: 'funded', label: 'Funded' },
+                { value: 'closed', label: 'Closed' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'pending_approval', label: 'Pending Approval' },
+                { value: 'rejected', label: 'Rejected' },
+              ]}
+              className="w-44"
             />
           </div>
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { value: '', label: 'All Statuses' },
-              { value: 'live', label: 'Live' },
-              { value: 'upcoming', label: 'Upcoming' },
-              { value: 'funded', label: 'Funded' },
-              { value: 'closed', label: 'Closed' },
-              { value: 'draft', label: 'Draft' },
-              { value: 'pending_approval', label: 'Pending Approval' },
-              { value: 'rejected', label: 'Rejected' },
-            ]}
-            className="w-44"
-          />
-        </div>
 
-        {/* Table */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20 text-theme-secondary">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading listings…
-          </div>
-        ) : (
-        <DataTable
-          data={filtered}
-          keyExtractor={(l) => l.id}
-          emptyMessage="No listings found"
-          emptyIcon={Building2}
-          columns={[
-            {
-              key: 'property',
-              header: 'Property',
-              render: (l) => (
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-theme-surface-hover flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-theme-tertiary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-theme-primary">{l.title}</p>
-                    <p className="text-xs text-theme-secondary">{l.micromarket}, {l.city} · {l.assetType}</p>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              headerClassName: 'text-center',
-              className: 'text-center',
-              render: (l) => <StatusBadge status={l.status} />,
-            },
-            {
-              key: 'shield',
-              header: 'Shield',
-              headerClassName: 'text-center',
-              className: 'text-center',
-              render: (l) => <ShieldProgressChip opportunityId={l.id} />,
-            },
-            {
-              key: 'minInvest',
-              header: 'Min Invest',
-              headerClassName: 'text-right',
-              className: 'text-right font-mono',
-              render: (l) => <>{formatINRCompact(l.minInvest)}</>,
-            },
-            {
-              key: 'funding',
-              header: 'Funding',
-              className: 'min-w-[160px]',
-              render: (l) => <FundingBar raised={l.raised} target={l.target} showPercent />,
-            },
-            {
-              key: 'investors',
-              header: 'Investors',
-              headerClassName: 'text-right',
-              className: 'text-right',
-              render: (l) => (
-                <button
-                  onClick={() => setInvestorsPopup({ opportunityId: l.id, title: l.title })}
-                  className="font-semibold text-primary hover:underline underline-offset-2 disabled:text-theme-tertiary disabled:no-underline"
-                  disabled={l.investors === 0}
-                  title={l.investors === 0 ? 'No investors yet' : `View ${l.investors} investor(s)`}
-                >
-                  {l.investors}
-                </button>
-              ),
-            },
-            {
-              key: 'actions',
-              header: 'Actions',
-              headerClassName: 'text-center',
-              render: (l) => (
-                <div className="flex items-center justify-center gap-1">
-                  <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="View">
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                  <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="Edit">
-                    <Edit className="h-4 w-4" />
-                  </Link>
-                  <button className="p-1.5 rounded hover:bg-red-50 dark:bg-red-900/30 text-theme-secondary hover:text-danger" title="Delete">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ),
-            },
-          ] as Column<BuilderListing>[]}
-        />
-        )}
+          {/* Table */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20 text-theme-secondary">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading listings…
+            </div>
+          ) : (
+            <div className="rounded-xl border border-[#D4AF37]/30 shadow-[0_4px_24px_-8px_rgba(212,175,55,0.15)] bg-[var(--bg-surface)] overflow-hidden">
+              <DataTable
+                data={filtered}
+              keyExtractor={(l) => l.id}
+              emptyMessage="No listings found"
+              emptyIcon={Building2}
+              columns={[
+                {
+                  key: 'property',
+                  header: 'Property',
+                  render: (l) => (
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-theme-surface-hover flex items-center justify-center shrink-0">
+                        <Building2 className="h-5 w-5 text-theme-tertiary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-theme-primary">{l.title}</p>
+                        <p className="text-xs text-theme-secondary">{l.micromarket}, {l.city} · {l.assetType}</p>
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  headerClassName: 'text-center',
+                  className: 'text-center',
+                  render: (l) => <StatusBadge status={l.status} />,
+                },
+                {
+                  key: 'shield',
+                  header: 'Shield',
+                  headerClassName: 'text-center',
+                  className: 'text-center',
+                  render: (l) => <ShieldProgressChip opportunityId={l.id} />,
+                },
+                {
+                  key: 'minInvest',
+                  header: 'Min Invest',
+                  headerClassName: 'text-right',
+                  className: 'text-right font-mono',
+                  render: (l) => <>{formatINRCompact(l.minInvest)}</>,
+                },
+                {
+                  key: 'funding',
+                  header: 'Funding',
+                  className: 'min-w-[160px]',
+                  render: (l) => <FundingBar raised={l.raised} target={l.target} showPercent />,
+                },
+                {
+                  key: 'investors',
+                  header: 'Investors',
+                  headerClassName: 'text-right',
+                  className: 'text-right',
+                  render: (l) => (
+                    <button
+                      onClick={() => setInvestorsPopup({ opportunityId: l.id, title: l.title })}
+                      className="font-semibold text-primary hover:underline underline-offset-2 disabled:text-theme-tertiary disabled:no-underline"
+                      disabled={l.investors === 0}
+                      title={l.investors === 0 ? 'No investors yet' : `View ${l.investors} investor(s)`}
+                    >
+                      {l.investors}
+                    </button>
+                  ),
+                },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  headerClassName: 'text-center',
+                  render: (l) => (
+                    <div className="flex items-center justify-center gap-1">
+                      <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="View">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="Edit">
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                      <button className="p-1.5 rounded hover:bg-red-50 dark:bg-red-900/30 text-theme-secondary hover:text-danger" title="Delete">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ),
+                },
+              ] as Column<BuilderListing>[]}
+            />
+            </div>
+          )}
+        </div>
       </div>
     </PortalLayout>
   )

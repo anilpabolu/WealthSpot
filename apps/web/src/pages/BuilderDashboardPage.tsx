@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { dashboardBff } from '@/services/bff/dashboard.bff'
 import {
   Building2, Users, IndianRupee, ArrowRight, Clock,
-  AlertCircle, PlusCircle, Loader2,
+  AlertCircle, Loader2,
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 
@@ -26,7 +26,6 @@ export default function BuilderDashboardPage() {
   const heroBadge = useContent('builder_dashboard', 'hero_badge', 'Builder Portal')
   const heroTitle = useContent('builder_dashboard', 'hero_title', 'Builder Dashboard')
   const heroSubtitle = useContent('builder_dashboard', 'hero_subtitle', 'Manage your property listings and track investor activity.')
-  const ctaAdd = useContent('builder_dashboard', 'cta_add', 'Add New Property')
   const sectionProperties = useContent('builder_dashboard', 'section_properties', 'My Properties')
   const emptyTitle = useContent('builder_dashboard', 'empty_title', 'No Properties Yet')
   const emptyMessage = useContent('builder_dashboard', 'empty_message', 'Create your first listing!')
@@ -35,21 +34,20 @@ export default function BuilderDashboardPage() {
   const verifyMessage = useContent('builder_dashboard', 'verify_message', 'Your builder profile is awaiting admin verification. Some features may be limited.')
 
   return (
-    <PortalLayout variant="builder">
-      {/* Hero */}
-      <div className="page-hero bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
-        <div className="page-hero-content flex items-center justify-between">
-          <div>
-            <span className="page-hero-badge">{heroBadge}</span>
-            <h1 className="page-hero-title">{heroTitle}</h1>
-            <p className="page-hero-subtitle">{heroSubtitle}</p>
+    <PortalLayout 
+      variant="builder"
+      hero={
+        <div id="hero" className="page-hero pt-[8.25rem] pb-10 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+          <div className="page-hero-content flex items-center justify-between px-6 lg:px-8">
+            <div>
+              <span className="page-hero-badge">{heroBadge}</span>
+              <h1 className="page-hero-title">{heroTitle}</h1>
+              <p className="page-hero-subtitle">{heroSubtitle}</p>
+            </div>
           </div>
-          <Link to="/portal/builder/listings/new" className="btn-gradient bg-gradient-to-r from-[#D4AF37] to-[#B8860B] hidden sm:inline-flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            {ctaAdd}
-          </Link>
         </div>
-      </div>
+      }
+    >
 
       <div className="page-section content-section-bg">
         <div className="page-section-container space-y-6">

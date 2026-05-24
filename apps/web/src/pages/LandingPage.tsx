@@ -159,7 +159,7 @@ const INVESTOR_PILLARS = [
     category: 'CONNECTIONS',
     title: 'Network Investor',
     body: 'Open doors through trusted relationships. Introduce co-investors, customers, suppliers, or strategic enablers.',
-    italic: 'Your network becomes a genuine form of investment â€” and earns accordingly.',
+    italic: 'Your network becomes a genuine form of investment — and earns accordingly.',
     tag: null,
   },
   {
@@ -199,7 +199,7 @@ function InvestorIdentitiesSection() {
             </h2>
           </div>
           <p className="font-body text-[14px] text-slate-500 leading-relaxed max-w-xs sm:text-right">
-            Capital is one lens. WealthSpot recognises three others â€” each just as legitimate.
+            Capital is one lens. WealthSpot recognises three others — each just as legitimate.
           </p>
         </div>
 
@@ -529,7 +529,7 @@ export default function LandingPage() {
     <MainLayout>
       <SEOHead
         title="Democratizing Premium Assets"
-        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot â€” curated opportunities for serious investors."
+        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot — curated opportunities for serious investors."
         path="/"
       />
 

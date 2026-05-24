@@ -67,7 +67,7 @@ export default function BuilderAnalyticsPage() {
 
   return (
     <PortalLayout variant="builder">
-      <div className="space-y-6">
+      <div className="p-6 lg:p-8 space-y-6 content-section-bg min-h-full">
         <div>
           <h1 className="section-title text-2xl">Analytics</h1>
           <p className="text-theme-secondary mt-1">Insights across your listings</p>

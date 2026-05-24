@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import sidebarBg from '@/assets/sidebar-bg.avif'
 import {
   LayoutDashboard,
   Users,
@@ -112,6 +113,14 @@ function TabFallback() {
   )
 }
 
+
+const pillCls = (isActive: boolean) =>
+  `w-full flex items-center gap-2.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+    isActive
+      ? 'border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold shadow-md'
+      : 'border border-white/55 text-white hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+  }`
+
 /* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
@@ -142,10 +151,27 @@ export default function CommandControlPage() {
       </section>
 
       {/* Body */}
-      <div className="flex flex-1 w-full">
+      <div className="flex flex-1 w-full relative">
         {/* Side Nav */}
-        <aside className="w-56 shrink-0 border-r border-theme bg-[var(--bg-surface)] py-5 px-2.5 hidden md:block">
-          <nav className="space-y-1">
+        <aside className="w-64 shrink-0 border-r border-theme/20 py-5 px-3 hidden md:block sticky top-[4rem] h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden" style={{ background: 'transparent' }}>
+          {/* Background image with dark overlay for text legibility */}
+          <div
+            aria-hidden="true"
+            className="fixed top-[4rem] left-0 bottom-0 w-64 pointer-events-none -z-10"
+            style={{
+              backgroundImage: `url(${sidebarBg})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+          {/* Dark gradient overlay so white text stays readable */}
+          <div
+            className="fixed top-[4rem] left-0 bottom-0 w-64 pointer-events-none bg-gradient-to-b from-slate-950/80 via-slate-900/90 to-slate-950/95 -z-10"
+            aria-hidden="true"
+          />
+
+          <nav className="space-y-1.5 relative z-10">
             {visibleSections.map((s, i) => {
               const Icon = s.icon
               const active = activeSection === s.id
@@ -155,17 +181,15 @@ export default function CommandControlPage() {
               return (
                 <div key={s.id}>
                   {showGroup && (
-                    <p className={`text-[10px] font-bold uppercase tracking-wider text-theme-tertiary px-2.5 ${i > 0 ? 'pt-3' : ''} pb-1`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider text-white/60 px-2.5 ${i > 0 ? 'pt-4' : ''} pb-1.5`}>
                       {s.group}
                     </p>
                   )}
                   <button
                     onClick={() => setActiveSection(s.id)}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      active ? 'bg-primary/5 text-primary' : 'text-theme-secondary hover:bg-theme-surface hover:text-theme-primary'
-                    }`}
+                    className={pillCls(active)}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#0D1324]' : 'text-white/70'}`} />
                     {s.label}
                   </button>
                 </div>

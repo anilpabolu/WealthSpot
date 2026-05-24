@@ -39,11 +39,24 @@ export default function Navbar(_props?: NavbarProps) {
 
   // ── Scroll behaviour (all pages) ───────────────────────────────────────
   const [navVisible, setNavVisible] = useState(true)
-  const [isHeaderLight, setIsHeaderLight] = useState(true)
+  // onDark = navbar is sitting over a dark hero background (white text needed)
+  const [onDark, setOnDark] = useState(true)
   const lastScrollY = useRef(0)
 
+  // Paths that use dark hero strips extending behind the transparent navbar
+  const isHeroPage = (
+    location.pathname === '/' ||
+    location.pathname.startsWith('/vaults') ||
+    location.pathname === '/about' ||
+    location.pathname === '/create-opportunity' ||
+    location.pathname === '/portfolio' ||
+    location.pathname === '/control-centre' ||
+    location.pathname.startsWith('/portal/builder') ||
+    location.pathname.startsWith('/portal/builder/listings/new')
+  )
+
   useEffect(() => {
-    // Reset state on route change
+    // Reset on route change
     setNavVisible(true)
     lastScrollY.current = window.scrollY
 
@@ -51,7 +64,6 @@ export default function Navbar(_props?: NavbarProps) {
       const current = window.scrollY
       const delta = current - lastScrollY.current
       if (current <= 10) setNavVisible(true)
-      // Hide when scrolling down past 80px threshold; show on any upward movement
       else if (delta > 5 && current > 80) setNavVisible(false)
       else if (delta < -5) setNavVisible(true)
       lastScrollY.current = current
@@ -60,33 +72,30 @@ export default function Navbar(_props?: NavbarProps) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [location.pathname])
 
-  // Paths that use dark hero strips extending behind the transparent navbar
-  const isHeroPage = (
-    location.pathname === '/' ||
-    location.pathname.startsWith('/vaults') ||
-    location.pathname === '/create-opportunity' ||
-    location.pathname === '/portfolio' ||
-    location.pathname === '/control-centre' ||
-    location.pathname.startsWith('/portal/builder/listings/new')
-  )
-
   useEffect(() => {
-    const updateHeaderMode = () => {
-      const hero = document.getElementById('hero')
-      // Keep header light (transparent/white-text) on pages that extend behind it.
-      if (!hero) {
-        setIsHeaderLight(isHeroPage)
+    const updateOnDark = () => {
+      if (!isHeroPage) {
+        setOnDark(false)
         return
       }
-
+      // On hero pages: stay dark-mode until user scrolls past the hero element
+      const hero = document.getElementById('hero')
+      if (!hero) {
+        setOnDark(true)
+        return
+      }
       const heroBottom = hero.getBoundingClientRect().bottom
-      setIsHeaderLight(heroBottom > 72 || isHeroPage)
+      setOnDark(heroBottom > 72)
     }
 
-    updateHeaderMode()
-    window.addEventListener('scroll', updateHeaderMode, { passive: true })
-    return () => window.removeEventListener('scroll', updateHeaderMode)
-  }, [location.pathname])
+    updateOnDark()
+    window.addEventListener('scroll', updateOnDark, { passive: true })
+    window.addEventListener('resize', updateOnDark)
+    return () => {
+      window.removeEventListener('scroll', updateOnDark)
+      window.removeEventListener('resize', updateOnDark)
+    }
+  }, [location.pathname, isHeroPage])
 
   const extraLinks = [
     ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
@@ -107,9 +116,9 @@ export default function Navbar(_props?: NavbarProps) {
   const pillLink = (isActive: boolean) =>
     isActive
       ? 'px-4 py-1.5 rounded-full border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
-      : isHeaderLight
-        ? 'px-4 py-1.5 rounded-full border border-white/50 text-white font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
-        : 'px-4 py-1.5 rounded-full border border-slate-300 text-slate-700 font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+      : onDark
+        ? 'px-4 py-1.5 rounded-full border border-white/70 text-white font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+        : 'px-4 py-1.5 rounded-full border border-slate-400 text-slate-800 font-medium hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
 
   return (
     <>
@@ -118,33 +127,24 @@ export default function Navbar(_props?: NavbarProps) {
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'transform 0.35s ease',
-        background: isHeaderLight ? 'transparent' : 'rgba(255,255,255,0.95)',
-        backdropFilter: isHeaderLight ? 'none' : 'blur(18px)',
-        WebkitBackdropFilter: isHeaderLight ? 'none' : 'blur(18px)',
-        borderBottom: isHeaderLight ? 'none' : '1px solid rgba(15,23,42,0.06)',
+        background: onDark ? 'transparent' : 'rgba(255,255,255,0.95)',
+        backdropFilter: onDark ? 'none' : 'blur(18px)',
+        WebkitBackdropFilter: onDark ? 'none' : 'blur(18px)',
+        borderBottom: onDark ? 'none' : '1px solid rgba(15,23,42,0.06)',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/vaults" className="flex items-center gap-0.5 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={54} light={isHeaderLight} className="transition-all duration-300" />
+            <Link to="/vaults" className="flex items-center gap-0.5 shrink-0" aria-label="WealthSpot Home">
+            <WLogo3D size={54} light={onDark} className="transition-all duration-300" />
             <div className="flex flex-col">
-              <span
-                className={cn(
-                  'text-2xl font-bold tracking-tight leading-none',
-                  isHeaderLight ? 'text-white' : 'text-slate-950'
-                )}
+              <span className={cn('text-2xl font-bold tracking-tight leading-none', onDark ? 'text-white' : 'text-slate-950')} 
                 style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
-              <span
-                className={cn(
-                  'text-[10px] font-semibold uppercase tracking-[0.25em] leading-none mt-1',
-                  isHeaderLight ? 'text-white/70' : 'text-slate-500'
-                )}
-              >
+              <span className={cn('text-[10px] font-semibold uppercase tracking-[0.25em] leading-none mt-1', onDark ? 'text-white/85' : 'text-slate-500')}>
                 Private Wealth Access
               </span>
             </div>
@@ -156,10 +156,7 @@ export default function Navbar(_props?: NavbarProps) {
               <Link
                 key={link.href}
                 to={link.href}
-                className={cn(
-                  'text-sm transition-all duration-200',
-                  pillLink(location.pathname === link.href)
-                )}
+                className={cn('text-sm transition-all duration-200', pillLink(location.pathname === link.href))}
               >
                 {link.label}
               </Link>
@@ -168,7 +165,7 @@ export default function Navbar(_props?: NavbarProps) {
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
-
+            
             {/* Clerk auth: signed-in → Create Opp + UserButton, signed-out → Sign In / Sign Up */}
             <Show when="signed-in">
               {(userRoles.includes('builder') || userRoles.includes('admin') || userRoles.includes('super_admin')) && (
@@ -197,13 +194,13 @@ export default function Navbar(_props?: NavbarProps) {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
-                <X className={cn('h-6 w-6', isHeaderLight ? 'text-white' : 'text-slate-900/80')} />
+                <X className={cn('h-6 w-6', onDark ? 'text-white' : 'text-slate-900/80')} />
               ) : (
-                <Menu className={cn('h-6 w-6', isHeaderLight ? 'text-white' : 'text-slate-900/80')} />
+                <Menu className={cn('h-6 w-6', onDark ? 'text-white' : 'text-slate-900/80')} />
               )}
             </button>
-          </div>
-        </div>
+          </div> {/* end right actions */}
+        </div> {/* end flex row */}
       </nav>
 
       {/* Mobile drawer */}
@@ -211,10 +208,10 @@ export default function Navbar(_props?: NavbarProps) {
         <div
           className="md:hidden animate-fade-up"
           style={{
-            background: isHeaderLight ? 'rgba(10,30,40,0.85)' : 'rgba(255,255,255,0.97)',
+            background: onDark ? 'rgba(10,30,40,0.85)' : 'rgba(255,255,255,0.97)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderTop: isHeaderLight ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(15,23,42,0.08)',
+            borderTop: onDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(15,23,42,0.08)',
           }}
         >
           <div className="px-4 py-4 space-y-2">
@@ -226,9 +223,9 @@ export default function Navbar(_props?: NavbarProps) {
                   'block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
                   location.pathname === link.href
                     ? 'border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold'
-                    : isHeaderLight
+                    : onDark
                       ? 'border border-white/40 text-white hover:border-[#D4AF37] hover:text-[#D4AF37]'
-                      : 'border border-slate-300 text-slate-700 hover:border-[#D4AF37] hover:text-[#D4AF37]'
+                      : 'border border-slate-400 text-slate-800 hover:border-[#D4AF37] hover:text-[#D4AF37]'
                 )}
                 onClick={() => setMobileOpen(false)}
               >

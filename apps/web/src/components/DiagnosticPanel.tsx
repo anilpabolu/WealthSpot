@@ -100,8 +100,6 @@ export function diagApiTrace(method: string, url: string) {
 
 // ─── Component ────────────────────────────────────────
 export default function DiagnosticPanel() {
-  // Do not expose diagnostics in production builds
-  if (import.meta.env.MODE === 'production') return null
 
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
@@ -256,6 +254,9 @@ export default function DiagnosticPanel() {
     setCopiedEntryId(entry.id)
     setTimeout(() => setCopiedEntryId(null), 1200)
   }
+
+  // Do not expose diagnostics in production builds
+  if (import.meta.env.MODE === 'production') return null
 
   // ─── Floating trigger ─────────────────────────────
   if (!open) {
