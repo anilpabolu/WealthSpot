@@ -142,6 +142,8 @@ class Opportunity(Base):
     property_amenities: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
     # Combined cost estimate for all amenities (e.g. ₹50,000 per unit)
     amenity_cost_estimate: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
+    # Unique Selling Propositions (USPs)
+    usps: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
     # Project lifecycle phase
     project_phase: Mapped[str | None] = mapped_column(String(50))
     # Valuation (appreciation tracking)
