@@ -23,7 +23,7 @@ const FOOTER_NAV = {
 const SOCIAL = [
   { icon: Linkedin,  href: '#', label: 'LinkedIn' },
   { icon: Twitter,   href: '#', label: 'Twitter / X' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
+  { icon: Instagram, href: 'https://www.instagram.com/wealthspot.in?igsh=MWVtNHF3ZG0yb3FoNA==', label: 'Instagram' },
   { icon: Youtube,   href: '#', label: 'YouTube' },
 ]
 
@@ -35,10 +35,12 @@ function SlimFooter() {
       <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 py-3">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
-          <p className="font-body text-[11px] text-white/35">
+          <p className="font-body text-[11px] text-white/35 max-w-5xl leading-relaxed">
             &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd.
-            <span className="mx-2 text-white/20">·</span>
-            Investments subject to market risks. Past performance is not a guarantee. Not financial advice.
+            <span className="mx-2 text-white/20 hidden sm:inline">·</span>
+            <span className="block sm:inline mt-1 sm:mt-0">
+              WealthSpot operates as an independent real estate discovery and advisory platform. We do not pool funds, manage investments, guarantee returns, or operate regulated investment schemes. All transactions occur directly between investors and respective asset owners/developers. Users are advised to conduct independent due diligence before making investment decisions.
+            </span>
           </p>
           <div className="flex items-center gap-4">
             <a href="mailto:hello@wealthspot.in" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Help</a>
@@ -142,14 +144,20 @@ export default function Footer() {
         {/* Divider */}
         <div className="border-t border-white/10" />
 
-        {/* Risk disclaimer — two columns */}
-        <div className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <p className="font-body text-[11.5px] text-white/70 leading-relaxed">
-            <span className="font-semibold text-[#D4AF37]">Risk Disclaimer: </span>
-            Investments in fractional real estate are subject to market risks. Past performance does not guarantee future returns. The projected IRR is an estimate and actual returns may vary. Please read all related documents carefully before investing.
+        {/* Regulatory & Compliance Disclosure */}
+        <div className="py-8 flex flex-col gap-4 font-body text-[11px] text-white/55 leading-relaxed text-justify sm:text-left">
+          <h4 className="font-bold text-[#D4AF37] uppercase tracking-wider mb-2">Regulatory & Compliance Disclosure</h4>
+          <p>
+            WealthSpot (including WealthSpot Technologies Pvt. Ltd. and WealthSpot Advisory LLP) operates strictly as a real estate discovery, market intelligence, networking, and independent property advisory platform. WealthSpot facilitates curated project discovery, developer introductions, real estate research insights, transaction coordination support, and investor-developer connectivity. WealthSpot does not operate as a bank, Non-Banking Financial Company (NBFC), Alternative Investment Fund (AIF), Portfolio Management Service (PMS), Collective Investment Scheme (CIS), crowdfunding platform, real estate investment trust (REIT), or Asset Management Company (AMC).
           </p>
-          <p className="font-body text-[11.5px] text-white/70 leading-relaxed">
-            WealthSpot is a technology platform and does not provide financial advice. Investment opportunities on this platform are intended for informed investors. Please consult a qualified financial advisor before making any investment decisions.
+          <p>
+            WealthSpot is not registered with the Securities and Exchange Board of India (SEBI) as an Investment Adviser, Research Analyst, Portfolio Manager, or Collective Investment Vehicle, and does not undertake regulated securities activities under applicable SEBI regulations. WealthSpot does not solicit deposits, pool investor capital, manage collective funds, issue fractional ownership securities, guarantee returns, provide assured appreciation, or execute discretionary investment management services.
+          </p>
+          <p>
+            All project information, market intelligence, property analytics, projections, valuation references, and opportunity assessments published on this platform are intended solely for informational, educational, and discovery purposes and should not be construed as financial advice, investment solicitation, securities recommendation, or guaranteed investment guidance. All transactions are executed directly between the investor and the respective developer, landowner, seller, or asset-owning entity. Investors are solely responsible for conducting independent legal, financial, taxation, technical, title, regulatory, and commercial due diligence prior to entering into any transaction or investment decision.
+          </p>
+          <p>
+            WealthSpot does not assume fiduciary responsibility for investor decisions, developer performance, project execution, regulatory approvals, market fluctuations, pricing movements, construction timelines, liquidity outcomes, or investment returns. Users and investors are advised to consult qualified legal, tax, financial, and regulatory professionals before making any real estate acquisition or investment decision.
           </p>
         </div>
 

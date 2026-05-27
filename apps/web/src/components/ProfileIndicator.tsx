@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import VaultPickerModal from '@/components/VaultPickerModal'
-import PersonaSwitcher from '@/components/PersonaSwitcher'
 
 interface ProfileIndicatorProps {
   size?: 'sm' | 'md'
@@ -121,8 +120,6 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
         )}
       </div>
 
-      {/* Persona switcher */}
-      <PersonaSwitcher />
 
       {/* Navigation links */}
       <div className="py-1">

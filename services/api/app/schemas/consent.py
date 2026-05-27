@@ -22,9 +22,12 @@ class ConsentCreate(BaseModel):
     )
 
 
+import uuid
+
+
 class ConsentResponse(BaseModel):
-    id: str
-    user_id: str
+    id: uuid.UUID
+    user_id: uuid.UUID
     consent_type: str
     consented: bool
     target_id: str | None

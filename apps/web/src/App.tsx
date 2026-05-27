@@ -10,7 +10,7 @@ import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
 import { useAppearanceConfig, usePublicNotificationsConfig } from '@/hooks/useControlCentre'
 import { applyThemePalette } from '@/lib/colorUtils'
-import PersonaSelectionModal from '@/components/PersonaSelectionModal'
+
 import { ToastRibbon } from '@/components/ToastRibbon'
 import { useToastStore } from '@/stores/toastStore'
 import SplashScreen from './components/SplashScreen'
@@ -178,10 +178,7 @@ export default function App() {
       {showBootSplash && <SplashScreen exiting={bootSplashExiting} />}
       <NotRegisteredBanner />
       <ToastRibbon />
-      {wsUser &&
-        !wsUser.personaSelectedAt &&
-        !['admin', 'super_admin'].includes(wsUser.primaryRole) &&
-        <PersonaSelectionModal />}
+
       <GlobalConsentGate>
         <Suspense fallback={<PageLoader />}>
           <Routes>

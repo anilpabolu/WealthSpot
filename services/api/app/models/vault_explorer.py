@@ -5,7 +5,7 @@ VaultExplorer model – tracks when a user clicks "Explore" on a vault.
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,4 +22,8 @@ class VaultExplorer(Base):
     vault_type: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "vault_type", name="uq_vault_explorer_user_vault"),
     )
