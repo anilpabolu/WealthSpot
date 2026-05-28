@@ -22,10 +22,10 @@ import {
 // ── Step config ─────────────────────────────────────────────────────────────
 
 const STEPS = [
-  { id: 1, title: 'About You', subtitle: 'Tell us who you are', icon: User, color: 'from-blue-500 to-indigo-600', emoji: '👤' },
-  { id: 2, title: 'Interests', subtitle: 'What excites you?', icon: Heart, color: 'from-pink-500 to-rose-600', emoji: '💡' },
-  { id: 3, title: 'Address', subtitle: 'Where are you based?', icon: MapPin, color: 'from-emerald-500 to-teal-600', emoji: '📍' },
-  { id: 4, title: 'Verify', subtitle: 'Secure your account', icon: ShieldCheck, color: 'from-purple-500 to-violet-600', emoji: '🔒' },
+  { id: 1, title: 'About You', subtitle: 'Tell us who you are', icon: User, emoji: '👤' },
+  { id: 2, title: 'Interests', subtitle: 'What excites you?', icon: Heart, emoji: '💡' },
+  { id: 3, title: 'Address', subtitle: 'Where are you based?', icon: MapPin, emoji: '📍' },
+  { id: 4, title: 'Verify', subtitle: 'Secure your account', icon: ShieldCheck, emoji: '🔒' },
 ] as const
 
 // ── Chip selector ───────────────────────────────────────────────────────────
@@ -564,37 +564,41 @@ export default function ProfileCompletionPage() {
               const isDone = completion?.sections && Object.values(completion.sections)[i]
               return (
                 <button key={s.id} onClick={() => { if (s.id <= step) setStep(s.id) }}
-                  className={cn('flex flex-col items-center gap-1 transition-all group', s.id <= step ? 'opacity-100' : 'opacity-40')}>
+                  className={cn('flex flex-col items-center gap-1.5 transition-all group', s.id <= step ? 'opacity-100' : 'opacity-40')}>
                   <div className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all text-white bg-gradient-to-br',
-                    isCurrent ? `${s.color} shadow-lg scale-110` : isDone ? 'from-emerald-400 to-emerald-600' : 'from-gray-300 to-gray-400',
+                    'h-10 w-10 rounded-full flex items-center justify-center transition-all border-2',
+                    isCurrent ? 'bg-[#D4AF37] border-[#D4AF37] text-[#0D1324] shadow-lg shadow-[#D4AF37]/30 scale-110' : 
+                    isDone ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' : 
+                    'bg-[var(--bg-surface)] border-theme text-theme-tertiary',
                   )}>
                     {isDone && !isCurrent ? <Check className="h-5 w-5" /> : <SIcon className="h-5 w-5" />}
                   </div>
-                  <span className={cn('text-[10px] font-semibold hidden sm:block', isCurrent ? 'text-theme-primary' : 'text-theme-tertiary')}>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-wider hidden sm:block', isCurrent ? 'text-[#D4AF37]' : 'text-theme-tertiary')}>
                     {s.title}
                   </span>
                 </button>
               )
             })}
           </div>
-          <div className="h-1.5 bg-theme-surface-hover rounded-full overflow-hidden -mt-1">
-            <div className="h-full bg-gradient-to-r from-primary to-purple-600 rounded-full transition-all duration-500"
+          <div className="h-1 bg-theme-surface-hover rounded-full overflow-hidden mt-2">
+            <div className="h-full bg-[#D4AF37] rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(212,175,55,0.5)]"
               style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
           </div>
         </div>
 
         {/* Step content card */}
-        <div className="bg-[var(--bg-surface)] border border-theme rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[#0D1324] border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
           {currentStep && (
-            <div className={cn('bg-gradient-to-r px-6 py-4 text-white', currentStep.color)}>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{currentStep.emoji}</span>
-                <div>
-                  <h2 className="font-display text-lg font-bold">{currentStep.title}</h2>
-                  <p className="text-white/80 text-sm">{currentStep.subtitle}</p>
+            <div className="bg-gradient-to-r from-[#1A2235] to-[#0D1324] border-b border-[#D4AF37]/20 px-6 py-5 text-white">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-2xl shadow-inner">
+                  {currentStep.emoji}
                 </div>
-                <div className="ml-auto text-sm font-semibold bg-white/20 rounded-full px-3 py-1">
+                <div>
+                  <h2 className="font-hero text-xl font-bold text-white tracking-tight">{currentStep.title}</h2>
+                  <p className="text-[#D4AF37]/80 text-sm font-medium">{currentStep.subtitle}</p>
+                </div>
+                <div className="ml-auto text-[10px] font-bold tracking-widest uppercase border border-[#D4AF37]/30 text-[#D4AF37] rounded-full px-3 py-1.5">
                   Step {step}/{STEPS.length}
                 </div>
               </div>
@@ -616,12 +620,12 @@ export default function ProfileCompletionPage() {
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-theme px-6 py-4 flex items-center justify-between bg-theme-surface/50">
-            <Button onClick={handlePrev} disabled={step === 1} variant="ghost" className="flex items-center gap-1.5">
+          <div className="border-t border-[#D4AF37]/20 px-6 py-4 flex items-center justify-between bg-[#1A2235]/50">
+            <Button onClick={handlePrev} disabled={step === 1} variant="ghost" className="flex items-center gap-1.5 text-white/70 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10">
               <ChevronLeft className="h-4 w-4" /> Previous
             </Button>
             {step < 4 ? (
-              <Button onClick={handleNext} disabled={isSaving} variant="primary" className="flex items-center gap-1.5">
+              <Button onClick={handleNext} disabled={isSaving} className="flex items-center gap-1.5 bg-[#D4AF37] hover:bg-[#B38F24] text-[#0D1324] font-semibold border-none shadow-[0_0_15px_rgba(212,175,55,0.4)]">
                 {isSaving ? 'Saving...' : 'Save & Continue'} <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
