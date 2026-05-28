@@ -50,8 +50,8 @@ function ChipSelect({ options, selected, onChange, multiple = true }: {
           className={cn(
             'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200',
             selected.includes(o.value)
-              ? 'border-primary bg-primary/10 text-primary shadow-sm shadow-primary/20 scale-105'
-              : 'border-theme bg-[var(--bg-surface)] text-theme-secondary hover:border-theme hover:bg-theme-surface'
+              ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] shadow-sm shadow-[#D4AF37]/20 scale-105'
+              : 'border-white/20 bg-transparent text-white/70 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5'
           )}
         >
           {o.icon && <span>{o.icon}</span>}
@@ -115,29 +115,29 @@ function Step1({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-theme-secondary text-sm">Let's start with the basics — this helps us personalize your experience 🎯</p>
+        <p className="text-white/70 text-sm">Let's start with the basics — this helps us personalize your experience 🎯</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Full Name</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">Full Name</label>
           <Input type="text" value={(data.full_name as string) || ''} placeholder="e.g. Anil Kumar"
             onChange={e => onChange({ ...data, full_name: e.target.value })} />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Date of Birth</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">Date of Birth</label>
           <Input type="date" value={(data.date_of_birth as string) || ''}
             onChange={e => onChange({ ...data, date_of_birth: e.target.value })} />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-2">Gender</label>
+        <label className="block text-sm font-semibold text-white mb-2">Gender</label>
         <ChipSelect options={GENDER_OPTIONS} selected={data.gender ? [data.gender as string] : []} onChange={v => onChange({ ...data, gender: v[0] ?? null })} multiple={false} />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Occupation</label>
+        <label className="block text-sm font-semibold text-white mb-1.5">Occupation</label>
           <Input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
             onChange={e => onChange({ ...data, occupation: e.target.value })} />
       </div>
@@ -149,14 +149,14 @@ function Step2({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-theme-secondary text-sm">Pick what gets you excited — we'll curate opportunities just for you ✨</p>
+        <p className="text-white/70 text-sm">Pick what gets you excited — we'll curate opportunities just for you ✨</p>
       </div>
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-2">🏗️ Asset Types I'm Interested In</label>
+        <label className="block text-sm font-semibold text-white mb-2">🏗️ Asset Types I'm Interested In</label>
         <ChipSelect options={INTEREST_OPTIONS} selected={(data.interests as string[]) || []} onChange={v => onChange({ ...data, interests: v })} />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-2">📍 Preferred Cities</label>
+        <label className="block text-sm font-semibold text-white mb-2">📍 Preferred Cities</label>
         <ChipSelect options={CITY_OPTIONS} selected={(data.preferred_cities as string[]) || []} onChange={v => onChange({ ...data, preferred_cities: v })} />
       </div>
     </div>
@@ -167,26 +167,26 @@ function Step3({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
-        <p className="text-theme-secondary text-sm">We need your address for legal compliance and document delivery 🏠</p>
+        <p className="text-white/70 text-sm">We need your address for legal compliance and document delivery 🏠</p>
       </div>
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 1</label>
+        <label className="block text-sm font-semibold text-white mb-1.5">Address Line 1</label>
         <Input type="text" value={(data.address_line1 as string) || ''} placeholder="House/Flat No, Building Name"
             onChange={e => onChange({ ...data, address_line1: e.target.value })} />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 2 (optional)</label>
+        <label className="block text-sm font-semibold text-white mb-1.5">Address Line 2 (optional)</label>
         <Input type="text" value={(data.address_line2 as string) || ''} placeholder="Street, Locality"
             onChange={e => onChange({ ...data, address_line2: e.target.value })} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">City</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">City</label>
           <Input type="text" value={(data.city as string) || ''} placeholder="e.g. Hyderabad"
             onChange={e => onChange({ ...data, city: e.target.value })} />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">State</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">State</label>
           <Select value={(data.state as string) || ''}
             onChange={v => onChange({ ...data, state: v })}
             options={[
@@ -198,12 +198,12 @@ function Step3({ data, onChange }: StepProps) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Pincode</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">Pincode</label>
           <Input type="text" value={(data.pincode as string) || ''} placeholder="e.g. 500001" maxLength={6}
             onChange={e => onChange({ ...data, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })} />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-1.5">Country</label>
+          <label className="block text-sm font-semibold text-white mb-1.5">Country</label>
           <Input type="text" value={(data.country as string) || 'India'} readOnly />
         </div>
       </div>
@@ -587,9 +587,9 @@ export default function ProfileCompletionPage() {
         </div>
 
         {/* Step content card */}
-        <div className="bg-[#0D1324] border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
           {currentStep && (
-            <div className="bg-gradient-to-r from-[#1A2235] to-[#0D1324] border-b border-[#D4AF37]/20 px-6 py-5 text-white">
+            <div className="bg-white/5 border-b border-[#D4AF37]/20 px-6 py-5 text-white backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-2xl shadow-inner">
                   {currentStep.emoji}
@@ -620,7 +620,7 @@ export default function ProfileCompletionPage() {
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-[#D4AF37]/20 px-6 py-4 flex items-center justify-between bg-[#1A2235]/50">
+          <div className="border-t border-[#D4AF37]/20 px-6 py-4 flex items-center justify-between bg-white/5 backdrop-blur-sm">
             <Button onClick={handlePrev} disabled={step === 1} variant="ghost" className="flex items-center gap-1.5 text-white/70 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10">
               <ChevronLeft className="h-4 w-4" /> Previous
             </Button>
