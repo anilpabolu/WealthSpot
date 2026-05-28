@@ -44,6 +44,9 @@ import {
   FileText,
   Bell,
   CheckCircle2,
+  IndianRupee,
+  PieChart,
+  BarChart3,
 } from 'lucide-react'
 
 /* ── Vault metadata ──────────────────────────────────────────────── */
@@ -673,6 +676,73 @@ function LoadingState() {
   )
 }
 
+function AllocationChart({ data }: { data: Array<{ type: string; percentage: number; value: number }> }) {
+  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No allocation data yet.</p>
+  const colors = ['bg-primary', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
+
+  return (
+    <div className="space-y-3">
+      {/* Stacked bar */}
+      <div className="h-4 rounded-full bg-theme-surface-hover overflow-hidden flex">
+        {data.map((d, i) => (
+          <div
+            key={d.type}
+            className={`${colors[i % colors.length]} transition-all`}
+            style={{ width: `${d.percentage}%` }}
+            title={`${d.type}: ${d.percentage}%`}
+          />
+        ))}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4">
+        {data.map((d, i) => (
+          <div key={d.type} className="flex items-center gap-1.5 text-xs text-theme-secondary">
+            <span className={`h-2.5 w-2.5 rounded-full ${colors[i % colors.length]}`} />
+            {d.type} <span className="text-theme-tertiary">({d.percentage.toFixed(1)}%)</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: number; invested: number }> }) {
+  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No monthly data yet.</p>
+  const maxVal = Math.max(...data.map((d) => Math.max(d.returns, d.invested)), 1)
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end gap-1.5 h-32">
+        {data.slice(-12).map((d) => (
+          <div key={d.month} className="flex-1 flex flex-col items-center gap-0.5 justify-end h-full">
+            <div
+              className="w-full bg-emerald-400 rounded-t"
+              style={{ height: `${(d.returns / maxVal) * 100}%`, minHeight: d.returns > 0 ? '2px' : 0 }}
+              title={`Returns: ${formatINR(d.returns)}`}
+            />
+            <div
+              className="w-full bg-primary/30 rounded-t"
+              style={{ height: `${(d.invested / maxVal) * 100}%`, minHeight: d.invested > 0 ? '2px' : 0 }}
+              title={`Invested: ${formatINR(d.invested)}`}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-1.5 overflow-hidden">
+        {data.slice(-12).map((d) => (
+          <div key={d.month} className="flex-1 text-center">
+            <span className="text-[9px] text-theme-tertiary truncate block">{d.month}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-4 justify-center text-[10px] text-theme-tertiary">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Returns</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary/30" /> Invested</span>
+      </div>
+    </div>
+  )
+}
+
 /* ================================================================== */
 /*  Page                                                               */
 /* ================================================================== */
@@ -757,7 +827,7 @@ export default function PortfolioPage() {
   const visibleFeed = unifiedFeed.slice(0, (activityPage + 1) * PAGE_SIZE)
 
   const isLoading = summaryLoading || vaultLoading
-  const disabledVaultIds = ['safe', 'community'].filter((id) => !isVaultEnabled(id))
+  const disabledVaultIds = ['wealth', 'safe', 'community'].filter((id) => !isVaultEnabled(id))
 
   return (
     <MainLayout>
@@ -784,11 +854,23 @@ export default function PortfolioPage() {
             <>
               {/* ── Grand Summary Cards ───────────────────────────── */}
               <section>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <StatCard
                     label="Total Invested"
                     value={formatINR(vaultData?.grandTotalInvested ?? summary?.totalInvested ?? 0)}
                     icon={Wallet}
+                  />
+                  <StatCard
+                    label="Current Value"
+                    value={formatINR(vaultData?.grandCurrentValue ?? summary?.currentValue ?? 0)}
+                    icon={IndianRupee}
+                  />
+                  <StatCard
+                    label="Total Returns"
+                    value={formatINR(vaultData?.grandReturns ?? summary?.totalReturns ?? 0)}
+                    sub={`${(vaultData?.grandReturnPct ?? 0) > 0 ? '+' : ''}${(vaultData?.grandReturnPct ?? 0).toFixed(1)}%`}
+                    icon={TrendingUp}
+                    trend={(vaultData?.grandReturns ?? 0) >= 0 ? 'up' : 'down'}
                   />
                 </div>
               </section>
@@ -820,7 +902,26 @@ export default function PortfolioPage() {
                 </section>
               )}
 
+              {/* ── Charts Row ────────────────────────────────────── */}
+              <section className="grid lg:grid-cols-2 gap-6">
+                {/* Asset Allocation */}
+                <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-6">
+                  <div className="flex items-center gap-2 mb-5">
+                    <PieChart className="h-5 w-5 text-theme-tertiary" />
+                    <h3 className="section-title text-lg mb-0">Asset Allocation</h3>
+                  </div>
+                  <AllocationChart data={summary?.assetAllocation ?? []} />
+                </div>
 
+                {/* Monthly Returns */}
+                <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-6">
+                  <div className="flex items-center gap-2 mb-5">
+                    <BarChart3 className="h-5 w-5 text-theme-tertiary" />
+                    <h3 className="section-title text-lg mb-0">Monthly Returns</h3>
+                  </div>
+                  <MonthlyReturnsChart data={summary?.monthlyReturns ?? []} />
+                </div>
+              </section>
 
               {/* ── Holdings ──────────────────────────────────────── */}
               <section>

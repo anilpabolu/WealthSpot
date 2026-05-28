@@ -1,8 +1,11 @@
 import pytest
 from httpx import AsyncClient
 
+from app.models.user import User
+from tests.conftest import auth_headers
+
 @pytest.mark.asyncio
-async def test_record_consent_success(client: AsyncClient, token_headers: dict):
+async def test_record_consent_success(client: AsyncClient, test_user: User):
     payload = {
         "consent_type": "LOGIN",
         "consented": True,
@@ -11,7 +14,7 @@ async def test_record_consent_success(client: AsyncClient, token_headers: dict):
         "device_details": {"browser": "Chrome", "os": "Windows"}
     }
     
-    response = await client.post("/api/v1/consent", json=payload, headers=token_headers)
+    response = await client.post("/api/v1/consent", json=payload, headers=auth_headers(test_user))
     assert response.status_code == 200
     
     data = response.json()
