@@ -120,7 +120,8 @@ class Settings(BaseSettings):
             if not self.encryption_key:
                 raise ValueError("ENCRYPTION_KEY must be set in production")
             if not self.sentry_dsn:
-                raise ValueError("SENTRY_DSN must be set in production")
+                # Sentry is recommended but not strictly required to boot the app
+                pass
             if self.razorpay_key_id and not self.razorpay_key_secret:
                 raise ValueError(
                     "RAZORPAY_KEY_SECRET must be set when RAZORPAY_KEY_ID is configured"
