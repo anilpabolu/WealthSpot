@@ -10,7 +10,7 @@ import {
   useUpdatePhone,
 } from '@/hooks/useProfileAPI'
 import { cn } from '@/lib/utils'
-import { Select } from '@/components/ui'
+import { Select, Input, Button } from '@/components/ui'
 import { useContent } from '@/hooks/useSiteContent'
 import {
   User, Heart, MapPin, ShieldCheck,
@@ -121,15 +121,13 @@ function Step1({ data, onChange }: StepProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">Full Name</label>
-          <input type="text" value={(data.full_name as string) || ''} placeholder="e.g. Anil Kumar"
-            onChange={e => onChange({ ...data, full_name: e.target.value })}
-            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          <Input type="text" value={(data.full_name as string) || ''} placeholder="e.g. Anil Kumar"
+            onChange={e => onChange({ ...data, full_name: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">Date of Birth</label>
-          <input type="date" value={(data.date_of_birth as string) || ''}
-            onChange={e => onChange({ ...data, date_of_birth: e.target.value })}
-            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          <Input type="date" value={(data.date_of_birth as string) || ''}
+            onChange={e => onChange({ ...data, date_of_birth: e.target.value })} />
         </div>
       </div>
 
@@ -140,9 +138,8 @@ function Step1({ data, onChange }: StepProps) {
 
       <div>
         <label className="block text-sm font-semibold text-theme-primary mb-1.5">Occupation</label>
-        <input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
-          onChange={e => onChange({ ...data, occupation: e.target.value })}
-          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          <Input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
+            onChange={e => onChange({ ...data, occupation: e.target.value })} />
       </div>
     </div>
   )
@@ -174,22 +171,19 @@ function Step3({ data, onChange }: StepProps) {
       </div>
       <div>
         <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 1</label>
-        <input type="text" value={(data.address_line1 as string) || ''} placeholder="House/Flat No, Building Name"
-          onChange={e => onChange({ ...data, address_line1: e.target.value })}
-          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        <Input type="text" value={(data.address_line1 as string) || ''} placeholder="House/Flat No, Building Name"
+            onChange={e => onChange({ ...data, address_line1: e.target.value })} />
       </div>
       <div>
         <label className="block text-sm font-semibold text-theme-primary mb-1.5">Address Line 2 (optional)</label>
-        <input type="text" value={(data.address_line2 as string) || ''} placeholder="Street, Locality"
-          onChange={e => onChange({ ...data, address_line2: e.target.value })}
-          className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+        <Input type="text" value={(data.address_line2 as string) || ''} placeholder="Street, Locality"
+            onChange={e => onChange({ ...data, address_line2: e.target.value })} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">City</label>
-          <input type="text" value={(data.city as string) || ''} placeholder="e.g. Hyderabad"
-            onChange={e => onChange({ ...data, city: e.target.value })}
-            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          <Input type="text" value={(data.city as string) || ''} placeholder="e.g. Hyderabad"
+            onChange={e => onChange({ ...data, city: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">State</label>
@@ -205,14 +199,12 @@ function Step3({ data, onChange }: StepProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">Pincode</label>
-          <input type="text" value={(data.pincode as string) || ''} placeholder="e.g. 500001" maxLength={6}
-            onChange={e => onChange({ ...data, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-            className="w-full px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+          <Input type="text" value={(data.pincode as string) || ''} placeholder="e.g. 500001" maxLength={6}
+            onChange={e => onChange({ ...data, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })} />
         </div>
         <div>
           <label className="block text-sm font-semibold text-theme-primary mb-1.5">Country</label>
-          <input type="text" value={(data.country as string) || 'India'} readOnly
-            className="w-full px-3 py-2.5 border border-theme rounded-xl bg-theme-surface text-theme-secondary" />
+          <Input type="text" value={(data.country as string) || 'India'} readOnly />
         </div>
       </div>
     </div>
@@ -301,25 +293,22 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
         {!emailVerified && (
           <div className="space-y-3">
             {!emailSent ? (
-              <button onClick={handleSendEmail} disabled={sendOtp.isPending}
-                className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+              <Button onClick={handleSendEmail} disabled={sendOtp.isPending} variant="primary" className="w-full">
                 {sendOtp.isPending ? 'Sending...' : '📧 Send Verification Code'}
-              </button>
+              </Button>
             ) : (
               <>
                 <div className="flex gap-2">
-                  <input type="text" value={emailOtp} maxLength={6} placeholder="Enter 6-digit OTP"
+                  <Input type="text" value={emailOtp} maxLength={6} placeholder="Enter 6-digit OTP"
                     onChange={e => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-blue-300 focus:border-blue-500" />
-                  <button onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyOtp.isPending}
-                    className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                    className="text-center text-lg tracking-widest font-mono" />
+                  <Button onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyOtp.isPending} variant="primary">
                     {verifyOtp.isPending ? '...' : 'Verify'}
-                  </button>
+                  </Button>
                 </div>
-                <button onClick={handleSendEmail} disabled={emailCountdown > 0 || sendOtp.isPending}
-                  className="text-xs text-theme-secondary hover:text-primary disabled:opacity-50">
+                <Button variant="ghost" onClick={handleSendEmail} disabled={emailCountdown > 0 || sendOtp.isPending} size="sm" className="text-xs">
                   {emailCountdown > 0 ? `Resend in ${emailCountdown}s` : 'Resend code'}
-                </button>
+                </Button>
                 {emailDevHint && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg px-2 py-1">{emailDevHint}</p>
                 )}
@@ -353,35 +342,30 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
                   📱 Add your mobile number to receive verification OTP
                 </p>
                 <div className="flex gap-2">
-                  <input type="tel" value={phoneInput} placeholder="+91 9876543210"
-                    onChange={e => setPhoneInput(e.target.value.replace(/[^\d+\s]/g, '').slice(0, 15))}
-                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
-                  <button onClick={handleSavePhone} disabled={phoneInput.replace(/\s/g, '').length < 10 || updatePhone.isPending}
-                    className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+                  <Input type="tel" value={phoneInput} placeholder="+91 9876543210"
+                    onChange={e => setPhoneInput(e.target.value.replace(/[^\d+\s]/g, '').slice(0, 15))} />
+                  <Button onClick={handleSavePhone} disabled={phoneInput.replace(/\s/g, '').length < 10 || updatePhone.isPending} variant="primary">
                     {updatePhone.isPending ? '...' : 'Save'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : !phoneSent ? (
-              <button onClick={handleSendPhone} disabled={sendOtp.isPending}
-                className="w-full py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+              <Button onClick={handleSendPhone} disabled={sendOtp.isPending} variant="primary" className="w-full">
                 {sendOtp.isPending ? 'Sending...' : '📱 Send Verification Code'}
-              </button>
+              </Button>
             ) : (
               <>
                 <div className="flex gap-2">
-                  <input type="text" value={phoneOtp} maxLength={6} placeholder="Enter 6-digit OTP"
+                  <Input type="text" value={phoneOtp} maxLength={6} placeholder="Enter 6-digit OTP"
                     onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="flex-1 px-3 py-2.5 border border-theme rounded-xl text-center text-lg tracking-widest font-mono focus:ring-2 focus:ring-purple-300 focus:border-purple-500" />
-                  <button onClick={handleVerifyPhone} disabled={phoneOtp.length !== 6 || verifyOtp.isPending}
-                    className="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition disabled:opacity-50">
+                    className="text-center text-lg tracking-widest font-mono" />
+                  <Button onClick={handleVerifyPhone} disabled={phoneOtp.length !== 6 || verifyOtp.isPending} variant="primary">
                     {verifyOtp.isPending ? '...' : 'Verify'}
-                  </button>
+                  </Button>
                 </div>
-                <button onClick={handleSendPhone} disabled={phoneCountdown > 0 || sendOtp.isPending}
-                  className="text-xs text-theme-secondary hover:text-primary disabled:opacity-50">
+                <Button variant="ghost" onClick={handleSendPhone} disabled={phoneCountdown > 0 || sendOtp.isPending} size="sm" className="text-xs">
                   {phoneCountdown > 0 ? `Resend in ${phoneCountdown}s` : 'Resend code'}
-                </button>
+                </Button>
                 {phoneDevHint && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg px-2 py-1">{phoneDevHint}</p>
                 )}
@@ -437,23 +421,20 @@ function CelebrationScreen({ referralCode }: { referralCode: string | null }) {
           <div className="bg-[var(--bg-surface)] rounded-xl px-4 py-3 font-mono text-2xl font-bold text-primary tracking-wider border border-primary/20 mb-3">
             {referralCode}
           </div>
-          <button onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition">
+          <Button onClick={handleCopy} variant="primary" className="w-full flex items-center justify-center gap-2">
             {copied ? <><CheckCheck className="h-4 w-4" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Referral Link</>}
-          </button>
+          </Button>
           <p className="text-xs text-theme-secondary mt-2">Share with friends and earn rewards</p>
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-        <button onClick={() => navigate('/vaults')}
-          className="px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition flex items-center gap-2 justify-center">
+        <Button onClick={() => navigate('/vaults')} variant="primary" className="flex items-center gap-2">
           <Rocket className="h-4 w-4" /> Explore Opportunities
-        </button>
-        <button onClick={() => navigate('/settings')}
-          className="px-6 py-3 border-2 border-theme text-theme-primary rounded-xl font-semibold hover:bg-theme-surface transition">
+        </Button>
+        <Button onClick={() => navigate('/settings')} variant="outline">
           View Settings
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -636,21 +617,19 @@ export default function ProfileCompletionPage() {
 
           {/* Navigation */}
           <div className="border-t border-theme px-6 py-4 flex items-center justify-between bg-theme-surface/50">
-            <button onClick={handlePrev} disabled={step === 1}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-theme-secondary hover:text-theme-primary disabled:opacity-30 transition">
+            <Button onClick={handlePrev} disabled={step === 1} variant="ghost" className="flex items-center gap-1.5">
               <ChevronLeft className="h-4 w-4" /> Previous
-            </button>
+            </Button>
             {step < 4 ? (
-              <button onClick={handleNext} disabled={isSaving}
-                className="flex items-center gap-1.5 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition shadow-sm shadow-primary/20 disabled:opacity-50">
+              <Button onClick={handleNext} disabled={isSaving} variant="primary" className="flex items-center gap-1.5">
                 {isSaving ? 'Saving...' : 'Save & Continue'} <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             ) : (
-              <button onClick={handleFinish} disabled={!completion?.emailVerified || !completion?.phoneVerified}
-                className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition shadow-sm shadow-emerald-200 disabled:opacity-50">
+              <Button onClick={handleFinish} disabled={!completion?.emailVerified || !completion?.phoneVerified}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200">
                 <ShieldCheck className="h-4 w-4" />
                 {completion?.emailVerified && completion?.phoneVerified ? 'Complete Profile 🎉' : 'Verify to Continue'}
-              </button>
+              </Button>
             )}
           </div>
         </div>

@@ -69,6 +69,7 @@ var kvSecrets = [
   { name: 'smtp-password',             keyVaultUrl: '${kvUri}secrets/smtp-password' }
   { name: 'twilio-auth-token',         keyVaultUrl: '${kvUri}secrets/twilio-auth-token' }
   { name: 'twilio-account-sid',        keyVaultUrl: '${kvUri}secrets/twilio-account-sid' }
+  { name: 'twilio-phone-number',       keyVaultUrl: '${kvUri}secrets/twilio-phone-number' }
   { name: 'encryption-key-fernet',     keyVaultUrl: '${kvUri}secrets/encryption-key' }
 ]
 
@@ -157,6 +158,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'SMTP_PASSWORD',          secretRef: 'smtp-password' }
             { name: 'TWILIO_AUTH_TOKEN',      secretRef: 'twilio-auth-token' }
             { name: 'TWILIO_ACCOUNT_SID',     secretRef: 'twilio-account-sid' }
+            { name: 'TWILIO_PHONE_NUMBER',    secretRef: 'twilio-phone-number' }
           ]
           probes: [
             {

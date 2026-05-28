@@ -126,8 +126,10 @@ set_secret "smtp-password" "$RESEND_KEY"
 info "--- Twilio ---"
 read_plain "Twilio Account SID (ACXXXXXXXX): " TWILIO_SID
 read_secret "Twilio Auth Token: " TWILIO_TOKEN
+read_plain "Twilio Phone Number (+1234567890): " TWILIO_PHONE
 set_secret "twilio-account-sid"  "$TWILIO_SID"
 set_secret "twilio-auth-token"   "$TWILIO_TOKEN"
+set_secret "twilio-phone-number" "$TWILIO_PHONE"
 
 echo ""
 success "All secrets written to Key Vault: $KV_NAME"

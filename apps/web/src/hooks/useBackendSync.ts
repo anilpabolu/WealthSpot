@@ -12,7 +12,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useUser } from '@clerk/react'
 import axios from 'axios'
-import { apiPost, apiGet } from '@/lib/api'
+import { api, apiPost, apiGet } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 import type { UserProfile } from '@/stores/user.store'
 import { diagLog } from '@/components/DiagnosticPanel'
@@ -115,7 +115,7 @@ export function useBackendSync() {
       setToken(tokens.accessToken)
 
       // Step 3: Fetch full profile (includes DB role)
-      const profile = await withRetry(() => apiGet<MeResponse>('/auth/me'))
+      const profile = await withRetry(() => api.get<MeResponse>('/auth/me').then(r => r.data))
       setUser({
         id: profile.id,
         email: profile.email,
