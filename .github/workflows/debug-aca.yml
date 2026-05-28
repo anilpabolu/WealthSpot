@@ -19,8 +19,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Show Revision Errors
         run: |
-          REVISION_NAME="wealthspot-api--0000043"
-          echo "Console Logs for $REVISION_NAME:"
-          az containerapp logs show -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --revision "$REVISION_NAME" --type console --tail 100 || true
-          echo "System Logs for $REVISION_NAME:"
-          az containerapp logs show -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --revision "$REVISION_NAME" --type system --tail 100 || true
+          # Get all failed or degraded revisions
+          FAILED_REVISIONS=$(az containerapp revision list -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --query "[?properties.runningState=='Failed' || properties.runningState=='Degraded' || properties.runningState=='Unknown'].name" -o tsv)
+          
+          for REV in $FAILED_REVISIONS; do
+            echo "============================================="
+            echo "Console Logs for $REV:"
+            az containerapp logs show -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --revision "$REV" --type console --tail 100 || true
+            echo "============================================="
+          done
