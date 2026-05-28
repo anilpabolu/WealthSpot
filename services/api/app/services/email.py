@@ -63,13 +63,19 @@ async def send_otp_email(to_email: str, otp: str) -> bool:
 def _send_smtp(msg: EmailMessage) -> None:
     """Blocking SMTP send — executed in thread pool."""
     settings = get_settings()
-    if settings.smtp_port == 465:
-        with smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+
+    # Azure blocks outbound port 587. For Gmail, automatically fallback to 465 (SMTPS)
+    smtp_port = settings.smtp_port
+    if settings.smtp_host == "smtp.gmail.com" and smtp_port == 587:
+        smtp_port = 465
+
+    if smtp_port == 465:
+        with smtplib.SMTP_SSL(settings.smtp_host, smtp_port, timeout=10) as server:
             if settings.smtp_username and settings.smtp_password:
                 server.login(settings.smtp_username, settings.smtp_password)
             server.send_message(msg)
     else:
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+        with smtplib.SMTP(settings.smtp_host, smtp_port, timeout=10) as server:
             server.starttls()
             if settings.smtp_username and settings.smtp_password:
                 server.login(settings.smtp_username, settings.smtp_password)
