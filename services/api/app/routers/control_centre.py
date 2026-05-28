@@ -107,7 +107,7 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
         if val is None:
             return True
         if isinstance(val, dict):
-            return bool(val.get("enabled", True))
+            return val.get("enabled", True)
         return bool(val)
 
     def _str_val(key: str, default: str) -> str:
@@ -623,7 +623,12 @@ async def invite_admin(
         existing_invite.role = body.role
 
         settings = get_settings()
-        invite_link = f"{settings.frontend_url}/invite/{existing_invite.token}"
+        frontend_url = (
+            settings.cors_origins.split(",")[0]
+            if settings.cors_origins
+            else "http://localhost:5173"
+        )
+        invite_link = f"{frontend_url}/invite/{existing_invite.token}"
 
         email_sent = await send_admin_invite_email(body.email, invite_link, body.role)
         if not email_sent:
@@ -648,7 +653,10 @@ async def invite_admin(
     db.add(invite)
 
     settings = get_settings()
-    invite_link = f"{settings.frontend_url}/invite/{token}"
+    frontend_url = (
+        settings.cors_origins.split(",")[0] if settings.cors_origins else "http://localhost:5173"
+    )
+    invite_link = f"{frontend_url}/invite/{token}"
 
     email_sent = await send_admin_invite_email(body.email, invite_link, body.role)
     if not email_sent:

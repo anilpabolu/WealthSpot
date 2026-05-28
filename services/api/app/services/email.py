@@ -9,6 +9,7 @@ from email.message import EmailMessage
 from functools import partial
 
 import anyio
+import anyio.to_thread
 
 from app.core.config import get_settings
 
