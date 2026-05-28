@@ -47,7 +47,10 @@ export default function AdminInvitesTab() {
           </button>
         </div>
         {createInvite.isError && (
-          <p className="text-red-500 text-sm">Failed to send invite. Please try again.</p>
+          <p className="text-red-500 text-sm">
+            {/* @ts-ignore */}
+            {createInvite.error?.response?.data?.detail || 'Failed to send invite. Please try again.'}
+          </p>
         )}
       </div>
 

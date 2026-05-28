@@ -584,6 +584,10 @@ async def list_group_messages(
 # ── Admin Invites ────────────────────────────────────────────────────────────
 
 
+from app.core.config import get_settings
+from app.services.email import send_admin_invite_email
+
+
 @router.post("/invite-admin", response_model=AdminInviteRead)
 async def invite_admin(
     body: AdminInviteCreate,
@@ -623,6 +627,14 @@ async def invite_admin(
         expires_at=datetime.now(UTC) + timedelta(days=7),
     )
     db.add(invite)
+
+    settings = get_settings()
+    invite_link = f"{settings.frontend_url}/invite/{token}"
+
+    email_sent = await send_admin_invite_email(body.email, invite_link, body.role)
+    if not email_sent:
+        logger.warning(f"Failed to send invite email to {body.email}")
+
     await db.flush()
     await db.refresh(invite)
     return invite

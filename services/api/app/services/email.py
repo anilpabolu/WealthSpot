@@ -73,3 +73,53 @@ def _send_smtp(msg: EmailMessage) -> None:
             if settings.smtp_username and settings.smtp_password:
                 server.login(settings.smtp_username, settings.smtp_password)
             server.send_message(msg)
+
+
+async def send_admin_invite_email(to_email: str, invite_link: str, role: str) -> bool:
+    """Send admin invitation email via SMTP. Returns True if sent."""
+    settings = get_settings()
+
+    if not settings.smtp_host:
+        logger.warning("SMTP not configured — Admin Invite for %s logged only", to_email)
+        return False
+
+    msg = EmailMessage()
+    msg["Subject"] = f"You've been invited to join WealthSpot as {role.replace('_', ' ').title()}"
+
+    # We use the verified sender address but label it as WealthSpot
+    from_addr = settings.smtp_from_email or settings.smtp_username
+    msg["From"] = f"WealthSpot <{from_addr}>"
+    msg["Reply-To"] = "work.wealthspot@gmail.com"
+    msg["To"] = to_email
+
+    msg.set_content(
+        f"You've been invited to join WealthSpot as a {role.replace('_', ' ').title()}.\n\n"
+        f"Click the link below to accept the invitation and access the Command & Control centre:\n{invite_link}\n\n"
+        f"This invitation expires in 7 days.\n\n"
+        f"If you didn't request this, please ignore this email."
+    )
+
+    msg.add_alternative(
+        f"""<html><body style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:0;background:#0d1324">
+<div style="text-align:center;padding:40px 24px;background:#151b2e;border:1px solid #334155;border-radius:16px;margin:24px;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
+    <div style="margin-bottom:24px">
+        <span style="font-size:28px;font-weight:bold;color:#f8fafc">Wealth<span style="color:#d4af37">Spot</span></span>
+    </div>
+    <h2 style="color:#f8fafc;margin:0 0 16px;font-size:22px">Admin Invitation</h2>
+    <p style="color:#94a3b8;font-size:16px;margin:0 0 32px">You've been invited to join the WealthSpot platform as a <strong>{role.replace("_", " ").title()}</strong>.</p>
+
+    <a href="{invite_link}" style="display:inline-block;background:linear-gradient(135deg, #d4af37 0%, #aa8b2c 100%);color:#0d1324;text-decoration:none;font-weight:bold;font-size:16px;padding:16px 32px;border-radius:8px;box-shadow:0 0 20px rgba(212,175,55,0.3)">Accept Invitation</a>
+
+    <p style="color:#64748b;font-size:12px;margin:32px 0 0">This invitation expires in 7 days.<br/>If you are not expecting this invitation, you can safely ignore this email.</p>
+</div>
+</body></html>""",
+        subtype="html",
+    )
+
+    try:
+        await anyio.to_thread.run_sync(partial(_send_smtp, msg))
+        logger.info("Admin Invite email sent to %s", to_email)
+        return True
+    except Exception:
+        logger.exception("Failed to send Admin Invite email to %s", to_email)
+        return False
