@@ -17,6 +17,8 @@ async def test_send_admin_invite_email_success():
         mock_env = MagicMock()
         mock_env.smtp_host = "smtp.resend.com"
         mock_env.smtp_from_email = "no-reply@wealthspot.in"
+        mock_env.smtp_username = "hello@wealthspot.in"
+        mock_env.smtp_from_name = "WealthSpot"
         mock_settings.return_value = mock_env
 
         result = await send_admin_invite_email(

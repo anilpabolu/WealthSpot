@@ -25,7 +25,8 @@ async def send_otp_email(to_email: str, otp: str) -> bool:
 
     msg = EmailMessage()
     msg["Subject"] = f"WealthSpot – Your Verification Code: {otp}"
-    from_addr = settings.smtp_from_email or settings.smtp_username
+    # Use smtp_username to prevent Google SMTP "550 5.7.1" or "400" sender spoofing errors
+    from_addr = settings.smtp_username or settings.smtp_from_email
     msg["From"] = f"{settings.smtp_from_name} <{from_addr}>"
     msg["To"] = to_email
     msg.set_content(
@@ -86,9 +87,9 @@ async def send_admin_invite_email(to_email: str, invite_link: str, role: str) ->
     msg = EmailMessage()
     msg["Subject"] = f"You've been invited to join WealthSpot as {role.replace('_', ' ').title()}"
 
-    # We use the verified sender address but label it as WealthSpot
-    from_addr = settings.smtp_from_email or settings.smtp_username
-    msg["From"] = f"WealthSpot <{from_addr}>"
+    # Use smtp_username to prevent Google SMTP sender spoofing rejection
+    from_addr = settings.smtp_username or settings.smtp_from_email
+    msg["From"] = f"{settings.smtp_from_name or 'WealthSpot'} <{from_addr}>"
     msg["Reply-To"] = "work.wealthspot@gmail.com"
     msg["To"] = to_email
 
