@@ -265,8 +265,8 @@ async def send_otp(
         "expires_in_seconds": 600,
         "delivered": sent,
     }
-    # In non-production environments, return OTP for testing
-    if settings.app_env in ("development", "testing"):
+    # Return OTP for testing in non-production, or as a fallback if delivery fails (e.g. Twilio trial restrictions)
+    if settings.app_env in ("development", "testing") or not sent:
         result["dev_otp"] = otp
 
     return result

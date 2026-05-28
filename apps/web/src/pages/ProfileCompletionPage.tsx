@@ -259,8 +259,14 @@ function Step4({ emailVerified, phoneVerified, email, phone }: {
     if (res.devOtp) { setPhoneOtp(res.devOtp); setPhoneDevHint('Dev mode: OTP auto-filled') }
     else { setPhoneDevHint('') }
   }
-  const handleVerifyEmail = async () => { await verifyOtp.mutateAsync({ channel: 'email', otp: emailOtp }); setEmailOtp('') }
-  const handleVerifyPhone = async () => { await verifyOtp.mutateAsync({ channel: 'phone', otp: phoneOtp }); setPhoneOtp('') }
+  const handleVerifyEmail = async () => { 
+    try { await verifyOtp.mutateAsync({ channel: 'email', otp: emailOtp }); setEmailOtp('') } 
+    catch (e) { console.error('Email OTP verify failed:', e) } 
+  }
+  const handleVerifyPhone = async () => { 
+    try { await verifyOtp.mutateAsync({ channel: 'phone', otp: phoneOtp }); setPhoneOtp('') } 
+    catch (e) { console.error('Phone OTP verify failed:', e) } 
+  }
   const handleSavePhone = async () => {
     const cleaned = phoneInput.replace(/\s/g, '')
     if (cleaned.length < 10) return
