@@ -615,8 +615,27 @@ async def invite_admin(
             AdminInvite.status == "pending",
         )
     )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Pending invite already exists for this email")
+    existing_invite = existing.scalar_one_or_none()
+    if existing_invite:
+        # If a pending invite exists, just regenerate the token and resend the email
+        existing_invite.token = secrets.token_urlsafe(32)
+        existing_invite.expires_at = datetime.now(UTC) + timedelta(days=7)
+        existing_invite.role = body.role
+
+        settings = get_settings()
+        invite_link = f"{settings.frontend_url}/invite/{existing_invite.token}"
+
+        email_sent = await send_admin_invite_email(body.email, invite_link, body.role)
+        if not email_sent:
+            logger.warning(f"Failed to resend invite email to {body.email}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to send invite email. Please check SMTP configuration.",
+            )
+
+        await db.flush()
+        await db.refresh(existing_invite)
+        return existing_invite
 
     token = secrets.token_urlsafe(48)
     invite = AdminInvite(
@@ -634,6 +653,9 @@ async def invite_admin(
     email_sent = await send_admin_invite_email(body.email, invite_link, body.role)
     if not email_sent:
         logger.warning(f"Failed to send invite email to {body.email}")
+        raise HTTPException(
+            status_code=500, detail="Failed to send invite email. Please check SMTP configuration."
+        )
 
     await db.flush()
     await db.refresh(invite)
