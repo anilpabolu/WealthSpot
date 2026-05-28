@@ -1,0 +1,30 @@
+name: Debug ACA Revisions
+on: [workflow_dispatch]
+permissions:
+  id-token: write
+  contents: read
+env:
+  RESOURCE_GROUP: rg-wealthspot-prod
+  CONTAINER_APP_NAME: wealthspot-api
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: List Revisions
+        run: az containerapp revision list -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP -o table
+      - name: List Traffic
+        run: az containerapp ingress traffic show -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP -o table
+      - name: Show Revision Errors
+        run: |
+          REVISION_NAME=$(az containerapp revision list -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --query "[?properties.runningState=='Failed' || properties.runningState=='Degraded' || properties.runningState=='Unknown'] | [0].name" -o tsv)
+          if [ -n "$REVISION_NAME" ]; then
+            echo "Errors for $REVISION_NAME:"
+            az containerapp revision show -n $CONTAINER_APP_NAME -g $RESOURCE_GROUP --revision "$REVISION_NAME" --query "properties.healthState" -o json
+          fi
