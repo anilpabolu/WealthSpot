@@ -9,6 +9,8 @@ export interface FundingBarProps {
   showPercent?: boolean
   showAmount?: boolean
   className?: string
+  textClassName?: string
+  labelClassName?: string
   isLoading?: boolean
 }
 
@@ -19,6 +21,8 @@ export default memo(function FundingBar({
   showPercent = true,
   showAmount = true,
   className,
+  textClassName,
+  labelClassName,
   isLoading = false,
 }: FundingBarProps) {
   if (isLoading) {
@@ -39,23 +43,23 @@ export default memo(function FundingBar({
       {(showPercent || showAmount) && (
         <div className="flex items-center justify-between text-sm">
           {showPercent && (
-            <span className="text-primary font-semibold text-sm">{percentStr} Funded</span>
+            <span className={cn("text-primary font-semibold text-sm", textClassName)}>{percentStr} Funded</span>
           )}
           {showAmount && (
-            <span className="text-theme-secondary font-mono text-xs">
+            <span className={cn("text-theme-secondary font-mono text-xs", textClassName)}>
               {formatINR(raised, 0)} of {formatINR(target, 0)}
             </span>
           )}
         </div>
       )}
-      <div className="h-1 bg-[var(--bg-surface-hover)] rounded-full overflow-hidden">
+      <div className="h-1 bg-white/20 rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
           style={{ width: barWidth }}
         />
       </div>
       {showLabels && (
-        <div className="flex items-center justify-between text-xs text-theme-tertiary">
+        <div className={cn("flex items-center justify-between text-xs text-theme-tertiary", labelClassName)}>
           <span>Raised</span>
           <span>Target</span>
         </div>

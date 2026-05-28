@@ -103,15 +103,18 @@ function StatCard({
   trend?: 'up' | 'down' | 'neutral'
 }) {
   return (
-    <div className="stat-card">
+    <div className="rounded-xl p-6" style={{
+      background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+      border: '1px solid #D4AF37'
+    }}>
       <div className="flex items-start justify-between mb-3">
-        <div className="stat-card-icon bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="p-2 rounded-lg bg-[#CDBFF4]/10">
+          <Icon className="h-5 w-5 text-[#CDBFF4]" />
         </div>
         {trend && trend !== 'neutral' && (
           <span
             className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-              trend === 'up' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+              trend === 'up' ? 'text-[#20E3B2]' : 'text-red-400'
             }`}
           >
             {trend === 'up' ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
@@ -119,9 +122,9 @@ function StatCard({
           </span>
         )}
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-theme-tertiary">{label}</p>
-      <p className="text-xl font-bold font-mono text-theme-primary mt-0.5">{value}</p>
-      {sub && !trend && <p className="text-xs text-theme-tertiary mt-0.5">{sub}</p>}
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#CDBFF4]">{label}</p>
+      <p className="text-xl font-bold font-mono text-[#F8F5FF] mt-0.5">{value}</p>
+      {sub && !trend && <p className="text-xs text-[#CDBFF4]/80 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -133,15 +136,21 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
   if (!meta) return null
   const Icon = meta.icon
   return (
-    <div className={`rounded-xl border ${meta.accent} overflow-hidden`}>
-      <div className={`bg-gradient-to-r ${meta.gradient} px-5 py-4`}>
+    <div 
+      className="rounded-xl overflow-hidden" 
+      style={{
+        background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+        border: '1px solid #D4AF37'
+      }}
+    >
+      <div className="border-b border-[#D4AF37]/30 px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-white" />
+          <div className="h-10 w-10 rounded-lg bg-[#CDBFF4]/10 flex items-center justify-center">
+            <Icon className="h-5 w-5 text-[#D4AF37]" />
           </div>
           <div className="flex-1">
-            <h3 className="font-display text-lg font-bold text-white">{meta.label}</h3>
-            <p className="text-white/70 text-xs">
+            <h3 className="font-hero text-lg font-bold text-[#F8F5FF]">{meta.label}</h3>
+            <p className="text-[#CDBFF4] text-xs">
               {vault.opportunityCount} opportunity{vault.opportunityCount !== 1 ? 's' : ''}
             </p>
           </div>
@@ -150,17 +159,17 @@ function VaultBreakdownCard({ vault }: { vault: VaultPortfolioItem }) {
       <div className="p-5 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Total Invested</p>
-            <p className="font-mono text-sm font-bold text-theme-primary">{formatINR(vault.totalInvested)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#CDBFF4]">Total Invested</p>
+            <p className="font-mono text-sm font-bold text-[#F8F5FF]">{formatINR(vault.totalInvested)}</p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Projects</p>
-            <p className="font-mono text-sm font-bold text-theme-primary">{vault.opportunityCount}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#CDBFF4]">Projects</p>
+            <p className="font-mono text-sm font-bold text-[#F8F5FF]">{vault.opportunityCount}</p>
           </div>
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-tertiary">Avg. Duration</p>
-          <p className="font-mono text-sm font-bold text-theme-primary">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#CDBFF4]">Avg. Duration</p>
+          <p className="font-mono text-sm font-bold text-[#F8F5FF]">
             {vault.avgDurationDays ? `${Math.round(vault.avgDurationDays / 30)} mo` : '—'}
           </p>
         </div>
@@ -187,7 +196,7 @@ function UpdatesBellButton({
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1 text-xs font-medium text-theme-tertiary hover:text-primary transition-colors"
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#CDBFF4] hover:text-[#D4AF37] transition-colors"
       >
         <Bell className="h-3.5 w-3.5" />
         Updates
@@ -199,7 +208,7 @@ function UpdatesBellButton({
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#20E3B2] hover:underline"
         title="All caught up"
       >
         <Bell className="h-3.5 w-3.5" />
@@ -211,7 +220,7 @@ function UpdatesBellButton({
   return (
     <button
       onClick={onClick}
-      className="relative inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+      className="relative inline-flex items-center gap-1 text-xs font-medium text-[#D4AF37] hover:underline"
     >
       <span className="relative">
         <Bell className="h-3.5 w-3.5" />
@@ -233,10 +242,10 @@ const VAULT_BADGE: Record<string, string> = {
 }
 
 const TXN_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  'Investment Done': { label: 'Investment Done', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
-  'Approvals Pending': { label: 'Approvals Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
-  'In Progress': { label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
-  'Cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' },
+  'Investment Done': { label: 'Investment Done', color: 'bg-[#CDBFF4]/20 text-[#20E3B2] border border-[#20E3B2]/30' },
+  'Approvals Pending': { label: 'Approvals Pending', color: 'bg-[#CDBFF4]/20 text-[#D4AF37] border border-[#D4AF37]/30' },
+  'In Progress': { label: 'In Progress', color: 'bg-[#CDBFF4]/20 text-[#F8F5FF] border border-[#CDBFF4]/30' },
+  'Cancelled': { label: 'Cancelled', color: 'bg-red-500/20 text-red-300 border border-red-500/30' },
 }
 
 /* ── Holdings Table ──────────────────────────────────────────────── */
@@ -257,73 +266,79 @@ function HoldingsTable({
   updateTotals: Record<string, number>
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-theme">
+    <div 
+      className="overflow-x-auto rounded-xl"
+      style={{
+        background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+        border: '1px solid #D4AF37'
+      }}
+    >
       <table className="w-full text-sm min-w-[750px]">
-        <thead className="bg-[var(--bg-surface)] border-b border-theme">
+        <thead className="border-b border-[#D4AF37]/30">
           <tr>
-            <th className="text-left px-4 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Project</th>
-            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Invested Since</th>
-            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Amount</th>
-            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Sq Ft</th>
-            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Config</th>
-            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Transactions</th>
-            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Status</th>
-            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Updates</th>
+            <th className="text-left px-4 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Project</th>
+            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Invested Since</th>
+            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Amount</th>
+            <th className="text-right px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Sq Ft</th>
+            <th className="text-left px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Config</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Transactions</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Status</th>
+            <th className="text-center px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold">Updates</th>
           </tr>
         </thead>
         <tbody>
           {holdings.map((h, idx) => {
-            const txnCfg = TXN_STATUS_CONFIG[h.transactionStatus] ?? { label: h.transactionStatus || '—', color: 'bg-[var(--bg-surface)] text-theme-secondary' }
+            const txnCfg = TXN_STATUS_CONFIG[h.transactionStatus] ?? { label: h.transactionStatus || '—', color: 'bg-[#1F1243] text-[#CDBFF4] border border-[#D4AF37]/30' }
             const isLast = idx === holdings.length - 1
             return (
-              <tr key={h.id} className={`${isLast ? '' : 'border-b border-theme/60'} hover:bg-[var(--bg-surface-hover)] transition-colors`}>
+              <tr key={h.id} className={`${isLast ? '' : 'border-b border-[#D4AF37]/20'} hover:bg-[#CDBFF4]/5 transition-colors`}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-theme-surface-hover overflow-hidden shrink-0">
+                    <div className="h-9 w-9 rounded-lg bg-[#160C34] border border-[#D4AF37]/30 overflow-hidden shrink-0">
                       {h.projectImage ? (
                         <img src={h.projectImage} alt="" className="h-full w-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center"><Building2 className="h-4 w-4 text-theme-tertiary" /></div>
+                        <div className="h-full w-full flex items-center justify-center"><Building2 className="h-4 w-4 text-[#D4AF37]" /></div>
                       )}
                     </div>
                     <div className="min-w-0">
                       <button
                         onClick={() => onSnap(h)}
-                        className="font-medium text-theme-primary truncate max-w-[150px] block text-left hover:text-primary"
+                        className="font-medium text-[#F8F5FF] truncate max-w-[150px] block text-left hover:text-[#D4AF37]"
                       >
                         {h.projectTitle}
                       </button>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full shrink-0 ${VAULT_BADGE[h.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'}`}>{h.vaultType}</span>
-                        {h.city && <span className="text-[10px] text-theme-tertiary truncate">{h.city}</span>}
+                        <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full shrink-0 bg-[#CDBFF4]/10 text-[#D4AF37]`}>{h.vaultType}</span>
+                        {h.city && <span className="text-[10px] text-[#CDBFF4] truncate">{h.city}</span>}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-3 text-xs text-theme-secondary whitespace-nowrap">
+                <td className="px-3 py-3 text-xs text-[#CDBFF4] whitespace-nowrap">
                   {new Date(h.investedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </td>
-                <td className="px-3 py-3 text-right font-mono font-semibold text-theme-primary whitespace-nowrap">
+                <td className="px-3 py-3 text-right font-mono font-semibold text-[#F8F5FF] whitespace-nowrap">
                   {formatINR(h.investedAmount)}
                 </td>
-                <td className="px-3 py-3 text-right text-xs text-theme-secondary whitespace-nowrap">
+                <td className="px-3 py-3 text-right text-xs text-[#CDBFF4] whitespace-nowrap">
                   {h.sqft ? `${h.sqft.toLocaleString('en-IN')} sqft` : '—'}
                 </td>
                 <td className="px-3 py-3">
                   {h.flatConfigurations.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {h.flatConfigurations.map((cfg) => (
-                        <span key={cfg} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">{cfg}</span>
+                        <span key={cfg} className="text-[10px] bg-[#CDBFF4]/10 text-[#F8F5FF] px-1.5 py-0.5 rounded border border-[#D4AF37]/30">{cfg}</span>
                       ))}
                     </div>
                   ) : (
-                    <span className="text-xs text-theme-tertiary">—</span>
+                    <span className="text-xs text-[#CDBFF4]">—</span>
                   )}
                 </td>
                 <td className="px-3 py-3 text-center">
                   <button
                     onClick={() => onTransactions(h)}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-[#D4AF37] hover:underline"
                   >
                     <FileText className="h-3.5 w-3.5" />
                     View
@@ -342,7 +357,7 @@ function HoldingsTable({
                       onClick={() => onUpdates(h)}
                     />
                   ) : (
-                    <span className="text-xs text-theme-tertiary">—</span>
+                    <span className="text-xs text-[#CDBFF4]">—</span>
                   )}
                 </td>
               </tr>
@@ -567,18 +582,18 @@ function HoldingDetailModal({
 /* ── Unified Activity Feed ───────────────────────────────────────── */
 
 const TXN_COLORS: Record<string, string> = {
-  investment: 'bg-primary/10 text-primary',
-  payout: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-  referral_bonus: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-  wealthpass: 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400',
+  investment: 'bg-[#CDBFF4]/10 text-[#D4AF37]',
+  payout: 'bg-[#20E3B2]/10 text-[#20E3B2]',
+  referral_bonus: 'bg-[#D4AF37]/10 text-[#D4AF37]',
+  wealthpass: 'bg-[#CDBFF4]/10 text-[#CDBFF4]',
 }
 
 const ACTIVITY_META: Record<string, { icon: typeof Heart; color: string; label: string }> = {
-  liked: { icon: Heart, color: 'bg-red-50 dark:bg-red-900/30 text-red-500', label: 'Liked' },
-  unliked: { icon: Heart, color: 'bg-theme-surface-hover text-theme-tertiary', label: 'Unliked' },
-  shared: { icon: Share2, color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-500', label: 'Shared' },
-  invested: { icon: ArrowDownRight, color: 'bg-primary/10 text-primary', label: 'Invested' },
-  eoi_submitted: { icon: FileCheck, color: 'bg-violet-50 dark:bg-violet-900/30 text-violet-500', label: 'Expressed Interest' },
+  liked: { icon: Heart, color: 'bg-red-500/10 text-red-400', label: 'Liked' },
+  unliked: { icon: Heart, color: 'bg-[#1F1243] text-[#CDBFF4]', label: 'Unliked' },
+  shared: { icon: Share2, color: 'bg-[#20E3B2]/10 text-[#20E3B2]', label: 'Shared' },
+  invested: { icon: ArrowDownRight, color: 'bg-[#D4AF37]/10 text-[#D4AF37]', label: 'Invested' },
+  eoi_submitted: { icon: FileCheck, color: 'bg-[#CDBFF4]/10 text-[#CDBFF4]', label: 'Expressed Interest' },
 }
 
 type UnifiedActivityItem =
@@ -595,25 +610,23 @@ function UnifiedActivityRow({
   if (item.kind === 'financial') {
     const t = item.data
     const isInvestment = t.type === 'investment'
-    const color = TXN_COLORS[t.type] ?? 'bg-theme-surface-hover text-theme-secondary'
+    const color = TXN_COLORS[t.type] ?? 'bg-[#1F1243] text-[#CDBFF4]'
     return (
-      <div className="flex items-center gap-3 py-3 border-b border-theme last:border-0">
+      <div className="flex items-center gap-3 py-3 border-b border-[#D4AF37]/20 last:border-0">
         <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${color}`}>
           {isInvestment ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-theme-primary truncate">
+          <p className="text-sm font-medium text-[#F8F5FF] truncate">
             {t.propertyTitle || t.type.replace(/_/g, ' ')}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-xs text-theme-tertiary">
+            <p className="text-xs text-[#CDBFF4]">
               {new Date(t.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
             </p>
             {t.vaultType && (
               <span
-                className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full ${
-                  VAULT_BADGE[t.vaultType] ?? 'bg-theme-surface-hover text-theme-tertiary'
-                }`}
+                className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full bg-[#CDBFF4]/10 text-[#D4AF37]`}
               >
                 {VAULT_META[t.vaultType]?.label ?? t.vaultType}
               </span>
@@ -623,7 +636,7 @@ function UnifiedActivityRow({
         <div className="text-right">
           <p
             className={`text-sm font-mono font-bold ${
-              isInvestment ? 'text-theme-primary' : 'text-emerald-600 dark:text-emerald-400'
+              isInvestment ? 'text-[#F8F5FF]' : 'text-[#20E3B2]'
             }`}
           >
             {isInvestment ? '' : '+'}{formatINR(Math.abs(t.amount))}
@@ -639,27 +652,27 @@ function UnifiedActivityRow({
   const a = item.data
   const meta = ACTIVITY_META[a.activityType] ?? {
     icon: Clock,
-    color: 'bg-theme-surface-hover text-theme-secondary',
+    color: 'bg-[#1F1243] text-[#CDBFF4]',
     label: a.activityType,
   }
   const Icon = meta.icon
   return (
     <button
       onClick={a.resourceSlug && onNavigate ? () => onNavigate(a.resourceSlug!) : undefined}
-      className="flex items-center gap-3 py-3 border-b border-theme last:border-0 w-full text-left hover:bg-theme-surface transition-colors"
+      className="flex items-center gap-3 py-3 border-b border-[#D4AF37]/20 last:border-0 w-full text-left hover:bg-[#CDBFF4]/5 transition-colors"
     >
       <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${meta.color}`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-theme-primary truncate">{a.resourceTitle}</p>
-        <p className="text-xs text-theme-tertiary">
+        <p className="text-sm font-medium text-[#F8F5FF] truncate">{a.resourceTitle}</p>
+        <p className="text-xs text-[#CDBFF4]">
           {a.createdAt
             ? new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
             : ''}
         </p>
       </div>
-      <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${meta.color}`}>
+      <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${meta.color} bg-opacity-10 border border-current`}>
         {meta.label}
       </span>
     </button>
@@ -677,16 +690,16 @@ function LoadingState() {
 }
 
 function AllocationChart({ data }: { data: Array<{ type: string; percentage: number; value: number }> }) {
-  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No allocation data yet.</p>
-  const colors = ['bg-primary', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
+  if (!data || data.length === 0) return <p className="text-sm text-[#CDBFF4] text-center py-6">No allocation data yet.</p>
+  const colors = ['bg-[#D4AF37]', 'bg-[#CDBFF4]', 'bg-white', 'bg-[#D4AF37]/70', 'bg-[#CDBFF4]/70', 'bg-white/70']
 
   return (
     <div className="space-y-3">
       {/* Stacked bar */}
-      <div className="h-4 rounded-full bg-theme-surface-hover overflow-hidden flex">
+      <div className="h-4 rounded-full bg-[#160C34] overflow-hidden flex border border-[#D4AF37]/30">
         {data.map((d, i) => (
           <div
-            key={d.type}
+            key={`${d.type}-${i}`}
             className={`${colors[i % colors.length]} transition-all`}
             style={{ width: `${d.percentage}%` }}
             title={`${d.type}: ${d.percentage}%`}
@@ -696,9 +709,9 @@ function AllocationChart({ data }: { data: Array<{ type: string; percentage: num
       {/* Legend */}
       <div className="flex flex-wrap gap-4">
         {data.map((d, i) => (
-          <div key={d.type} className="flex items-center gap-1.5 text-xs text-theme-secondary">
+          <div key={`${d.type}-${i}`} className="flex items-center gap-1.5 text-xs text-[#F8F5FF]">
             <span className={`h-2.5 w-2.5 rounded-full ${colors[i % colors.length]}`} />
-            {d.type} <span className="text-theme-tertiary">({d.percentage.toFixed(1)}%)</span>
+            {d.type} <span className="text-[#CDBFF4]">({d.percentage.toFixed(1)}%)</span>
           </div>
         ))}
       </div>
@@ -707,7 +720,7 @@ function AllocationChart({ data }: { data: Array<{ type: string; percentage: num
 }
 
 function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: number; invested: number }> }) {
-  if (!data || data.length === 0) return <p className="text-sm text-theme-tertiary text-center py-6">No monthly data yet.</p>
+  if (!data || data.length === 0) return <p className="text-sm text-[#CDBFF4] text-center py-6">No monthly data yet.</p>
   const maxVal = Math.max(...data.map((d) => Math.max(d.returns, d.invested)), 1)
 
   return (
@@ -716,12 +729,12 @@ function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: n
         {data.slice(-12).map((d) => (
           <div key={d.month} className="flex-1 flex flex-col items-center gap-0.5 justify-end h-full">
             <div
-              className="w-full bg-emerald-400 rounded-t"
+              className="w-full bg-[#D4AF37] rounded-t"
               style={{ height: `${(d.returns / maxVal) * 100}%`, minHeight: d.returns > 0 ? '2px' : 0 }}
               title={`Returns: ${formatINR(d.returns)}`}
             />
             <div
-              className="w-full bg-primary/30 rounded-t"
+              className="w-full bg-[#CDBFF4]/40 rounded-t"
               style={{ height: `${(d.invested / maxVal) * 100}%`, minHeight: d.invested > 0 ? '2px' : 0 }}
               title={`Invested: ${formatINR(d.invested)}`}
             />
@@ -731,13 +744,13 @@ function MonthlyReturnsChart({ data }: { data: Array<{ month: string; returns: n
       <div className="flex gap-1.5 overflow-hidden">
         {data.slice(-12).map((d) => (
           <div key={d.month} className="flex-1 text-center">
-            <span className="text-[9px] text-theme-tertiary truncate block">{d.month}</span>
+            <span className="text-[9px] text-[#CDBFF4] truncate block">{d.month}</span>
           </div>
         ))}
       </div>
-      <div className="flex gap-4 justify-center text-[10px] text-theme-tertiary">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Returns</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary/30" /> Invested</span>
+      <div className="flex gap-4 justify-center text-[10px] text-[#CDBFF4]">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#D4AF37]" /> Returns</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#CDBFF4]/40" /> Invested</span>
       </div>
     </div>
   )
@@ -844,7 +857,7 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      <main className="flex-1 content-section-bg">
+      <main className="flex-1 bg-white">
         <div className="page-section">
           <div className="page-section-container space-y-10">
 
@@ -878,7 +891,7 @@ export default function PortfolioPage() {
               {/* ── Vault-Wise Breakdown ──────────────────────────── */}
               {(vaultData && vaultData.vaults.length > 0 || disabledVaultIds.length > 0) && (
                 <section>
-                  <h2 className="section-title text-xl">{sectionVaults}</h2>
+                  <h2 className="font-hero text-2xl font-bold text-[#2A1753] mb-4">{sectionVaults}</h2>
                   <div className="grid md:grid-cols-3 gap-6">
                     {vaultData?.vaults.map((v) => (
                       <VaultBreakdownCard key={v.vaultType} vault={v} />
@@ -893,8 +906,6 @@ export default function PortfolioPage() {
                             vaultId={id}
                             icon={meta.icon}
                             label={meta.label}
-                            gradient={meta.gradient}
-                            accent={meta.accent}
                           />
                         ) : null
                       })}
@@ -905,19 +916,31 @@ export default function PortfolioPage() {
               {/* ── Charts Row ────────────────────────────────────── */}
               <section className="grid lg:grid-cols-2 gap-6">
                 {/* Asset Allocation */}
-                <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-6">
+                <div 
+                  className="rounded-xl p-6"
+                  style={{
+                    background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                    border: '1px solid #D4AF37'
+                  }}
+                >
                   <div className="flex items-center gap-2 mb-5">
-                    <PieChart className="h-5 w-5 text-theme-tertiary" />
-                    <h3 className="section-title text-lg mb-0">Asset Allocation</h3>
+                    <PieChart className="h-5 w-5 text-[#D4AF37]" />
+                    <h3 className="font-hero text-lg font-bold text-[#F8F5FF] mb-0">Asset Allocation</h3>
                   </div>
                   <AllocationChart data={summary?.assetAllocation ?? []} />
                 </div>
 
                 {/* Monthly Returns */}
-                <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-6">
+                <div 
+                  className="rounded-xl p-6"
+                  style={{
+                    background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                    border: '1px solid #D4AF37'
+                  }}
+                >
                   <div className="flex items-center gap-2 mb-5">
-                    <BarChart3 className="h-5 w-5 text-theme-tertiary" />
-                    <h3 className="section-title text-lg mb-0">Monthly Returns</h3>
+                    <BarChart3 className="h-5 w-5 text-[#D4AF37]" />
+                    <h3 className="font-hero text-lg font-bold text-[#F8F5FF] mb-0">Monthly Returns</h3>
                   </div>
                   <MonthlyReturnsChart data={summary?.monthlyReturns ?? []} />
                 </div>
@@ -925,10 +948,10 @@ export default function PortfolioPage() {
 
               {/* ── Holdings ──────────────────────────────────────── */}
               <section>
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="section-title text-xl">{sectionHoldings}</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-hero text-2xl font-bold text-[#2A1753]">{sectionHoldings}</h2>
                   {holdings && holdings.length > 0 && (
-                    <span className="text-xs text-theme-tertiary font-medium">{holdings.length} holding{holdings.length === 1 ? '' : 's'}</span>
+                    <span className="text-xs text-[#2A1753] font-medium">{holdings.length} holding{holdings.length === 1 ? '' : 's'}</span>
                   )}
                 </div>
                 {holdingsLoading ? (
@@ -973,13 +996,19 @@ export default function PortfolioPage() {
               {/* ── Recent Activity ───────────────────────────────── */}
               {/* Recent Activity (unified) */}
               <section>
-                <h2 className="section-title text-xl">{sectionActivity}</h2>
+                <h2 className="font-hero text-2xl font-bold text-[#2A1753] mb-4">{sectionActivity}</h2>
                 {txnLoading ? (
                   <LoadingState />
                 ) : unifiedFeed.length === 0 ? (
                   <EmptyState icon={Clock} title={emptyTxns} message={emptyTxnsMsg} />
                 ) : (
-                  <div className="rounded-xl border border-theme bg-[var(--bg-surface)] p-4">
+                  <div 
+                    className="rounded-xl p-4"
+                    style={{
+                      background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                      border: '1px solid #D4AF37'
+                    }}
+                  >
                     {visibleFeed.map((item) => (
                       <UnifiedActivityRow
                         key={`${item.kind}-${item.data.id}`}
@@ -990,7 +1019,7 @@ export default function PortfolioPage() {
                     {visibleFeed.length < unifiedFeed.length && (
                       <button
                         onClick={() => setActivityPage((p) => p + 1)}
-                        className="mt-3 w-full text-xs font-medium text-theme-secondary hover:text-primary py-2 rounded-lg border border-theme hover:border-primary/40 transition-colors"
+                        className="mt-3 w-full text-xs font-medium text-[#CDBFF4] hover:text-[#D4AF37] py-2 rounded-lg border border-[#D4AF37]/30 hover:border-[#D4AF37] transition-colors"
                       >
                         Load more ({unifiedFeed.length - visibleFeed.length} remaining)
                       </button>

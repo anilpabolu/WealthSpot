@@ -15,7 +15,7 @@ import { useBuilderInvestorsByOpportunity, type BuilderInvestor } from '@/hooks/
 function ShieldProgressChip({ opportunityId }: { opportunityId: string }) {
   const { data, isLoading } = useOpportunityAssessments(opportunityId)
   if (isLoading || !data) {
-    return <span className="text-[11px] text-theme-tertiary">—</span>
+    return <span className="text-[11px] text-[#CDBFF4]">—</span>
   }
   const passedCats = data.categories.filter(
     (c) => c.status === 'passed',
@@ -32,11 +32,11 @@ function ShieldProgressChip({ opportunityId }: { opportunityId: string }) {
   return (
     <Link
       to={`/portal/builder/listings/${opportunityId}#shield`}
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-theme text-[11px] font-mono hover:border-primary"
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-[#D4AF37]/30 text-[11px] font-mono hover:border-[#D4AF37] transition-colors"
       title={`${passedCats}/${totalCats} Shield categories passed`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${dotColorForStatus(status)}`} />
-      <span className="text-theme-primary">
+      <span className="text-[#F8F5FF]">
         {passedCats}/{totalCats}
       </span>
     </Link>
@@ -60,21 +60,27 @@ function InvestorListPopup({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-[var(--bg-card)] rounded-2xl border border-theme shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div 
+        className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden"
+        style={{
+          background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+          border: '1px solid #D4AF37'
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-theme shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#D4AF37]/30 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Users className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-lg bg-[#CDBFF4]/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-[#D4AF37]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-theme-primary">Investors</p>
-              <p className="text-[11px] text-theme-tertiary truncate max-w-[280px]">{title}</p>
+              <p className="text-sm font-semibold text-[#F8F5FF]">Investors</p>
+              <p className="text-[11px] text-[#CDBFF4] truncate max-w-[280px]">{title}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] text-theme-tertiary hover:text-theme-primary transition-colors"
+            className="p-1.5 rounded-lg hover:bg-white/10 text-[#CDBFF4] hover:text-[#F8F5FF] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -83,44 +89,44 @@ function InvestorListPopup({
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-5 py-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-10 text-theme-secondary">
+            <div className="flex items-center justify-center py-10 text-[#CDBFF4]">
               <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading…
             </div>
           ) : investors.length === 0 ? (
             <div className="text-center py-10">
-              <Users className="h-8 w-8 text-theme-tertiary mx-auto mb-2" />
-              <p className="text-sm text-theme-secondary">No investors yet</p>
+              <Users className="h-8 w-8 text-[#CDBFF4]/50 mx-auto mb-2" />
+              <p className="text-sm text-[#CDBFF4]">No investors yet</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-theme">
-                  <th className="text-left py-2 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Investor</th>
-                  <th className="text-right py-2 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Amount</th>
-                  <th className="text-right py-2 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Date</th>
-                  <th className="text-center py-2 text-[11px] uppercase tracking-wider text-theme-tertiary font-semibold">Status</th>
+                <tr className="border-b border-[#D4AF37]/30">
+                  <th className="text-left py-2 text-[11px] uppercase tracking-wider text-[#CDBFF4] font-semibold">Investor</th>
+                  <th className="text-right py-2 text-[11px] uppercase tracking-wider text-[#CDBFF4] font-semibold">Amount</th>
+                  <th className="text-right py-2 text-[11px] uppercase tracking-wider text-[#CDBFF4] font-semibold">Date</th>
+                  <th className="text-center py-2 text-[11px] uppercase tracking-wider text-[#CDBFF4] font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {investors.map((inv) => (
-                  <tr key={inv.investmentId} className="border-b border-theme/50 hover:bg-[var(--bg-surface-hover)] transition-colors">
+                  <tr key={inv.investmentId} className="border-b border-[#D4AF37]/10 hover:bg-[#160C34]/50 transition-colors">
                     <td className="py-2.5 pr-3">
-                      <p className="font-medium text-theme-primary">{inv.investorName}</p>
-                      <p className="text-[11px] text-theme-tertiary">{inv.investorEmail}</p>
+                      <p className="font-medium text-[#F8F5FF]">{inv.investorName}</p>
+                      <p className="text-[11px] text-[#CDBFF4]">{inv.investorEmail}</p>
                     </td>
-                    <td className="py-2.5 text-right font-mono font-semibold text-theme-primary">
+                    <td className="py-2.5 text-right font-mono font-semibold text-[#F8F5FF]">
                       {formatINRCompact(inv.amount)}
                     </td>
-                    <td className="py-2.5 text-right text-theme-secondary">
+                    <td className="py-2.5 text-right text-[#CDBFF4]">
                       {new Date(inv.investedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="py-2.5 text-center">
                       <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                         inv.status === 'confirmed'
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          ? 'bg-[#20E3B2]/20 text-[#20E3B2]'
                           : inv.status === 'pending'
-                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                            : 'bg-[var(--bg-surface)] text-theme-secondary'
+                            ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                            : 'bg-white/10 text-[#CDBFF4]'
                       }`}>
                         {inv.status}
                       </span>
@@ -134,12 +140,12 @@ function InvestorListPopup({
 
         {/* Footer summary */}
         {!isLoading && investors.length > 0 && (
-          <div className="px-5 py-3 border-t border-theme bg-[var(--bg-surface)] rounded-b-2xl shrink-0 flex items-center justify-between">
-            <p className="text-xs text-theme-secondary">
-              <span className="font-semibold text-theme-primary">{data?.totalInvestors ?? investors.length}</span> investors
+          <div className="px-5 py-3 border-t border-[#D4AF37]/30 bg-[#160C34]/80 shrink-0 flex items-center justify-between">
+            <p className="text-xs text-[#CDBFF4]">
+              <span className="font-semibold text-[#F8F5FF]">{data?.totalInvestors ?? investors.length}</span> investors
             </p>
-            <p className="text-xs text-theme-secondary">
-              Total invested: <span className="font-mono font-semibold text-theme-primary">{formatINRCompact(data?.totalInvested ?? 0)}</span>
+            <p className="text-xs text-[#CDBFF4]">
+              Total invested: <span className="font-mono font-semibold text-[#F8F5FF]">{formatINRCompact(data?.totalInvested ?? 0)}</span>
             </p>
           </div>
         )}
@@ -205,21 +211,28 @@ export default function BuilderListingsPage() {
       )}
 
       {/* Main content — sits beside the sidebar */}
-      <div className="content-section-bg min-h-full">
-        <div className="p-6 lg:p-8 space-y-6">
+      <div className="bg-white min-h-full">
+        <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
 
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-tertiary" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]" />
               <input
                 type="search"
                 placeholder="Search listings..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-surface)] border border-[#D4AF37]/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37] transition-all"
+                className="w-full pl-10 pr-4 py-2 text-sm text-[#F8F5FF] placeholder:text-[#CDBFF4]/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37] transition-all outline-none"
+                style={{
+                  background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                  border: '1px solid #D4AF37'
+                }}
               />
             </div>
+            {/* The Select component doesn't accept inline style natively, so we pass a styled wrapper or we rely on standard classNames.
+                Since it's a generic UI component, we will wrap it or style it if needed. 
+                For now we'll just leave it default, it might inherit the dark theme. */}
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
@@ -239,12 +252,19 @@ export default function BuilderListingsPage() {
 
           {/* Table */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-20 text-theme-secondary">
+            <div className="flex items-center justify-center py-20 text-[#2A1753]">
               <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading listings…
             </div>
           ) : (
-            <div className="rounded-xl border border-[#D4AF37]/30 shadow-[0_4px_24px_-8px_rgba(212,175,55,0.15)] bg-[var(--bg-surface)] overflow-hidden">
+            <div 
+              className="rounded-xl overflow-hidden shadow-[0_4px_24px_-8px_rgba(212,175,55,0.15)]"
+              style={{
+                background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+                border: '1px solid #D4AF37'
+              }}
+            >
               <DataTable
+                className="!bg-transparent !border-0 text-[#F8F5FF]"
                 data={filtered}
               keyExtractor={(l) => l.id}
               emptyMessage="No listings found"
@@ -253,14 +273,15 @@ export default function BuilderListingsPage() {
                 {
                   key: 'property',
                   header: 'Property',
+                  headerClassName: '!text-[#CDBFF4]',
                   render: (l) => (
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-theme-surface-hover flex items-center justify-center shrink-0">
-                        <Building2 className="h-5 w-5 text-theme-tertiary" />
+                      <div className="h-10 w-10 rounded-lg bg-[#CDBFF4]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="h-5 w-5 text-[#D4AF37]" />
                       </div>
                       <div>
-                        <p className="font-medium text-theme-primary">{l.title}</p>
-                        <p className="text-xs text-theme-secondary">{l.micromarket}, {l.city} · {l.assetType}</p>
+                        <p className="font-medium text-[#F8F5FF]">{l.title}</p>
+                        <p className="text-xs text-[#CDBFF4]">{l.micromarket}, {l.city} · {l.assetType}</p>
                       </div>
                     </div>
                   ),
@@ -268,39 +289,40 @@ export default function BuilderListingsPage() {
                 {
                   key: 'status',
                   header: 'Status',
-                  headerClassName: 'text-center',
+                  headerClassName: 'text-center !text-[#CDBFF4]',
                   className: 'text-center',
                   render: (l) => <StatusBadge status={l.status} />,
                 },
                 {
                   key: 'shield',
                   header: 'Shield',
-                  headerClassName: 'text-center',
+                  headerClassName: 'text-center !text-[#CDBFF4]',
                   className: 'text-center',
                   render: (l) => <ShieldProgressChip opportunityId={l.id} />,
                 },
                 {
                   key: 'minInvest',
                   header: 'Min Invest',
-                  headerClassName: 'text-right',
-                  className: 'text-right font-mono',
+                  headerClassName: 'text-right !text-[#CDBFF4]',
+                  className: 'text-right font-mono text-[#F8F5FF]',
                   render: (l) => <>{formatINRCompact(l.minInvest)}</>,
                 },
                 {
                   key: 'funding',
                   header: 'Funding',
+                  headerClassName: '!text-[#CDBFF4]',
                   className: 'min-w-[160px]',
-                  render: (l) => <FundingBar raised={l.raised} target={l.target} showPercent />,
+                  render: (l) => <FundingBar raised={l.raised} target={l.target} showPercent textClassName="!text-[#CDBFF4]" labelClassName="!text-[#CDBFF4]/60" />,
                 },
                 {
                   key: 'investors',
                   header: 'Investors',
-                  headerClassName: 'text-right',
+                  headerClassName: 'text-right !text-[#CDBFF4]',
                   className: 'text-right',
                   render: (l) => (
                     <button
                       onClick={() => setInvestorsPopup({ opportunityId: l.id, title: l.title })}
-                      className="font-semibold text-primary hover:underline underline-offset-2 disabled:text-theme-tertiary disabled:no-underline"
+                      className="font-semibold text-[#D4AF37] hover:underline underline-offset-2 disabled:text-[#CDBFF4]/50 disabled:no-underline"
                       disabled={l.investors === 0}
                       title={l.investors === 0 ? 'No investors yet' : `View ${l.investors} investor(s)`}
                     >
@@ -311,16 +333,16 @@ export default function BuilderListingsPage() {
                 {
                   key: 'actions',
                   header: 'Actions',
-                  headerClassName: 'text-center',
+                  headerClassName: 'text-center !text-[#CDBFF4]',
                   render: (l) => (
                     <div className="flex items-center justify-center gap-1">
-                      <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="View">
+                      <Link to={`/portal/builder/listings/${l.id}`} className="p-1.5 rounded hover:bg-white/10 text-[#CDBFF4] hover:text-[#D4AF37]" title="View">
                         <Eye className="h-4 w-4" />
                       </Link>
-                      <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-[var(--bg-surface-hover)] text-theme-secondary hover:text-primary" title="Edit">
+                      <Link to={`/portal/builder/listings/${l.id}/edit`} className="p-1.5 rounded hover:bg-white/10 text-[#CDBFF4] hover:text-[#D4AF37]" title="Edit">
                         <Edit className="h-4 w-4" />
                       </Link>
-                      <button className="p-1.5 rounded hover:bg-red-50 dark:bg-red-900/30 text-theme-secondary hover:text-danger" title="Delete">
+                      <button className="p-1.5 rounded hover:bg-red-500/20 text-[#CDBFF4] hover:text-red-400" title="Delete">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

@@ -48,7 +48,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const effectiveError = errorText ?? error ?? (touched ? validationError : null) ?? null;
     const showSuccess = !effectiveError && isValid && touched && successText;
 
-    const py = size === 'sm' ? 'py-1.5' : size === 'lg' ? 'py-3' : 'py-2.5';
+    const py = size === 'sm' ? 'py-1.5' : size === 'lg' ? 'py-3' : 'py-2';
     const textSz = size === 'sm' ? 'text-xs' : 'text-sm';
 
     const currentValue = String(props.value ?? props.defaultValue ?? '');

@@ -62,27 +62,29 @@ export function VaultComingSoonPortfolioCard({
   vaultId,
   icon: Icon,
   label,
-  gradient,
-  accent,
 }: {
   vaultId: string
   icon: React.ElementType
   label: string
-  gradient: string
-  accent: string
 }) {
   const text = getVaultComingSoonText(vaultId)
 
   return (
-    <div className={`rounded-xl border ${accent} overflow-hidden relative group`}>
-      <div className={`bg-gradient-to-r ${gradient} px-5 py-4`}>
+    <div 
+      className="rounded-xl overflow-hidden relative group"
+      style={{
+        background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)',
+        border: '1px solid #D4AF37'
+      }}
+    >
+      <div className="border-b border-[#D4AF37]/30 px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-white" />
+          <div className="h-10 w-10 rounded-lg bg-[#CDBFF4]/10 flex items-center justify-center">
+            <Icon className="h-5 w-5 text-[#D4AF37]" />
           </div>
           <div className="flex-1">
-            <h3 className="font-display text-lg font-bold text-white">{label}</h3>
-            <p className="text-white/70 text-xs flex items-center gap-1">
+            <h3 className="font-hero text-lg font-bold text-[#F8F5FF]">{label}</h3>
+            <p className="text-[#CDBFF4] text-xs flex items-center gap-1">
               <Lock className="h-3 w-3" /> Coming Soon
             </p>
           </div>
@@ -90,11 +92,11 @@ export function VaultComingSoonPortfolioCard({
       </div>
       <div className="px-5 py-6 flex flex-col items-center gap-2 text-center relative">
         {/* Glassmorphism hover overlay */}
-        <div className="absolute inset-0 backdrop-blur-[2px] bg-[var(--bg-card)] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center px-4 z-10">
-          <p className="text-xs font-semibold text-theme-primary leading-relaxed">{text.subtext}</p>
+        <div className="absolute inset-0 backdrop-blur-[2px] bg-[#160C34]/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center px-4 z-10">
+          <p className="text-xs font-semibold text-[#F8F5FF] leading-relaxed">{text.subtext}</p>
         </div>
         <span className="text-2xl">{text.emoji}</span>
-        <p className="text-sm font-semibold text-theme-primary">{text.portfolioText}</p>
+        <p className="text-sm font-semibold text-[#CDBFF4]">{text.portfolioText}</p>
       </div>
     </div>
   )

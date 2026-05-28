@@ -35,12 +35,13 @@ import { CenteredLoader } from './shared'
 /*  Constants & Helpers                                                */
 /* ------------------------------------------------------------------ */
 
+const uniformStyle = { bg: 'bg-[var(--bg-surface)]', border: 'border-[#D4AF37]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]' }
 const PIPELINE_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  submitted: { bg: 'bg-blue-50 dark:bg-blue-900/30', border: 'border-blue-200 dark:border-blue-700/40', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
-  builder_connected: { bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-700/40', text: 'text-amber-700 dark:text-amber-300', dot: 'bg-amber-500' },
-  deal_in_progress: { bg: 'bg-purple-50 dark:bg-purple-900/30', border: 'border-purple-200 dark:border-purple-700/40', text: 'text-purple-700 dark:text-purple-300', dot: 'bg-purple-500' },
-  payment_done: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-700/40', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
-  deal_completed: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', dot: 'bg-green-600' },
+  submitted: uniformStyle,
+  builder_connected: uniformStyle,
+  deal_in_progress: uniformStyle,
+  payment_done: uniformStyle,
+  deal_completed: uniformStyle,
 }
 
 function UserDetailField({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) {
@@ -223,7 +224,7 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: {
                 <span className="text-[var(--border-default)]">|</span>
                 <button
                   onClick={() => eoi.referrer && onShowUser(eoi.referrer, 'Referrer Details')}
-                  className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+                  className="text-[11px] font-medium text-[#D4AF37] hover:underline inline-flex items-center gap-1"
                 >
                   <Gift className="h-3 w-3" /> Referrer Details
                 </button>
@@ -262,7 +263,7 @@ function EOICard({ eoi, onAdvance, onRevert, onShowUser }: {
                         {isCurrent ? (
                           <div className="h-3 w-3 rounded-full border-2 border-primary bg-primary/20" />
                         ) : (
-                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                          <CheckCircle2 className="h-3 w-3 text-[#D4AF37]" />
                         )}
                         {idx < relevantStatuses.length - 1 && <div className="w-px h-3 bg-[var(--bg-surface-hover)] mt-0.5" />}
                       </div>

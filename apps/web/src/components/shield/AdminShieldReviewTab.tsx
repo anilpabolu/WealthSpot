@@ -151,7 +151,7 @@ function OppListItem({
       className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors ${
         active
           ? 'bg-primary/10 border border-primary/30'
-          : 'border border-transparent hover:bg-theme-card'
+          : 'border border-theme hover:bg-theme-card'
       }`}
     >
       <span className="block text-sm font-medium text-theme-primary truncate">

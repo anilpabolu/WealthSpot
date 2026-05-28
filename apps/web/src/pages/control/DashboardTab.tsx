@@ -19,10 +19,10 @@ export default function DashboardTab() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Users" value={data.totalUsers} color="text-primary bg-primary/5" />
-        <StatCard label="Pending Approvals" value={approvalStats?.pending ?? data.pendingApprovals} color="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30" />
-        <StatCard label="Opportunities" value={data.totalOpportunities} color="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30" />
-        <StatCard label="Active Configs" value={data.activeConfigs} color="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30" />
+        <StatCard label="Total Users" value={data.totalUsers} color="text-[#D4AF37] bg-[var(--bg-surface)]" />
+        <StatCard label="Pending Approvals" value={approvalStats?.pending ?? data.pendingApprovals} color="text-[#D4AF37] bg-[var(--bg-surface)]" />
+        <StatCard label="Opportunities" value={data.totalOpportunities} color="text-[#D4AF37] bg-[var(--bg-surface)]" />
+        <StatCard label="Active Configs" value={data.activeConfigs} color="text-[#D4AF37] bg-[var(--bg-surface)]" />
       </div>
 
       {/* Role distribution */}

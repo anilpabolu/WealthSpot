@@ -61,7 +61,7 @@ export function Select({
     if (open && searchable) searchRef.current?.focus();
   }, [open, searchable]);
 
-  const py = size === 'sm' ? 'py-1.5' : 'py-2.5';
+  const py = size === 'sm' ? 'py-1.5' : 'py-2';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   return (

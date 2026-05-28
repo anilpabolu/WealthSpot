@@ -65,19 +65,19 @@ const PRIORITIES = [
 ]
 
 const STATUS_BADGE: Record<string, { icon: typeof Clock; className: string }> = {
-  pending: { icon: Clock, className: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700/40' },
-  in_review: { icon: Search, className: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700/40' },
-  approved: { icon: CheckCircle2, className: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700/40' },
-  rejected: { icon: XCircle, className: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700/40' },
-  auto_approved: { icon: CheckCircle2, className: 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-700/40' },
-  cancelled: { icon: AlertCircle, className: 'bg-theme-surface text-theme-secondary border-theme' },
+  pending: { icon: Clock, className: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30' },
+  in_review: { icon: Search, className: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30' },
+  approved: { icon: CheckCircle2, className: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30' },
+  rejected: { icon: XCircle, className: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30' },
+  auto_approved: { icon: CheckCircle2, className: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30' },
+  cancelled: { icon: AlertCircle, className: 'bg-[var(--bg-surface)] text-theme-secondary border border-theme' },
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700 dark:text-red-300',
-  high: 'bg-orange-100 text-orange-700 dark:text-orange-300',
-  normal: 'bg-theme-surface-hover text-theme-secondary',
-  low: 'bg-theme-surface text-theme-tertiary',
+  urgent: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30',
+  high: 'bg-[var(--bg-surface)] text-[#D4AF37] border border-[#D4AF37]/30',
+  normal: 'bg-theme-surface-hover text-theme-secondary border border-theme',
+  low: 'bg-theme-surface text-theme-tertiary border border-theme',
 }
 
 /* ------------------------------------------------------------------ */
@@ -219,12 +219,12 @@ function ReviewModal({
 /* ------------------------------------------------------------------ */
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  pending: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', dot: 'bg-amber-500', border: 'border-amber-200 dark:border-amber-700/40' },
-  in_review: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500', border: 'border-blue-200 dark:border-blue-700/40' },
-  approved: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500', border: 'border-emerald-200 dark:border-emerald-700/40' },
-  rejected: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300', dot: 'bg-red-500', border: 'border-red-200 dark:border-red-700/40' },
-  auto_approved: { bg: 'bg-teal-50 dark:bg-teal-900/30', text: 'text-teal-700 dark:text-teal-300', dot: 'bg-teal-500', border: 'border-teal-200 dark:border-teal-700/40' },
-  cancelled: { bg: 'bg-theme-surface-hover', text: 'text-theme-secondary', dot: 'bg-[var(--text-tertiary)]', border: 'border-theme' },
+  pending: { bg: 'bg-[var(--bg-surface)]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]', border: 'border-[#D4AF37]/30' },
+  in_review: { bg: 'bg-[var(--bg-surface)]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]', border: 'border-[#D4AF37]/30' },
+  approved: { bg: 'bg-[var(--bg-surface)]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]', border: 'border-[#D4AF37]/30' },
+  rejected: { bg: 'bg-[var(--bg-surface)]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]', border: 'border-[#D4AF37]/30' },
+  auto_approved: { bg: 'bg-[var(--bg-surface)]', text: 'text-[#D4AF37]', dot: 'bg-[#D4AF37]', border: 'border-[#D4AF37]/30' },
+  cancelled: { bg: 'bg-[var(--bg-surface)]', text: 'text-theme-secondary', dot: 'bg-[var(--text-tertiary)]', border: 'border-theme' },
 }
 
 const DEFAULT_COL_COLOR = { bg: 'bg-theme-surface', text: 'text-theme-secondary', dot: 'bg-[var(--text-tertiary)]', border: 'border-theme' }

@@ -161,24 +161,24 @@ export default function ReferralTrackingTab() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="rounded-xl bg-primary/5 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-primary">{filtered.length}</p>
+        <div className="rounded-xl bg-[var(--bg-surface)] px-4 py-3">
+          <p className="font-mono text-xl font-bold text-[#D4AF37]">{filtered.length}</p>
           <p className="text-xs font-medium text-theme-secondary">Referrers</p>
         </div>
-        <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-blue-600 dark:text-blue-400">{totalReferred}</p>
+        <div className="rounded-xl bg-[var(--bg-surface)] px-4 py-3">
+          <p className="font-mono text-xl font-bold text-[#D4AF37]">{totalReferred}</p>
           <p className="text-xs font-medium text-theme-secondary">Total Referrals</p>
         </div>
-        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/30 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-emerald-600 dark:text-emerald-400">{totalRewarded}</p>
+        <div className="rounded-xl bg-[var(--bg-surface)] px-4 py-3">
+          <p className="font-mono text-xl font-bold text-[#D4AF37]">{totalRewarded}</p>
           <p className="text-xs font-medium text-theme-secondary">Rewarded</p>
         </div>
-        <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 px-4 py-3">
-          <p className="font-mono text-xl font-bold text-amber-600 dark:text-amber-400">{totalPending}</p>
+        <div className="rounded-xl bg-[var(--bg-surface)] px-4 py-3">
+          <p className="font-mono text-xl font-bold text-[#D4AF37]">{totalPending}</p>
           <p className="text-xs font-medium text-theme-secondary">Pending</p>
         </div>
-        <div className="rounded-xl bg-theme-surface-hover px-4 py-3">
-          <p className="font-mono text-xl font-bold text-theme-primary">{formatINR(totalEarned)}</p>
+        <div className="rounded-xl bg-[var(--bg-surface)] px-4 py-3">
+          <p className="font-mono text-xl font-bold text-[#D4AF37]">{formatINR(totalEarned)}</p>
           <p className="text-xs font-medium text-theme-secondary">Total Earned</p>
         </div>
       </div>

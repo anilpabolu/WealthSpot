@@ -596,7 +596,7 @@ async def invite_admin(
         count = (
             await db.execute(
                 select(func.count(User.id)).where(
-                    User.roles.contains('"super_admin"'),
+                    User.roles.contains(["super_admin"]),
                     User.is_active.is_(True),
                 )
             )

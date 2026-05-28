@@ -223,7 +223,7 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-5 sm:p-6 content-section-bg min-w-0">
+        <main className="flex-1 p-5 sm:p-6 bg-white min-w-0 theme-violet-control">
           <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
             {activeSection === 'dashboard' && (
               <Suspense fallback={<TabFallback />}><DashboardTab /></Suspense>

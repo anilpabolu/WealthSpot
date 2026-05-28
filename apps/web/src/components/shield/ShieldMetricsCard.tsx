@@ -37,7 +37,7 @@ export function ShieldMetricsCard({
   return (
     <div className="card p-6">
       <header className="flex items-center gap-2 mb-4">
-        <ShieldCheck size={18} className="text-emerald-500" />
+        <ShieldCheck size={18} className="text-[#D4AF37]" />
         <h3 className="text-sm font-bold text-theme-primary">{title}</h3>
         <span className="ml-auto text-[11px] text-theme-tertiary">
           {totalFunnel} opportunities tracked
@@ -48,29 +48,29 @@ export function ShieldMetricsCard({
         <FunnelTile
           label="Not started"
           value={data.funnel.not_started}
-          accent="text-theme-tertiary"
+          accent="text-[#D4AF37]"
         />
         <FunnelTile
           label="In review"
           value={data.funnel.in_review}
-          accent="text-sky-400"
+          accent="text-[#D4AF37]"
         />
         <FunnelTile
           label="Partial"
           value={data.funnel.partial}
-          accent="text-amber-500"
+          accent="text-[#D4AF37]"
         />
         <FunnelTile
           label="Certified"
           value={data.funnel.certified}
-          accent="text-emerald-500"
+          accent="text-[#D4AF37]"
         />
       </div>
 
       <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle size={14} className="text-amber-500" />
+            <AlertTriangle size={14} className="text-[#D4AF37]" />
             <span className="text-[12px] font-semibold text-theme-primary">
               Most-flagged sub-items
             </span>
@@ -95,7 +95,7 @@ export function ShieldMetricsCard({
                       </span>{' '}
                       {sub?.label ?? f.subcategoryCode}
                     </span>
-                    <span className="text-amber-500 font-semibold">
+                    <span className="text-[#D4AF37] font-semibold">
                       {f.flaggedCount}
                     </span>
                   </li>
@@ -127,16 +127,16 @@ export function ShieldMetricsCard({
               </span>
             </div>
             <div className="mt-1 grid grid-cols-3 gap-2 text-[12px]">
-              <RiskCount label="Low" value={data.riskCounts.low} color="text-sky-400" />
+              <RiskCount label="Low" value={data.riskCounts.low} color="text-[#D4AF37]" />
               <RiskCount
                 label="Med"
                 value={data.riskCounts.medium}
-                color="text-amber-500"
+                color="text-[#D4AF37]"
               />
               <RiskCount
                 label="High"
                 value={data.riskCounts.high}
-                color="text-rose-500"
+                color="text-[#D4AF37]"
               />
             </div>
           </div>
