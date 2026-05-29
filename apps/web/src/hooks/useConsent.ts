@@ -43,13 +43,14 @@ export const useRecordConsent = () => {
   })
 }
 
-export const useConsentStatus = () => {
+export const useConsentStatus = (enabled: boolean = true) => {
   return useQuery<ConsentStatus>({
     queryKey: ['consent_status'],
     queryFn: async () => {
       const response = await api.get('/consent/status')
       return response.data
     },
+    enabled,
     // Cache the consent status for the session
     staleTime: Infinity,
     refetchOnWindowFocus: false,

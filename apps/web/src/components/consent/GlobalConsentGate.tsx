@@ -13,7 +13,7 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   
   const queryClient = useQueryClient()
   const recordConsent = useRecordConsent()
-  const { data: status, isLoading: statusLoading } = useConsentStatus()
+  const { data: status, isLoading: statusLoading } = useConsentStatus(isLoaded && isAuthenticated)
 
   const [regulatoryAccepted, setRegulatoryAccepted] = useState(false)
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
