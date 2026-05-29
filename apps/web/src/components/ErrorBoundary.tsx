@@ -9,6 +9,7 @@ interface Props {
 interface State {
   hasError: boolean
   error: Error | null
+  isReloading: boolean
 }
 
 /**
@@ -18,14 +19,25 @@ interface State {
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = { hasError: false, error: null }
+    this.state = { hasError: false, error: null, isReloading: false }
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    const isChunkError = error.name === 'ChunkLoadError' || error.message.includes('Failed to fetch dynamically imported module') || error.message.includes('Importing a module script failed')
+    const lastReload = sessionStorage.getItem('ws_last_chunk_error_reload')
+    const now = Date.now()
+    const isReloading = isChunkError && (!lastReload || now - parseInt(lastReload, 10) > 10000)
+    
+    return { hasError: true, error, isReloading }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    if (this.state.isReloading) {
+      sessionStorage.setItem('ws_last_chunk_error_reload', Date.now().toString())
+      window.location.reload()
+      return
+    }
+
     Sentry.captureException(error, { extra: { componentStack: info.componentStack } })
     console.error('[ErrorBoundary]', error, info.componentStack)
   }
@@ -41,6 +53,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   render() {
+    if (this.state.isReloading) {
+      return null
+    }
+    
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-theme-surface px-4">

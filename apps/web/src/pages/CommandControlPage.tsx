@@ -151,7 +151,7 @@ export default function CommandControlPage() {
       </section>
 
       {/* Body */}
-      <div className="flex flex-1 w-full relative">
+      <div className="flex flex-col md:flex-row flex-1 w-full relative">
         {/* Side Nav */}
         <aside className="relative hidden md:flex flex-col w-64 shrink-0 border-r border-theme/20 sticky top-[4rem] h-[calc(100vh-4rem)] overflow-hidden" style={{ background: 'transparent' }}>
           {/* Background image with dark overlay for text legibility */}

@@ -1,7 +1,11 @@
-from unittest.mock import MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 
+from app.models.admin_invite import AdminInvite
+from app.routers.control_centre import accept_invite
 from app.services.email import send_admin_invite_email
 
 
@@ -63,14 +67,6 @@ async def test_send_admin_invite_email_no_smtp():
         assert result is False
 
 
-from datetime import UTC, datetime
-
-from fastapi import HTTPException
-
-from app.models.admin_invite import AdminInvite
-from app.routers.control_centre import accept_invite
-
-
 @pytest.mark.asyncio
 async def test_accept_invite_success():
     """Test that an authenticated user can accept an invite and get the role."""
@@ -85,7 +81,10 @@ async def test_accept_invite_success():
         expires_at=datetime(2099, 1, 1, tzinfo=UTC),
     )
     mock_result.scalar_one_or_none.return_value = mock_invite
-    mock_db.execute.return_value = mock_result
+
+    # Use AsyncMock for db.execute
+    mock_db.execute = AsyncMock(return_value=mock_result)
+    mock_db.flush = AsyncMock()
 
     # Mock the authenticated user that comes from the JWT via Depend(get_current_user)
     mock_user = MagicMock()
@@ -115,7 +114,10 @@ async def test_accept_invite_wrong_user():
         expires_at=datetime(2099, 1, 1, tzinfo=UTC),
     )
     mock_result.scalar_one_or_none.return_value = mock_invite
-    mock_db.execute.return_value = mock_result
+
+    # Use AsyncMock for db.execute
+    mock_db.execute = AsyncMock(return_value=mock_result)
+    mock_db.flush = AsyncMock()
 
     # Mock a different authenticated user
     mock_user = MagicMock()

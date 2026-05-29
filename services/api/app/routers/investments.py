@@ -120,7 +120,12 @@ async def investment_summary(
             cashflows.append((inv_date, -float(inv.amount)))
         if cashflows:
             cashflows.append((datetime.now(UTC), float(current_value)))
-        xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
+        try:
+            xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
+        except Exception as e:
+            logger.warning("Failed to calculate XIRR for user %s: %s", user.id, e)
+            xirr_value = None
+
         if xirr_value is not None:
             cache_set(xirr_cache_key, xirr_value, ttl_seconds=300)
 
@@ -178,6 +183,9 @@ async def initiate_investment(
         request=request,
     )
 
+    logger.info(
+        "User %s initiated investment of amount %s for property %s", user.id, body.amount, prop.id
+    )
     return InvestmentRead.model_validate(investment)
 
 
@@ -278,6 +286,13 @@ async def confirm_payment(
 
     # Trigger referral reward on first investment
     await process_referral_reward_on_investment(db, user.id, investment.id)
+
+    logger.info(
+        "Payment confirmed for investment %s by user %s (Razorpay ID: %s)",
+        investment.id,
+        user.id,
+        body.razorpay_payment_id,
+    )
 
     return InvestmentRead.model_validate(investment)
 

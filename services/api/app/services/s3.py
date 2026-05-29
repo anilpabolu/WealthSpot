@@ -10,6 +10,7 @@ import uuid
 from typing import Any, BinaryIO, cast
 
 import anyio
+import anyio.to_thread
 import boto3  # type: ignore[import-untyped]
 from botocore.config import Config as BotoConfig  # type: ignore[import-untyped]
 
@@ -22,7 +23,11 @@ def _get_s3_client() -> Any:
     """Media bucket client (Cloudflare R2 in production, MinIO in local dev)."""
     extra: dict[str, Any] = {}
     if settings.s3_endpoint_url:
-        extra["endpoint_url"] = settings.s3_endpoint_url
+        endpoint = settings.s3_endpoint_url.rstrip("/")
+        # Prevent double-bucket in URL if user accidentally included it in the env var
+        if settings.aws_s3_bucket and endpoint.endswith(f"/{settings.aws_s3_bucket}"):
+            endpoint = endpoint.rsplit(f"/{settings.aws_s3_bucket}", 1)[0]
+        extra["endpoint_url"] = endpoint
 
     return cast(Any, boto3).client(
         "s3",
@@ -38,7 +43,10 @@ def _get_kyc_s3_client() -> Any:
     """KYC document client (Azure Blob Storage S3-compatible endpoint in production)."""
     extra: dict[str, Any] = {}
     if settings.kyc_s3_endpoint_url:
-        extra["endpoint_url"] = settings.kyc_s3_endpoint_url
+        endpoint = settings.kyc_s3_endpoint_url.rstrip("/")
+        if settings.kyc_aws_s3_bucket and endpoint.endswith(f"/{settings.kyc_aws_s3_bucket}"):
+            endpoint = endpoint.rsplit(f"/{settings.kyc_aws_s3_bucket}", 1)[0]
+        extra["endpoint_url"] = endpoint
 
     # Falls back to the media client config if KYC-specific credentials are not set
     # (allows local dev to use a single MinIO bucket without extra config).

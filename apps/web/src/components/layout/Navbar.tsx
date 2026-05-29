@@ -99,7 +99,7 @@ export default function Navbar(_props?: NavbarProps) {
   }, [location.pathname, isHeroPage])
 
   const extraLinks = [
-    ...(userRole === 'super_admin' ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
+    ...(userRoles.includes('super_admin') ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {
     if (!('roles' in link) || !link.roles) return true

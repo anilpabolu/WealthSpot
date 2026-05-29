@@ -68,12 +68,20 @@ setup_logging(app_env=settings.app_env)
 
 # ── Sentry ───────────────────────────────────────────────────────────────────
 
-if settings.sentry_dsn:
+if settings.sentry_dsn and settings.app_env == "production":
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,  # Capture info and above as breadcrumbs
+        event_level=logging.ERROR,  # Send errors as events
+    )
+
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         traces_sample_rate=0.2,
         profiles_sample_rate=0.1,
         environment=settings.app_env,
+        integrations=[sentry_logging],
     )
 
 
@@ -215,6 +223,8 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions — returns 500 with CORS headers preserved."""
     _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    if settings.app_env == "production":
+        sentry_sdk.capture_exception(exc)
     return JSONResponse(
         status_code=500,
         content={
@@ -251,6 +261,8 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
 async def operational_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
     """Handle database connectivity issues with a clear 503."""
     _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
+    if settings.app_env == "production":
+        sentry_sdk.capture_exception(exc)
     return JSONResponse(
         status_code=503,
         content={

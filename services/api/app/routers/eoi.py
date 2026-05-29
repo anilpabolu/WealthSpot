@@ -2,8 +2,10 @@
 EOI router – Expression of Interest, Builder Questions, Communication Mappings.
 """
 
+import logging
 import math
 import uuid as _uuid
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -37,7 +39,7 @@ from app.schemas.eoi import (
 from app.services.notification import create_notification
 
 router = APIRouter(prefix="/eoi", tags=["eoi"])
-
+logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Expression of Interest CRUD
@@ -71,11 +73,12 @@ async def submit_eoi(
     )
     existing = existing_result.scalar_one_or_none()
     if existing:
-        from datetime import UTC, datetime
-
         existing.updated_at = datetime.now(UTC)
         await db.flush()
         await db.refresh(existing)
+        logger.info(
+            "User %s updated existing EOI %s for opportunity %s", user.id, existing.id, opp.id
+        )
         return EOIRead.model_validate(existing)
 
     # Look up who referred this user (if anyone)
@@ -166,6 +169,7 @@ async def submit_eoi(
 
     await db.flush()
     await db.refresh(eoi)
+    logger.info("User %s submitted new EOI %s for opportunity %s", user.id, eoi.id, opp.id)
     return EOIRead.model_validate(eoi)
 
 

@@ -2,6 +2,7 @@
 Approvals router – list, review, filter approval requests.
 """
 
+import logging
 import math
 from datetime import UTC, datetime
 from typing import Any
@@ -26,6 +27,7 @@ from app.schemas.approval import (
 from app.services.notification import create_notification
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
+logger = logging.getLogger(__name__)
 
 # Roles that can review approvals
 approver_dep = require_role(UserRole.ADMIN, UserRole.APPROVER, UserRole.SUPER_ADMIN)
@@ -244,6 +246,12 @@ async def review_approval(
             body=f'Your request "{approval.title}" has been approved.',
             data={"approval_id": str(approval.id), "category": approval.category},
         )
+        logger.info(
+            "Approval %s (type: %s) was APPROVED by user %s",
+            approval.id,
+            approval.resource_type,
+            reviewer.id,
+        )
     else:
         approval.status = ApprovalStatus.REJECTED
         note = body.review_note or "No reason provided."
@@ -300,6 +308,13 @@ async def review_approval(
             title="Request Rejected",
             body=f'Your request "{approval.title}" was rejected. Reason: {note}',
             data={"approval_id": str(approval.id), "category": approval.category},
+        )
+        logger.info(
+            "Approval %s (type: %s) was REJECTED by user %s. Reason: %s",
+            approval.id,
+            approval.resource_type,
+            reviewer.id,
+            note,
         )
 
     # Explicit commit to ensure all sync changes are persisted before the

@@ -22,6 +22,9 @@ async def send_otp_sms(phone: str, otp: str) -> bool:
         logger.warning("Twilio not configured — SMS OTP for %s logged only", phone)
         return False
 
+    if not phone.startswith("+"):
+        phone = f"+91{phone}"
+
     body = f"Your WealthSpot verification code is: {otp}. Valid for 10 minutes."
     url = TWILIO_MSG_URL.format(sid=settings.twilio_account_sid)
 
@@ -52,6 +55,9 @@ async def send_otp_whatsapp(phone: str, otp: str) -> bool:
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
         logger.warning("Twilio/WhatsApp not configured — WA OTP for %s logged only", phone)
         return False
+
+    if not phone.startswith("+"):
+        phone = f"+91{phone}"
 
     wa_from = settings.twilio_whatsapp_number or settings.twilio_phone_number
     body = f"Your WealthSpot verification code is: {otp}. Valid for 10 minutes."

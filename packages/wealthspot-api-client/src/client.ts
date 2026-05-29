@@ -210,9 +210,8 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       const key = url + (cfg?.params ? '\0' + JSON.stringify(cfg.params) : '')
       const existing = inflight.get(key)
       if (existing) return existing as Promise<T>
-      const request = api.get<T>(url, cfg).then((r) => r.data)
+      const request = api.get<T>(url, cfg).then((r) => r.data).finally(() => inflight.delete(key))
       inflight.set(key, request as Promise<unknown>)
-      void request.finally(() => inflight.delete(key))
       return request
     },
     apiPost: async <T>(url: string, body?: unknown) => {
