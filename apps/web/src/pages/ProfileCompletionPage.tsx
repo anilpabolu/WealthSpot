@@ -595,9 +595,9 @@ export default function ProfileCompletionPage() {
         </div>
 
         {/* Step content card */}
-        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+        <div className="card overflow-hidden">
           {currentStep && (
-            <div className="bg-white/5 border-b border-[#D4AF37]/20 px-6 py-5 text-white backdrop-blur-sm">
+            <div className="bg-primary/5 border-b border-[var(--bg-card-border)] px-6 py-5 text-white backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-2xl shadow-inner">
                   {currentStep.emoji}

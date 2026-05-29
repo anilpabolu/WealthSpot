@@ -21,10 +21,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    query = """
+    query1 = """
     -- 1. Delete the broken uppercase duplicate that was erroneously created in previous migrations
     DELETE FROM users WHERE email = 'Mrsegu@gmail.com';
+    """
+    op.execute(sa.text(query1))
 
+    query2 = """
     -- 2. Upsert the correct lowercase email to ensure they have super_admin capabilities
     --    This preserves their existing data (clerk_id, investments) if they've already signed in
     INSERT INTO users (id, email, full_name, phone, role, kyc_status, referral_code, is_active,
@@ -48,7 +51,7 @@ def upgrade() -> None:
         primary_role      = 'super_admin',
         persona_selected_at = COALESCE(users.persona_selected_at, NOW());
     """
-    op.execute(sa.text(query))
+    op.execute(sa.text(query2))
 
 
 def downgrade() -> None:

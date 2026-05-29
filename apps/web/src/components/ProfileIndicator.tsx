@@ -172,20 +172,7 @@ export default function ProfileIndicator({ size = 'sm' }: ProfileIndicatorProps)
   if (isComplete) {
     return (
       <div className="flex items-center gap-2">
-        {/* Vault CTA when profile done but vaults incomplete */}
-        {!isFullyProfiled && (
-          <button
-            onClick={() => setShowDnaPicker(true)}
-            className={cn(
-              'hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
-              'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md shadow-violet-200',
-              'hover:shadow-lg hover:shadow-violet-300 hover:scale-[1.03] active:scale-100',
-            )}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            DNA
-          </button>
-        )}
+
         <div className="relative" ref={menuRef}>
           <div className="relative">
             {AvatarButton}

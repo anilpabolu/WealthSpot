@@ -17,6 +17,8 @@ const FOOTER_NAV = {
   Legal: [
     { label: 'Terms of Service', href: '/legal/terms' },
     { label: 'Privacy Policy',   href: '/legal/privacy' },
+    { label: 'Risk Disclosure',  href: '/legal/risk-disclosure' },
+    { label: 'Legal Disclaimer', href: '/legal/disclaimer' },
   ],
 }
 
@@ -46,6 +48,8 @@ function SlimFooter() {
             <a href="mailto:hello@wealthspot.in" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Help</a>
             <Link to="/legal/terms"   className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Terms</Link>
             <Link to="/legal/privacy" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Privacy</Link>
+            <Link to="/legal/risk-disclosure" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Risk</Link>
+            <Link to="/legal/disclaimer" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Disclaimer</Link>
           </div>
         </div>
       </div>

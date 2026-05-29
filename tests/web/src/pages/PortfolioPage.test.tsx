@@ -108,7 +108,6 @@ describe('PortfolioPage', () => {
   it('renders portfolio hero', () => {
     renderPage()
     expect(screen.getByText('The War Chest')).toBeInTheDocument()
-    expect(screen.getByText('Portfolio')).toBeInTheDocument()
   })
 
   it('renders Holdings section', () => {

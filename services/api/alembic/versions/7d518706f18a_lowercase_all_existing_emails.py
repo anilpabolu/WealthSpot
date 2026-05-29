@@ -21,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    query = """
+    query1 = """
     -- Lowercase all admin_invites emails safely
     UPDATE admin_invites
     SET email = LOWER(email)
@@ -30,7 +30,10 @@ def upgrade() -> None:
           SELECT 1 FROM admin_invites a2
           WHERE a2.email = LOWER(admin_invites.email)
       );
+    """
+    op.execute(sa.text(query1))
 
+    query2 = """
     -- Lowercase all users emails safely
     UPDATE users
     SET email = LOWER(email)
@@ -40,7 +43,7 @@ def upgrade() -> None:
           WHERE u2.email = LOWER(users.email)
       );
     """
-    op.execute(sa.text(query))
+    op.execute(sa.text(query2))
 
 
 def downgrade() -> None:

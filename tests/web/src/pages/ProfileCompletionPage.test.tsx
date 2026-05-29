@@ -7,13 +7,17 @@ vi.mock('@/components/layout/MainLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
-vi.mock('@/components/ui', () => ({
-  Select: ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
-    <select value={value} onChange={(e) => onChange(e.target.value)}>
-      {options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  ),
-}))
+vi.mock('@/components/ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/ui')>()
+  return {
+    ...actual,
+    Select: ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    ),
+  }
+})
 
 vi.mock('@/hooks/useProfileAPI', () => ({
   useFullProfile: vi.fn(),

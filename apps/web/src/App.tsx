@@ -34,6 +34,9 @@ const BuilderSettings = lazy(() => import('@/pages/BuilderSettingsPage'))
 const BuilderHelp = lazy(() => import('@/pages/BuilderHelpPage'))
 
 const TermsOfUse = lazy(() => import('@/pages/legal/TermsOfUsePage'))
+const PrivacyPolicy = lazy(() => import('@/pages/legal/PrivacyPolicyPage'))
+const RiskDisclosure = lazy(() => import('@/pages/legal/RiskDisclosurePage'))
+const LegalDisclaimer = lazy(() => import('@/pages/legal/LegalDisclaimerPage'))
 
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboardPage'))
 const AdminUsers = lazy(() => import('@/pages/AdminUsersPage'))
@@ -236,6 +239,9 @@ export default function App() {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
           <Route path="/legal/terms" element={<TermsOfUse />} />
+          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+          <Route path="/legal/risk-disclosure" element={<RiskDisclosure />} />
+          <Route path="/legal/disclaimer" element={<LegalDisclaimer />} />
 
           {/* Profile completion */}
           <Route path="/profile/complete" element={<ProtectedRoute><ProfileCompletion /></ProtectedRoute>} />

@@ -36,12 +36,24 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
     if (!isSubmitEnabled) return
     
     try {
+      // Capture device details
+      const device_details = {
+        userAgent: window.navigator.userAgent,
+        language: window.navigator.language,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }
+
       await recordConsent.mutateAsync({
         context: 'ONBOARDING',
         consent_version: CURRENT_VERSION,
         regulatory_accepted: regulatoryAccepted,
         privacy_accepted: privacyAccepted,
-        communication_accepted: communicationAccepted
+        communication_accepted: communicationAccepted,
+        device_details: device_details
       })
       // Update cache so the gate closes immediately
       queryClient.setQueryData(['consent_status'], { has_consented: true, consent_version: CURRENT_VERSION })

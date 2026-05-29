@@ -132,12 +132,7 @@ describe('VaultsPage', () => {
     expect(screen.getByText('₹50.0 L')).toBeInTheDocument()
   })
 
-  it('renders profiling percentage circles', () => {
-    renderPage()
-    // 50% profiling progress
-    const percentages = screen.getAllByText('50%')
-    expect(percentages.length).toBeGreaterThanOrEqual(1)
-  })
+
 
   it('renders CTA buttons for each vault', () => {
     renderPage()

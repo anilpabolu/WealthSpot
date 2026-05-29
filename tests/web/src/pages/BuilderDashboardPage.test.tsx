@@ -4,7 +4,12 @@ import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('@/components/layout', () => ({
-  PortalLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PortalLayout: ({ children, hero }: { children: React.ReactNode; hero?: React.ReactNode }) => (
+    <div>
+      {hero}
+      {children}
+    </div>
+  ),
 }))
 
 vi.mock('@/components/wealth/MetricCard', () => ({
@@ -112,11 +117,13 @@ describe('BuilderDashboardPage', () => {
     await waitFor(() => expect(screen.getByText('My Properties')).toBeInTheDocument())
   })
 
-  it('renders Add New Property link', () => {
+  it('renders View All link', async () => {
     renderPage()
-    const addLink = screen.queryByText('Add New Property') ||
-                    screen.queryAllByRole('link').find(l => l.getAttribute('href')?.includes('listings/new'))
-    expect(addLink).toBeTruthy()
+    await waitFor(() => {
+      const viewAllLink = screen.queryByText(/View All/i) ||
+                      screen.queryAllByRole('link').find(l => l.getAttribute('href')?.includes('listings'))
+      expect(viewAllLink).toBeTruthy()
+    })
   })
 
   it('shows loading spinner while fetching data', () => {
