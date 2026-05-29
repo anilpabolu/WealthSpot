@@ -58,32 +58,27 @@ import { dashboardBff } from '@/services/bff/dashboard.bff'
 
 const makeDashboard = (overrides = {}) => ({
   stats: {
-    totalListings: 3,
-    totalInvestors: 12,
+    activeCount: 3,
+    investorCount: 12,
     totalRaised: 3000000,
-    avgFunding: 75,
   },
   listings: [
     {
       id: 'l1',
       title: 'Green Valley',
-      slug: 'green-valley',
-      city: 'Pune',
-      assetType: 'Residential',
       status: 'funding',
-      raised: 1500000,
-      target: 2000000,
+      raisedAmount: 1500000,
+      targetAmount: 2000000,
       investorCount: 8,
-      coverImage: null,
+      city: 'Pune',
     },
   ],
   builder: {
-    id: 'b1',
     companyName: 'Test Builders Pvt Ltd',
-    builderApproved: true,
+    verified: true,
   },
   ...overrides,
-})
+}) as any
 
 describe('BuilderDashboardPage', () => {
   beforeEach(() => {
