@@ -32,6 +32,9 @@ const BuilderDocuments = lazy(() => import('@/pages/BuilderDocumentsPage'))
 const BuilderAnalytics = lazy(() => import('@/pages/BuilderAnalyticsPage'))
 const BuilderSettings = lazy(() => import('@/pages/BuilderSettingsPage'))
 const BuilderHelp = lazy(() => import('@/pages/BuilderHelpPage'))
+
+const TermsOfUse = lazy(() => import('@/pages/legal/TermsOfUsePage'))
+
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboardPage'))
 const AdminUsers = lazy(() => import('@/pages/AdminUsersPage'))
 const LenderDashboard = lazy(() => import('@/pages/LenderDashboardPage'))
@@ -231,6 +234,8 @@ export default function App() {
 
           {/* Settings */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+          <Route path="/legal/terms" element={<TermsOfUse />} />
 
           {/* Profile completion */}
           <Route path="/profile/complete" element={<ProtectedRoute><ProfileCompletion /></ProtectedRoute>} />
