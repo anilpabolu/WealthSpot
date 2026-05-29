@@ -252,24 +252,6 @@ export default function Navbar(_props?: NavbarProps) {
       )}
     </header>
 
-      {/* Vault profiling banner — softer prompt after profile is done */}
-      {isAuthenticated && completion?.isComplete && overall && !overall.isFullyProfiled && location.pathname !== '/vaults' && (
-        <div
-          className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white cursor-pointer hover:opacity-95 transition-opacity"
-          onClick={() => navigate('/vaults')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/vaults') }}
-        >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2">
-            <Sparkles className="h-4 w-4 shrink-0" />
-            <p className="text-sm font-semibold">
-              ✨ Discover your investor DNA — profile your vaults to get personalised matches!
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Get Started → video → signup flow */}
       {showVideo && (
         <OnboardingVideo
