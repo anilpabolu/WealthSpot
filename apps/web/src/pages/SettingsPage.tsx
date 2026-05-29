@@ -85,7 +85,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="page-section content-section-bg flex-1">
+      <div className="page-section theme-violet-control dark bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex-1">
         <div className="page-section-container">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar */}

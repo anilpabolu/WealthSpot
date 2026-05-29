@@ -534,8 +534,10 @@ export default function ProfileCompletionPage() {
   if (showCelebration) {
     return (
       <MainLayout>
-        <div className="mx-auto max-w-2xl px-4 py-8">
-          <CelebrationScreen referralCode={completion?.referralCode ?? profile?.referralCode ?? null} />
+        <div className="theme-violet-control dark bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen pt-8">
+          <div className="mx-auto max-w-2xl px-4 py-8">
+            <CelebrationScreen referralCode={completion?.referralCode ?? profile?.referralCode ?? null} />
+          </div>
         </div>
       </MainLayout>
     )
@@ -554,7 +556,7 @@ export default function ProfileCompletionPage() {
         </div>
       </section>
 
-      <div className="page-section">
+      <div className="page-section theme-violet-control dark bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen">
         <div className="page-section-container max-w-3xl mx-auto">
         {/* Back link */}
         <Link to="/vaults" className="inline-flex items-center gap-1.5 text-sm text-theme-tertiary hover:text-theme-secondary mb-4">
