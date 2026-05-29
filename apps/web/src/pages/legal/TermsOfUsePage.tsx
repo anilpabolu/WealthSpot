@@ -183,6 +183,57 @@ export default function TermsOfUsePage() {
                 </div>
               </div>
 
+              <div className="h-px w-full bg-theme-border opacity-20 bg-[#D4AF37]" />
+
+              {/* Legal Disclaimer Section */}
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20">
+                    <FileText className="h-5 w-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-orange-400 uppercase tracking-widest block mb-1">Compliance Statement</span>
+                    <h2 className="text-xl sm:text-2xl font-bold text-theme-primary tracking-tight">
+                      Legal Disclaimer
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 mt-6">
+                  {/* Section 1 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">1. Regulatory Intermediary Status</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      WealthSpot Private Limited (including its corporate affiliates, technology divisions, and advisory entities, hereinafter referred to as "WealthSpot") operates strictly as an independent Real Estate Discovery Platform, Lead-Generation Network, and Premium Property Advisory Intermediary. WealthSpot functions as a registered real estate intermediary in compliance with the Real Estate (Regulation and Development) Act (RERA).
+                    </p>
+                  </div>
+
+                  {/* Section 2 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">2. Absolute Non-Pooling Architecture</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      WealthSpot is NOT a Securities and Exchange Board of India (SEBI) registered Asset Management Company (AMC), Alternative Investment Fund (AIF), Mutual Fund, Portfolio Manager, or Investment Adviser. The platform does not solicit, accept, process, aggregate, or pool investor capital, nor does it operate a Collective Investment Scheme (CIS) under Section 11AA of the SEBI Act. WealthSpot does not structure, manage, or coordinate Special Purpose Vehicles (SPVs), fractional real estate ownership instruments, or asset-backed tokenized securities.
+                    </p>
+                  </div>
+
+                  {/* Section 3 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">3. Nature of Platform Intelligence</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      All real estate market research, analytics, cash-flow transparency projections, and localized economic data hosted on the platform are provided solely for informational, structural discovery, and educational benchmarking purposes. Such materials do not constitute regulated financial advisory, investment solicitations, or security placement offerings. Members retain independent, day-to-day absolute control over their allocations and are mandated to perform independent legal title tracking and financial due diligence before executing any property transaction.
+                    </p>
+                  </div>
+
+                  {/* Section 4 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">4. Absolute Limitation of Liability</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      WealthSpot, its directors, enterprise architects, and advisory panel members assume zero liability for any financial loss, property delivery defaults, structural defects, title disputes, or economic variances arising from transactions executed between platform users and independent third-party developers. All outcomes are subject to the individual contracts executed directly between buyers and builders.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
