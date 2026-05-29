@@ -124,6 +124,7 @@ async def check_user_exists(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, bool]:
     """Check if a user with this email is registered and active."""
+    email = email.lower()
     result = await db.execute(select(User.id).where(User.email == email, User.is_active.is_(True)))
     return {"exists": result.scalar_one_or_none() is not None}
 

@@ -98,7 +98,7 @@ async def clerk_webhook(
         email = ""
         email_addresses = data.get("email_addresses", [])
         if email_addresses:
-            email = email_addresses[0].get("email_address", "")
+            email = email_addresses[0].get("email_address", "").lower()
 
         full_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
         avatar_url = data.get("image_url")

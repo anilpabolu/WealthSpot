@@ -37,6 +37,11 @@ class UserBase(BaseModel):
     phone: str | None = None
     role: UserRole = UserRole.INVESTOR
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def lowercase_email(cls, v: str) -> str:
+        return v.lower() if isinstance(v, str) else v
+
 
 class UserCreate(UserBase):
     clerk_id: str | None = None
