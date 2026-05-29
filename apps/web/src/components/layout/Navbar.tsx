@@ -10,8 +10,7 @@ import ProfileIndicator from '@/components/ProfileIndicator'
 import OnboardingVideo from '@/components/OnboardingVideo'
 import { useUserStore } from '@/stores/user.store'
 import { useThemeStore } from '@/stores/theme.store'
-import { useProfileCompletionStatus } from '@/hooks/useProfileAPI'
-import { useOverallProgress } from '@/hooks/useProfiling'
+
 import WLogo3D from '@/components/ui/WLogo3D'
 
 const AUTH_NAV_LINKS = [
@@ -33,8 +32,7 @@ export default function Navbar(_props?: NavbarProps) {
   const userRole = useUserStore((s) => s.user?.role)
   const userRoles = useUserStore((s) => s.user?.roles ?? [])
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
-  const { data: completion } = useProfileCompletionStatus()
-  const { data: overall } = useOverallProgress()
+
   useThemeStore((s) => s.theme)
 
   // ── Scroll behaviour (all pages) ───────────────────────────────────────
