@@ -13,8 +13,17 @@ class ConsentLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    consent_type = Column(String(50), nullable=False, index=True)  # e.g. "LOGIN", "EOI"
-    consented = Column(Boolean, nullable=False)
+
+    # Context of consent: e.g. "ONBOARDING", "EOI"
+    context = Column(String(50), nullable=False, index=True)
+
+    consent_version = Column(String(50), nullable=False, default="v1.0")
+
+    # Specific checkboxes
+    regulatory_accepted = Column(Boolean, nullable=False, default=False)
+    privacy_accepted = Column(Boolean, nullable=False, default=False)
+    communication_accepted = Column(Boolean, nullable=False, default=False)
+
     target_id = Column(String(100), nullable=True, index=True)
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(255), nullable=True)

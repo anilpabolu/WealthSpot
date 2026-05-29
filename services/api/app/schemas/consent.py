@@ -5,11 +5,16 @@ from pydantic import BaseModel, Field
 
 
 class ConsentCreate(BaseModel):
-    consent_type: str = Field(
-        ..., description="The type of consent being given, e.g., 'LOGIN' or 'EOI'"
+    context: str = Field(
+        ..., description="The context of consent being given, e.g., 'ONBOARDING' or 'EOI'"
     )
-    consented: bool = Field(
-        ..., description="Whether the user consented (true) or declined (false)"
+    consent_version: str = Field("v1.0", description="The version of the consent text accepted")
+    regulatory_accepted: bool = Field(
+        ..., description="Whether the user accepted the regulatory terms"
+    )
+    privacy_accepted: bool = Field(..., description="Whether the user accepted the privacy terms")
+    communication_accepted: bool = Field(
+        ..., description="Whether the user accepted communication terms"
     )
     target_id: str | None = Field(
         None, description="Optional target ID, e.g., opportunity_id for EOI"
@@ -28,8 +33,11 @@ import uuid
 class ConsentResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    consent_type: str
-    consented: bool
+    context: str
+    consent_version: str
+    regulatory_accepted: bool
+    privacy_accepted: bool
+    communication_accepted: bool
     target_id: str | None
     ip_address: str | None
     user_agent: str | None
@@ -39,3 +47,8 @@ class ConsentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ConsentStatusResponse(BaseModel):
+    has_consented: bool
+    consent_version: str

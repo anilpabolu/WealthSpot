@@ -1,12 +1,20 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
 export interface ConsentPayload {
-  consent_type: 'LOGIN' | 'EOI'
-  consented: boolean
+  context: 'ONBOARDING' | 'EOI'
+  consent_version: string
+  regulatory_accepted: boolean
+  privacy_accepted: boolean
+  communication_accepted: boolean
   target_id?: string | null
   location?: string | null
   device_details?: Record<string, unknown> | null
+}
+
+export interface ConsentStatus {
+  has_consented: boolean
+  consent_version: string
 }
 
 const getDeviceDetails = () => {
@@ -32,5 +40,18 @@ export const useRecordConsent = () => {
       const response = await api.post('/consent', fullPayload)
       return response.data
     },
+  })
+}
+
+export const useConsentStatus = () => {
+  return useQuery<ConsentStatus>({
+    queryKey: ['consent_status'],
+    queryFn: async () => {
+      const response = await api.get('/consent/status')
+      return response.data
+    },
+    // Cache the consent status for the session
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   })
 }
