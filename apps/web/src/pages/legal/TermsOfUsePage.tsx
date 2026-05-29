@@ -129,6 +129,60 @@ export default function TermsOfUsePage() {
                 </p>
               </div>
 
+              <div className="h-px w-full bg-theme-border opacity-20 bg-[#D4AF37]" />
+
+              {/* Risk Disclosure Section */}
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20">
+                    <AlertTriangle className="h-5 w-5 text-red-400" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-red-400 uppercase tracking-widest block mb-1">Important Notice</span>
+                    <h2 className="text-xl sm:text-2xl font-bold text-theme-primary tracking-tight">
+                      Real Estate Allocation and Market Asset Risk Statement
+                    </h2>
+                  </div>
+                </div>
+                <p className="text-theme-secondary leading-relaxed text-lg">
+                  Deploying capital into premium real estate, land assets, and physical developments involves substantial, multi-dimensional risk parameters. WealthSpot provides property intelligence, data-driven research, and discovery access, but we do not guarantee economic results, value appreciation, or absolute security. Every prospective member must carefully evaluate the following inherent risks prior to initiating an independent transaction with any third-party developer:
+                </p>
+
+                <div className="grid gap-6 mt-6">
+                  {/* Section 3.1 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">3.1 Market Dynamics, Valuation & Illiquidity Pressures</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      Real estate assets are fundamentally illiquid. Unlike public equity markets, property holdings cannot be instantly liquidated or liquidated without substantial price erosion. Asset valuations fluctuate based on localized micro-market demand shifts, macro-economic inflationary trends, changes in interest rate structures, and broader geopolitical variables. Past performance metrics, historical appreciation rates, or localized price surges hosted within our market research dashboards are indicative historical data points only and cannot be projected as a baseline for future yield metrics.
+                    </p>
+                  </div>
+
+                  {/* Section 3.2 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">3.2 Third-Party Execution and Developer Compliance Risks</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      Every real estate opportunity discovered via WealthSpot is subject to third-party execution risks. This includes, but is not limited to: structural execution delays, capital misallocation by the developer, supply chain disruptions, changing construction material costs, and developer insolvency. While WealthSpot monitors RERA registration parameters, the ultimate execution, delivery, and lifecycle management of the physical asset remain the exclusive responsibility of the developer.
+                    </p>
+                  </div>
+
+                  {/* Section 3.3 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">3.3 Legal, Title, and Cross-Border Regulatory Volatility</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      Property acquisition risks include title defect vulnerabilities, zoning modifications, and retroactive legislative changes introduced by statutory authorities. For Non-Resident Indian (NRI) members, transactions are subject to additional layers of complexity, including FEMA (Foreign Exchange Management Act) compliance regulations, shifting tax implications (TDS, capital gains treatments), and repatriation limits. WealthSpot provides structural metadata, but does not provide independent legal title validation or tax structuring services.
+                    </p>
+                  </div>
+
+                  {/* Section 3.4 */}
+                  <div className="bg-black/20 rounded-xl p-6 border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-colors">
+                    <h3 className="text-lg font-semibold text-theme-primary mb-3">3.4 Absence of Guaranteed Returns or Income Protection</h3>
+                    <p className="text-sm text-theme-secondary leading-relaxed">
+                      WealthSpot explicitly rejects any concept of guaranteed returns, assured rental multiples, fixed IRR targets, or capital protection mechanisms. No communication on our interface, via our advisory channels, or within our analytical intelligence modules shall be interpreted as a performance assurance. You acknowledge that you bear the absolute economic risk of any capital allocation decision executed post-discovery.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
