@@ -11,7 +11,7 @@ export default function TermsOfUsePage() {
         path="/legal/terms"
       />
       <section
-        className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
+        className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden !pb-10 lg:!pb-14"
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -19,12 +19,9 @@ export default function TermsOfUsePage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
         </div>
 
-        <div className="page-hero-content">
-          <div className="animate-fade-up max-w-3xl">
-            <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
-              Legal Documents
-            </p>
-            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+        <div className="page-hero-content text-center flex flex-col items-center">
+          <div className="animate-fade-up max-w-4xl mx-auto">
+            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
               Terms of Use
             </h1>
           </div>
@@ -32,12 +29,12 @@ export default function TermsOfUsePage() {
       </section>
 
       <section
-        className="relative overflow-hidden py-20 sm:py-28"
+        className="relative overflow-hidden py-20 sm:py-24"
         style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         
-        <div className="relative z-10 mx-auto max-w-4xl px-6 sm:px-8 lg:px-16 space-y-12">
+        <div className="relative z-10 mx-auto max-w-5xl px-6 sm:px-8 lg:px-16 space-y-12">
           <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
             These Terms of Use constitutes a legally binding agreement executed between WealthSpot Private Limited ("WealthSpot") and any individual or entity gaining authenticated access to our proprietary discovery platform and real estate intelligence frameworks ("Member", "User", "You"). By accessing, browsing, or utilizing the interface, you acknowledge absolute adherence to these terms.
           </p>
@@ -51,19 +48,19 @@ export default function TermsOfUsePage() {
               WealthSpot functions strictly as a high-governance Real Estate Discovery Platform, Lead-Generation System, and Independent Property Advisory Intermediary. You explicitly acknowledge and agree to the following operational boundaries:
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-3xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">No Pooling of Capital</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">WealthSpot does not aggregate capital, solicit deposits, manage collective accounts, or handle investor funds. We maintain no pooled treasury, collective investment fund, or investment corpus.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-3xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">No Fractional Issuance or SPV Management</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">WealthSpot does not issue, market, manage, or coordinate fractional property ownership titles, shared-appreciation instruments, or tokenized securities.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-3xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Direct Transaction Execution</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">All financial parameters, negotiations, documentation, and asset acquisitions occur directly and independently between you and the respective developers. WealthSpot does not act as an agent with discretionary transaction authority.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-3xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Non-Financial Advisory</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">The information, analytics, and intelligence reports presented on WealthSpot do not constitute regulated financial planning, investment advice under SEBI guidelines, or asset portfolio management.</p>
               </div>

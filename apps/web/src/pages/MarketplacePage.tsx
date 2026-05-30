@@ -383,7 +383,7 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row flex-1 w-full bg-[#F9FAFB] min-h-screen">
+      <div className="flex flex-col md:flex-row flex-1 w-full bg-white min-h-screen">
         <FilterSidebar vaultParam={vaultParam} />
 
         <div className="flex-1 min-w-0 p-6 lg:p-10">
@@ -464,7 +464,7 @@ export default function MarketplacePage() {
                         <div
                           key={`opp-${opp.id}`}
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
-                          className="bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-gray-100 transition-all cursor-pointer group flex flex-col h-full"
+                          className="bg-white rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] border border-gray-100 transition-all cursor-pointer group flex flex-col h-full"
                         >
                           <div className="aspect-[16/9] relative bg-gray-100 overflow-hidden">
                             {coverUrl ? (

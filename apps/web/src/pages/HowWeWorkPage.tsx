@@ -10,7 +10,7 @@ function HeroSection() {
   return (
     <section
       id="hero"
-      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
+      className="page-hero-compact !pb-10 lg:!pb-14 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -18,19 +18,13 @@ function HeroSection() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
       </div>
 
-      <div className="page-hero-content">
-        <div className="animate-fade-up max-w-3xl">
-          <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
-            How We Work
-          </p>
-          <h1 className="font-hero text-3xl sm:text-4xl lg:text-[2.8rem] font-extrabold text-white mb-6 tracking-tight leading-[1.15]">
+      <div className="page-hero-content text-center flex flex-col items-center">
+        <div className="animate-fade-up max-w-4xl mx-auto">
+          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight leading-[1.15]">
             In real estate, the location decides the outcome —{' '}
             <span className="text-[#D4AF37] italic">long before the project does.</span>
           </h1>
-          <div className="inline-block px-4 py-1.5 rounded-full border border-white/20 bg-white/5 mb-3">
-            <p className="text-white font-semibold text-xs uppercase tracking-widest">WealthSpot Location Strategy · Investor View</p>
-          </div>
-          <p className="text-white/70 max-w-2xl text-lg leading-relaxed font-body">
+          <p className="text-white/70 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-body">
             How WealthSpot Understands Locations and Markets
           </p>
         </div>
@@ -45,50 +39,52 @@ function HeroSection() {
 function IntroSection() {
   return (
     <section
-      className="relative overflow-hidden py-20 sm:py-28"
+      className="relative overflow-hidden py-20 sm:py-24"
       style={{ background: '#ffffff' }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-          <div>
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Our Methodology</p>
-            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-[#111827] leading-[1.12] tracking-tight">
-              Building Conviction Through Process.
-            </h2>
-            <div
-              className="mt-7 h-0.5 rounded-full w-20"
-              style={{ background: 'linear-gradient(90deg, #D4AF37, transparent)' }}
-            />
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Our Methodology</p>
+          <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.8rem] font-bold text-[#111827] leading-[1.12] tracking-tight mb-8">
+            Building Conviction Through Process.
+          </h2>
+          <p className="font-body text-lg text-[#4B5563] leading-relaxed max-w-3xl mx-auto font-medium">
+            Before any opportunity reaches you, we first build conviction on the location using a clear, structured process.
+          </p>
+          <div
+            className="mt-8 h-0.5 rounded-full w-24 mx-auto"
+            style={{ background: 'linear-gradient(90deg, transparent, #D4AF37, transparent)' }}
+          />
+        </div>
+
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-left mb-12">
+          <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]">
+             <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
+               Most real-estate decisions go wrong not because the flat or villa is bad, but because the location story was misunderstood or based on half information. Friends, brokers and social media talk about “hot areas”, but rarely show the full picture or the downside.
+             </p>
           </div>
+          <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]">
+             <p className="font-body text-[16px] text-[#111827] leading-relaxed font-semibold mb-4">
+               WealthSpot takes a different approach. We start with locations and corridors, not inventory.
+             </p>
+             <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
+               We use verified sources, on-ground signals and historical patterns to understand how an area is evolving, and only then look for specific opportunities that fit that story.
+             </p>
+          </div>
+        </div>
 
-          <div className="flex flex-col gap-5 pt-2 lg:pt-10">
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              Before any opportunity reaches you, we first build conviction on the location using a clear, structured process.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              Most real-estate decisions go wrong not because the flat or villa is bad, but because the location story was misunderstood or based on half information. Friends, brokers and social media talk about “hot areas”, but rarely show the full picture or the downside.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed font-semibold">
-              WealthSpot takes a different approach. We start with locations and corridors, not inventory.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              We use verified sources, on-ground signals and historical patterns to understand how an area is evolving, and only then look for specific opportunities that fit that story.
-            </p>
-
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest mb-1">Focus</p>
-                <p className="font-bold text-[#111827] mb-1">Location-first</p>
-                <p className="text-sm text-gray-500">Corridor thesis before project selection.</p>
-              </div>
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest mb-1">Approach</p>
-                <p className="font-bold text-[#111827] mb-1">Evidence-led</p>
-                <p className="text-sm text-gray-500">Golden sources, case files & risk view.</p>
-              </div>
-            </div>
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all">
+            <p className="text-[11px] font-bold text-[#D4AF37] uppercase tracking-widest mb-3">Focus</p>
+            <p className="font-bold text-xl text-[#111827] mb-2">Location-first</p>
+            <p className="text-sm text-gray-500">Corridor thesis before project selection.</p>
+          </div>
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all">
+            <p className="text-[11px] font-bold text-[#D4AF37] uppercase tracking-widest mb-3">Approach</p>
+            <p className="font-bold text-xl text-[#111827] mb-2">Evidence-led</p>
+            <p className="text-sm text-gray-500">Golden sources, case files & risk view.</p>
           </div>
         </div>
       </div>
@@ -181,14 +177,14 @@ function MethodologySection() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-        <div className="mb-14 max-w-2xl text-center mx-auto">
+        <div className="mb-14 max-w-3xl text-center mx-auto">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Our Strategy</p>
           <h2 className="font-hero text-3xl sm:text-4xl font-bold text-[#111827] leading-[1.12] tracking-tight">
             How We Evaluate Markets.
           </h2>
         </div>
 
-        <div className="relative flex flex-col gap-0 max-w-4xl mx-auto">
+        <div className="relative flex flex-col gap-0 max-w-6xl mx-auto">
           <div
             className="absolute top-5 bottom-5 left-[34px] w-px hidden sm:block"
             style={{ background: 'linear-gradient(180deg, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.05) 100%)' }}
@@ -197,11 +193,10 @@ function MethodologySection() {
           {METHODOLOGY.map(({ num, icon, title, body, list, highlight, accent, accentRgb }) => (
             <div key={num} className="flex items-start gap-8 py-8 sm:py-10 group">
               <div
-                className="shrink-0 hidden sm:flex flex-col items-center justify-center w-[68px] h-[68px] rounded-full text-center relative z-10 bg-white"
+                className="shrink-0 hidden sm:flex flex-col items-center justify-center w-[68px] h-[68px] rounded-full text-center relative z-10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
                 style={{
                   border: `1px solid rgba(${accentRgb},0.35)`,
                   color: accent,
-                  boxShadow: `0 4px 12px rgba(${accentRgb}, 0.1)`
                 }}
               >
                 <span className="text-xl">{icon}</span>
@@ -214,11 +209,10 @@ function MethodologySection() {
               </span>
 
               <div
-                className="flex-1 rounded-2xl p-6 sm:p-8"
+                className="flex-1 rounded-3xl p-6 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300"
                 style={{
                   background: `linear-gradient(135deg, rgba(${accentRgb},0.03) 0%, #ffffff 60%, #ffffff 100%)`,
                   border: `1px solid rgba(${accentRgb},0.18)`,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
                 }}
               >
                 <div
@@ -240,7 +234,7 @@ function MethodologySection() {
                 )}
 
                 {highlight && (
-                  <div className="mt-5 p-4 rounded-xl bg-white border border-gray-100 shadow-sm text-sm text-[#4B5563] italic whitespace-pre-wrap leading-relaxed">
+                  <div className="mt-5 p-5 rounded-2xl bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] text-sm text-[#4B5563] italic whitespace-pre-wrap leading-relaxed">
                     {highlight}
                   </div>
                 )}

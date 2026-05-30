@@ -11,14 +11,14 @@ html { font-size: 100%; }
   /* ───── Theme CSS Custom Properties ───── */
   :root {
     --bg-base: #ffffff;
-    --bg-surface: #f8f9fa;
-    --bg-surface-hover: #f0f1f5;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f9fafb;
     --bg-card: #ffffff;
     --bg-card-border: rgba(209,196,157,0.3);
     /* ── Shadow: elevated premium card shadow ── */
-    --bg-card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.07);
-    --bg-card-shadow-hover: 0 2px 6px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.11), 0 18px 36px rgba(0,0,0,0.09);
-    --bg-sidebar: rgba(248,249,251,0.92);
+    --bg-card-shadow: 0 10px 30px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    --bg-card-shadow-hover: 0 20px 50px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08);
+    --bg-sidebar: rgba(255,255,255,0.92);
     --bg-sidebar-border: rgba(209,196,157,0.35);
     --bg-input: #ffffff;
     --bg-input-border: #c9bea0;

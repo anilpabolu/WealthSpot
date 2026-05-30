@@ -10,7 +10,7 @@ function HeroSection() {
   return (
     <section
       id="hero"
-      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden !pb-10 lg:!pb-12"
+      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden !pb-10 lg:!pb-14"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -18,20 +18,15 @@ function HeroSection() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
       </div>
 
-      <div className="page-hero-content">
-        <div className="animate-fade-up">
-          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
-            Our Story
+      <div className="page-hero-content text-center flex flex-col items-center">
+        <div className="animate-fade-up max-w-4xl mx-auto">
+          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight leading-[1.15]">
+            Built on the belief that{' '}
+            <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
+          </h1>
+          <p className="text-white/70 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-body">
+            WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
           </p>
-          <div className="flex flex-col lg:flex-row lg:items-end lg:gap-16">
-            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 lg:mb-0 tracking-tight leading-[1.1] lg:w-1/2 shrink-0">
-              Built on the belief that{' '}
-              <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
-            </h1>
-            <p className="text-white/60 text-base leading-relaxed font-body lg:flex-1">
-              WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
-            </p>
-          </div>
         </div>
       </div>
     </section>
@@ -44,37 +39,39 @@ function HeroSection() {
 function IntroSection() {
   return (
     <section
-      className="relative overflow-hidden py-20 sm:py-28"
+      className="relative overflow-hidden py-20 sm:py-24"
       style={{ background: '#ffffff' }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-          <div>
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Who We Are</p>
-            <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.6rem] font-bold text-[#111827] leading-[1.12] tracking-tight">
-              Preserving Trust. Building Legacies.
-            </h2>
-            <div
-              className="mt-7 h-0.5 rounded-full w-20"
-              style={{ background: 'linear-gradient(90deg, #D4AF37, transparent)' }}
-            />
-          </div>
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Who We Are</p>
+          <h2 className="font-hero text-3xl sm:text-4xl lg:text-[2.8rem] font-bold text-[#111827] leading-[1.12] tracking-tight mb-8">
+            Preserving Trust. Building Legacies.
+          </h2>
+          <p className="font-body text-lg text-[#4B5563] leading-relaxed max-w-3xl mx-auto font-medium">
+            WealthSpot is a premium real estate discovery and strategic advisory platform engineered for discerning investors seeking access to high-quality property opportunities across India.
+          </p>
+          <div
+            className="mt-8 h-0.5 rounded-full w-24 mx-auto"
+            style={{ background: 'linear-gradient(90deg, transparent, #D4AF37, transparent)' }}
+          />
+        </div>
 
-          <div className="flex flex-col gap-5 pt-2 lg:pt-10">
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              WealthSpot is a premium real estate discovery and strategic advisory platform engineered for discerning investors seeking access to high-quality property opportunities across India.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              We operate as an intelligence-driven ecosystem that enables informed decision-making through curated project discovery, developer introductions, market intelligence, and strategic real estate insights. Our objective is to simplify access to credible opportunities while maintaining the highest standards of transparency, diligence, governance, and long-term relationship value.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              WealthSpot is not a public marketplace, collective investment vehicle, crowdfunding platform, or pooled investment structure. We do not manage investor funds, operate Alternative Investment Funds (AIFs), or facilitate collective capital deployment.
-            </p>
-            <p className="font-body text-[15px] text-[#4B5563] leading-relaxed font-semibold">
-              Every investment decision and transaction is undertaken independently and directly by the investor.
-            </p>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)] md:col-span-2">
+             <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
+               We operate as an intelligence-driven ecosystem that enables informed decision-making through curated project discovery, developer introductions, market intelligence, and strategic real estate insights. Our objective is to simplify access to credible opportunities while maintaining the highest standards of transparency, diligence, governance, and long-term relationship value.
+             </p>
+          </div>
+          <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]">
+             <p className="font-body text-[16px] text-[#4B5563] leading-relaxed font-semibold mb-4 text-[#111827]">
+               Every investment decision and transaction is undertaken independently and directly by the investor.
+             </p>
+             <p className="font-body text-[14px] text-[#4B5563] leading-relaxed">
+               WealthSpot is not a public marketplace, collective investment vehicle, or pooled structure. We do not manage investor funds or operate AIFs.
+             </p>
           </div>
         </div>
       </div>
@@ -172,33 +169,32 @@ function PrinciplesSection() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {PRINCIPLES.map(({ icon: Icon, title, body, accent, accentRgb }) => (
             <div
               key={title}
-              className="rounded-2xl p-6 sm:p-7 group relative"
+              className="rounded-3xl p-8 sm:p-10 group relative shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)]"
               style={{
                 background: `linear-gradient(135deg, rgba(${accentRgb},0.06) 0%, #ffffff 60%, #ffffff 100%)`,
                 border: `1px solid rgba(${accentRgb},0.18)`,
-                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                transition: 'border-color 300ms ease, box-shadow 300ms ease',
+                transition: 'border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease',
               }}
             >
               <div
-                className="mb-5 w-12 h-12 rounded-xl flex items-center justify-center"
+                className="mb-6 w-14 h-14 rounded-2xl flex items-center justify-center"
                 style={{
                   background: `rgba(${accentRgb},0.10)`,
                   border: `1px solid rgba(${accentRgb},0.25)`,
                 }}
               >
-                <Icon className="h-6 w-6" style={{ color: accent }} />
+                <Icon className="h-7 w-7" style={{ color: accent }} />
               </div>
               <div
-                className="mb-4 h-px w-10 rounded-full group-hover:w-16 transition-all duration-300"
+                className="mb-5 h-px w-10 rounded-full group-hover:w-16 transition-all duration-300"
                 style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}
               />
-              <h3 className="font-hero text-[18px] font-bold text-[#111827] mb-3">{title}</h3>
-              <p className="font-body text-[14px] text-[#4B5563] leading-relaxed">{body}</p>
+              <h3 className="font-hero text-xl font-bold text-[#111827] mb-3">{title}</h3>
+              <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">{body}</p>
             </div>
           ))}
         </div>
@@ -258,7 +254,7 @@ function FrameworkSection() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
-        <div className="mb-14 max-w-2xl text-center mx-auto">
+        <div className="mb-14 max-w-3xl text-center mx-auto">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The WealthSpot Framework</p>
           <h2 className="font-hero text-3xl sm:text-4xl font-bold text-[#111827] leading-[1.12] tracking-tight">
             Uncompromising Discipline.<br/>Institutional Governance.
@@ -268,7 +264,7 @@ function FrameworkSection() {
           </p>
         </div>
 
-        <div className="relative flex flex-col gap-0 max-w-4xl mx-auto">
+        <div className="relative flex flex-col gap-0 max-w-6xl mx-auto">
           <div
             className="absolute top-5 bottom-5 left-[34px] w-px hidden sm:block"
             style={{ background: 'linear-gradient(180deg, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.05) 100%)' }}
@@ -277,11 +273,10 @@ function FrameworkSection() {
           {FRAMEWORK.map(({ num, title, body, list, accent, accentRgb }) => (
             <div key={num} className="flex items-start gap-8 py-8 sm:py-10 group">
               <div
-                className="shrink-0 hidden sm:flex flex-col items-center justify-center w-[68px] h-[68px] rounded-full text-center relative z-10 bg-white"
+                className="shrink-0 hidden sm:flex flex-col items-center justify-center w-[68px] h-[68px] rounded-full text-center relative z-10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
                 style={{
                   border: `1px solid rgba(${accentRgb},0.35)`,
                   color: accent,
-                  boxShadow: `0 4px 12px rgba(${accentRgb}, 0.1)`
                 }}
               >
                 <span className="text-[14px] font-black tracking-[0.05em]">{num}</span>
@@ -295,11 +290,10 @@ function FrameworkSection() {
               </span>
 
               <div
-                className="flex-1 rounded-2xl p-6 sm:p-8"
+                className="flex-1 rounded-3xl p-6 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] transition-all duration-300"
                 style={{
                   background: `linear-gradient(135deg, rgba(${accentRgb},0.03) 0%, #ffffff 60%, #ffffff 100%)`,
                   border: `1px solid rgba(${accentRgb},0.18)`,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
                 }}
               >
                 <div

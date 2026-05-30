@@ -11,7 +11,7 @@ export default function LegalDisclaimerPage() {
         path="/legal/disclaimer"
       />
       <section
-        className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
+        className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden !pb-10 lg:!pb-14"
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -19,12 +19,9 @@ export default function LegalDisclaimerPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
         </div>
 
-        <div className="page-hero-content">
-          <div className="animate-fade-up max-w-3xl">
-            <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
-              Legal Documents
-            </p>
-            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+        <div className="page-hero-content text-center flex flex-col items-center">
+          <div className="animate-fade-up max-w-4xl mx-auto">
+            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
               Legal Disclaimer
             </h1>
           </div>
@@ -32,12 +29,12 @@ export default function LegalDisclaimerPage() {
       </section>
 
       <section
-        className="relative overflow-hidden py-20 sm:py-28"
+        className="relative overflow-hidden py-20 sm:py-24"
         style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         
-        <div className="relative z-10 mx-auto max-w-4xl px-6 sm:px-8 lg:px-16 space-y-12">
+        <div className="relative z-10 mx-auto max-w-5xl px-6 sm:px-8 lg:px-16 space-y-12">
 
           <div className="space-y-6">
             <h2 className="font-hero text-xl sm:text-2xl font-bold text-[#111827] flex items-center gap-3">
