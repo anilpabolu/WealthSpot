@@ -53,7 +53,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
               className={certified ? 'text-emerald-500' : 'text-theme-tertiary'}
             />
             <h2 className="text-lg font-bold text-theme-primary">
-              WealthSpot Shield
+              Due Diligence
             </h2>
             {certified && (
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-2 py-0.5">
