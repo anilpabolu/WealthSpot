@@ -444,8 +444,8 @@ export default function MarketplacePage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid md:grid-cols-2 gap-8'
-                  : 'space-y-6'
+                  ? 'grid md:grid-cols-2 gap-10 lg:gap-14 px-4 sm:px-10 lg:px-16 xl:px-28'
+                  : 'space-y-6 px-4 sm:px-10 lg:px-16 xl:px-28'
               }
             >
               {isLoading
@@ -529,16 +529,6 @@ export default function MarketplacePage() {
                               )}
                             </div>
 
-                            {/* Thin progress line instead of FundingBar */}
-                            {opp.targetAmount != null && opp.targetAmount > 0 && (
-                              <div className="mb-6">
-                                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min(((opp.raisedAmount || 0) / opp.targetAmount) * 100, 100)}%` }} />
-                                 </div>
-                                 <p className="text-right text-[10px] font-bold text-blue-600 mt-1 uppercase tracking-wider">{Math.round(((opp.raisedAmount || 0) / opp.targetAmount) * 100)}% Sold</p>
-                              </div>
-                            )}
-
                             {/* Specs Grid */}
                             <div className="grid grid-cols-3 gap-4 mb-8">
                                <div>
@@ -558,8 +548,23 @@ export default function MarketplacePage() {
                             </div>
 
                             <div className="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
-                               <button className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                                 View Details <ChevronRight className="h-4 w-4" />
+                               <button 
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   if (navigator.share) {
+                                     navigator.share({
+                                       title: opp.title,
+                                       text: `Check out this opportunity on WealthSpot: ${opp.title}`,
+                                       url: window.location.origin + `/opportunity/${opp.slug}`
+                                     }).catch(console.error);
+                                   } else {
+                                     navigator.clipboard.writeText(window.location.origin + `/opportunity/${opp.slug}`);
+                                     alert("Link copied to clipboard!");
+                                   }
+                                 }}
+                                 className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                               >
+                                 <Gift className="h-4 w-4" /> Refer
                                </button>
                                <button className="px-5 py-2.5 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5">
                                  Express Interest <ChevronRight className="h-4 w-4" />
