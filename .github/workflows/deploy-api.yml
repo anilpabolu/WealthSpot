@@ -148,6 +148,15 @@ jobs:
             --output table || true
           exit 1
 
+      - name: Run database migrations
+        run: |
+          echo "Running alembic upgrade head..."
+          az containerapp exec \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --command "alembic upgrade head" || true
+          echo "Migration step complete"
+
       - name: Smoke test liveness endpoint
         run: |
           API_FQDN=$(az containerapp show \
