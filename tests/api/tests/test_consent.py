@@ -12,6 +12,8 @@ async def test_record_consent_success(client: AsyncClient, test_user: User):
         "regulatory_accepted": True,
         "privacy_accepted": True,
         "communication_accepted": False,
+        "target_id": "home-page",
+        "location": "IN",
         "device_details": {"browser": "Chrome", "os": "Windows"}
     }
     
@@ -21,9 +23,13 @@ async def test_record_consent_success(client: AsyncClient, test_user: User):
     
     data = response.json()
     assert "id" in data
-    assert data["consent_type"] == "LOGIN"
-    assert data["consented"] is True
+    assert data["context"] == "ONBOARDING"
+    assert data["consent_version"] == "v1.0"
+    assert data["regulatory_accepted"] is True
+    assert data["privacy_accepted"] is True
+    assert data["communication_accepted"] is False
     assert data["target_id"] == "home-page"
     assert data["location"] == "IN"
     assert data["device_details"]["browser"] == "Chrome"
     assert "user_id" in data
+    assert "created_at" in data
