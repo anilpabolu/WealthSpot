@@ -62,6 +62,37 @@ export default function BuilderListingEditPage() {
   const [address, setAddress] = useState<AddressFields>({ addressLine1: '', addressLine2: '', landmark: '', locality: '', city: '', state: '', pincode: '', district: '', country: 'India' })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [showOnboarding, setShowOnboarding] = useState(false)
+
+  // Prepare hero section with matching styling
+  const hero = (
+    <section id="hero" className="page-hero-navbar relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16 -mt-16" style={{
+      backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }}>
+      {/* Blur orbs — matching VaultsPage & BuilderListingsPage */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+      </div>
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+        <div className="animate-fade-up">
+          <div className="flex items-center gap-3 mb-4">
+            <button onClick={() => navigate(`/portal/builder/listings/${id}`)} className="text-white/60 hover:text-white transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">
+                Edit Listing
+              </h1>
+              <p className="text-white/60 text-sm mt-2 max-w-2xl">{opp?.title || 'Loading...'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
   // ── Property specs state ───────────────────────────────────────────────
   const [propertyType, setPropertyType] = useState<string>('')
   const [unitConfigs, setUnitConfigs] = useState<UnitConfigRow[]>([{ ...DEFAULT_UNIT_CONFIG }])
