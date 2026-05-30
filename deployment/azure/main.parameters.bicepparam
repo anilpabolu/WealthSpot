@@ -27,7 +27,7 @@ param location = 'centralindia'
 
 // Public URL for media files served via Cloudflare R2
 // Using direct R2 URL — update to https://media.wealthspot.in once custom domain is configured in Cloudflare dashboard
-param r2PublicUrl = 'https://pub-ef97cf3860e74922b7c4be088f0e076d.r2.dev'
+param r2PublicUrl = 'https://media.wealthspot.in'
 
 // Cloudflare R2 bucket name
 param r2Bucket = 'wealthspot-media-prod'

@@ -22,7 +22,7 @@ param location string = resourceGroup().location
 param r2EndpointUrl string
 
 @description('Cloudflare R2 public URL for served media.')
-param r2PublicUrl string = 'https://pub-ef97cf3860e74922b7c4be088f0e076d.r2.dev'
+param r2PublicUrl string = 'https://media.wealthspot.in'
 
 @description('Cloudflare R2 bucket name for public media.')
 param r2Bucket string = 'wealthspot-media-prod'
