@@ -20,6 +20,7 @@ from app.models.user import User
 from app.services.s3 import (
     check_s3_connectivity,
     delete_file,
+    ensure_current_public_url,
     get_public_url,
     upload_avatar,
     upload_file,
@@ -198,7 +199,7 @@ async def upload_opportunity_files(
             {
                 "id": str(media.id),
                 "media_type": media.media_type,
-                "url": media.url,
+                "url": ensure_current_public_url(media.url),
                 "filename": media.filename,
                 "size_bytes": media.size_bytes,
                 "is_cover": media.is_cover,
@@ -351,7 +352,7 @@ async def admin_upload_opportunity_media(
             {
                 "id": str(media.id),
                 "media_type": media.media_type,
-                "url": media.url,
+                "url": ensure_current_public_url(media.url),
                 "filename": media.filename,
                 "size_bytes": media.size_bytes,
                 "is_cover": media.is_cover,
@@ -405,7 +406,7 @@ async def list_opportunity_media(
         {
             "id": str(m.id),
             "media_type": m.media_type,
-            "url": m.url,
+            "url": ensure_current_public_url(m.url),
             "filename": m.filename,
             "size_bytes": m.size_bytes,
             "is_cover": m.is_cover,
@@ -496,7 +497,7 @@ async def upload_opportunity_documents(
             {
                 "id": str(media.id),
                 "media_type": media.media_type,
-                "url": media.url,
+                "url": ensure_current_public_url(media.url),
                 "filename": media.filename,
                 "size_bytes": media.size_bytes,
                 "content_type": media.content_type,
@@ -655,7 +656,7 @@ async def download_assessment_document(
 
     return {
         "id": str(media.id),
-        "url": media.url,
+        "url": ensure_current_public_url(media.url),
         "filename": media.filename,
         "content_type": media.content_type,
         "size_bytes": media.size_bytes,
@@ -685,7 +686,7 @@ async def list_my_opportunity_media(
         {
             "id": str(m.id),
             "media_type": m.media_type,
-            "url": m.url,
+            "url": ensure_current_public_url(m.url),
             "filename": m.filename,
             "size_bytes": m.size_bytes,
             "content_type": m.content_type,
