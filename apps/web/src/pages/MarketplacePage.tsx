@@ -477,7 +477,7 @@ export default function MarketplacePage() {
                   <>
                     {/* Opportunity tiles */}
                     {opportunities.map((opp) => {
-                      const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage
+                      const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
                       const oppStatus = (opp.status ?? '').toLowerCase() as StatusType
                       return (
                         <div

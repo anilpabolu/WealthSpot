@@ -67,6 +67,7 @@ export interface OpportunityItem {
   currentValuation: number | null
   coverImage: string | null
   videoUrl: string | null
+  gallery: string[] | null
   companyId: string | null
   investorCount: number
   launchDate: string | null

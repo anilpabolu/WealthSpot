@@ -127,7 +127,7 @@ export function useBuilderListings() {
         raised: opp.raisedAmount ?? 0,
         target: opp.targetAmount ?? 0,
         investors: opp.investorCount ?? 0,
-        image: opp.coverImage ?? '',
+        image: opp.coverImage ?? opp.gallery?.[0] ?? '',
         type: 'opportunity',
         slug: opp.slug,
       })

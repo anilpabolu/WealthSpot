@@ -415,11 +415,13 @@ export default function OpportunityDetailPage() {
   }
 
   // Build gallery: prefer media with isCover, then gallery array, then coverImage
-  const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage
+  const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
 
   const galleryImages = opp.media?.length
     ? opp.media.map(m => m.url)
-    : (coverUrl ? [coverUrl] : [])
+    : opp.gallery?.length
+      ? opp.gallery
+      : (coverUrl ? [coverUrl] : [])
 
   const ribbon = getLifecycleRibbon({
     status: opp.status,
