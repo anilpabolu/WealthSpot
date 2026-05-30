@@ -497,7 +497,7 @@ export default function MarketplacePage() {
                                   className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-colors"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    navigate(`/builder/listings/${opp.id}/edit`)
+                                    navigate(`/portal/builder/listings/${opp.id}/edit`)
                                   }}
                                   title="Edit listing"
                                 >
