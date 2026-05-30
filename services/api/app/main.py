@@ -364,6 +364,13 @@ async def health() -> dict:
     except Exception as e:
         checks["s3"] = f"error: {e}"
 
+    # JWT secret strength check — catches placeholder/weak secrets early
+    checks["jwt_secret"] = (
+        "ok"
+        if len(settings.jwt_secret_key) >= 32
+        else f"weak ({len(settings.jwt_secret_key)} chars)"
+    )
+
     # Alembic migration head
     try:
         from sqlalchemy import text
