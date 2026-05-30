@@ -10,57 +10,21 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, ShieldCheck, Gift, Edit2, ChevronRight } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 
-/* ------------------------------------------------------------------ */
-/*  Shield Popup Modal                                                 */
-/* ------------------------------------------------------------------ */
+import { ShieldInfoModal } from '@/components/shield/ShieldInfoModal'
 
-function ShieldPopup({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="modal-overlay p-4 z-[9999]">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="modal-panel max-w-lg relative bg-white rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-2 text-[#D4AF37]">
-              <ShieldCheck className="h-8 w-8" />
-              <h2 className="font-display text-2xl font-bold text-gray-900">WealthSpot Shield</h2>
-            </div>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
-          </div>
-          <p className="text-gray-600 mb-6 leading-relaxed">
-            Every listing passes through a rigorous 7-layer Shield review before it earns Shield Certified status.
-          </p>
-          <ul className="space-y-4">
-            {[
-              'Builder Assessment',
-              'Legal Assessment',
-              'Valuation Assessment',
-              'Location Assessment',
-              'Property Assessment',
-              'Security Assessment',
-              'Exit Assessment'
-            ].map(item => (
-              <li key={item} className="flex items-center gap-3 text-sm font-medium text-gray-800">
-                <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
+const VAULT_HERO_IMAGES: Record<string, string> = {
+  wealth: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&auto=format&fit=crop&q=90',
+  safe:   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1400&auto=format&fit=crop&q=90',
+  community: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1400&auto=format&fit=crop&q=90',
 }
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
-import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
+
 
 /* ------------------------------------------------------------------ */
 /*  Per-vault hero theming (gradient · accent · copy)                  */
@@ -389,11 +353,19 @@ export default function MarketplacePage() {
         description="Browse premium fractional real estate and investment opportunities on WealthSpot. Wealth, Safe, and Community Vaults."
         path="/marketplace"
       />
-      {showShieldPopup && <ShieldPopup onClose={() => setShowShieldPopup(false)} />}
+      <ShieldInfoModal open={showShieldPopup} onClose={() => setShowShieldPopup(false)} />
 
       {/* New Hero Section */}
-      <div className="bg-slate-900 border-b border-theme/20 pt-28 pb-12 px-6 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="relative border-b border-theme/20 pt-28 pb-12 px-6 sm:px-8 overflow-hidden bg-black">
+        {/* Background Image - Matches Vault Page */}
+        <img
+          src={VAULT_HERO_IMAGES[vaultKey] || VAULT_HERO_IMAGES.wealth}
+          alt="Vault Background"
+          className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-3">
               {hero.badge}
@@ -407,9 +379,6 @@ export default function MarketplacePage() {
                 Learn more
               </button>
             </p>
-          </div>
-          <div className="hidden md:block w-full max-w-md">
-            <ShieldHeroCarousel />
           </div>
         </div>
       </div>
