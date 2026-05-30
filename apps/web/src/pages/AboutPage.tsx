@@ -10,7 +10,7 @@ function HeroSection() {
   return (
     <section
       id="hero"
-      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden"
+      className="page-hero-compact bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden !pb-10 lg:!pb-12"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -19,17 +19,19 @@ function HeroSection() {
       </div>
 
       <div className="page-hero-content">
-        <div className="animate-fade-up max-w-3xl">
-          <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
+        <div className="animate-fade-up">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
             Our Story
           </p>
-          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
-            Built on the belief that{' '}
-            <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
-          </h1>
-          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
-            WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:gap-16">
+            <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 lg:mb-0 tracking-tight leading-[1.1] lg:w-1/2 shrink-0">
+              Built on the belief that{' '}
+              <span className="text-[#D4AF37] italic">real wealth is shareable.</span>
+            </h1>
+            <p className="text-white/60 text-base leading-relaxed font-body lg:flex-1">
+              WealthSpot was founded to close the gap between institutional-grade real estate and the individual investor — making premium assets accessible, transparent, and genuinely collaborative.
+            </p>
+          </div>
         </div>
       </div>
     </section>
