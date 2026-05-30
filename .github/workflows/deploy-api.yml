@@ -107,8 +107,8 @@ jobs:
             --set-env-vars \
               "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
               "S3_ENDPOINT_URL=https://33fb2c1e5523aeb4cf5971fd9e385a3e.r2.cloudflarestorage.com" \
-              "S3_PUBLIC_URL=https://media.wealthspot.in" \
-              "AWS_S3_BUCKET=wealthspot-media" \
+              "S3_PUBLIC_URL=https://33fb2c1e5523aeb4cf5971fd9e385a3e.r2.cloudflarestorage.com/wealthspot-media-prod" \
+              "AWS_S3_BUCKET=wealthspot-media-prod" \
               "AWS_REGION=auto" \
             --output none
           echo "Updated Container App to: ${{ needs.build.outputs.full_image }}"

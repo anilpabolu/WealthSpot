@@ -22,10 +22,10 @@ param location string = resourceGroup().location
 param r2EndpointUrl string
 
 @description('Cloudflare R2 public URL for served media.')
-param r2PublicUrl string = 'https://media.wealthspot.in'
+param r2PublicUrl string = 'https://33fb2c1e5523aeb4cf5971fd9e385a3e.r2.cloudflarestorage.com/wealthspot-media-prod'
 
 @description('Cloudflare R2 bucket name for public media.')
-param r2Bucket string = 'wealthspot-media'
+param r2Bucket string = 'wealthspot-media-prod'
 
 @description('Container image to deploy. Set to helloworld placeholder until first CI/CD run.')
 param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'

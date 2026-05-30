@@ -37,7 +37,7 @@ param s3PublicUrl string = 'https://media.wealthspot.in'
 param s3EndpointUrl string
 
 @description('Cloudflare R2 bucket name for public media')
-param s3Bucket string = 'wealthspot-media'
+param s3Bucket string = 'wealthspot-media-prod'
 
 @description('Azure Blob endpoint for KYC documents')
 param kycEndpointUrl string
