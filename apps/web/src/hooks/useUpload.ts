@@ -26,7 +26,6 @@ export function useUploadOpportunityMedia() {
       const resp = await api.post<UploadedMedia[]>(
         `/uploads/opportunity/${opportunityId}/media?is_cover=${isCover}`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return resp.data
     },
@@ -44,7 +43,6 @@ export function useUploadCompanyLogo() {
       const resp = await api.post<{ url: string }>(
         `/uploads/company/${companyId}/logo`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return resp.data
     },
