@@ -353,6 +353,17 @@ async def health() -> dict:
         _logger.error("Health check Redis failure: %s", e)
         checks["redis"] = "error"
 
+    # S3 / media storage check
+    try:
+        from app.services.s3 import check_s3_connectivity
+
+        s3_result = await check_s3_connectivity()
+        checks["s3"] = "ok" if s3_result["ok"] else f"error: {s3_result.get('error', 'unknown')}"
+        checks["s3_endpoint"] = s3_result["endpoint"]
+        checks["s3_bucket"] = s3_result["bucket"]
+    except Exception as e:
+        checks["s3"] = f"error: {e}"
+
     # Alembic migration head
     try:
         from sqlalchemy import text
