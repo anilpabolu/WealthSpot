@@ -125,7 +125,7 @@ export default function App() {
   const { data: appearance } = useAppearanceConfig()
   useEffect(() => {
     if (showBootSplash) return
-    const color = appearance?.lightModeBgColor || '#FDFBF5'
+    const color = appearance?.lightModeBgColor || '#ffffff'
     if (theme !== 'dark') {
       applyThemePalette(color)
     }

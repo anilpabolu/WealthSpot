@@ -33,13 +33,13 @@ export default function RiskDisclosurePage() {
 
       <section
         className="relative overflow-hidden py-20 sm:py-28"
-        style={{ background: '#FDFBF5' }}
+        style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         
         <div className="relative z-10 mx-auto max-w-4xl px-6 sm:px-8 lg:px-16 space-y-12">
           
-          <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(239,68,68,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(239,68,68,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <h2 className="font-hero text-xl sm:text-2xl font-bold text-red-600 flex items-center gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 shrink-0" />
               IMPORTANT NOTICE: REAL ESTATE ALLOCATION AND MARKET ASSET RISK STATEMENT

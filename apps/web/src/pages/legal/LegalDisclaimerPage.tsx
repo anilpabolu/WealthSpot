@@ -33,7 +33,7 @@ export default function LegalDisclaimerPage() {
 
       <section
         className="relative overflow-hidden py-20 sm:py-28"
-        style={{ background: '#FDFBF5' }}
+        style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         

@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
 
       <section
         className="relative overflow-hidden py-20 sm:py-28"
-        style={{ background: '#FDFBF5' }}
+        style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         
@@ -51,19 +51,19 @@ export default function PrivacyPolicyPage() {
               Because WealthSpot acts as an exclusive Real Estate Intelligence and Private Discovery network, we collect highly deliberate, specialized data points to ensure the integrity of our invite-only ecosystem. We collect:
             </p>
             <div className="grid gap-4">
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Identity Data</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">First name, last name, phone number, encrypted email communication channels, and residency status (Resident Indian / Non-Resident Indian (NRI)).</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Verification & Profile Data</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">PAN (Permanent Account Number), Tax Residency documentation (where relevant for cross-border introduction validation), and basic accredited profile parameters.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Engagement & Intelligence Preferences</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">Geographic property preferences, asset class interest trends, allocation scales, and specific intelligence reports requested.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Technical & Usage Metadata</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">IP address, browser parameters, cookies, and system logs captured via secure enterprise framework systems.</p>
               </div>
@@ -79,15 +79,15 @@ export default function PrivacyPolicyPage() {
               WealthSpot utilizes your data strictly under the 'lawful basis' and 'explicit consent' frameworks of the DPDP Act. We do not engage in monetization, algorithmic trading of individual identities, or cross-platform tracking. Your data is processed solely to:
             </p>
             <div className="grid gap-4">
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Verify Membership Eligibility</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">Validate platform access credentials and preserve a secure, invite-only HNI ecosystem.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Customize Discovery Portfolios</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">Provide customized real estate intelligence metrics, market research, and asset analytics tailored to your specified geographic parameters.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Direct Intermediary Facilitation</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">Facilitate direct, one-to-one introductions to third-party developers, builder networks, or independent consulting entities strictly upon your direct instruction.</p>
               </div>

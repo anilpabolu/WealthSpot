@@ -129,17 +129,22 @@ export function deriveThemePalette(baseHex: string): Record<string, string> {
   // ── Scrollbar ──
   const scrollThumb = hslToHex(h, clamp(s + 10, 0, 100), clamp(l - 22, 20, 70))
 
+  // When base is near-white (l ≥ 98), cards should be pure white for glossy look
+  const cardBg = l >= 98 ? '#ffffff' : `rgba(${hexToRGB(cardSolid)}, 0.92)`
+  const modalBg = l >= 98 ? 'rgba(255,255,255,0.98)' : `rgba(${hexToRGB(cardSolid)}, 0.96)`
+
   return {
     '--bg-base': baseHex,
     '--bg-surface': surface,
     '--bg-surface-hover': surfaceHover,
-    '--bg-card': `rgba(${hexToRGB(cardSolid)}, 0.92)`,
+    '--bg-card': cardBg,
     '--bg-card-border': `rgba(${hexToRGB(inputBorder)}, ${cardBorderAlpha})`,
-    '--bg-card-shadow': '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.04)',
-    '--bg-card-shadow-hover': '0 1px 3px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08)',
+    // Premium elevated shadow — visible depth on any background
+    '--bg-card-shadow': '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.07)',
+    '--bg-card-shadow-hover': '0 2px 6px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.11), 0 18px 36px rgba(0,0,0,0.09)',
     '--bg-sidebar': `rgba(${hexToRGB(sidebar)}, 0.7)`,
     '--bg-sidebar-border': `rgba(${hexToRGB(inputBorder)}, 0.35)`,
-    '--bg-input': surface,
+    '--bg-input': l >= 98 ? '#ffffff' : surface,
     '--bg-input-border': inputBorder,
     '--bg-input-focus-ring': warm ? 'rgba(139, 105, 20, 0.4)' : 'rgba(79, 70, 229, 0.4)',
     '--text-primary': textPrimary,
@@ -155,12 +160,12 @@ export function deriveThemePalette(baseHex: string): Record<string, string> {
     '--skeleton-from': skeletonFrom,
     '--skeleton-via': skeletonVia,
     '--skeleton-to': skeletonFrom,
-    '--modal-bg': `rgba(${hexToRGB(cardSolid)}, 0.96)`,
+    '--modal-bg': modalBg,
     '--modal-border': `rgba(${hexToRGB(inputBorder)}, 0.3)`,
     '--scrollbar-thumb': scrollThumb,
-    '--frame-border': frameBorder,
-    '--frame-border-hover': frameBorderHover,
-    '--card-glow': '0 0 8px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.04)',
+    '--frame-border': l >= 98 ? 'rgba(0,0,0,0.08)' : frameBorder,
+    '--frame-border-hover': l >= 98 ? 'rgba(0,0,0,0.16)' : frameBorderHover,
+    '--card-glow': '0 0 0 1px rgba(0, 0, 0, 0.04)',
   }
 }
 

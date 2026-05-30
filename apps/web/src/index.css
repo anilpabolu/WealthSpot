@@ -10,10 +10,9 @@ html { font-size: 100%; }
 @layer base {
   /* ───── Theme CSS Custom Properties ───── */
   :root {
-    /* ── Background: light cool-gray (matches premium dashboard look) ── */
-    --bg-base: #F1F4F9;
-    --bg-surface: #F8F9FB;
-    --bg-surface-hover: #F5F0E6;
+    --bg-base: #ffffff;
+    --bg-surface: #f8f9fa;
+    --bg-surface-hover: #f0f1f5;
     --bg-card: #ffffff;
     --bg-card-border: rgba(209,196,157,0.3);
     /* ── Shadow: elevated premium card shadow ── */
@@ -471,7 +470,7 @@ html { font-size: 100%; }
 
   /* Glass utility for reusable glassmorphism */
   .glass {
-    @apply bg-[#FFFEF9]/70 backdrop-blur-xl;
+    @apply bg-white/80 backdrop-blur-xl;
     border: 1px solid var(--frame-border);
   }
   .dark .glass {

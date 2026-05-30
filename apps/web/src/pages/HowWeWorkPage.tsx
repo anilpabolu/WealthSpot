@@ -46,7 +46,7 @@ function IntroSection() {
   return (
     <section
       className="relative overflow-hidden py-20 sm:py-28"
-      style={{ background: '#FDFBF5' }}
+      style={{ background: '#ffffff' }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
 
@@ -179,7 +179,7 @@ const METHODOLOGY = [
 
 function MethodologySection() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#FDFBF5' }}>
+    <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
         <div className="mb-14 max-w-2xl text-center mx-auto">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Our Strategy</p>
@@ -216,7 +216,7 @@ function MethodologySection() {
               <div
                 className="flex-1 rounded-2xl p-6 sm:p-8"
                 style={{
-                  background: `linear-gradient(135deg, rgba(${accentRgb},0.03) 0%, #ffffff 60%, #FDFBF5 100%)`,
+                  background: `linear-gradient(135deg, rgba(${accentRgb},0.03) 0%, #ffffff 60%, #ffffff 100%)`,
                   border: `1px solid rgba(${accentRgb},0.18)`,
                   boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
                 }}

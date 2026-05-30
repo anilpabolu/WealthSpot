@@ -33,7 +33,7 @@ export default function TermsOfUsePage() {
 
       <section
         className="relative overflow-hidden py-20 sm:py-28"
-        style={{ background: '#FDFBF5' }}
+        style={{ background: '#ffffff' }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
         
@@ -51,19 +51,19 @@ export default function TermsOfUsePage() {
               WealthSpot functions strictly as a high-governance Real Estate Discovery Platform, Lead-Generation System, and Independent Property Advisory Intermediary. You explicitly acknowledge and agree to the following operational boundaries:
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">No Pooling of Capital</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">WealthSpot does not aggregate capital, solicit deposits, manage collective accounts, or handle investor funds. We maintain no pooled treasury, collective investment fund, or investment corpus.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">No Fractional Issuance or SPV Management</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">WealthSpot does not issue, market, manage, or coordinate fractional property ownership titles, shared-appreciation instruments, or tokenized securities.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Direct Transaction Execution</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">All financial parameters, negotiations, documentation, and asset acquisitions occur directly and independently between you and the respective developers. WealthSpot does not act as an agent with discretionary transaction authority.</p>
               </div>
-              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #FDFBF5 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, #ffffff 60%, #ffffff 100%)', border: '1px solid rgba(212,175,55,0.18)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <h3 className="font-bold text-[#111827] mb-2">Non-Financial Advisory</h3>
                 <p className="text-[14px] text-[#4B5563] leading-relaxed">The information, analytics, and intelligence reports presented on WealthSpot do not constitute regulated financial planning, investment advice under SEBI guidelines, or asset portfolio management.</p>
               </div>

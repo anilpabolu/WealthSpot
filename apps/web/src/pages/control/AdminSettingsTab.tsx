@@ -197,7 +197,7 @@ function NotificationsTab() {
 /* ------------------------------------------------------------------ */
 
 const LIGHT_MODE_BG_OPTIONS = [
-  { color: '#FDFBF5', label: 'Warm Cream' },
+  { color: '#ffffff', label: 'Pure White' },
   { color: '#F8F9FA', label: 'Cool White' },
   { color: '#FFFFF0', label: 'Soft Ivory' },
   { color: '#F0F4F0', label: 'Pale Sage' },
@@ -216,13 +216,13 @@ function AppearancePanel() {
   const queryClient = useQueryClient()
 
   const currentCfg = configs?.find((c) => c.key === 'light_mode_bg_color')
-  const currentColor = (currentCfg?.value as string) || '#FDFBF5'
+  const currentColor = (currentCfg?.value as string) || '#ffffff'
 
   const [selected, setSelected] = useState<string>(currentColor)
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
-    if (currentCfg) setSelected((currentCfg.value as string) || '#FDFBF5')
+    if (currentCfg) setSelected((currentCfg.value as string) || '#ffffff')
   }, [currentCfg])
 
   const handleSelect = (color: string) => {
