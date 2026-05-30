@@ -52,8 +52,13 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     async (req) => {
       // Let browser auto-set multipart boundary for file uploads
       if (typeof FormData !== 'undefined' && req.data instanceof FormData) {
-        delete req.headers['Content-Type']
-        delete req.headers['content-type']
+        if (typeof req.headers.delete === 'function') {
+          req.headers.delete('Content-Type')
+          req.headers.delete('content-type')
+        } else {
+          delete req.headers['Content-Type']
+          delete req.headers['content-type']
+        }
       }
 
       const contentType = String(req.headers?.['Content-Type'] ?? req.headers?.['content-type'] ?? '')

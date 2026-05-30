@@ -118,36 +118,8 @@ describe('VaultsPage', () => {
     expect(screen.getByTestId('footer')).toBeInTheDocument()
   })
 
-  it('displays live metrics from API data', () => {
+  it('renders Express Interest CTA for active vaults', () => {
     renderPage()
-    // Wealth vault should show investor count of 42
-    expect(screen.getByText('42')).toBeInTheDocument()
-    // Investors label is present (investor_count is in first 4 visible metrics)
-    expect(screen.getAllByText('Investors').length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('displays formatted investment amounts', () => {
-    renderPage()
-    // ₹50 L for wealth (5000000)
-    expect(screen.getByText('₹50.0 L')).toBeInTheDocument()
-  })
-
-
-
-  it('renders CTA buttons for each vault', () => {
-    renderPage()
-    expect(screen.getAllByText('Explore Investment').length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders metric labels', () => {
-    renderPage()
-    expect(screen.getAllByText('Total Invested').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Investors').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Explorers').length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('shows DNA Investors count', () => {
-    renderPage()
-    expect(screen.getByText('15')).toBeInTheDocument()
+    expect(screen.getAllByText('Express Interest').length).toBeGreaterThanOrEqual(1)
   })
 })

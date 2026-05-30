@@ -326,12 +326,21 @@ export default function BuilderListingEditPage() {
                   <Input label="Founder Name" value={form.founderName ?? ''} onChange={(e) => handleChange('founderName', e.target.value)} />
                   <Input label="Pitch Deck URL" type="url" value={form.pitchDeckUrl ?? ''} onChange={(e) => handleChange('pitchDeckUrl', e.target.value)} />
                 </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input label="Target Amount (₹) *" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
+                  <Input label="Min Investment (₹) *" type="number" min={0} prefix="₹" value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} />
+                  <Input label="Interest Rate (% p.a.) *" type="number" step="0.1" min={0} value={String((opp.safeVaultData as any)?.interest_rate ?? '')} onChange={(e) => setForm(p => ({ ...p, safeVaultData: { ...(p.safeVaultData || opp.safeVaultData || {}), interest_rate: Number(e.target.value) } }))} suffix="%" />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Target Amount" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
                   <div>
-                    <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
-                    <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
+                    <label className="block text-sm font-medium text-theme-primary mb-1">Payout Frequency</label>
+                    <Select value={String((opp.safeVaultData as any)?.payout_frequency ?? 'monthly')} onChange={(v) => setForm(p => ({ ...p, safeVaultData: { ...(p.safeVaultData || opp.safeVaultData || {}), payout_frequency: v } }))} options={[{ value: 'monthly', label: 'Monthly' }, { value: 'quarterly', label: 'Quarterly' }, { value: 'yearly', label: 'Yearly' }]} />
                   </div>
+                  <Input label="Tenure (months) *" type="number" min={1} value={String((opp.safeVaultData as any)?.tenure_months ?? '')} onChange={(e) => setForm(p => ({ ...p, safeVaultData: { ...(p.safeVaultData || opp.safeVaultData || {}), tenure_months: Number(e.target.value) } }))} suffix=" mo." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
+                  <Select value={form.city ?? ''} onChange={(v) => handleChange('city', v)} placeholder="Select city" options={INDIAN_CITIES.map((c) => ({ value: c, label: c }))} searchable />
                 </div>
               </>
             )}
@@ -351,9 +360,30 @@ export default function BuilderListingEditPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Target Amount" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
-                  <Input label="Min Investment" type="number" min={0} prefix="₹" value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} />
+                  <Input label="Target Amount (₹) *" type="number" min={0} prefix="₹" value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} />
+                  <Input label="Min Investment (₹) *" type="number" min={0} prefix="₹" value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} />
                 </div>
+                {opp.communitySubtype === 'co_investor' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Investment Tenure</label>
+                      <Select value={String((opp.communityDetails as any)?.investmentTenure ?? '')} onChange={(v) => setForm(p => ({ ...p, communityDetails: { ...(p.communityDetails || opp.communityDetails || {}), investmentTenure: v } }))} placeholder="Select tenure" options={['6 Months', '1 Year', '2 Years', '3 Years', '5 Years', '7 Years'].map(o => ({ value: o, label: o }))} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Revenue Model</label>
+                      <Select value={String((opp.communityDetails as any)?.revenueModel ?? '')} onChange={(v) => setForm(p => ({ ...p, communityDetails: { ...(p.communityDetails || opp.communityDetails || {}), revenueModel: v } }))} placeholder="Select model" options={['Rental Income', 'Profit Sharing', 'Membership Fees', 'Revenue Share', 'Equity Appreciation', 'Other'].map(o => ({ value: o, label: o }))} />
+                    </div>
+                  </div>
+                )}
+                {opp.communitySubtype === 'co_partner' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="Equity Share Offered (%) *" type="number" min={0} max={100} step="0.1" value={String((opp.communityDetails as any)?.equityShare ?? '')} onChange={(e) => setForm(p => ({ ...p, communityDetails: { ...(p.communityDetails || opp.communityDetails || {}), equityShare: Number(e.target.value) } }))} suffix="%" />
+                    <div>
+                      <label className="block text-sm font-medium text-theme-primary mb-1">Time Commitment</label>
+                      <Select value={String((opp.communityDetails as any)?.timeCommitment ?? '')} onChange={(v) => setForm(p => ({ ...p, communityDetails: { ...(p.communityDetails || opp.communityDetails || {}), timeCommitment: v } }))} placeholder="Select commitment" options={['Part-time (< 10 hrs/week)', 'Half-time (10–20 hrs/week)', 'Full-time (20–40 hrs/week)', 'On-call / Flexible'].map(o => ({ value: o, label: o }))} />
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
