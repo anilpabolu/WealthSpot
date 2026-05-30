@@ -3,6 +3,21 @@ import { Link, useLocation } from 'react-router-dom'
 import { Twitter, Linkedin, Instagram, Youtube, Mail, MapPin } from 'lucide-react'
 import WLogo3D from '@/components/ui/WLogo3D'
 
+function CollapsiblePara({ children }: { children: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div>
+      <p className={`leading-relaxed ${!expanded ? 'line-clamp-2' : ''}`}>{children}</p>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="mt-0.5 text-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+      >
+        {expanded ? 'Show less' : 'Read more'}
+      </button>
+    </div>
+  )
+}
+
 // ── Shared legal links used in both footer variants ───────────────────────────
 const LEGAL_LINKS = [
   { label: 'Terms of Service', href: '/legal/terms' },
@@ -178,20 +193,20 @@ export default function Footer() {
         <div className="border-t border-white/10" />
 
         {/* Regulatory & Compliance Disclosure */}
-        <div className="py-8 flex flex-col gap-4 font-body text-[11px] text-white/55 leading-relaxed text-justify sm:text-left">
+        <div className="py-8 flex flex-col gap-4 font-body text-[11px] text-white/55 text-justify sm:text-left">
           <h4 className="font-bold text-[#D4AF37] uppercase tracking-wider mb-2">Regulatory & Compliance Disclosure</h4>
-          <p>
+          <CollapsiblePara>
             WealthSpot (including WealthSpot Technologies Pvt. Ltd. and WealthSpot Advisory LLP) operates strictly as a real estate discovery, market intelligence, networking, and independent property advisory platform. WealthSpot facilitates curated project discovery, developer introductions, real estate research insights, transaction coordination support, and investor-developer connectivity. WealthSpot does not operate as a bank, Non-Banking Financial Company (NBFC), Alternative Investment Fund (AIF), Portfolio Management Service (PMS), Collective Investment Scheme (CIS), crowdfunding platform, real estate investment trust (REIT), or Asset Management Company (AMC).
-          </p>
-          <p>
+          </CollapsiblePara>
+          <CollapsiblePara>
             WealthSpot is not registered with the Securities and Exchange Board of India (SEBI) as an Investment Adviser, Research Analyst, Portfolio Manager, or Collective Investment Vehicle, and does not undertake regulated securities activities under applicable SEBI regulations. WealthSpot does not solicit deposits, pool investor capital, manage collective funds, issue fractional ownership securities, guarantee returns, provide assured appreciation, or execute discretionary investment management services.
-          </p>
-          <p>
+          </CollapsiblePara>
+          <CollapsiblePara>
             All project information, market intelligence, property analytics, projections, valuation references, and opportunity assessments published on this platform are intended solely for informational, educational, and discovery purposes and should not be construed as financial advice, investment solicitation, securities recommendation, or guaranteed investment guidance. All transactions are executed directly between the investor and the respective developer, landowner, seller, or asset-owning entity. Investors are solely responsible for conducting independent legal, financial, taxation, technical, title, regulatory, and commercial due diligence prior to entering into any transaction or investment decision.
-          </p>
-          <p>
+          </CollapsiblePara>
+          <CollapsiblePara>
             WealthSpot does not assume fiduciary responsibility for investor decisions, developer performance, project execution, regulatory approvals, market fluctuations, pricing movements, construction timelines, liquidity outcomes, or investment returns. Users and investors are advised to consult qualified legal, tax, financial, and regulatory professionals before making any real estate acquisition or investment decision.
-          </p>
+          </CollapsiblePara>
         </div>
 
         {/* Bottom bar */}
