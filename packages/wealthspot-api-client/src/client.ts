@@ -50,8 +50,15 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
   api.interceptors.request.use(
     async (req) => {
+      // Let browser auto-set multipart boundary for file uploads
+      if (typeof FormData !== 'undefined' && req.data instanceof FormData) {
+        delete req.headers['Content-Type']
+        delete req.headers['content-type']
+      }
+
       const contentType = String(req.headers?.['Content-Type'] ?? req.headers?.['content-type'] ?? '')
-      const isJsonBody = contentType === '' || contentType.includes('application/json')
+      const isJsonBody = (contentType === '' || contentType.includes('application/json')) &&
+        !(typeof FormData !== 'undefined' && req.data instanceof FormData)
 
       if (req.params) {
         req.params = convertKeysToSnake(req.params) as Record<string, unknown>
