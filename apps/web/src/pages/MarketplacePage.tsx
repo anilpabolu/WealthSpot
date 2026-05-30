@@ -1,8 +1,7 @@
 import { MainLayout } from '@/components/layout'
 import SEOHead from '@/components/SEOHead'
-import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
+import { type StatusType } from '@/components/wealth/StatusBadge'
 import PropertyCard from '@/components/wealth/PropertyCard'
-import FundingBar from '@/components/wealth/FundingBar'
 import { useProperties, type Property } from '@/hooks/useProperties'
 import { useOpportunities } from '@/hooks/useOpportunities'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
@@ -11,7 +10,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, HandCoins, AlertCircle, Trash2, ShieldCheck, Gift, Edit2, ChevronRight } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, ShieldCheck, Gift, Edit2, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 
@@ -62,8 +61,6 @@ import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
 import { ShieldHeroCarousel } from '@/components/shield/ShieldHeroCarousel'
-import ParticleCanvas from '@/components/ui/ParticleCanvas'
-import GradientMesh from '@/components/ui/GradientMesh'
 
 /* ------------------------------------------------------------------ */
 /*  Per-vault hero theming (gradient · accent · copy)                  */
@@ -314,7 +311,6 @@ export default function MarketplacePage() {
   const hero = VAULT_HERO_CONFIG[vaultKey] ?? VAULT_HERO_CONFIG.wealth!
 
   // CMS content — tagged per vault so each vault can have unique copy
-  const heroTitle = useContent('marketplace', `hero_title_${hero.cmsTag}`, hero.defaultTitle)
   const heroSubtitle = useContent('marketplace', `hero_subtitle_${hero.cmsTag}`, hero.defaultSubtitle)
   const emptyTitle = useContent('marketplace', 'empty_title', 'Nothing here yet \u{1F3D7}\uFE0F')
   const emptyMessage = useContent('marketplace', 'empty_message', 'Tweak those filters — your next opportunity could be one click away.')
