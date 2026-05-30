@@ -70,7 +70,7 @@ function UserDetailsModal({ user, title, onClose }: { user: EOIUser; title: stri
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-panel max-w-md mx-4 max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
           <h3 className="font-display text-lg font-bold text-theme-primary">{title}</h3>

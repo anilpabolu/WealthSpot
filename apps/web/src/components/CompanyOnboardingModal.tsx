@@ -7,17 +7,7 @@ import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useCompanyFormConfig } from '@/hooks/useControlCentre'
 import { useToastStore } from '@/stores/toastStore'
 import axios from 'axios'
-
-const ENTITY_TYPES = [
-  { value: 'private_limited', label: 'Private Limited' },
-  { value: 'public_limited', label: 'Public Limited' },
-  { value: 'llp', label: 'LLP' },
-  { value: 'partnership', label: 'Partnership Firm' },
-  { value: 'proprietorship', label: 'Sole Proprietorship' },
-  { value: 'trust', label: 'Trust' },
-  { value: 'society', label: 'Society' },
-  { value: 'individual', label: 'Individual' },
-]
+import { ENTITY_TYPES } from '@/lib/constants'
 
 const INITIAL: CompanyCreatePayload = {
   companyName: '',
@@ -211,7 +201,7 @@ export default function CompanyOnboardingModal({ open, onClose, onSuccess, vault
   const req = (field: string) => isRequired(field) ? ' *' : ''
 
   return (
-    <div className="modal-overlay z-[10000]" onClick={handleClose}>
+    <div className="modal-overlay z-[10000]">
       <div
         className="modal-panel max-w-2xl mx-4 relative"
         onClick={(e) => e.stopPropagation()}

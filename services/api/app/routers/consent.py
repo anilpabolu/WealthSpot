@@ -61,6 +61,7 @@ async def check_consent_status(
         .where(
             ConsentLog.user_id == current_user.id,
             ConsentLog.consent_version == CURRENT_VERSION,
+            ConsentLog.context.in_(["ONBOARDING", "LOGIN"]),
             ConsentLog.regulatory_accepted.is_(True),
             ConsentLog.privacy_accepted.is_(True),
         )

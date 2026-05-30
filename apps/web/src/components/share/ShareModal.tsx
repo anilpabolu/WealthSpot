@@ -741,7 +741,7 @@ export default function ShareModal({ open, onClose, opportunity, referralCode }:
   if (!open) return null
 
   return (
-    <div className="modal-overlay p-4" onClick={onClose}>
+    <div className="modal-overlay p-4">
       <div
         className="modal-panel max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}

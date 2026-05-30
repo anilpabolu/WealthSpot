@@ -22,6 +22,7 @@ import {
   Save,
   Undo2,
 } from 'lucide-react'
+import { ENTITY_TYPES } from '@/lib/constants'
 import MainLayout from '@/components/layout/MainLayout'
 import { useApprovals, useAllApprovals, useReviewApproval, type Approval } from '@/hooks/useApprovals'
 import { useApprovalStore } from '@/stores/approval.store'
@@ -143,7 +144,7 @@ function ReviewModal({
   }
 
   return (
-    <div className="modal-overlay z-[9999]" onClick={onClose}>
+    <div className="modal-overlay z-[9999]">
       <div className="modal-panel max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-lg font-bold text-theme-primary">
@@ -471,13 +472,7 @@ function EditCompanyPanel({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-theme-secondary mb-1">Entity Type</label>
-          <Select value={form.entityType} onChange={(v) => handleChange('entityType', v)} options={[
-            { value: 'private_limited', label: 'Private Limited' },
-            { value: 'public_limited', label: 'Public Limited' },
-            { value: 'llp', label: 'LLP' },
-            { value: 'partnership', label: 'Partnership' },
-            { value: 'proprietorship', label: 'Proprietorship' },
-          ]} />
+          <Select value={form.entityType} onChange={(v) => handleChange('entityType', v)} options={ENTITY_TYPES} />
         </div>
         <Input label="CIN" value={form.cin} onChange={(e) => handleChange('cin', e.target.value)} />
       </div>
@@ -718,7 +713,7 @@ function DetailPopup({ approval, onClose, onReview }: {
   const canAct = approval.status === 'pending' || approval.status === 'in_review'
 
   return (
-    <div className="modal-overlay z-[9999]" onClick={onClose}>
+    <div className="modal-overlay z-[9999]">
       <div
         className={`modal-panel ${isOpportunityApproval ? 'max-w-3xl' : 'max-w-lg'} mx-4 overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}

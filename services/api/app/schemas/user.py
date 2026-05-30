@@ -8,6 +8,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import KycStatus, UserRole
+from app.services.s3 import ensure_current_public_url
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -67,6 +68,10 @@ class UserRead(UserBase):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @field_validator("avatar_url", mode="before")
+    def rewrite_urls(cls, v):
+        return ensure_current_public_url(v)
 
 
 class UserProfile(UserRead):
@@ -244,6 +249,10 @@ class FullProfileRead(BaseModel):
     referral_code: str | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("avatar_url", mode="before")
+    def rewrite_urls(cls, v):
+        return ensure_current_public_url(v)
 
 
 # ── KYC ──────────────────────────────────────────────────────────────────────

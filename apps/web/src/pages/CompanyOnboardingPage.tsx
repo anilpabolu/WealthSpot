@@ -6,17 +6,7 @@ import { MainLayout } from '@/components/layout'
 import { useCreateCompany, type CompanyCreatePayload } from '@/hooks/useCompanies'
 import { usePincodeLookup } from '@/hooks/usePincodes'
 import { useToastStore } from '@/stores/toastStore'
-
-const ENTITY_TYPES = [
-  { value: 'private_limited', label: 'Private Limited' },
-  { value: 'public_limited', label: 'Public Limited' },
-  { value: 'llp', label: 'LLP' },
-  { value: 'partnership', label: 'Partnership Firm' },
-  { value: 'proprietorship', label: 'Sole Proprietorship' },
-  { value: 'trust', label: 'Trust' },
-  { value: 'society', label: 'Society' },
-  { value: 'individual', label: 'Individual' },
-]
+import { ENTITY_TYPES } from '@/lib/constants'
 
 const INITIAL: CompanyCreatePayload = {
   companyName: '',

@@ -73,6 +73,19 @@ def get_public_url(key: str) -> str:
     return f"https://{settings.aws_s3_bucket}.s3.{settings.aws_region}.amazonaws.com/{key}"
 
 
+def ensure_current_public_url(url: str | None) -> str | None:
+    """If the URL is an S3 media URL from an older environment, rewrite it to the current public URL."""
+    if not url:
+        return url
+    import re
+
+    match = re.search(r"(opportunities/|avatars/|companies/|templates/).*", url)
+    if match:
+        key = match.group(0)
+        return get_public_url(key)
+    return url
+
+
 async def upload_file(
     file: BinaryIO,
     key: str,

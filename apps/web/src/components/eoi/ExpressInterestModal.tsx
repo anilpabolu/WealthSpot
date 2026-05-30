@@ -8,6 +8,10 @@ import {
   useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, useEOIFormOptions,
   type BuilderQuestion,
 } from '@/hooks/useEOI'
+import { useRecordConsent, useConsentStatus } from '@/hooks/useConsent'
+import { cn } from '@/lib/utils'
+import { Check } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -137,7 +141,7 @@ interface Props {
   onClose: () => void
 }
 
-type Step = 'confirm' | 'config' | 'form' | 'success'
+type Step = 'confirm' | 'consent' | 'config' | 'form' | 'success'
 
 export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, propertyType: _propertyType, unitConfigs: rawUnitConfigs, plotConfigs: rawPlotConfigs, onClose }: Props) {
   const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
@@ -152,14 +156,14 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     (a, b) => (a.carpet_area_sqft ?? 0) - (b.carpet_area_sqft ?? 0)
   )
 
-  const [step, setStep] = useState<Step>(() => hasConfigs ? 'config' : 'form')
+  const [step, setStep] = useState<Step>('consent')
   const [eoiId, setEoiId] = useState<string | null>(null)
   const [selectedConfig, setSelectedConfig] = useState<UnitCfg | PlotCfg | null>(null)
   const [configError, setConfigError] = useState(false)
 
   // Show confirmation step if user already has EOIs for this property
   useEffect(() => {
-    if (!eoisLoading && hasExistingInvestment && (step === 'form' || step === 'config')) {
+    if (!eoisLoading && hasExistingInvestment && (step === 'consent' || step === 'form' || step === 'config')) {
       setStep('confirm')
     }
   }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -192,6 +196,8 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   const [bestTime, setBestTime] = useState('')
   const [notes, setNotes] = useState('')
   const [communicationConsent, setCommunicationConsent] = useState(true)
+  const [regulatoryAccepted, setRegulatoryAccepted] = useState(false)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
 
   // Builder custom question answers
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({})
@@ -199,8 +205,13 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   const { data: builderQuestions = [] } = useBuilderQuestions(opportunityId)
   const submitEOI = useSubmitEOI()
   const connectBuilder = useConnectWithBuilder()
+  const recordConsent = useRecordConsent()
+  const { data: status } = useConsentStatus(true)
+  const CURRENT_VERSION = status?.consent_version || "v1.0"
 
   const handleSubmit = async () => {
+    if (!regulatoryAccepted || !privacyAccepted) return
+
     const answers = builderQuestions
       .filter((q: BuilderQuestion) => customAnswers[q.id]?.trim())
       .map((q: BuilderQuestion) => ({
@@ -208,21 +219,50 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
         answerText: customAnswers[q.id] ?? null,
       }))
 
-    const result = await submitEOI.mutateAsync({
-      opportunityId,
-      investmentAmount: computedInvestment || undefined,
-      investmentTimeline: timeline || undefined,
-      fundingSource: fundingSource.length ? fundingSource.join(',') : undefined,
-      purpose: purpose.length ? purpose.join(',') : undefined,
-      preferredContact: preferredContact.length ? preferredContact.join(',') : undefined,
-      bestTimeToContact: bestTime || undefined,
-      communicationConsent,
-      additionalNotes: notes || undefined,
-      selectedUnitConfig: selectedConfig ?? undefined,
-      answers,
-    })
-    setEoiId(result.id)
-    setStep('success')
+    try {
+      const device_details = {
+        userAgent: window.navigator.userAgent,
+        language: window.navigator.language,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }
+      
+      await recordConsent.mutateAsync({
+        context: 'EOI',
+        consent_version: CURRENT_VERSION,
+        regulatory_accepted: regulatoryAccepted,
+        privacy_accepted: privacyAccepted,
+        communication_accepted: communicationConsent,
+        device_details,
+        target_id: opportunityId,
+      })
+
+      const result = await submitEOI.mutateAsync({
+        opportunityId,
+        investmentAmount: computedInvestment || undefined,
+        investmentTimeline: timeline || undefined,
+        fundingSource: fundingSource.length ? fundingSource.join(',') : undefined,
+        purpose: purpose.length ? purpose.join(',') : undefined,
+        preferredContact: preferredContact.length ? preferredContact.join(',') : undefined,
+        bestTimeToContact: bestTime || undefined,
+        communicationConsent,
+        additionalNotes: notes || undefined,
+        selectedUnitConfig: selectedConfig ?? undefined,
+        answers,
+      })
+      setEoiId(result.id)
+      setStep('success')
+    } catch (error: any) {
+      console.warn("Failed to record EOI consent or submit EOI.", error)
+      useToastStore.getState().addToast({
+        title: "Submission Failed",
+        message: "Network Error: Cannot save your request at this time. Please check your connection or backend.",
+        type: "error"
+      })
+    }
   }
 
   const proceedToForm = () => {
@@ -241,14 +281,15 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
   return (
     <div className="modal-overlay p-4">
-      <div className="absolute inset-0 bg-black/10" onClick={onClose} />
-      <div className="modal-panel max-w-lg relative overflow-hidden">
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="modal-panel max-w-lg relative overflow-hidden flex flex-col max-h-[90dvh]">
         {/* Gold accent strip */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-primary to-amber-400/60 z-20" />
         {/* Header */}
-        <div className="sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+        <div className="shrink-0 sticky top-0 bg-[var(--bg-surface)] border-b border-theme px-6 py-4 flex items-center justify-between z-10">
           <h2 className="font-display text-lg font-bold text-theme-primary">
             {step === 'confirm' ? 'Already Expressed Interest'
+              : step === 'consent' ? 'Platform Agreements'
               : step === 'config' ? 'Choose Your Configuration'
               : step === 'form' ? 'Express Your Interest'
               : 'Thank You!'}
@@ -258,6 +299,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
           </button>
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         {step === 'confirm' && (
           <div className="p-6 text-center space-y-5">
             <div className="mx-auto w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
@@ -271,7 +313,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => setStep(hasConfigs ? 'config' : 'form')}
+                onClick={() => setStep('consent')}
                 className="btn-primary w-full py-3 text-base"
               >
                 Yes, Submit Again
@@ -283,6 +325,80 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {step === 'consent' && (
+          <div className="p-6 space-y-6">
+            <div>
+              <p className="text-sm text-theme-secondary">
+                Please review and accept the platform agreements before expressing your interest in <span className="font-semibold text-theme-primary">{opportunityTitle}</span>.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Checkbox 1 */}
+              <div className={cn(
+                "p-3 rounded-xl border transition-colors cursor-pointer",
+                regulatoryAccepted ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-theme bg-theme-surface-hover"
+              )} onClick={() => setRegulatoryAccepted(!regulatoryAccepted)}>
+                <div className="flex gap-3">
+                  <div className="pt-0.5">
+                    <div className={cn(
+                      "w-5 h-5 rounded border flex items-center justify-center transition-colors",
+                      regulatoryAccepted ? "bg-[#D4AF37] border-[#D4AF37] text-black" : "border-theme-border bg-theme-surface"
+                    )}>
+                      {regulatoryAccepted && <Check className="w-3.5 h-3.5" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                      <span className="font-semibold text-theme-primary text-sm">Platform Role & Regulatory Acknowledgement</span>
+                      <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 w-fit">Mandatory</span>
+                    </div>
+                    <p className="text-xs text-theme-secondary leading-relaxed">
+                      I acknowledge that WealthSpot is an advisory platform and does not guarantee investment outcomes. All decisions are made independently.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Checkbox 2 */}
+              <div className={cn(
+                "p-3 rounded-xl border transition-colors cursor-pointer",
+                privacyAccepted ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-theme bg-theme-surface-hover"
+              )} onClick={() => setPrivacyAccepted(!privacyAccepted)}>
+                <div className="flex gap-3">
+                  <div className="pt-0.5">
+                    <div className={cn(
+                      "w-5 h-5 rounded border flex items-center justify-center transition-colors",
+                      privacyAccepted ? "bg-[#D4AF37] border-[#D4AF37] text-black" : "border-theme-border bg-theme-surface"
+                    )}>
+                      {privacyAccepted && <Check className="w-3.5 h-3.5" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                      <span className="font-semibold text-theme-primary text-sm">Privacy & Data Processing Consent</span>
+                      <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 w-fit">Mandatory</span>
+                    </div>
+                    <p className="text-xs text-theme-secondary leading-relaxed">
+                      I consent to the processing of my information by WealthSpot and sharing necessary details with the builder for this specific opportunity.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Toggle checked={communicationConsent} onChange={setCommunicationConsent} label="I consent to receive communication regarding this opportunity." size="sm" />
+            
+            <button
+              onClick={() => setStep(hasConfigs ? 'config' : 'form')}
+              disabled={!regulatoryAccepted || !privacyAccepted}
+              className="btn-primary w-full py-3 text-base flex justify-center items-center"
+            >
+              Accept & Continue
+            </button>
           </div>
         )}
 
@@ -453,7 +569,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             {/* Investment Amount – computed from selection or min investment */}
             <div>
               <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount (₹)</label>
-              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary cursor-not-allowed select-none flex items-center justify-between">
+              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary flex items-center justify-between">
                 <span>{computedInvestment.toLocaleString('en-IN')}</span>
                 <span className="text-[11px] text-primary font-semibold">{formatLakhs(computedInvestment)}</span>
               </div>
@@ -556,16 +672,13 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               placeholder="Any questions or comments..."
             />
 
-            {/* Consent */}
-            <Toggle checked={communicationConsent} onChange={setCommunicationConsent} label="I consent to receive communication regarding this opportunity." size="sm" />
-
             {/* Submit */}
             <button
               onClick={handleSubmit}
-              disabled={submitEOI.isPending}
+              disabled={submitEOI.isPending || recordConsent.isPending}
               className="btn-primary w-full py-3 text-base inline-flex items-center justify-center gap-2"
             >
-              {submitEOI.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCoins className="h-5 w-5" />}
+              {(submitEOI.isPending || recordConsent.isPending) ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCoins className="h-5 w-5" />}
               Submit Expression of Interest
             </button>
 
@@ -605,6 +718,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   )

@@ -4,12 +4,14 @@ import { useUser } from '@clerk/react'
 import { useUserStore } from '@/stores/user.store'
 import { useRecordConsent, useConsentStatus } from '@/hooks/useConsent'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { useToastStore } from '@/stores/toastStore'
+import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
 export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   const { isLoaded } = useUser()
   const { isAuthenticated } = useUserStore()
+  const location = useLocation()
   
   const queryClient = useQueryClient()
   const recordConsent = useRecordConsent()
@@ -18,6 +20,7 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   const [regulatoryAccepted, setRegulatoryAccepted] = useState(false)
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [communicationAccepted, setCommunicationAccepted] = useState(false)
+  const [isLocallyConsented, setIsLocallyConsented] = useState(false)
 
   // Block rendering until auth is loaded and we know if the user is authenticated
   if (!isLoaded) return null
@@ -25,9 +28,14 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   // If not authenticated, we don't need consent to view public pages
   if (!isAuthenticated) return <>{children}</>
 
+  // Bypass consent gate for legal documents so they can be read before consenting
+  if (location.pathname.startsWith('/legal/')) {
+    return <>{children}</>
+  }
+
   // If status is loading, we could render children or a loader, 
   // but to prevent flash of content, we'll render children and overlay later if needed
-  const needsConsent = !statusLoading && status && !status.has_consented
+  const needsConsent = !isLocallyConsented && !statusLoading && status && !status.has_consented
 
   const isSubmitEnabled = regulatoryAccepted && privacyAccepted
   const CURRENT_VERSION = status?.consent_version || "v1.0"
@@ -55,10 +63,25 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
         communication_accepted: communicationAccepted,
         device_details: device_details
       })
-      // Update cache so the gate closes immediately
-      queryClient.setQueryData(['consent_status'], { has_consented: true, consent_version: CURRENT_VERSION })
-    } catch {
-      console.warn("Failed to record consent API call.")
+      // Optimistically close the modal instantly for snappy UX
+      setIsLocallyConsented(true)
+
+      // Show success status message so the user knows it worked
+      useToastStore.getState().addToast({
+        title: "Success",
+        message: "Consent provided successfully.",
+        type: "success"
+      })
+
+      // Invalidate query to refetch with the current token in the background
+      await queryClient.invalidateQueries({ queryKey: ['consent_status'] })
+    } catch (error: any) {
+      console.error("Failed to record consent API call:", error)
+      useToastStore.getState().addToast({
+        title: "Consent Failed",
+        message: "Network Error: Cannot save consent to the server. Please try again later.",
+        type: "error"
+      })
     }
   }
 
@@ -69,7 +92,7 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div className="dark fixed inset-0 z-[10000] flex items-center justify-center p-4">
         {/* Intentionally opaque backdrop that cannot be clicked away */}
         <div className="absolute inset-0 bg-theme-surface/95 backdrop-blur-xl" />
         
@@ -166,21 +189,21 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
 
             {/* Links section */}
             <div className="pt-2 flex flex-wrap gap-4 items-center justify-center text-xs">
-              <Link to="/legal/terms" target="_blank" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
+              <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
                 Terms of Use <ExternalLink className="w-3 h-3" />
-              </Link>
+              </a>
               <span className="w-1 h-1 rounded-full bg-theme-border"></span>
-              <Link to="/legal/privacy" target="_blank" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
+              <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
                 Privacy Policy <ExternalLink className="w-3 h-3" />
-              </Link>
+              </a>
               <span className="w-1 h-1 rounded-full bg-theme-border"></span>
-              <Link to="/legal/terms" target="_blank" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
+              <a href="/legal/risk-disclosure" target="_blank" rel="noopener noreferrer" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
                 Risk Disclosure <ExternalLink className="w-3 h-3" />
-              </Link>
+              </a>
               <span className="w-1 h-1 rounded-full bg-theme-border"></span>
-              <Link to="/legal/terms" target="_blank" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
+              <a href="/legal/disclaimer" target="_blank" rel="noopener noreferrer" className="text-theme-secondary hover:text-[#D4AF37] flex items-center gap-1 transition-colors">
                 Disclaimer <ExternalLink className="w-3 h-3" />
-              </Link>
+              </a>
             </div>
           </div>
           

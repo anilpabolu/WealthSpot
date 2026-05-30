@@ -100,3 +100,23 @@ export const INDIAN_CITIES = [
   'Lucknow',
   'Goa',
 ] as const
+
+// ─── Company Entity Types ─────────────────────────────
+export const ENTITY_TYPES = [
+  { value: 'private_limited', label: 'Private Limited' },
+  { value: 'public_limited', label: 'Public Limited' },
+  { value: 'llp', label: 'LLP' },
+  { value: 'partnership', label: 'Partnership Firm' },
+  { value: 'proprietorship', label: 'Sole Proprietorship' },
+  { value: 'trust', label: 'Trust' },
+  { value: 'society', label: 'Society' },
+  { value: 'individual', label: 'Individual' },
+]
+
+export function getEntityTypeLabel(value: string | undefined | null): string {
+  if (!value) return ''
+  const found = ENTITY_TYPES.find(t => t.value === value)
+  if (found) return found.label
+  // Fallback if somehow not in list
+  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}

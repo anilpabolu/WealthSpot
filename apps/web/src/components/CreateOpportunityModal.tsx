@@ -585,7 +585,7 @@ export default function CreateOpportunityModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="modal-overlay z-[9999]" onClick={handleClose}>
+    <div className="modal-overlay z-[9999]">
       <div
         className="modal-panel max-w-2xl mx-4 relative"
         onClick={(e) => e.stopPropagation()}

@@ -18,6 +18,9 @@ import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
+import {
+  getEntityTypeLabel,
+} from '@/lib/constants'
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
@@ -433,64 +436,93 @@ export default function OpportunityDetailPage() {
         path={`/opportunity/${opp.slug}`}
         type="article"
       />
-      <div className="page-section">
+      <section className="page-hero relative pt-32 pb-24 overflow-hidden bg-[#0A1A2F]">
+        {/* Dynamic Background Image with Overlay */}
+        {coverUrl && (
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity transform scale-105"
+            style={{ backgroundImage: `url(${coverUrl})` }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1A2F]/90 via-[#0A1A2F]/80 to-[var(--bg-body)]" />
+
+        <div className="page-section-container relative z-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm text-white/60 mb-8">
+            <Link to="/marketplace" className="hover:text-white transition-colors">Marketplace</Link>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-white/90 truncate font-medium">{opp.title}</span>
+          </nav>
+
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+            <div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="px-3 py-1 bg-white/10 text-white border border-white/20 text-xs font-medium rounded-full capitalize backdrop-blur-md">
+                  {opp.vaultType} vault
+                </span>
+                {opp.industry && (
+                  <span className="px-3 py-1 bg-white/5 text-white/90 border border-white/10 text-xs font-medium rounded-full backdrop-blur-md">
+                    {opp.industry}
+                  </span>
+                )}
+                {opp.stage && (
+                  <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-xs font-medium rounded-full capitalize backdrop-blur-md">
+                    {opp.stage}
+                  </span>
+                )}
+              </div>
+              <h1 className="font-display text-3xl lg:text-5xl font-bold text-white mb-3 tracking-tight">
+                {opp.title}
+              </h1>
+              {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
+              
+              {opp.city && (
+                <p className="text-white/80 flex items-center gap-1.5 mt-4 text-sm font-medium">
+                  <MapPin className="h-4 w-4 text-[#D4AF37]" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
+                </p>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border backdrop-blur-md transition-all ${
+                  likeData?.liked 
+                    ? 'border-red-500/50 bg-red-500/20 text-white' 
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+                }`}
+                aria-label={likeData?.liked ? 'Unlike' : 'Save'}
+              >
+                <Heart className={`h-4 w-4 ${likeData?.liked ? 'fill-red-500 text-red-500' : ''}`} />
+                <span className="text-sm font-medium">{likeData?.liked ? 'Saved' : 'Save'}</span>
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all"
+                aria-label="Share"
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="page-section -mt-10 relative z-20">
         <div className="page-section-container">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-theme-secondary mb-6">
-          <Link to="/marketplace" className="hover:text-primary">Marketplace</Link>
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-theme-primary truncate">{opp.title}</span>
-        </nav>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left — Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Gallery with lifecycle ribbon */}
-            <div className="relative">
+            <div className="relative shadow-2xl shadow-black/10 rounded-xl overflow-hidden ring-1 ring-white/10">
               {ribbon && (
                 <div className={`absolute top-4 left-0 z-10 ${ribbon.color} text-white text-xs font-bold px-4 py-1.5 rounded-r-full shadow-lg`}>
                   {ribbon.label}
                 </div>
               )}
               <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} propertyVideosEnabled={propertyVideosEnabled} />
-            </div>
-
-            {/* Title / Location */}
-            <div>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h1 className="font-display text-2xl lg:text-3xl font-bold text-theme-primary">{opp.title}</h1>
-                  {opp.tagline && <p className="text-theme-secondary mt-1 text-sm">{opp.tagline}</p>}
-                  {opp.city && (
-                    <p className="text-theme-secondary flex items-center gap-1 mt-1">
-                      <MapPin className="h-4 w-4" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={handleLike}
-                    className={`p-2 rounded-lg border transition-colors ${likeData?.liked ? 'border-red-200 dark:border-red-700/40 bg-red-50 dark:bg-red-900/30' : 'border-theme hover:bg-theme-surface'}`}
-                    aria-label={likeData?.liked ? 'Unlike' : 'Save'}
-                  >
-                    <Heart className={`h-5 w-5 ${likeData?.liked ? 'text-red-500 fill-red-500' : 'text-theme-tertiary'}`} />
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="p-2 rounded-lg border border-theme hover:bg-theme-surface"
-                    aria-label="Share"
-                  >
-                    <Share2 className="h-5 w-5 text-theme-tertiary" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                <span className="px-3 py-1 bg-primary/5 text-primary text-xs font-medium rounded-full capitalize">{opp.vaultType} vault</span>
-                {opp.industry && <span className="px-3 py-1 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs font-medium rounded-full">{opp.industry}</span>}
-                {opp.stage && <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium rounded-full capitalize">{opp.stage}</span>}
-              </div>
             </div>
 
             {/* Description */}
@@ -525,7 +557,7 @@ export default function OpportunityDetailPage() {
                 details.push({ label: 'Current Phase', value: opp.projectPhase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
               // Wealth vault: Entity Type
               if (opp.company && (opp.company as CompanyData).entityType)
-                details.push({ label: 'Entity Type', value: (opp.company as CompanyData).entityType!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: Building2 })
+                details.push({ label: 'Entity Type', value: getEntityTypeLabel((opp.company as CompanyData).entityType), icon: Building2 })
               // Opportunity vault: Stage & Industry
               if (opp.stage)
                 details.push({ label: 'Stage', value: opp.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })

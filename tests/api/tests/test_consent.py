@@ -7,14 +7,16 @@ from tests.conftest import auth_headers
 @pytest.mark.asyncio
 async def test_record_consent_success(client: AsyncClient, test_user: User):
     payload = {
-        "consent_type": "LOGIN",
-        "consented": True,
-        "target_id": "home-page",
-        "location": "IN",
+        "context": "ONBOARDING",
+        "consent_version": "v1.0",
+        "regulatory_accepted": True,
+        "privacy_accepted": True,
+        "communication_accepted": False,
         "device_details": {"browser": "Chrome", "os": "Windows"}
     }
     
     response = await client.post("/api/v1/consent", json=payload, headers=auth_headers(test_user))
+    print(response.json())
     assert response.status_code == 200
     
     data = response.json()

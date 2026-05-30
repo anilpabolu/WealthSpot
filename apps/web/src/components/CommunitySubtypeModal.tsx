@@ -51,7 +51,7 @@ export default function CommunitySubtypeModal({ open, onClose, onSelect, mode }:
     vaultVideosEnabled ? videos?.find((v) => v.sectionTag === sectionTag)?.videoUrl : undefined
 
   return (
-    <div className="modal-overlay z-[9999]" onClick={onClose}>
+    <div className="modal-overlay z-[9999]">
       <div
         className="modal-panel max-w-xl mx-4 overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}

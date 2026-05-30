@@ -1,5 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { useUserStore } from '@/stores/user.store'
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return true
+    const payload = JSON.parse(atob(parts[1]!))
+    return payload.exp * 1000 < Date.now() - 60_000
+  } catch {
+    return true
+  }
+}
 
 export interface ConsentPayload {
   context: 'ONBOARDING' | 'EOI'
@@ -44,15 +56,19 @@ export const useRecordConsent = () => {
 }
 
 export const useConsentStatus = (enabled: boolean = true) => {
+  const token = useUserStore((state) => state.token)
+  const isTokenValid = token && !isTokenExpired(token)
+
   return useQuery<ConsentStatus>({
-    queryKey: ['consent_status'],
+    queryKey: ['consent_status', token],
     queryFn: async () => {
       const response = await api.get('/consent/status')
       return response.data
     },
-    enabled,
+    enabled: enabled && !!isTokenValid,
     // Cache the consent status for the session
     staleTime: Infinity,
     refetchOnWindowFocus: false,
+    retry: false,
   })
 }

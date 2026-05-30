@@ -72,9 +72,9 @@ export function Dialog({
     return () => el.removeEventListener('close', handleClose);
   }, [onClose]);
 
-  // Close on backdrop click (clicks outside the inner panel)
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target === e.currentTarget) onClose();
+  // Close on backdrop click disabled per requirement
+  const handleBackdropClick = (_e: React.MouseEvent<HTMLDialogElement>) => {
+    // Backdrop click disabled
   };
 
   // Each dialog instance needs its own unique id; if two modals share

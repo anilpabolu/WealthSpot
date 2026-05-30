@@ -847,8 +847,8 @@ export default function CreateOpportunityPage() {
                           key={opt.value}
                           onClick={() => !comingSoon && handleVaultSelect(opt.value)}
                           onFocus={() => setVaultPreview(opt.value)}
-                          disabled={comingSoon}
-                          className="w-full rounded-xl border px-3.5 sm:px-4 py-2.5 transition-all text-left group disabled:cursor-not-allowed"
+                          aria-disabled={comingSoon}
+                          className={`w-full rounded-xl border px-3.5 sm:px-4 py-2.5 transition-all text-left group ${comingSoon ? 'cursor-not-allowed' : ''}`}
                           style={{
                             background: comingSoon ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)',
                             borderColor: comingSoon ? 'rgba(255,255,255,0.14)' : PAGE_ACCENT,

@@ -41,18 +41,7 @@ export default function Navbar(_props?: NavbarProps) {
   const [onDark, setOnDark] = useState(true)
   const lastScrollY = useRef(0)
 
-  // Paths that use dark hero strips extending behind the transparent navbar
-  const isHeroPage = (
-    location.pathname === '/' ||
-    location.pathname.startsWith('/vaults') ||
-    location.pathname.startsWith('/marketplace') ||
-    location.pathname === '/about' ||
-    location.pathname === '/create-opportunity' ||
-    location.pathname === '/portfolio' ||
-    location.pathname === '/control-centre' ||
-    location.pathname.startsWith('/portal/builder') ||
-    location.pathname.startsWith('/portal/builder/listings/new')
-  )
+
 
   useEffect(() => {
     // Reset on route change
@@ -73,18 +62,8 @@ export default function Navbar(_props?: NavbarProps) {
 
   useEffect(() => {
     const updateOnDark = () => {
-      if (!isHeroPage) {
-        setOnDark(false)
-        return
-      }
-      // On hero pages: stay dark-mode until user scrolls past the hero element
-      const hero = document.getElementById('hero')
-      if (!hero) {
-        setOnDark(true)
-        return
-      }
-      const heroBottom = hero.getBoundingClientRect().bottom
-      setOnDark(heroBottom > 72)
+      // Force 100% transparent navbar globally
+      setOnDark(true)
     }
 
     updateOnDark()
@@ -94,7 +73,7 @@ export default function Navbar(_props?: NavbarProps) {
       window.removeEventListener('scroll', updateOnDark)
       window.removeEventListener('resize', updateOnDark)
     }
-  }, [location.pathname, isHeroPage])
+  }, [location.pathname])
 
   const extraLinks = [
     ...(userRoles.includes('super_admin') ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
@@ -126,10 +105,10 @@ export default function Navbar(_props?: NavbarProps) {
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'transform 0.35s ease',
-        background: onDark ? 'transparent' : 'rgba(255,255,255,0.95)',
-        backdropFilter: onDark ? 'none' : 'blur(18px)',
-        WebkitBackdropFilter: onDark ? 'none' : 'blur(18px)',
-        borderBottom: onDark ? 'none' : '1px solid rgba(15,23,42,0.06)',
+        background: 'transparent',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        borderBottom: 'none',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">

@@ -6,9 +6,10 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.opportunity import OpportunityStatus, VaultType
+from app.services.s3 import ensure_current_public_url
 
 # ---------------------------------------------------------------------------
 # Property-type-specific specification schemas
@@ -185,6 +186,10 @@ class OpportunityCreatorRead(BaseModel):
     avatar_url: str | None = None
     model_config = {"from_attributes": True}
 
+    @field_validator("avatar_url", mode="before")
+    def rewrite_urls(cls, v):
+        return ensure_current_public_url(v)
+
 
 class OpportunityMediaRead(BaseModel):
     id: uuid.UUID
@@ -198,6 +203,10 @@ class OpportunityMediaRead(BaseModel):
     is_cover: bool = False
     created_at: datetime
     model_config = {"from_attributes": True}
+
+    @field_validator("url", mode="before")
+    def rewrite_urls(cls, v):
+        return ensure_current_public_url(v)
 
 
 class CompanySummary(BaseModel):
@@ -215,6 +224,10 @@ class CompanySummary(BaseModel):
     projects_completed: int = 0
     total_area_developed: str | None = None
     model_config = {"from_attributes": True}
+
+    @field_validator("logo_url", mode="before")
+    def rewrite_urls(cls, v):
+        return ensure_current_public_url(v)
 
 
 class AddressDetail(BaseModel):
@@ -290,6 +303,16 @@ class OpportunityRead(BaseModel):
     company: CompanySummary | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("cover_image", "video_url", mode="before")
+    def rewrite_single_urls(cls, v):
+        return ensure_current_public_url(v)
+
+    @field_validator("gallery", mode="before")
+    def rewrite_list_urls(cls, v):
+        if v is None:
+            return v
+        return [ensure_current_public_url(url) for url in v]
 
 
 class PaginatedOpportunities(BaseModel):

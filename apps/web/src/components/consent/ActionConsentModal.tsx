@@ -27,7 +27,7 @@ export function ActionConsentModal({
   }
 
   return (
-    <div className="modal-overlay p-4 z-[9999]">
+    <div className="dark modal-overlay p-4 z-[9999]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onDecline} />
       <div className="modal-panel max-w-lg relative animate-fade-up">
         {/* Header */}

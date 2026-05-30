@@ -68,7 +68,7 @@ export function diagLog(
     message,
     ...opts,
   }
-  _listeners.forEach((fn) => fn(entry))
+  _listeners.forEach((fn) => setTimeout(() => fn(entry), 0))
 }
 
 /** Start an API trace — returns traceId and a done() callback */
