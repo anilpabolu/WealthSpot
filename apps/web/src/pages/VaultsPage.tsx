@@ -404,7 +404,7 @@ function VaultCard({
       {/* Content - Bottom */}
       <div className="relative z-10 mt-auto p-7 sm:p-8 flex flex-col pointer-events-none">
         {/* Divider line before title */}
-        <div className="w-12 h-[2px] bg-[#FF5C46] mb-5 opacity-90" />
+        <div className="w-12 h-[2px] bg-purple-600 mb-5 opacity-90" />
 
         <h3 className="font-hero text-3xl sm:text-[2rem] font-bold text-white tracking-tight leading-tight mb-3" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
           {vault.title}
@@ -421,7 +421,7 @@ function VaultCard({
           </p>
           
           <div 
-            className="shrink-0 flex items-center justify-center bg-[#FF5C46] text-white rounded-full px-5 py-2.5 font-bold text-[10px] uppercase tracking-wider transition-all duration-300 group-hover:bg-[#FF4F36] pointer-events-auto shadow-md"
+            className="shrink-0 flex items-center justify-center bg-purple-600 text-white rounded-full px-5 py-2.5 font-bold text-[10px] uppercase tracking-wider transition-all duration-300 group-hover:bg-purple-700 pointer-events-auto shadow-md"
           >
             {comingSoon ? 'Notify Me' : 'Express Interest'}
           </div>
