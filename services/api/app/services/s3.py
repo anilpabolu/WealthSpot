@@ -177,3 +177,15 @@ async def delete_file(key: str) -> None:
     """Delete a file from S3. Runs blocking boto3 call in a thread."""
     s3: Any = _get_s3_client()
     await anyio.to_thread.run_sync(lambda: s3.delete_object(Bucket=settings.aws_s3_bucket, Key=key))
+
+
+async def check_s3_connectivity() -> dict[str, Any]:
+    """Test media bucket connectivity. Returns a status dict safe to expose to admins."""
+    endpoint = settings.s3_endpoint_url or "(AWS default — S3_ENDPOINT_URL not set)"
+    bucket = settings.aws_s3_bucket
+    try:
+        s3: Any = _get_s3_client()
+        await anyio.to_thread.run_sync(lambda: s3.head_bucket(Bucket=bucket))
+        return {"ok": True, "endpoint": endpoint, "bucket": bucket, "error": None}
+    except Exception as exc:
+        return {"ok": False, "endpoint": endpoint, "bucket": bucket, "error": str(exc)}

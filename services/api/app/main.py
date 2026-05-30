@@ -88,10 +88,25 @@ if settings.sentry_dsn and settings.app_env == "production":
 # ── Lifespan ─────────────────────────────────────────────────────────────────
 
 
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup — check S3 connectivity so misconfiguration surfaces early in logs
+    try:
+        from app.services.s3 import check_s3_connectivity
+
+        result = await check_s3_connectivity()
+        if result["ok"]:
+            logger.info("S3 connectivity OK (bucket=%s)", result["bucket"])
+        else:
+            logger.warning("S3 connectivity FAILED at startup: %s", result.get("error"))
+    except Exception as exc:
+        logger.warning("Could not verify S3 connectivity at startup: %s", exc)
+
     yield
+
     # Shutdown
     from app.core.database import engine
 

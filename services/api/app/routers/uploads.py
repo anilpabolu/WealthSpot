@@ -4,8 +4,10 @@ and template spreadsheets.  All stored in S3-compatible storage (MinIO/AWS).
 """
 
 import io
+import logging
 import uuid
 
+from botocore.exceptions import BotoCoreError, ClientError  # type: ignore[import-untyped]
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,7 @@ from app.models.opportunity import Opportunity
 from app.models.opportunity_media import OpportunityMedia
 from app.models.user import User
 from app.services.s3 import (
+    check_s3_connectivity,
     delete_file,
     get_public_url,
     upload_avatar,
@@ -23,6 +26,8 @@ from app.services.s3 import (
     upload_opportunity_media,
 )
 from app.services.upload_scan import validate_upload
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
@@ -32,6 +37,12 @@ def _ensure_clean(content: bytes, claimed_mime: str) -> None:
     ok, reason = validate_upload(content, claimed_mime)
     if not ok:
         raise HTTPException(status_code=400, detail=reason or "Invalid file content")
+
+
+@router.get("/s3-health")
+async def s3_health_check(admin: User = Depends(require_super_admin)) -> dict:
+    """Test S3 connectivity. Super-admin only."""
+    return await check_s3_connectivity()
 
 
 ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -62,12 +73,18 @@ async def upload_user_avatar(
             pass  # Best-effort deletion
 
     file_obj = io.BytesIO(content)
-    s3_key = await upload_avatar(
-        file=file_obj,
-        filename=file.filename or "avatar.jpg",
-        user_id=str(user.id),
-        content_type=content_type,
-    )
+    try:
+        s3_key = await upload_avatar(
+            file=file_obj,
+            filename=file.filename or "avatar.jpg",
+            user_id=str(user.id),
+            content_type=content_type,
+        )
+    except (ClientError, BotoCoreError, OSError) as exc:
+        logger.error("S3 avatar upload failed: %s", exc)
+        raise HTTPException(
+            status_code=502, detail="Media storage unavailable. Please try again."
+        ) from None
     avatar_url = get_public_url(s3_key)
 
     user.avatar_url = avatar_url
@@ -142,13 +159,19 @@ async def upload_opportunity_files(
         # Reset for upload
         file_obj = io.BytesIO(content)
 
-        s3_key = await upload_opportunity_media(
-            file=file_obj,
-            filename=f.filename or "upload",
-            opportunity_id=opportunity_id,
-            media_type=media_type,
-            content_type=content_type,
-        )
+        try:
+            s3_key = await upload_opportunity_media(
+                file=file_obj,
+                filename=f.filename or "upload",
+                opportunity_id=opportunity_id,
+                media_type=media_type,
+                content_type=content_type,
+            )
+        except (ClientError, BotoCoreError, OSError) as exc:
+            logger.error("S3 media upload failed for opportunity %s: %s", opportunity_id, exc)
+            raise HTTPException(
+                status_code=502, detail="Media storage unavailable. Please try again."
+            ) from None
         url = get_public_url(s3_key)
 
         media = OpportunityMedia(
@@ -212,7 +235,13 @@ async def upload_company_logo(
     file_obj = io.BytesIO(content)
     safe_name = (file.filename or "logo").replace(" ", "_")
     key = f"companies/{company_id}/logo/{uuid.uuid4().hex}_{safe_name}"
-    await upload_file(file_obj, key, content_type)
+    try:
+        await upload_file(file_obj, key, content_type)
+    except (ClientError, BotoCoreError, OSError) as exc:
+        logger.error("S3 logo upload failed for company %s: %s", company_id, exc)
+        raise HTTPException(
+            status_code=502, detail="Media storage unavailable. Please try again."
+        ) from None
     url = get_public_url(key)
 
     company.logo_url = url
@@ -284,13 +313,19 @@ async def admin_upload_opportunity_media(
         _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
-        s3_key = await upload_opportunity_media(
-            file=file_obj,
-            filename=f.filename or "upload",
-            opportunity_id=opportunity_id,
-            media_type=media_type,
-            content_type=content_type,
-        )
+        try:
+            s3_key = await upload_opportunity_media(
+                file=file_obj,
+                filename=f.filename or "upload",
+                opportunity_id=opportunity_id,
+                media_type=media_type,
+                content_type=content_type,
+            )
+        except (ClientError, BotoCoreError, OSError) as exc:
+            logger.error("S3 admin media upload failed for opportunity %s: %s", opportunity_id, exc)
+            raise HTTPException(
+                status_code=502, detail="Media storage unavailable. Please try again."
+            ) from None
         url = get_public_url(s3_key)
 
         media = OpportunityMedia(
@@ -427,13 +462,19 @@ async def upload_opportunity_documents(
         _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
-        s3_key = await upload_opportunity_media(
-            file=file_obj,
-            filename=f.filename or "document",
-            opportunity_id=opportunity_id,
-            media_type="document",
-            content_type=content_type,
-        )
+        try:
+            s3_key = await upload_opportunity_media(
+                file=file_obj,
+                filename=f.filename or "document",
+                opportunity_id=opportunity_id,
+                media_type="document",
+                content_type=content_type,
+            )
+        except (ClientError, BotoCoreError, OSError) as exc:
+            logger.error("S3 document upload failed for opportunity %s: %s", opportunity_id, exc)
+            raise HTTPException(
+                status_code=502, detail="Media storage unavailable. Please try again."
+            ) from None
         url = get_public_url(s3_key)
 
         media = OpportunityMedia(
@@ -513,13 +554,21 @@ async def upload_assessment_document(
         _ensure_clean(content, content_type)
 
         file_obj = io.BytesIO(content)
-        s3_key = await upload_opportunity_media(
-            file=file_obj,
-            filename=f.filename or "document",
-            opportunity_id=opportunity_id,
-            media_type="document",
-            content_type=content_type,
-        )
+        try:
+            s3_key = await upload_opportunity_media(
+                file=file_obj,
+                filename=f.filename or "document",
+                opportunity_id=opportunity_id,
+                media_type="document",
+                content_type=content_type,
+            )
+        except (ClientError, BotoCoreError, OSError) as exc:
+            logger.error(
+                "S3 assessment doc upload failed for opportunity %s: %s", opportunity_id, exc
+            )
+            raise HTTPException(
+                status_code=502, detail="Media storage unavailable. Please try again."
+            ) from None
         url = get_public_url(s3_key)
 
         media = OpportunityMedia(
