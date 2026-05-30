@@ -11,9 +11,53 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, HandCoins, AlertCircle, Trash2 } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, HandCoins, AlertCircle, Trash2, ShieldCheck, Gift, Edit2, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
+
+/* ------------------------------------------------------------------ */
+/*  Shield Popup Modal                                                 */
+/* ------------------------------------------------------------------ */
+
+function ShieldPopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-overlay p-4 z-[9999]">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="modal-panel max-w-lg relative bg-white rounded-2xl overflow-hidden shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-2 text-[#D4AF37]">
+              <ShieldCheck className="h-8 w-8" />
+              <h2 className="font-display text-2xl font-bold text-gray-900">WealthSpot Shield</h2>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Every listing passes through a rigorous 7-layer Shield review before it earns Shield Certified status.
+          </p>
+          <ul className="space-y-4">
+            {[
+              'Builder Assessment',
+              'Legal Assessment',
+              'Valuation Assessment',
+              'Location Assessment',
+              'Property Assessment',
+              'Security Assessment',
+              'Exit Assessment'
+            ].map(item => (
+              <li key={item} className="flex items-center gap-3 text-sm font-medium text-gray-800">
+                <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
@@ -188,10 +232,10 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block w-64 shrink-0">
-        <div className="card p-5 sticky top-20">
-          <h3 className="font-semibold text-theme-primary mb-4 flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4" />
+      <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-gray-200 sticky top-[4.5rem] h-[calc(100vh-4.5rem)] bg-white z-10 overflow-hidden">
+        <div className="flex-1 overflow-y-auto px-6 py-8">
+          <h3 className="font-display font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <SlidersHorizontal className="h-5 w-5" />
             Filters
           </h3>
           {content}
@@ -262,6 +306,7 @@ export default function MarketplacePage() {
   const userRole = useUserStore((s) => s.user?.role)
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const [toast, setToast] = useState<string | null>(null)
+  const [showShieldPopup, setShowShieldPopup] = useState(false)
 
   // Vault hero config (keyed by ?vault= param, defaults to wealth)
   const vaultParam = searchParams.get('vault') ?? ''
@@ -348,90 +393,59 @@ export default function MarketplacePage() {
         description="Browse premium fractional real estate and investment opportunities on WealthSpot. Wealth, Safe, and Community Vaults."
         path="/marketplace"
       />
-      {/* Hero — diagonal ribbon split (vault-aware) */}
-      <div className="relative overflow-hidden bg-slate-900 -mt-16 pt-[8.5rem] pb-14 lg:pb-16" style={{ minHeight: 340 }}>
-        {/* Particle + Gradient overlays */}
-        <ParticleCanvas className="opacity-40 z-[0]" />
-        <GradientMesh className="z-[0]" />
-        {/* Left panel — vault-branded diagonal clip */}
-        <div
-          className={`absolute inset-0 z-[2] bg-gradient-to-br ${hero.leftGradient} hidden lg:block`}
-          style={{ clipPath: 'polygon(0 0, 48% 0, 32% 100%, 0 100%)' }}
-        />
+      {showShieldPopup && <ShieldPopup onClose={() => setShowShieldPopup(false)} />}
 
-        {/* Right panel — carousel background */}
-        <div
-          className={`absolute inset-0 z-[1] bg-gradient-to-br ${hero.rightGradient} hidden lg:block`}
-        />
-
-        {/* Mobile: simple stacked background */}
-        <div className={`absolute inset-0 z-[1] bg-gradient-to-br ${hero.mobileGradient} lg:hidden`} />
-
-        {/* Content overlay */}
-        <div className="relative z-[3] mx-auto max-w-7xl px-6 sm:px-8 lg:pl-6 lg:pr-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8 lg:gap-0 items-center">
-            {/* Left — vault info */}
-            <div className="lg:pr-12">
-              <div className="page-hero-badge mb-4">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className={`h-1.5 w-1.5 rounded-full ${hero.accentDot} animate-pulse`} />
-                  {hero.badge}
-                </span>
-              </div>
-              <h1 className="page-hero-title">{heroTitle}</h1>
-              <p className="page-hero-subtitle mt-3">{heroSubtitle}</p>
-              <p className="text-white/40 text-sm mt-4 leading-relaxed max-w-md">
-                {hero.shieldNote}{' '}
-                <span className={`${hero.accentText} font-semibold`}>Shield Certified</span> status.
-              </p>
-            </div>
-
-            {/* Right — animated shield carousel */}
-            <div className="lg:pl-8">
-              <ShieldHeroCarousel />
-            </div>
+      {/* New Hero Section */}
+      <div className="bg-slate-900 border-b border-theme/20 pt-28 pb-12 px-6 sm:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-3">
+              {hero.badge}
+            </h1>
+            <p className="text-lg text-white/80 max-w-2xl mb-4 leading-relaxed font-light">
+              {heroSubtitle}
+            </p>
+            <p className="text-sm text-white/60 max-w-3xl leading-relaxed">
+              Every listing passes through a rigorous 7-layer Shield review — from builder credibility to exit clauses — before it earns Shield Certified status.
+              <button onClick={() => setShowShieldPopup(true)} className="ml-2 text-[#D4AF37] hover:underline inline-flex items-center gap-1 font-semibold">
+                Learn more
+              </button>
+            </p>
+          </div>
+          <div className="hidden md:block w-full max-w-md">
+            <ShieldHeroCarousel />
           </div>
         </div>
-
-        {/* Diagonal separator line glow (visible on lg+) */}
-        <div
-          className="absolute inset-0 z-[2] pointer-events-none hidden lg:block"
-          style={{
-            background: `linear-gradient(135deg, transparent 30%, ${hero.separatorRgba[0]} 31%, ${hero.separatorRgba[1]} 32%, transparent 33%)`,
-          }}
-        />
-
       </div>
 
-      <div className="page-section">
-        <div className="page-section-container">
-        {/* Vault disabled banner */}
-        {isVaultDisabled && (
-          <VaultComingSoonBanner vaultId={vaultParam} onExploreOther={clearVault} />
-        )}
+      <div className="flex flex-col md:flex-row flex-1 w-full bg-[#F9FAFB] min-h-screen">
+        <FilterSidebar vaultParam={vaultParam} />
 
-        {/* Community subtype filter chips */}
-        {vaultParam === 'community' && (
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-theme-tertiary mr-1">Type:</span>
-            {([['', 'All'], ['co_investor', 'Co-Investor'], ['co_partner', 'Co-Partner']] as const).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() => handleCommunityFilter(val)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                  communityFilter === val
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex-1 min-w-0 p-6 lg:p-10">
+          {/* Vault disabled banner */}
+          {isVaultDisabled && (
+            <VaultComingSoonBanner vaultId={vaultParam} onExploreOther={clearVault} />
+          )}
 
-        <div className="flex gap-8">
-          <FilterSidebar vaultParam={vaultParam} />
+          {/* Community subtype filter chips */}
+          {vaultParam === 'community' && (
+            <div className="flex items-center gap-2 mb-5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 mr-1">Type:</span>
+              {([['', 'All'], ['co_investor', 'Co-Investor'], ['co_partner', 'Co-Partner']] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => handleCommunityFilter(val)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    communityFilter === val
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
@@ -465,12 +479,12 @@ export default function MarketplacePage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid sm:grid-cols-2 xl:grid-cols-3 gap-6'
-                  : 'space-y-4'
+                  ? 'grid md:grid-cols-2 gap-8'
+                  : 'space-y-6'
               }
             >
               {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => (
+                ? Array.from({ length: 4 }).map((_, i) => (
                     <PropertyCard key={i} isLoading title="" city="" assetType="" coverImage="" minInvestment={0} raised={0} target={0} />
                   ))
                 : (
@@ -479,78 +493,113 @@ export default function MarketplacePage() {
                     {opportunities.map((opp) => {
                       const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
                       const oppStatus = (opp.status ?? '').toLowerCase() as StatusType
+                      const targetIRR = (opp as any).targetIRR ?? '14%'
+                      const tenure = (opp as any).tenure ?? '3 yr'
                       return (
                         <div
                           key={`opp-${opp.id}`}
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
-                          className="rounded-xl border border-theme/60 bg-[var(--bg-card)] backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-theme/60 transition-all cursor-pointer group"
+                          className="bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-gray-100 transition-all cursor-pointer group flex flex-col h-full"
                         >
-                          <div className="aspect-video relative overflow-hidden bg-theme-surface-hover">
+                          <div className="aspect-[16/9] relative bg-gray-100 overflow-hidden">
                             {coverUrl ? (
                               <img src={coverUrl} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-theme-tertiary">
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
                                 <Building2 className="h-10 w-10" />
                               </div>
                             )}
+                            
+                            {/* Status Ribbon */}
                             {oppStatus && (
-                              <span className="absolute top-3 left-3">
-                                <StatusBadge status={oppStatus} />
-                              </span>
+                               <div className="absolute top-4 right-0 bg-white shadow-md pl-4 pr-3 py-1.5 rounded-l-full z-10 font-bold text-xs uppercase tracking-wider text-gray-800">
+                                 {oppStatus}
+                               </div>
                             )}
+
+                            {/* Refer & Earn button */}
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); navigate('/referrals') }}
+                              className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-black/80 transition-colors"
+                            >
+                              <Gift className="h-3.5 w-3.5" /> Refer & Earn
+                            </button>
+
+                            {/* Admin Controls */}
                             {isAdmin && (
-                              <button
-                                className="absolute bottom-3 right-3 z-10 flex items-center justify-center h-7 w-7 rounded-full bg-red-600/90 hover:bg-red-700 text-white shadow-lg transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDeleteOpportunity(opp.id, opp.title)
-                                }}
-                                aria-label={`Archive ${opp.title}`}
-                                title="Archive this listing"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                                <button
+                                  className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigate(`/builder/listings/${opp.id}/edit`)
+                                  }}
+                                  title="Edit listing"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteOpportunity(opp.id, opp.title)
+                                  }}
+                                  title="Archive listing"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             )}
                           </div>
-                          <div className="p-4 space-y-2">
-                            <h4 className="font-semibold text-theme-primary truncate group-hover:text-primary transition-colors">{opp.title}</h4>
-                            {opp.city && (
-                              <p className="text-xs text-theme-secondary flex items-center gap-1">
-                                <MapPin className="h-3.5 w-3.5" /> {opp.city}{opp.state ? `, ${opp.state}` : ''}
-                              </p>
-                            )}
-                            {/* Property spec chips */}
-                            {(opp.property_type || opp.price_per_sqft) && (
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                {opp.property_type && (
-                                  <span className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-semibold rounded-md capitalize">{opp.property_type.replace(/_/g, ' ')}</span>
-                                )}
-                                {opp.property_specs && (opp.property_specs.unit_configurations as unknown[])?.length ? (
-                                  (opp.property_specs.unit_configurations as Array<{ bhk_type: string }>).slice(0, 3).map((u) => (
-                                    <span key={u.bhk_type} className="px-2 py-0.5 bg-theme-surface border border-theme text-[10px] font-medium text-theme-secondary rounded-md">{u.bhk_type}</span>
-                                  ))
-                                ) : null}
-                                {opp.price_per_sqft != null && (
-                                  <span className="ml-auto text-[10px] font-bold text-theme-primary">₹{opp.price_per_sqft.toLocaleString('en-IN')}/sqft</span>
-                                )}
-                              </div>
-                            )}
-                            {opp.targetAmount != null && (
-                              <FundingBar raised={opp.raisedAmount ?? 0} target={opp.targetAmount} showLabels={false} />
-                            )}
-                            <div className="flex items-center justify-between text-xs pt-1">
-                              {opp.minInvestment != null && (
-                                <span className="font-mono text-theme-secondary">{formatINR(opp.minInvestment)} min</span>
+                          
+                          <div className="p-6 md:p-8 flex-1 flex flex-col">
+                            <h3 className="font-display text-2xl font-bold text-gray-900 mb-2 truncate">{opp.title}</h3>
+                            
+                            <div className="flex flex-wrap items-center gap-2 mb-6 text-xs text-gray-500 font-medium">
+                              {opp.property_type && (
+                                <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5 text-blue-500" /> {opp.property_type.replace(/_/g, ' ')}</span>
+                              )}
+                              {opp.city && (
+                                <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-red-500" /> {opp.city}</span>
                               )}
                             </div>
-                            {opp.company && (
-                              <div className="pt-2 border-t border-theme flex items-center justify-between text-xs text-theme-secondary">
-                                <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {opp.company.companyName}</span>
-                                <span className="inline-flex items-center gap-1 text-primary font-medium">
-                                  <HandCoins className="h-3.5 w-3.5" /> Explore
-                                </span>
+
+                            {/* Thin progress line instead of FundingBar */}
+                            {opp.targetAmount != null && opp.targetAmount > 0 && (
+                              <div className="mb-6">
+                                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min(((opp.raisedAmount || 0) / opp.targetAmount) * 100, 100)}%` }} />
+                                 </div>
+                                 <p className="text-right text-[10px] font-bold text-blue-600 mt-1 uppercase tracking-wider">{Math.round(((opp.raisedAmount || 0) / opp.targetAmount) * 100)}% Sold</p>
                               </div>
                             )}
+
+                            {/* Specs Grid */}
+                            <div className="grid grid-cols-3 gap-4 mb-8">
+                               <div>
+                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Target IRR</p>
+                                 <p className="font-display text-lg font-bold text-gray-900">{targetIRR}</p>
+                               </div>
+                               <div>
+                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Tenure</p>
+                                 <p className="font-display text-lg font-bold text-gray-900">{tenure}</p>
+                               </div>
+                               <div>
+                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Min. Entry</p>
+                                 <p className="font-display text-lg font-bold text-gray-900">
+                                   {opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD'}
+                                 </p>
+                               </div>
+                            </div>
+
+                            <div className="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
+                               <button className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                                 View Details <ChevronRight className="h-4 w-4" />
+                               </button>
+                               <button className="px-5 py-2.5 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5">
+                                 Express Interest <ChevronRight className="h-4 w-4" />
+                               </button>
+                            </div>
                           </div>
                         </div>
                       )
@@ -627,7 +676,6 @@ export default function MarketplacePage() {
               </div>
             )}
           </div>
-        </div>
         </div>
       </div>
 

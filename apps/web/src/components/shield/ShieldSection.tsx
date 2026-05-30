@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, ChevronDown, ChevronRight, EyeOff, ShieldCheck } from 'lucide-react'
+import { X, AlertTriangle, ChevronDown, ChevronRight, EyeOff, ShieldCheck } from 'lucide-react'
 import {
   ASSESSMENT_CATEGORIES,
   findCategory,
@@ -16,6 +16,46 @@ interface ShieldSectionProps {
   mode?: 'public' | 'builder'
 }
 
+function ShieldPopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-overlay p-4 z-[9999]">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="modal-panel max-w-lg relative bg-white rounded-2xl overflow-hidden shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-2 text-[#D4AF37]">
+              <ShieldCheck className="h-8 w-8" />
+              <h2 className="font-display text-2xl font-bold text-gray-900">WealthSpot Shield</h2>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Every listing passes through a rigorous 7-layer Shield review before it earns Shield Certified status.
+          </p>
+          <ul className="space-y-4">
+            {[
+              'Builder Assessment',
+              'Legal Assessment',
+              'Valuation Assessment',
+              'Location Assessment',
+              'Property Assessment',
+              'Security Assessment',
+              'Exit Assessment'
+            ].map(item => (
+              <li key={item} className="flex items-center gap-3 text-sm font-medium text-gray-800">
+                <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /**
  * The Shield section that lands on the opportunity detail page +
  * the builder's read-only view of their own listing.
@@ -26,6 +66,7 @@ interface ShieldSectionProps {
 export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   const { data, isLoading } = useOpportunityAssessments(opportunityId)
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({})
+  const [showPopup, setShowPopup] = useState(false)
 
   if (isLoading) {
     return (
@@ -44,6 +85,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
 
   return (
     <section className="card p-6">
+      {showPopup && <ShieldPopup onClose={() => setShowPopup(false)} />}
       <header className="flex items-start justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -63,6 +105,9 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
           <p className="text-[12px] text-theme-secondary mt-1">
             {data.passedCount} of {data.totalCount} checks passed across all 7
             layers.
+            <button onClick={() => setShowPopup(true)} className="ml-2 text-[#D4AF37] hover:underline inline-flex items-center gap-1 font-semibold">
+              Learn more
+            </button>
           </p>
         </div>
         <div className="flex items-center gap-1.5">
