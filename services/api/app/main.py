@@ -1,5 +1,6 @@
 """
 WealthSpot API – main application entry point.
+Requires migration aa16902c5305 (has_onboarding_consent) to be applied.
 """
 
 import logging
