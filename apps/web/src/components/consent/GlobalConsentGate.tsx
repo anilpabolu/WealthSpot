@@ -1,5 +1,22 @@
 import { useState } from 'react'
-import { ShieldAlert, ExternalLink, Check, Loader2 } from 'lucide-react'
+import { ExternalLink, Check, Loader2 } from 'lucide-react'
+
+function ConsentText({ children }: { children: string }) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div>
+      <p className={`text-sm text-theme-secondary leading-relaxed ${!expanded ? 'line-clamp-1' : ''}`}>
+        {children}
+      </p>
+      <button
+        onClick={(e) => { e.stopPropagation(); setExpanded(v => !v) }}
+        className="text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors mt-0.5"
+      >
+        {expanded ? 'Show less' : 'Read more'}
+      </button>
+    </div>
+  )
+}
 import { useUser } from '@clerk/react'
 import { useUserStore } from '@/stores/user.store'
 import { useRecordConsent, useConsentStatus } from '@/hooks/useConsent'
@@ -98,14 +115,9 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
         
         <div className="modal-panel w-full max-w-2xl relative animate-fade-up shadow-2xl border border-theme max-h-[90vh] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-[var(--bg-surface)] border-b border-theme px-6 py-5 shrink-0 flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/15 rounded-xl shrink-0">
-              <ShieldAlert className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <h2 className="font-display text-xl font-bold text-theme-primary">Platform Agreements</h2>
-              <p className="text-xs text-theme-secondary mt-0.5">Please review and accept our core policies to continue.</p>
-            </div>
+          <div className="bg-[var(--bg-surface)] border-b border-theme px-6 py-5 shrink-0">
+            <h2 className="font-display text-xl font-bold text-theme-primary">Platform Agreements</h2>
+            <p className="text-xs text-theme-secondary mt-0.5">Please review and accept our core policies to continue.</p>
           </div>
 
           <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
@@ -128,9 +140,9 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
                     <span className="font-semibold text-theme-primary text-sm">Platform Role & Regulatory Acknowledgement</span>
                     <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-red-500/10 text-red-500 w-fit">Mandatory</span>
                   </div>
-                  <p className="text-sm text-theme-secondary leading-relaxed">
+                  <ConsentText>
                     I understand and acknowledge that WealthSpot operates solely as a real estate discovery, intelligence, networking, and advisory platform. WealthSpot does not pool investor funds, manage collective investment structures, provide regulated investment advisory services, or guarantee investment outcomes. All investment decisions and transactions are undertaken independently by me and directly with the respective developer, seller, or asset owner.
-                  </p>
+                  </ConsentText>
                 </div>
               </div>
             </div>
@@ -154,9 +166,9 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
                     <span className="font-semibold text-theme-primary text-sm">Privacy & Data Processing Consent</span>
                     <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-red-500/10 text-red-500 w-fit">Mandatory</span>
                   </div>
-                  <p className="text-sm text-theme-secondary leading-relaxed">
+                  <ConsentText>
                     I consent to the collection, storage, processing, and use of my personal information by WealthSpot for platform onboarding, opportunity discovery, communication, due diligence coordination, documentation support, and related advisory interactions in accordance with the Privacy Policy and applicable data protection laws.
-                  </p>
+                  </ConsentText>
                 </div>
               </div>
             </div>
@@ -180,9 +192,9 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
                     <span className="font-semibold text-theme-primary text-sm">Communication Consent</span>
                     <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 w-fit">Recommended</span>
                   </div>
-                  <p className="text-sm text-theme-secondary leading-relaxed">
+                  <ConsentText>
                     I agree to receive communications, market insights, opportunity updates, event invitations, and related notifications from WealthSpot through email, phone calls, SMS, or WhatsApp.
-                  </p>
+                  </ConsentText>
                 </div>
               </div>
             </div>
@@ -216,14 +228,9 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
               {recordConsent.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                'Accept & Continue'
+                'Ok'
               )}
             </button>
-            {!isSubmitEnabled && (
-              <p className="text-center text-xs text-theme-secondary mt-3">
-                You must accept the mandatory terms to continue.
-              </p>
-            )}
           </div>
 
         </div>
