@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import SEOHead from '@/components/SEOHead'
 import VaultProfilingModal from '@/components/VaultProfilingModal'
@@ -10,7 +10,6 @@ import {
   Compass,
   Rocket,
   Users,
-  ArrowRight,
   Wallet,
   PlayCircle,
   X,
