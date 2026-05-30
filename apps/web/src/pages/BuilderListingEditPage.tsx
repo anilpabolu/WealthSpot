@@ -274,18 +274,9 @@ export default function BuilderListingEditPage() {
   }
 
   return (
-    <PortalLayout variant="builder">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`/portal/builder/listings/${id}`)} className="text-theme-secondary hover:text-theme-primary">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="section-title text-2xl">Edit Listing</h1>
-            <p className="text-theme-secondary text-sm mt-1">{opp.title}</p>
-          </div>
-        </div>
+    <PortalLayout variant="builder" hero={hero}>
+      <div className="max-w-3xl mx-auto space-y-6 mt-8">
+
 
         <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
