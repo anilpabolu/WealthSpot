@@ -87,8 +87,8 @@ export default function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="font-body text-sm text-white/75 leading-relaxed max-w-[220px]">
-              India&apos;s trusted fractional real estate investment platform. Build generational wealth, one fraction at a time.
+            <p className="font-body text-sm text-white/75 leading-relaxed max-w-xs">
+              WealthSpot is an elite, invite-only platform designed for global citizens, enterprise leaders, senior professionals, and high-net-worth individuals (HNIs) who seek disciplined exposure to strategically positioned real estate assets.
             </p>
             <div className="space-y-2">
               <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white/75 hover:text-[#D4AF37] transition-colors">
