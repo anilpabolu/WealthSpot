@@ -86,8 +86,8 @@ export default function Navbar(_props?: NavbarProps) {
     if (!roleMatch) return false
     return true
   })
-  const allNavLinks = [...filteredAuthLinks, ...extraLinks, { label: 'About', href: '/about' }]
-  const publicNavLinks = [{ label: 'About', href: '/about' }]
+  const allNavLinks = [...filteredAuthLinks, ...extraLinks, { label: 'How We Work', href: '/how-we-work' }, { label: 'About', href: '/about' }]
+  const publicNavLinks = [{ label: 'How We Work', href: '/how-we-work' }, { label: 'About', href: '/about' }]
   const visibleNavLinks = isAuthenticated ? allNavLinks : publicNavLinks
 
   // ── Pill nav link classes (consistent across all links) ────────────────

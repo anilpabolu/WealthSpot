@@ -4,12 +4,12 @@ import WLogo3D from '@/components/ui/WLogo3D'
 
 const FOOTER_NAV = {
   Platform: [
-    { label: 'How it Works', href: '/#how-it-works' },
     { label: 'For Builders',  href: '/builders' },
     { label: 'FAQs',          href: '/faqs' },
     { label: 'Investment Guide', href: '/investment-guide' },
   ],
   Company: [
+    { label: 'How We Work', href: '/how-we-work' },
     { label: 'About Us',   href: '/about' },
     { label: 'Careers',    href: '/careers' },
     { label: 'Contact Us', href: '/contact' },
