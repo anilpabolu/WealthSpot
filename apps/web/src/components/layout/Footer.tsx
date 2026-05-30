@@ -1,25 +1,29 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Twitter, Linkedin, Instagram, Youtube, Mail, MapPin } from 'lucide-react'
 import WLogo3D from '@/components/ui/WLogo3D'
 
+// ── Shared legal links used in both footer variants ───────────────────────────
+const LEGAL_LINKS = [
+  { label: 'Terms of Service', href: '/legal/terms' },
+  { label: 'Privacy Policy',   href: '/legal/privacy' },
+  { label: 'Risk Disclosure',  href: '/legal/risk-disclosure' },
+  { label: 'Legal Disclaimer', href: '/legal/disclaimer' },
+]
+
 const FOOTER_NAV = {
   Platform: [
-    { label: 'For Builders',  href: '/builders' },
-    { label: 'FAQs',          href: '/faqs' },
+    { label: 'How it Works',    href: '/#how-it-works' },
+    { label: 'For Builders',    href: '/builders' },
+    { label: 'FAQs',            href: '/faqs' },
     { label: 'Investment Guide', href: '/investment-guide' },
   ],
   Company: [
-    { label: 'How We Work', href: '/how-we-work' },
     { label: 'About Us',   href: '/about' },
     { label: 'Careers',    href: '/careers' },
     { label: 'Contact Us', href: '/contact' },
   ],
-  Legal: [
-    { label: 'Terms of Service', href: '/legal/terms' },
-    { label: 'Privacy Policy',   href: '/legal/privacy' },
-    { label: 'Risk Disclosure',  href: '/legal/risk-disclosure' },
-    { label: 'Legal Disclaimer', href: '/legal/disclaimer' },
-  ],
+  Legal: LEGAL_LINKS,
 }
 
 const SOCIAL = [
@@ -29,34 +33,59 @@ const SOCIAL = [
   { icon: Youtube,   href: '#', label: 'YouTube' },
 ]
 
+const DISCLAIMER =
+  'WealthSpot operates as an independent real estate discovery and advisory platform. ' +
+  'We do not pool funds, manage investments, guarantee returns, or operate regulated investment schemes. ' +
+  'All transactions occur directly between investors and respective asset owners/developers. ' +
+  'Users are advised to conduct independent due diligence before making investment decisions.'
+
 const BG = '#080d1a'
 
+// ── Slim footer shown on every page except the homepage ───────────────────────
 function SlimFooter() {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <footer style={{ background: BG }} role="contentinfo">
       <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
-          <p className="font-body text-[11px] text-white/35 max-w-5xl leading-relaxed">
-            &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd.
-            <span className="mx-2 text-white/20 hidden sm:inline">·</span>
-            <span className="block sm:inline mt-1 sm:mt-0">
-              WealthSpot operates as an independent real estate discovery and advisory platform. We do not pool funds, manage investments, guarantee returns, or operate regulated investment schemes. All transactions occur directly between investors and respective asset owners/developers. Users are advised to conduct independent due diligence before making investment decisions.
-            </span>
-          </p>
-          <div className="flex items-center gap-4">
-            <a href="mailto:hello@wealthspot.in" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Help</a>
-            <Link to="/legal/terms"   className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Terms</Link>
-            <Link to="/legal/privacy" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Privacy</Link>
-            <Link to="/legal/risk-disclosure" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Risk</Link>
-            <Link to="/legal/disclaimer" className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors">Disclaimer</Link>
+        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-2">
+
+          {/* Copyright + collapsible disclaimer */}
+          <div className="flex-1 min-w-0">
+            <p className={`font-body text-[11px] text-white/35 leading-relaxed ${!expanded ? 'line-clamp-1' : ''}`}>
+              &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd.
+              {' · '}
+              {DISCLAIMER}
+            </p>
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="font-body text-[11px] text-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+            >
+              {expanded ? 'Show less' : 'Read more'}
+            </button>
           </div>
+
+          {/* Legal navigation links */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 shrink-0 pt-0.5">
+            {LEGAL_LINKS.map(link => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
         </div>
       </div>
     </footer>
   )
 }
 
+// ── Full footer shown only on the homepage ────────────────────────────────────
 export default function Footer() {
   const location = useLocation()
 
@@ -87,8 +116,8 @@ export default function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="font-body text-sm text-white/75 leading-relaxed max-w-xs">
-              WealthSpot is an elite, invite-only platform designed for global citizens, enterprise leaders, senior professionals, and high-net-worth individuals (HNIs) who seek disciplined exposure to strategically positioned real estate assets.
+            <p className="font-body text-sm text-white/75 leading-relaxed max-w-[220px]">
+              India&apos;s trusted fractional real estate investment platform. Build generational wealth, one fraction at a time.
             </p>
             <div className="space-y-2">
               <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white/75 hover:text-[#D4AF37] transition-colors">
@@ -123,7 +152,7 @@ export default function Footer() {
             </div>
           ))}
 
-          {/* CTA + social column */}
+          {/* Social column */}
           <div className="flex flex-col gap-6">
             <div>
               <p className="font-body text-[11px] font-bold text-[#D4AF37] uppercase tracking-[0.16em] mb-3">Find us on social</p>
@@ -167,9 +196,16 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-5">
-            <Link to="/legal/terms"   className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
-            <Link to="/legal/privacy" className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
+          <div className="flex flex-wrap items-center gap-5">
+            {LEGAL_LINKS.map(link => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
           <p className="font-body text-xs text-white/55">
             &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.
