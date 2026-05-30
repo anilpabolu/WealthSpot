@@ -2,16 +2,11 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useUserStore } from '@/stores/user.store'
 
-function isTokenExpired(token: string): boolean {
-  try {
-    const parts = token.split('.')
-    if (parts.length < 2) return true
-    const payload = JSON.parse(atob(parts[1]!))
-    return payload.exp * 1000 < Date.now() - 60_000
-  } catch {
-    return true
-  }
-}
+// Stable query key — uses the user's internal UUID, not the JWT string.
+// This means the cache is shared across token refreshes in the same session,
+// preventing the popup from re-appearing after login/refresh.
+export const consentQueryKey = (userId: string | null | undefined) =>
+  ['consent_status', userId ?? 'anon'] as const
 
 export interface ConsentPayload {
   context: 'ONBOARDING' | 'EOI'
@@ -56,19 +51,21 @@ export const useRecordConsent = () => {
 }
 
 export const useConsentStatus = (enabled: boolean = true) => {
-  const token = useUserStore((state) => state.token)
-  const isTokenValid = token && !isTokenExpired(token)
+  const userId = useUserStore((state) => state.user?.id ?? null)
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated)
 
   return useQuery<ConsentStatus>({
-    queryKey: ['consent_status', token],
+    // Key is stable across token refreshes — same user, same cache entry.
+    queryKey: consentQueryKey(userId),
     queryFn: async () => {
       const response = await api.get('/consent/status')
       return response.data
     },
-    enabled: enabled && !!isTokenValid,
-    // Cache the consent status for the session
+    enabled: enabled && isAuthenticated && !!userId,
     staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: false,
   })
 }

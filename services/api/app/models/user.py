@@ -82,6 +82,9 @@ class User(Base):
     )
     wealth_pass_active: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Onboarding consent — set to True once the user accepts platform agreements.
+    # Checked directly on the user row so consent status is instant and reliable.
+    has_onboarding_consent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # ── Risk Profile & Investment Appetite ───────────────────────────────────
     date_of_birth: Mapped[date | None] = mapped_column(Date)

@@ -1,5 +1,12 @@
 import { useState } from 'react'
 import { ExternalLink, Check, Loader2 } from 'lucide-react'
+import { useUser } from '@clerk/react'
+import { useUserStore } from '@/stores/user.store'
+import { useRecordConsent, useConsentStatus, consentQueryKey } from '@/hooks/useConsent'
+import { useQueryClient } from '@tanstack/react-query'
+import { useToastStore } from '@/stores/toastStore'
+import { useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 
 function ConsentText({ children }: { children: string }) {
   const [expanded, setExpanded] = useState(false)
@@ -17,19 +24,12 @@ function ConsentText({ children }: { children: string }) {
     </div>
   )
 }
-import { useUser } from '@clerk/react'
-import { useUserStore } from '@/stores/user.store'
-import { useRecordConsent, useConsentStatus } from '@/hooks/useConsent'
-import { useQueryClient } from '@tanstack/react-query'
-import { useToastStore } from '@/stores/toastStore'
-import { useLocation } from 'react-router-dom'
-import { cn } from '@/lib/utils'
 
 export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   const { isLoaded } = useUser()
-  const { isAuthenticated } = useUserStore()
+  const { isAuthenticated, user } = useUserStore()
   const location = useLocation()
-  
+
   const queryClient = useQueryClient()
   const recordConsent = useRecordConsent()
   const { data: status, isLoading: statusLoading } = useConsentStatus(isLoaded && isAuthenticated)
@@ -37,7 +37,6 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
   const [regulatoryAccepted, setRegulatoryAccepted] = useState(false)
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [communicationAccepted, setCommunicationAccepted] = useState(false)
-  const [isLocallyConsented, setIsLocallyConsented] = useState(false)
 
   // Block rendering until auth is loaded and we know if the user is authenticated
   if (!isLoaded) return null
@@ -50,54 +49,52 @@ export function GlobalConsentGate({ children }: { children: React.ReactNode }) {
     return <>{children}</>
   }
 
-  // If status is loading, we could render children or a loader, 
-  // but to prevent flash of content, we'll render children and overlay later if needed
-  const needsConsent = !isLocallyConsented && !statusLoading && status && !status.has_consented
+  // Show popup only when status is definitively false — not while loading or on error
+  const needsConsent = !statusLoading && status?.has_consented === false
 
   const isSubmitEnabled = regulatoryAccepted && privacyAccepted
-  const CURRENT_VERSION = status?.consent_version || "v1.0"
+  const CURRENT_VERSION = "v1.0"
 
   const handleConsent = async () => {
     if (!isSubmitEnabled) return
-    
-    try {
-      // Capture device details
-      const device_details = {
-        userAgent: window.navigator.userAgent,
-        language: window.navigator.language,
-        screenWidth: window.screen.width,
-        screenHeight: window.screen.height,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }
 
+    try {
       await recordConsent.mutateAsync({
         context: 'ONBOARDING',
         consent_version: CURRENT_VERSION,
         regulatory_accepted: regulatoryAccepted,
         privacy_accepted: privacyAccepted,
         communication_accepted: communicationAccepted,
-        device_details: device_details
+        device_details: {
+          userAgent: window.navigator.userAgent,
+          language: window.navigator.language,
+          screenWidth: window.screen.width,
+          screenHeight: window.screen.height,
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
       })
-      // Optimistically close the modal instantly for snappy UX
-      setIsLocallyConsented(true)
 
-      // Show success status message so the user knows it worked
-      useToastStore.getState().addToast({
-        title: "Success",
-        message: "Consent provided successfully.",
-        type: "success"
+      // Write has_consented=true directly into the cache using the stable userId key.
+      // This closes the popup immediately and prevents it from re-appearing on
+      // this session OR on future refreshes (the API will also return true from now on).
+      queryClient.setQueryData(consentQueryKey(user?.id), {
+        has_consented: true,
+        consent_version: CURRENT_VERSION,
       })
 
-      // Invalidate query to refetch with the current token in the background
-      await queryClient.invalidateQueries({ queryKey: ['consent_status'] })
-    } catch (error: any) {
-      console.error("Failed to record consent API call:", error)
       useToastStore.getState().addToast({
-        title: "Consent Failed",
-        message: "Network Error: Cannot save consent to the server. Please try again later.",
-        type: "error"
+        title: 'Success',
+        message: 'Consent recorded successfully.',
+        type: 'success',
+      })
+    } catch (error: unknown) {
+      console.error('Failed to record consent:', error)
+      useToastStore.getState().addToast({
+        title: 'Consent Failed',
+        message: 'Could not save your consent. Please try again.',
+        type: 'error',
       })
     }
   }

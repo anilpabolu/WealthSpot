@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -12,6 +11,9 @@ from app.schemas.consent import ConsentCreate, ConsentResponse, ConsentStatusRes
 
 router = APIRouter(prefix="/consent", tags=["Consent"])
 logger = logging.getLogger(__name__)
+
+
+CURRENT_VERSION = "v1.0"
 
 
 @router.post("", response_model=ConsentResponse)
@@ -37,13 +39,21 @@ async def record_consent(
         location=payload.location,
         device_details=payload.device_details,
     )
-
     db.add(log)
+
+    # Mark the user as having consented for ONBOARDING so the status check
+    # is a direct column read rather than a fragile log query.
+    if payload.context == "ONBOARDING" and payload.regulatory_accepted and payload.privacy_accepted:
+        current_user.has_onboarding_consent = True
+
     await db.commit()
     await db.refresh(log)
 
     logger.info(
-        f"Consent logged: user={current_user.id} context={payload.context} version={payload.consent_version}"
+        "Consent logged: user=%s context=%s version=%s",
+        current_user.id,
+        payload.context,
+        payload.consent_version,
     )
 
     return log
@@ -51,25 +61,10 @@ async def record_consent(
 
 @router.get("/status", response_model=ConsentStatusResponse)
 async def check_consent_status(
-    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    CURRENT_VERSION = "v1.0"
-
-    stmt = (
-        select(ConsentLog)
-        .where(
-            ConsentLog.user_id == current_user.id,
-            ConsentLog.consent_version == CURRENT_VERSION,
-            ConsentLog.context.in_(["ONBOARDING", "LOGIN"]),
-            ConsentLog.regulatory_accepted.is_(True),
-            ConsentLog.privacy_accepted.is_(True),
-        )
-        .order_by(ConsentLog.created_at.desc())
-        .limit(1)
+    """Return consent status read directly from the user row — no log query needed."""
+    return ConsentStatusResponse(
+        has_consented=current_user.has_onboarding_consent,
+        consent_version=CURRENT_VERSION,
     )
-
-    result = await db.execute(stmt)
-    log = result.scalars().first()
-
-    return ConsentStatusResponse(has_consented=log is not None, consent_version=CURRENT_VERSION)
