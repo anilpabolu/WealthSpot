@@ -8,7 +8,6 @@ import {
   Settings,
   HelpCircle,
 } from 'lucide-react'
-import sidebarBg from '@/assets/sidebar-bg.avif'
 
 const BUILDER_NAV = [
   { label: 'Dashboard',    href: '/portal/builder',                  icon: LayoutDashboard },
@@ -23,8 +22,8 @@ const BUILDER_BOTTOM = [
 ]
 
 /**
- * Pill link — mirrors top-navbar pill style:
- *   inactive : white/60 border + white text
+ * Pill link:
+ *   inactive : light border + gray text
  *   hover    : gold border + gold text + subtle gold bg
  *   active   : solid gold bg + dark text (filled pill)
  */
@@ -33,7 +32,7 @@ const pillCls = (isActive: boolean) =>
     'flex items-center gap-2.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200',
     isActive
       ? 'border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold shadow-md'
-      : 'border border-white/55 text-white hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+      : 'border border-gray-200 text-gray-600 hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
   )
 
 export default function BuilderSidebar() {
@@ -41,47 +40,15 @@ export default function BuilderSidebar() {
 
   return (
     <aside
-      className="hidden lg:flex flex-col w-56 xl:w-64 shrink-0 sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden"
+      className="hidden lg:flex flex-col w-56 xl:w-64 shrink-0 sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden bg-white border-r border-gray-200"
     >
-      {/* ── Background image with dark overlay for text legibility ── */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `url(${sidebarBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-      {/* Dark gradient overlay so white text stays readable */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(7,10,31,0.78) 0%, rgba(10,15,40,0.72) 60%, rgba(7,10,31,0.85) 100%)',
-        }}
-      />
-      {/* Subtle right-edge separator */}
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-0 bottom-0 w-px pointer-events-none"
-        style={{ background: 'rgba(255,255,255,0.08)' }}
-      />
-
-      {/* ── Content (above overlays) ── */}
+      {/* ── Content ── */}
       <div className="relative z-10 flex flex-col h-full overflow-y-auto pt-16">
 
         {/* Builder badge */}
         <div className="px-4 pt-5 pb-3">
           <div
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.10)',
-              backdropFilter: 'blur(8px)',
-            }}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50"
           >
             <div
               className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
@@ -90,8 +57,8 @@ export default function BuilderSidebar() {
               <Building2 className="h-4.5 w-4.5 text-[#D4AF37]" style={{ height: '1.1rem', width: '1.1rem' }} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white leading-tight">Builder Portal</p>
-              <p className="text-[10px] text-white/55 mt-0.5">Manage your properties</p>
+              <p className="text-sm font-semibold text-gray-900 leading-tight">Builder Portal</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Manage your properties</p>
             </div>
           </div>
         </div>
@@ -109,7 +76,7 @@ export default function BuilderSidebar() {
                 <item.icon
                   className={cn(
                     'h-4 w-4 shrink-0 transition-colors',
-                    isActive ? 'text-[#0D1324]' : 'text-white/75'
+                    isActive ? 'text-[#0D1324]' : 'text-gray-500'
                   )}
                 />
                 {item.label}
@@ -139,7 +106,7 @@ export default function BuilderSidebar() {
                   <item.icon
                     className={cn(
                       'h-4 w-4 shrink-0 transition-colors',
-                      isActive ? 'text-[#0D1324]' : 'text-white/75'
+                      isActive ? 'text-[#0D1324]' : 'text-gray-500'
                     )}
                   />
                   {item.label}

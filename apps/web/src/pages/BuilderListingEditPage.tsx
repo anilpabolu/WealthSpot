@@ -278,7 +278,7 @@ export default function BuilderListingEditPage() {
       <div className="max-w-3xl mx-auto space-y-6 mt-8">
 
 
-        <div className="bg-[var(--bg-surface)] rounded-xl border border-theme p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             <CompanySelector value={form.companyId} onChange={(cid) => handleChange('companyId', cid ?? '')} onRequestOnboard={() => setShowOnboarding(true)} />
 

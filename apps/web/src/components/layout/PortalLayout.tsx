@@ -51,7 +51,7 @@ export default function PortalLayout({ variant, hero, children }: PortalLayoutPr
         {/* Main Content Area */}
         <main className={cn(
           "flex-1 flex flex-col overflow-x-hidden min-w-0",
-          variant === 'builder' && "bg-white theme-violet-control"
+          variant === 'builder' && "bg-white"
         )}>
           <div className={cn("flex-1", !hero && "pt-16")}>
             {children ?? <Outlet />}
