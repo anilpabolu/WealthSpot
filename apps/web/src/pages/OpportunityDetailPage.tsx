@@ -438,7 +438,7 @@ export default function OpportunityDetailPage() {
         path={`/opportunity/${opp.slug}`}
         type="article"
       />
-      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-12">
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[6.5rem] pb-8">
         {/* Geometric blur decorations — matches Vaults page */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
@@ -449,13 +449,13 @@ export default function OpportunityDetailPage() {
         <div className="page-section-container relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div>
-              <h1 className="font-display text-3xl lg:text-5xl font-bold text-white mb-3 tracking-tight">
+              <h1 className="font-display text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
                 {opp.title}
               </h1>
               {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
 
               {opp.city && (
-                <p className="text-white/80 flex items-center gap-1.5 mt-4 text-sm font-medium">
+                <p className="text-white/80 flex items-center gap-1.5 mt-3 text-sm font-medium">
                   <MapPin className="h-4 w-4 text-[#D4AF37]" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
                 </p>
               )}
