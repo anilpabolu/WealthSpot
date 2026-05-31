@@ -798,12 +798,12 @@ export default function CreateOpportunityPage() {
         )}
 
       {/* Content */}
-      <div className={step === 'vault' ? 'flex-1 flex flex-col' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
+      <div className={step === 'details' ? 'w-full' : step === 'shield' ? '' : step === 'vault' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
-        {/* ─── Step: Vault Selection — unified full-height dark section ─── */}
+        {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
           <section
-            className="flex-1 flex flex-col -mt-16 relative overflow-hidden"
+            className="-mt-16 relative overflow-hidden"
             style={{
               backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.92) 0%, rgba(15,27,58,0.82) 50%, rgba(7,16,31,0.92) 100%), url('/images/page-hero-bg-2.jpg')",
               backgroundSize: 'cover',
@@ -817,8 +817,7 @@ export default function CreateOpportunityPage() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
             </div>
 
-            {/* All vault content in one flex column */}
-            <div className="relative z-10 flex flex-col flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 pb-8">
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 pb-10">
               {/* Page heading */}
               <div className="pt-24 sm:pt-28 pb-6 sm:pb-8">
                 <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight leading-[1.1]">
@@ -829,9 +828,9 @@ export default function CreateOpportunityPage() {
                 </p>
               </div>
 
-              {/* Vault selector card — grows to fill the rest of the screen */}
-              <div className="flex-1 flex flex-col min-h-0 pb-6 sm:pb-8">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl flex-1 w-full max-w-5xl mx-auto" style={{ minHeight: '420px' }}>
+              {/* Vault selector card — content-height, centred */}
+              <div className="pb-10">
+            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl w-full max-w-5xl mx-auto" style={{ minHeight: '460px' }}>
               <img
                 src="/images/vault-selector-abstract.svg"
                 alt=""
@@ -966,8 +965,8 @@ export default function CreateOpportunityPage() {
                 </aside>
               </div>
             </div>{/* end card rounded-[26px] */}
-          </div>{/* end card container flex-1 */}
-        </div>{/* end content z-10 wrapper */}
+          </div>{/* end pb-10 card wrapper */}
+        </div>{/* end z-10 content wrapper */}
       </section>
         )}
 
