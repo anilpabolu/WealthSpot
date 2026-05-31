@@ -10,14 +10,12 @@ export default function IntrinsicValuePage() {
         description="A sharp, visual white paper on intrinsic value vs market price, with practical analogies for smart investors."
       />
 
-      {/* Hero section (Matches VaultsPage) */}
-      <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 overflow-hidden bg-[#0D1324]">
-        {/* Background textures */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0D1324] via-[#1A2542] to-[#0A101D] opacity-90" />
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-[#0D1324] to-transparent" />
-          {/* Subtle grid pattern */}
-          <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      {/* Hero section */}
+      <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
         </div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
