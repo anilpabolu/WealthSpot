@@ -65,6 +65,7 @@ const VaultAnalytics = lazy(() => import('@/pages/VaultAnalyticsDashboard'))
 const InviteAccept = lazy(() => import('@/pages/InviteAcceptPage'))
 const About = lazy(() => import('@/pages/AboutPage'))
 const HowWeWork = lazy(() => import('@/pages/HowWeWorkPage'))
+const IntrinsicValuePage = lazy(() => import('@/pages/IntrinsicValuePage'))
 
 function PageLoader() {
   return (
@@ -193,6 +194,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/about" element={<About />} />
           <Route path="/how-we-work" element={<HowWeWork />} />
+          <Route path="/insights/intrinsic-value" element={<IntrinsicValuePage />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/:slug" element={<PropertyDetail />} />
           <Route path="/opportunity/:slug" element={<OpportunityDetail />} />
