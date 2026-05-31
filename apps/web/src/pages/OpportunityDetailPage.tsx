@@ -438,59 +438,35 @@ export default function OpportunityDetailPage() {
         path={`/opportunity/${opp.slug}`}
         type="article"
       />
-      <section className="page-hero relative pt-32 pb-24 overflow-hidden bg-[#0A1A2F]">
-        {/* Dynamic Background Image with Overlay */}
-        {coverUrl && (
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity transform scale-105"
-            style={{ backgroundImage: `url(${coverUrl})` }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1A2F]/90 via-[#0A1A2F]/80 to-[var(--bg-body)]" />
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-12">
+        {/* Geometric blur decorations — matches Vaults page */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+        </div>
 
         <div className="page-section-container relative z-10">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-white/60 mb-8">
-            <Link to="/marketplace" className="hover:text-white transition-colors">Marketplace</Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-white/90 truncate font-medium">{opp.title}</span>
-          </nav>
-
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-white/10 text-white border border-white/20 text-xs font-medium rounded-full capitalize backdrop-blur-md">
-                  {opp.vaultType} vault
-                </span>
-                {opp.industry && (
-                  <span className="px-3 py-1 bg-white/5 text-white/90 border border-white/10 text-xs font-medium rounded-full backdrop-blur-md">
-                    {opp.industry}
-                  </span>
-                )}
-                {opp.stage && (
-                  <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-xs font-medium rounded-full capitalize backdrop-blur-md">
-                    {opp.stage}
-                  </span>
-                )}
-              </div>
               <h1 className="font-display text-3xl lg:text-5xl font-bold text-white mb-3 tracking-tight">
                 {opp.title}
               </h1>
               {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
-              
+
               {opp.city && (
                 <p className="text-white/80 flex items-center gap-1.5 mt-4 text-sm font-medium">
                   <MapPin className="h-4 w-4 text-[#D4AF37]" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
                 </p>
               )}
             </div>
-            
+
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border backdrop-blur-md transition-all ${
-                  likeData?.liked 
-                    ? 'border-red-500/50 bg-red-500/20 text-white' 
+                  likeData?.liked
+                    ? 'border-red-500/50 bg-red-500/20 text-white'
                     : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
                 }`}
                 aria-label={likeData?.liked ? 'Unlike' : 'Save'}

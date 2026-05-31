@@ -77,7 +77,7 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
               <div className="text-[#D4AF37] font-bold tracking-widest uppercase text-sm drop-shadow-md">{city}</div>
             </div>
           )}
-          <h1 className="text-7xl font-display font-bold leading-tight mb-10 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] max-w-[800px]">
+          <h1 className="text-7xl font-display font-bold leading-tight mb-10 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] max-w-[800px]" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>
             {title}
           </h1>
 
@@ -89,22 +89,22 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
             {targetIRR && (
               <div className="relative z-10">
                 <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-2 opacity-90">Target IRR</p>
-                <p className="font-display text-5xl font-bold text-white drop-shadow-md">{targetIRR}</p>
+                <p className="font-display text-5xl font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{targetIRR}</p>
               </div>
             )}
-            
+
             {targetIRR && <div className="w-px h-16 bg-gradient-to-b from-transparent via-[#D4AF37]/30 to-transparent relative z-10"></div>}
-            
+
             <div className="relative z-10">
               <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-2 opacity-90">Tenure</p>
-              <p className="font-display text-5xl font-bold text-white drop-shadow-md">{tenure ?? 'TBD'}</p>
+              <p className="font-display text-5xl font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{tenure ?? 'TBD'}</p>
             </div>
-            
+
             <div className="w-px h-16 bg-gradient-to-b from-transparent via-[#D4AF37]/30 to-transparent relative z-10"></div>
-            
+
             <div className="relative z-10">
               <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-2 opacity-90">Min. Entry</p>
-              <p className="font-display text-5xl font-bold text-white drop-shadow-md">{minEntry ?? 'TBD'}</p>
+              <p className="font-display text-5xl font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{minEntry ?? 'TBD'}</p>
             </div>
           </div>
         </div>

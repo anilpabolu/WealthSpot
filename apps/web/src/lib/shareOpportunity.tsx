@@ -54,10 +54,12 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     if (!element) throw new Error("Failed to render postcard");
 
     // 4. Generate the image blob
-    const blob = await toBlob(element, { 
+    // skipFonts prevents html-to-image from reading document.styleSheets, which throws
+    // a SecurityError for cross-origin stylesheets (e.g. Google Fonts).
+    const blob = await toBlob(element, {
       cacheBust: true,
       pixelRatio: 1, // 1200x630 is perfectly sized
-      // Fallback style to ensure backgrounds render nicely
+      skipFonts: true,
       style: {
         transform: 'scale(1)',
         transformOrigin: 'top left',
