@@ -70,7 +70,8 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     // 5. Share logic
     const file = new File([blob], `wealthspot-${data.slug}.png`, { type: 'image/png' });
     
-    // Check if navigator.canShare supports sharing files (this is true on iOS/Android and some desktop browsers)
+    // The user requested to attempt native sharing on Desktop as well, even if Windows/Mac 
+    // occasionally drops the file payload for certain apps like WhatsApp.
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         title: data.title,
@@ -79,16 +80,22 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
       });
     } else {
       // Desktop Fallback: Download the image and copy the text
-      await navigator.clipboard.writeText(text);
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        console.warn("Clipboard access denied, text not copied");
+      }
       
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
       a.download = `wealthspot-${data.slug}.png`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(downloadUrl);
       
-      alert("Postcard downloaded and message copied to your clipboard! Paste it into WhatsApp or LinkedIn.");
+      alert("Postcard image downloaded to your computer!\n\nThe message/link has been copied to your clipboard. You can now paste them directly into WhatsApp or LinkedIn.");
     }
   } catch (error) {
     console.error("Error generating share postcard:", error);
