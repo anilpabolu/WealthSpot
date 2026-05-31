@@ -744,7 +744,7 @@ export default function CreateOpportunityPage() {
 
   return (
     <MainLayout showFooter={true}>
-      <div className={`min-h-screen flex flex-col ${step === 'vault' ? 'bg-[#07101e]' : 'bg-[var(--bg-base)]'}`}>
+      <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
@@ -801,34 +801,28 @@ export default function CreateOpportunityPage() {
       <div className={step === 'vault' ? 'flex-1 flex flex-col lg:overflow-x-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
         {step === 'vault' && (
-          <section id="hero" className="relative overflow-hidden pt-[8.5rem] pb-6 sm:pb-10 lg:pb-14 -mt-16"
-            style={{
-              backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}>
+          <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-10 lg:pb-12">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
-              <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
+              <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-violet-500/12 blur-3xl" />
             </div>
             <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-              <div className="animate-fade-up">
-                <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
-                  Create Opportunity
-                </h1>
-                <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
-                  List your new investment class — real estate, fixed-income, or collaborative ventures. Find the one that matches your ambition.
-                </p>
-              </div>
+              <h1 className="font-hero text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-2 tracking-tight leading-[1.1]">
+                Create Opportunity
+              </h1>
+              <p className="text-white/55 max-w-xl text-sm leading-relaxed">
+                List your new investment class — real estate, fixed-income, or collaborative ventures.
+              </p>
             </div>
           </section>
         )}
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="flex-1 w-full px-3 sm:px-6 lg:px-8 pb-8 sm:pb-14 lg:pb-20 flex items-start justify-center mt-6 sm:mt-12 lg:mt-20">
-            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-white/18 shadow-2xl h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0">
+          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 lg:py-14 flex items-start justify-center">
+            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0"
+              style={{ boxShadow: '0 8px 40px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,175,55,0.15)' }}
+            >
               <img
                 src="/images/vault-selector-abstract.svg"
                 alt=""
