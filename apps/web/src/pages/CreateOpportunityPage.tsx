@@ -230,15 +230,14 @@ function getShieldValidationErrors(answers: Record<string, BuilderAnswer>, categ
 }
 
 // ─── Shared CSS helpers ──────────────────────────────────────────────────────
-// Shared light form system (reference-aligned)
-const INPUT_CLS = 'w-full rounded-lg border border-[#c9d0ce] bg-[#f8faf9] text-[#2f4a4a] font-body placeholder-[#768588] px-3 py-2.5 text-sm focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20 outline-none'
-const INPUT_ERR_CLS = 'w-full rounded-lg border border-red-500/60 bg-[#f8faf9] text-[#2f4a4a] font-body placeholder-[#768588] px-3 py-2.5 text-sm focus:border-red-500 outline-none'
-const SELECT_CLS = 'w-full rounded-lg border border-[#c9d0ce] bg-[#f8faf9] text-[#2f4a4a] font-body px-3 py-2.5 text-sm focus:border-[#2f4a4a]/45 outline-none appearance-none'
-const SELECT_ERR_CLS = 'w-full rounded-lg border border-red-500/60 bg-[#f8faf9] text-[#2f4a4a] font-body px-3 py-2.5 text-sm outline-none appearance-none'
-const LABEL_CLS = 'block font-body text-[#3d5757] text-sm font-medium mb-1'
-const CARD_CLS = 'bg-[#f1f4f3] border border-[#d3dcda] rounded-2xl p-5'
-const SECTION_HEADING = 'font-hero text-[#2f4a4a] font-semibold text-base mb-3'
-const ERR_MSG = 'text-red-500 text-xs mt-1 flex items-center gap-1'
+const INPUT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12 outline-none transition-colors'
+const INPUT_ERR_CLS = 'w-full rounded-xl border border-red-400 bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm outline-none transition-colors'
+const SELECT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body px-3.5 py-2.5 text-sm outline-none appearance-none transition-colors focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12'
+const SELECT_ERR_CLS = 'w-full rounded-xl border border-red-400 bg-white text-[var(--text-primary)] font-body px-3.5 py-2.5 text-sm outline-none appearance-none transition-colors'
+const LABEL_CLS = 'block text-[var(--text-tertiary)] text-[11px] font-bold uppercase tracking-wider mb-1.5'
+const CARD_CLS = 'bg-white border border-[rgba(209,196,157,0.28)] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)]'
+const SECTION_HEADING = 'font-display text-[var(--text-primary)] font-bold text-sm uppercase tracking-wider mb-4'
+const ERR_MSG = 'text-red-500 text-xs mt-1.5 flex items-center gap-1'
 
 // Step definitions
 type WizardStep = 'vault' | 'community-subtype' | 'details' | 'shield' | 'uploading'
@@ -745,32 +744,54 @@ export default function CreateOpportunityPage() {
 
   return (
     <MainLayout showFooter={true}>
-      <div className="min-h-screen flex flex-col bg-[#f8faf9]">
+      <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
-          <div className="bg-white border-b border-[#e1e7e5] px-4 py-4 sticky top-0 z-50">
-            <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <button onClick={() => setStep('vault')} className="flex items-center gap-2 text-[#2f4a4a] hover:text-[#D4AF37] transition-colors font-semibold">
-                <ArrowLeft className="h-4 w-4" /> Exit
+          <div className="bg-white/95 backdrop-blur-sm border-b border-[rgba(209,196,157,0.3)] px-4 py-3 sticky top-0 z-50 shadow-[0_1px_8px_rgba(0,0,0,0.06)]">
+            <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+              <button
+                onClick={() => setStep('vault')}
+                className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] transition-colors text-sm font-medium shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Exit</span>
               </button>
-              
-              <div className="flex items-center gap-6 md:gap-12 flex-1 justify-center">
-                {[
-                  { id: 'details', label: 'Details', icon: Building2, active: step === 'details' },
-                  { id: 'shield', label: 'Security', icon: ShieldCheck, active: step === 'shield' },
-                  { id: 'submit', label: 'Review', icon: CheckCircle2, active: false }
-                ].map((s, i) => (
-                  <div key={s.id} className="flex items-center gap-3">
-                    <div className={`flex items-center gap-2 ${s.active ? 'text-[#D4AF37]' : (step === 'shield' && s.id === 'details') ? 'text-[#D4AF37]' : 'text-[#a0afaf]'}`}>
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors ${s.active ? 'border-[#D4AF37] bg-[#D4AF37]/10' : (step === 'shield' && s.id === 'details') ? 'border-[#D4AF37] bg-[#D4AF37] text-white' : 'border-[#d4dcda] bg-[#f1f4f3]'}`}>
-                        <s.icon className="h-4 w-4" />
+
+              <div className="flex items-center gap-2 sm:gap-6 flex-1 justify-center">
+                {([
+                  { id: 'details', label: 'Details', icon: Building2, done: step === 'shield', active: step === 'details' },
+                  { id: 'shield', label: 'Shield', icon: ShieldCheck, done: false, active: step === 'shield' },
+                  { id: 'submit', label: 'Review', icon: CheckCircle2, done: false, active: false },
+                ] as const).map((s, i) => (
+                  <div key={s.id} className="flex items-center gap-1.5 sm:gap-2">
+                    <div className={`flex items-center gap-1.5 sm:gap-2 transition-colors ${s.active ? 'text-[#8B6914]' : s.done ? 'text-[#D4AF37]' : 'text-[var(--text-muted)]'}`}>
+                      <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${
+                        s.active ? 'border-[#D4AF37] bg-[#D4AF37]/10'
+                        : s.done ? 'border-[#D4AF37] bg-[#D4AF37] text-white'
+                        : 'border-[rgba(209,196,157,0.4)] bg-[rgba(209,196,157,0.08)]'
+                      }`}>
+                        <s.icon className="h-3.5 w-3.5" />
                       </div>
-                      <span className="text-sm font-bold hidden md:block">{s.label}</span>
+                      <span className="text-xs sm:text-sm font-semibold hidden sm:block">{s.label}</span>
                     </div>
-                    {i < 2 && <ChevronRight className="h-4 w-4 text-[#d4dcda] mx-2 hidden md:block" />}
+                    {i < 2 && <ChevronRight className="h-3.5 w-3.5 text-[rgba(209,196,157,0.5)] mx-0.5 sm:mx-1 shrink-0" />}
                   </div>
                 ))}
+              </div>
+
+              {/* Sub-step counter */}
+              <div className="shrink-0 text-right">
+                {step === 'details' && (
+                  <span className="text-[11px] font-semibold text-[var(--text-tertiary)] bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] px-2.5 py-1 rounded-full">
+                    {detailsStepIndex + 1} / 3
+                  </span>
+                )}
+                {step === 'shield' && (
+                  <span className="text-[11px] font-semibold text-[var(--text-tertiary)] bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] px-2.5 py-1 rounded-full">
+                    {shieldStepIndex + 1} / {ASSESSMENT_CATEGORIES.length}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -948,11 +969,19 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Community Subtype ─── */}
         {step === 'community-subtype' && (
-          <div className="space-y-4">
-            <button onClick={() => setStep('vault')} className="flex items-center gap-1.5 text-slate-400 hover:text-slate-700 text-sm transition-colors">
+          <div className="max-w-2xl mx-auto w-full px-4 py-10 space-y-4">
+            <button
+              onClick={() => setStep('vault')}
+              className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] text-sm font-medium transition-colors mb-2"
+            >
               <ArrowLeft className="h-4 w-4" /> Back to vault selection
             </button>
-            <p className="text-slate-500 text-sm">Select the type of community opportunity you want to create.</p>
+
+            <div className="mb-6">
+              <h2 className="font-display text-xl font-bold text-[var(--text-primary)] mb-1">Community Vault Type</h2>
+              <p className="text-sm text-[var(--text-secondary)]">Choose how participants engage with this community opportunity.</p>
+            </div>
+
             {COMMUNITY_SUBTYPES.map((st) => {
               const Icon = st.icon
               return (
@@ -960,23 +989,27 @@ export default function CreateOpportunityPage() {
                   key={st.value}
                   type="button"
                   onClick={() => handleCommunitySubtypeSelect(st.value)}
-                  className={`w-full text-left p-5 rounded-xl border transition-all hover:shadow-lg ${st.border} bg-[#0d1324]`}
+                  className="w-full text-left rounded-2xl border border-[rgba(209,196,157,0.28)] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${st.iconBg}`}>
+                  <div className="flex items-start gap-4 p-5">
+                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${st.iconBg} ring-1 ring-white/10`}>
                       <Icon className="h-6 w-6" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-white">{st.label}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.badgeColor}`}>{st.badge}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="font-bold text-[var(--text-primary)] text-base">{st.label}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${st.badgeColor}`}>{st.badge}</span>
                       </div>
-                      <p className="text-white/55 text-sm leading-relaxed">{st.description}</p>
+                      <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{st.description}</p>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {st.highlights.map((h) => <span key={h} className="text-[11px] text-white/40 bg-white/5 px-2 py-0.5 rounded-full">{h}</span>)}
+                        {st.highlights.map((h) => (
+                          <span key={h} className="text-[11px] text-[var(--text-tertiary)] bg-[rgba(209,196,157,0.15)] border border-[rgba(209,196,157,0.25)] px-2.5 py-0.5 rounded-full">{h}</span>
+                        ))}
                       </div>
                     </div>
+                    <ChevronRight className="h-5 w-5 text-[rgba(209,196,157,0.5)] group-hover:text-[#D4AF37] transition-colors shrink-0 mt-1" />
                   </div>
+                  <div className="h-0.5 bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               )
             })}
@@ -985,33 +1018,37 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Details Form ─── */}
         {step === 'details' && (
-          <div className="pb-10 max-w-3xl mx-auto w-full px-4 pt-10">
-            <div className={CARD_CLS + " p-0 overflow-hidden shadow-sm"}>
-              
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#2B4EF5] to-[#516FF7] p-6 text-white flex items-center justify-between">
+          <div className="pb-12 max-w-3xl mx-auto w-full px-4 pt-8">
+            <div className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] border border-[rgba(209,196,157,0.28)]">
+
+              {/* Header — dark navy + gold accent */}
+              <div className="bg-[#0A1A2F] px-6 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
-                    {detailsStepIndex === 0 && <Building2 className="h-6 w-6 text-white" />}
-                    {detailsStepIndex === 1 && <Wallet className="h-6 w-6 text-white" />}
-                    {detailsStepIndex === 2 && <MapPin className="h-6 w-6 text-white" />}
+                  <div className="h-11 w-11 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
+                    {detailsStepIndex === 0 && <Building2 className="h-5 w-5 text-[#D4AF37]" />}
+                    {detailsStepIndex === 1 && <Wallet className="h-5 w-5 text-[#D4AF37]" />}
+                    {detailsStepIndex === 2 && <MapPin className="h-5 w-5 text-[#D4AF37]" />}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold font-hero">
-                      {detailsStepIndex === 0 && "Company & Basics"}
-                      {detailsStepIndex === 1 && "Property & Financials"}
-                      {detailsStepIndex === 2 && "Location & Media"}
+                    <h2 className="text-lg font-bold font-display text-white">
+                      {detailsStepIndex === 0 && 'Company & Basics'}
+                      {detailsStepIndex === 1 && 'Property & Financials'}
+                      {detailsStepIndex === 2 && 'Location & Media'}
                     </h2>
-                    <p className="text-white/80 text-sm mt-0.5">
-                      {detailsStepIndex === 0 && "Tell us about the offering"}
-                      {detailsStepIndex === 1 && "Set the investment terms"}
-                      {detailsStepIndex === 2 && "Where is it located?"}
+                    <p className="text-white/50 text-xs mt-0.5 font-medium">
+                      {detailsStepIndex === 0 && 'Tell us about the offering'}
+                      {detailsStepIndex === 1 && 'Set the investment terms'}
+                      {detailsStepIndex === 2 && 'Where is it and what does it look like?'}
                     </p>
                   </div>
                 </div>
-                <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold border border-white/10">
-                  Step {detailsStepIndex + 1}/3
-                </div>
+              </div>
+
+              {/* Progress dots */}
+              <div className="bg-[#071222] px-6 py-2.5 flex items-center gap-2 border-b border-[rgba(212,175,55,0.15)]">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i === detailsStepIndex ? 'bg-[#D4AF37]' : i < detailsStepIndex ? 'bg-[#D4AF37]/40' : 'bg-white/10'}`} />
+                ))}
               </div>
 
               <div className="p-6 space-y-5 bg-white">
@@ -1088,8 +1125,8 @@ export default function CreateOpportunityPage() {
                         onClick={() => setPropertyType(opt.value)}
                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-sm font-medium ${
                           propertyType === opt.value
-                            ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]'
-                            : 'border-[#d4dcda] bg-[#f8faf9] text-[#4f6363] hover:border-[#8ba0a0]'
+                            ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#8B6914]'
+                            : 'border-[rgba(209,196,157,0.4)] bg-white text-[var(--text-secondary)] hover:border-[#D4AF37]/50'
                         }`}
                       >
                         <span className="text-2xl">{opt.icon}</span>
@@ -1183,11 +1220,11 @@ export default function CreateOpportunityPage() {
                             key={m.value}
                             type="button"
                             onClick={() => setInvestmentMode(m.value)}
-                            className={`p-4 rounded-xl border-2 text-left transition-all ${investmentMode === m.value ? 'border-[#2f4a4a]/45 bg-[#2f4a4a]/10' : 'border-[#d4dcda] bg-[#f8faf9] hover:border-[#8ba0a0]'}`}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${investmentMode === m.value ? 'border-[#D4AF37] bg-[#D4AF37]/8' : 'border-[rgba(209,196,157,0.4)] bg-white hover:border-[#D4AF37]/50'}`}
                           >
                             <div className="text-2xl mb-2">{m.icon}</div>
-                            <div className={`font-semibold text-sm ${investmentMode === m.value ? 'text-[#2f4a4a]' : 'text-[#3f5555]'}`}>{m.label}</div>
-                            <div className="text-[#738383] text-xs mt-0.5">{m.desc}</div>
+                            <div className={`font-semibold text-sm ${investmentMode === m.value ? 'text-[#8B6914]' : 'text-[var(--text-primary)]'}`}>{m.label}</div>
+                            <div className="text-[var(--text-tertiary)] text-xs mt-0.5">{m.desc}</div>
                           </button>
                         ))}
                       </div>
@@ -1251,9 +1288,9 @@ export default function CreateOpportunityPage() {
                         {fe('unitConfig') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> {formErrors.unitConfig}</p>}
                         <div className="space-y-3">
                           {unitConfigs.map((row, idx) => (
-                            <div key={row.id} className="relative grid grid-cols-4 gap-2 p-3 rounded-lg bg-[#f8faf9] border border-[#d4dcda]">
+                            <div key={row.id} className="relative grid grid-cols-4 gap-2 p-3 rounded-xl bg-[rgba(209,196,157,0.06)] border border-[rgba(209,196,157,0.3)]">
                               <div className="col-span-2">
-                                <p className="text-[#748484] text-[10px] mb-1">Type</p>
+                                <p className="text-[var(--text-tertiary)] text-[10px] mb-1">Type</p>
                                 <select className={SELECT_CLS} value={row.bhkType} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, bhkType: e.target.value } : r))}>
                                   <option value="">Select…</option>
                                   {getBhkTypes(propertyType).map((t) => <option key={t} value={t}>{t}</option>)}
@@ -1324,7 +1361,7 @@ export default function CreateOpportunityPage() {
                   {fe('propertyType') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> Required</p>}
                   <div className="grid grid-cols-3 gap-3">
                     {PROPERTY_TYPE_OPTIONS.map((opt) => (
-                      <button key={opt.value} type="button" onClick={() => setPropertyType(opt.value)} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-xs font-medium ${propertyType === opt.value ? 'border-[#2f4a4a]/45 bg-[#2f4a4a]/10 text-[#2f4a4a]' : 'border-[#d4dcda] bg-[#f8faf9] text-[#4f6363] hover:border-[#8ba0a0]'}`}>
+                      <button key={opt.value} type="button" onClick={() => setPropertyType(opt.value)} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-xs font-medium ${propertyType === opt.value ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#8B6914]' : 'border-[rgba(209,196,157,0.4)] bg-white text-[var(--text-secondary)] hover:border-[#D4AF37]/50'}`}>
                         <span className="text-2xl">{opt.icon}</span>
                         <span className="text-center leading-tight">{opt.label}</span>
                       </button>
@@ -1377,7 +1414,7 @@ export default function CreateOpportunityPage() {
                         <button
                           type="button"
                           onClick={() => setSafeVaultData((p) => ({ ...p, [key]: { ...obj, enabled: !obj.enabled } }))}
-                          className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${obj.enabled ? 'bg-[#2f4a4a]' : 'bg-[#c7cfcd]'}`}
+                          className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${obj.enabled ? 'bg-[#D4AF37]' : 'bg-[rgba(209,196,157,0.35)]'}`}
                         >
                           <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${obj.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                         </button>
@@ -1396,7 +1433,7 @@ export default function CreateOpportunityPage() {
                 <div className={CARD_CLS}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-[#2f4a4a] font-medium text-sm">Capital Protection</h4>
-                    <button type="button" onClick={() => setSafeVaultData((p) => ({ ...p, capital_protection: !p.capital_protection }))} className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${safeVaultData.capital_protection ? 'bg-[#2f4a4a]' : 'bg-[#c7cfcd]'}`}>
+                    <button type="button" onClick={() => setSafeVaultData((p) => ({ ...p, capital_protection: !p.capital_protection }))} className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${safeVaultData.capital_protection ? 'bg-[#D4AF37]' : 'bg-[rgba(209,196,157,0.35)]'}`}>
                       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${safeVaultData.capital_protection ? 'translate-x-5' : 'translate-x-0.5'}`} />
                     </button>
                   </div>
@@ -1547,7 +1584,7 @@ export default function CreateOpportunityPage() {
                           {PARTNER_SKILLS.map((skill) => {
                             const selected = ((communityDetails.requiredSkills as string[]) ?? []).includes(skill)
                             return (
-                              <button key={skill} type="button" onClick={() => toggleSkill(skill)} className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${selected ? 'border-[#2f4a4a]/45 bg-[#2f4a4a]/10 text-[#2f4a4a]' : 'border-[#d4dcda] text-[#5f7474] hover:border-[#8ba0a0]'}`}>
+                              <button key={skill} type="button" onClick={() => toggleSkill(skill)} className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${selected ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#8B6914]' : 'border-[rgba(209,196,157,0.4)] text-[var(--text-secondary)] hover:border-[#D4AF37]/50'}`}>
                                 {skill}
                               </button>
                             )
@@ -1592,21 +1629,22 @@ export default function CreateOpportunityPage() {
               </div>
 
               {/* Bottom nav */}
-              <div className="bg-[#fcfdfd] border-t border-[#d5dddb] p-4 flex items-center justify-between">
+              <div className="bg-[#fdfcf8] border-t border-[rgba(209,196,157,0.3)] px-6 py-4 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={handleDetailsBack}
-                  className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2"
+                  className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] text-sm font-medium transition-colors px-3 py-2 rounded-lg hover:bg-[rgba(212,175,55,0.08)]"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span className="text-[#607474]">Previous</span>
+                  <span>Previous</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleDetailsNext}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm text-white transition-all shadow-sm hover:shadow-md bg-gradient-to-r from-[#506df5] to-[#3a58eb]"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm bg-[#0A1A2F] text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#0d2240] hover:border-[#D4AF37]/60 transition-all shadow-sm hover:shadow-md"
                 >
-                  Save & Continue <ChevronRight className="h-4 w-4" />
+                  {detailsStepIndex < 2 ? 'Continue' : 'Proceed to Shield'}
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -1615,33 +1653,31 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Shield ─── */}
         {step === 'shield' && (
-          <div className="pb-10 max-w-4xl mx-auto w-full px-4 pt-6">
-            <div className={CARD_CLS + " p-0 overflow-hidden shadow-sm mb-6"}>
-              <div className="bg-gradient-to-r from-[#2B4EF5] to-[#516FF7] p-6 text-white flex items-center justify-between">
+          <div className="pb-12 max-w-4xl mx-auto w-full px-4 pt-8">
+            <div className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-[rgba(209,196,157,0.28)] mb-6">
+              {/* Shield header — dark navy + gold */}
+              <div className="bg-[#0A1A2F] px-6 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <ShieldCheck className="h-6 w-6 text-white" />
+                  <div className="h-11 w-11 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="h-5 w-5 text-[#D4AF37]" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold font-hero">
-                      WealthSpot Shield
-                    </h2>
-                    <p className="text-white/80 text-sm mt-0.5">
-                      7-Layer Trust Framework
-                    </p>
+                    <h2 className="text-lg font-bold font-display text-white">WealthSpot Shield</h2>
+                    <p className="text-white/50 text-xs mt-0.5 font-medium">7-Layer Trust & Due Diligence Framework</p>
                   </div>
                 </div>
-                <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold border border-white/10">
-                  Step {shieldStepIndex + 1}/{ASSESSMENT_CATEGORIES.length}
+                <div className="text-[11px] font-semibold text-[#D4AF37] bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-3 py-1.5 rounded-full">
+                  {shieldStepIndex + 1} / {ASSESSMENT_CATEGORIES.length}
                 </div>
               </div>
-              <div className="px-6 py-4 bg-white/50 border-b border-[#e1e7e5] flex items-center gap-1">
-                 {ASSESSMENT_CATEGORIES.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1.5 rounded-full transition-all flex-1 ${i === shieldStepIndex ? 'bg-[#516FF7]' : i < shieldStepIndex ? 'bg-[#516FF7]/40' : 'bg-[#dde4e2]'}`}
-                    />
-                  ))}
+              {/* Progress bar */}
+              <div className="bg-[#071222] px-6 py-2.5 flex items-center gap-1.5 border-b border-[rgba(212,175,55,0.15)]">
+                {ASSESSMENT_CATEGORIES.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1 flex-1 rounded-full transition-all duration-300 ${i === shieldStepIndex ? 'bg-[#D4AF37]' : i < shieldStepIndex ? 'bg-[#D4AF37]/40' : 'bg-white/10'}`}
+                  />
+                ))}
               </div>
             </div>
 
@@ -1659,7 +1695,7 @@ export default function CreateOpportunityPage() {
 
               return (
                 <div className={CARD_CLS + " mb-6"}>
-                  <div className="flex flex-col md:flex-row gap-6 mb-6 pb-6 border-b border-[#d3dcda]">
+                  <div className="flex flex-col md:flex-row gap-6 mb-6 pb-6 border-b border-[rgba(209,196,157,0.3)]">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <div
@@ -1669,14 +1705,14 @@ export default function CreateOpportunityPage() {
                           {getCatIcon(cat.icon, 'h-6 w-6')}
                         </div>
                         <div>
-                          <h3 className="font-hero text-[#2f4a4a] font-bold text-xl">{cat.name}</h3>
+                          <h3 className="font-hero text-[var(--text-primary)] font-bold text-xl">{cat.name}</h3>
                           <p className="text-sm font-semibold" style={{ color: meta.accentHex }}>{meta.tagline}</p>
                         </div>
                       </div>
-                      <p className="text-[#607474] text-sm leading-relaxed mb-4">{cat.fullDescription}</p>
+                      <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{cat.fullDescription}</p>
                       <ul className="space-y-2">
                         {meta.bullets.map((b) => (
-                          <li key={b} className="flex items-start gap-2 text-sm text-[#3d5757]">
+                          <li key={b} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
                             <span
                               className="mt-1 h-3.5 w-3.5 rounded-full flex items-center justify-center shrink-0 text-[8px] font-black"
                               style={{ backgroundColor: meta.accentHex + '28', color: meta.accentHex }}
@@ -1732,12 +1768,12 @@ export default function CreateOpportunityPage() {
                       }
 
                       return (
-                        <div key={sub.code} className={`p-4 rounded-xl border ${showErr ? 'border-red-300 bg-red-50/50' : 'border-[#d3dcda] bg-white'}`}>
-                          <label className={`block text-sm font-semibold mb-1 ${showErr ? 'text-red-600' : 'text-[#2f4a4a]'}`}>
+                        <div key={sub.code} className={`p-4 rounded-xl border transition-colors ${showErr ? 'border-red-300 bg-red-50/50' : 'border-[rgba(209,196,157,0.3)] bg-white hover:border-[rgba(212,175,55,0.4)]'}`}>
+                          <label className={`block text-sm font-semibold mb-1 ${showErr ? 'text-red-600' : 'text-[var(--text-primary)]'}`}>
                             {sub.label}
                             {!sub.requiresDocument && <span className="text-red-500 ml-1">*</span>}
                           </label>
-                          <p className="text-[#6f8181] text-[11px] mb-3 leading-relaxed">{sub.promptForBuilder}</p>
+                          <p className="text-[var(--text-tertiary)] text-[11px] mb-3 leading-relaxed">{sub.promptForBuilder}</p>
 
                           {sub.inputType === 'select' ? (
                             <select
@@ -1753,10 +1789,10 @@ export default function CreateOpportunityPage() {
                               {['yes', 'no'].map((v) => (
                                 <label key={v} className="flex items-center gap-2 cursor-pointer group">
                                   <input type="radio" name={`shield-${sub.code}`} value={v} checked={val === v} onChange={() => setVal(v)} className="sr-only" />
-                                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${val === v ? 'border-transparent' : 'border-[#95a4a4]'}`} style={val === v ? { backgroundColor: '#2f4a4a', borderColor: '#2f4a4a' } : {}}>
+                                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${val === v ? 'border-transparent' : 'border-[rgba(209,196,157,0.5)]'}`} style={val === v ? { backgroundColor: '#D4AF37', borderColor: '#D4AF37' } : {}}>
                                     {val === v && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
                                   </div>
-                                  <span className="text-[#607474] capitalize group-hover:text-[#2f4a4a] transition-colors">{v}</span>
+                                  <span className="text-[var(--text-secondary)] capitalize group-hover:text-[#8B6914] transition-colors">{v}</span>
                                 </label>
                               ))}
                             </div>
@@ -1780,7 +1816,7 @@ export default function CreateOpportunityPage() {
 
                           {sub.requiresDocument && (
                             <div className="mt-3 flex items-center gap-2">
-                              <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-[#2f4a4a] border-[#c8d3d0] bg-[#edf3f1] hover:bg-[#e4ecea]">
+                              <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-[#8B6914] border-[rgba(212,175,55,0.35)] bg-[rgba(212,175,55,0.06)] hover:bg-[rgba(212,175,55,0.12)]">
                                 <span>📎 Attach evidence</span>
                                 <input
                                   type="file"
@@ -1790,7 +1826,7 @@ export default function CreateOpportunityPage() {
                                   onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                                 />
                               </label>
-                              {files.length > 0 && <span className="text-xs text-[#6f8181] font-semibold">{files.length} file(s) queued</span>}
+                              {files.length > 0 && <span className="text-xs text-[var(--text-tertiary)] font-semibold">{files.length} file(s) queued</span>}
                             </div>
                           )}
 
@@ -1807,11 +1843,11 @@ export default function CreateOpportunityPage() {
               )
             })()}
 
-            <div className="bg-white border border-[#d5dddb] rounded-xl p-4 flex items-center justify-between shadow-sm mt-2">
+            <div className="bg-white border border-[rgba(209,196,157,0.28)] rounded-2xl px-6 py-4 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.05)] mt-2">
               <button
                 type="button"
                 onClick={handleShieldBack}
-                className="flex items-center gap-1.5 text-[#607474] hover:text-[#2f4a4a] text-sm transition-colors px-4 py-2"
+                className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] text-sm font-medium transition-colors px-3 py-2 rounded-lg hover:bg-[rgba(212,175,55,0.08)]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {shieldStepIndex === 0 ? 'Back to Details' : 'Previous'}
@@ -1820,7 +1856,7 @@ export default function CreateOpportunityPage() {
                 type="button"
                 onClick={handleShieldNext}
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm text-white transition-all hover:shadow-md disabled:opacity-50 shadow-sm bg-gradient-to-r from-[#506df5] to-[#3a58eb]"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm bg-[#0A1A2F] text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#0d2240] hover:border-[#D4AF37]/60 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
               >
                 {shieldStepIndex === ASSESSMENT_CATEGORIES.length - 1 ? (
                   createMutation.isPending ? (
@@ -1829,7 +1865,7 @@ export default function CreateOpportunityPage() {
                     <><ShieldCheck className="h-4 w-4" /> Submit for Approval</>
                   )
                 ) : (
-                  <>Save & Continue <ChevronRight className="h-4 w-4" /></>
+                  <>Continue <ChevronRight className="h-4 w-4" /></>
                 )}
               </button>
             </div>
