@@ -744,7 +744,7 @@ export default function CreateOpportunityPage() {
 
   return (
     <MainLayout showFooter={true}>
-      <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
+      <div className={`min-h-screen flex flex-col ${step === 'vault' ? 'bg-[#07101e]' : 'bg-[var(--bg-base)]'}`}>
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
@@ -801,7 +801,7 @@ export default function CreateOpportunityPage() {
       <div className={step === 'vault' ? 'flex-1 flex flex-col lg:overflow-x-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
         {step === 'vault' && (
-          <section id="hero" className="relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16 -mt-16"
+          <section id="hero" className="relative overflow-hidden pt-[8.5rem] pb-6 sm:pb-10 lg:pb-14 -mt-16"
             style={{
               backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
               backgroundSize: 'cover',
@@ -827,8 +827,8 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="flex-1 w-full px-3 sm:px-6 lg:px-8 pb-20 flex items-start justify-center mt-20">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0">
+          <section className="flex-1 w-full px-3 sm:px-6 lg:px-8 pb-8 sm:pb-14 lg:pb-20 flex items-start justify-center mt-6 sm:mt-12 lg:mt-20">
+            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-white/18 shadow-2xl h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0">
               <img
                 src="/images/vault-selector-abstract.svg"
                 alt=""
@@ -844,7 +844,7 @@ export default function CreateOpportunityPage() {
               <div className="absolute bottom-[16%] right-[28%] h-px w-28 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden="true" />
               <div className="absolute top-[34%] left-[8%] h-px w-24 bg-gradient-to-r from-transparent via-[#20E3B2]/45 to-transparent" aria-hidden="true" />
 
-              <div className="relative h-full p-3.5 sm:p-4.5 lg:p-5 grid lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-5 items-center">
+              <div className="relative h-full p-4 sm:p-5 lg:p-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-5 items-center">
                 <div className="flex h-full flex-col">
                   <div className="mb-3.5">
                     <p className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/85">

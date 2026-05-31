@@ -138,14 +138,18 @@ export default function CommandControlPage() {
   return (
     <MainLayout>
 
-      {/* Hero — compact strip matching VaultsPage */}
-      <section id="hero" className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-[8.5rem] pb-14 lg:pb-16">
-        <div className="page-hero-content">
-          <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
+      {/* Hero — compact, matches VaultsPage */}
+      <section id="hero" className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-10 lg:pb-12">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-violet-500/12 blur-3xl" />
+        </div>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+          <h1 className="font-hero text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-2 tracking-tight leading-[1.1]">
             Command &amp; Control
           </h1>
-          <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
-            Manage users, configurations, content, and platform-wide settings from one place.
+          <p className="text-white/55 max-w-xl text-sm leading-relaxed">
+            Manage users, configurations, content, and platform settings from one place.
           </p>
         </div>
       </section>
@@ -201,8 +205,8 @@ export default function CommandControlPage() {
         </aside>
 
         {/* Mobile section picker */}
-        <div className="md:hidden sticky top-16 z-40 bg-[var(--bg-surface)] border-b border-theme overflow-x-auto">
-          <div className="flex items-center gap-1 px-4 py-1.5">
+        <div className="md:hidden sticky top-14 z-40 bg-[var(--bg-surface)] border-b border-[rgba(209,196,157,0.3)] shadow-sm">
+          <div className="flex items-center gap-1.5 px-4 py-2 overflow-x-auto scrollbar-none">
             {visibleSections.map((s) => {
               const Icon = s.icon
               const active = activeSection === s.id
@@ -210,11 +214,13 @@ export default function CommandControlPage() {
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium px-2.5 py-1.5 rounded-full transition-colors ${
-                    active ? 'bg-primary/10 text-primary' : 'text-theme-secondary hover:bg-theme-surface'
+                  className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-1.5 rounded-full border transition-all shrink-0 ${
+                    active
+                      ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#8B6914]'
+                      : 'border-[rgba(209,196,157,0.35)] text-[var(--text-secondary)] hover:border-[#D4AF37]/50 hover:text-[#8B6914]'
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3 w-3 shrink-0" />
                   {s.label}
                 </button>
               )
@@ -223,7 +229,7 @@ export default function CommandControlPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1 p-5 sm:p-6 bg-white min-w-0 theme-violet-control">
+        <main className="flex-1 p-4 sm:p-6 bg-[var(--bg-base)] min-w-0">
           <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
             {activeSection === 'dashboard' && (
               <Suspense fallback={<TabFallback />}><DashboardTab /></Suspense>
