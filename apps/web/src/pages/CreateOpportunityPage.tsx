@@ -481,6 +481,8 @@ export default function CreateOpportunityPage() {
     if (!form.title?.trim()) errors.title = 'Required'
     if (!form.tagline?.trim()) errors.tagline = 'Required'
     // description is optional — no validation
+    if (!address.city?.trim()) errors.city = 'Required'
+    if (!address.state?.trim()) errors.state = 'Required'
 
     if (vaultType === 'wealth' || vaultType === 'safe') {
       if (!propertyType) errors.propertyType = 'Required'
@@ -571,7 +573,7 @@ export default function CreateOpportunityPage() {
     setFormErrors(errors)
     
     const step0Keys = ['title', 'tagline', 'description']
-    let currentStepErrors = []
+    let currentStepErrors: string[] = []
     
     if (detailsStepIndex === 0) {
       currentStepErrors = Object.keys(errors).filter(k => step0Keys.includes(k))
@@ -580,7 +582,12 @@ export default function CreateOpportunityPage() {
     }
 
     if (currentStepErrors.length > 0) {
-      useToastStore.getState().addToast({ type: 'error', title: 'Required fields missing', message: 'Please fill all required information before continuing.' })
+      const formatFieldName = (key: string) => {
+        const result = key.replace(/([A-Z])/g, ' $1')
+        return result.charAt(0).toUpperCase() + result.slice(1)
+      }
+      const fieldNames = currentStepErrors.map(formatFieldName).join(', ')
+      useToastStore.getState().addToast({ type: 'error', title: 'Required fields missing', message: `Please complete the following fields: ${fieldNames}` })
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
@@ -615,7 +622,7 @@ export default function CreateOpportunityPage() {
       useToastStore.getState().addToast({
         type: 'error',
         title: 'Required fields missing',
-        message: 'Please answer all mandatory questions in this section.',
+        message: `Please complete the following fields: ${errors.join(', ')}`,
       })
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -654,13 +661,13 @@ export default function CreateOpportunityPage() {
 
     // Build property specs
     let propertySpecsPayload: Record<string, unknown> | undefined
-    if (propertyType) {
+      if (propertyType) {
       const base: Record<string, unknown> = {
         property_type: propertyType,
-        ...(projectOverview.possessionYear && { possession_date: projectOverview.possessionYear }),
+        ...(projectOverview.possessionYear && { possession_year: Number(projectOverview.possessionYear) }),
         ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
         ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
-        ...(projectOverview.landParcelSqft && { land_parcel_sqft: Number(projectOverview.landParcelSqft) }),
+        ...(projectOverview.landParcelSqft && { land_parcel_area_sqft: Number(projectOverview.landParcelSqft) }),
       }
       if (propertyType === PropertyType.PLOT) {
         base.plot_configurations = plotConfigs.filter((p) => p.plotType).map((p) => ({
@@ -670,8 +677,8 @@ export default function CreateOpportunityPage() {
           ...(p.pricePerSqft && { price_per_sqft: Number(p.pricePerSqft) }),
         }))
       } else {
-        base.unit_configurations = unitConfigs.filter((u) => u.bhkType).map((u) => ({
-          bhk_type: u.bhkType,
+        base.configurations = unitConfigs.filter((u) => u.bhkType).map((u) => ({
+          type: u.bhkType,
           ...(u.superBuiltUpSqft && { super_built_up_sqft: Number(u.superBuiltUpSqft) }),
           ...(u.pricePerSqft && { price_per_sqft: Number(u.pricePerSqft) }),
         }))
@@ -741,9 +748,42 @@ export default function CreateOpportunityPage() {
         message: `Your ${displayLabel} listing is now in our review queue. We'll notify you the moment it gets the green light. ✨`,
       })
       navigate('/portal/builder/listings')
-    } catch {
-      setStep('shield')
-      useToastStore.getState().addToast({ type: 'error', title: 'Launch failed', message: 'Something went wrong. Please try again.' })
+    } catch (err: any) {
+      if (err?.response?.status === 422 && err?.response?.data?.detail) {
+        const details = err.response.data.detail
+        const mappedErrors: Record<string, string> = {}
+        const fieldMap: Record<string, string> = {
+          'target_amount': 'targetAmount',
+          'min_investment': 'minInvestment',
+          'funding_open_at': 'fundingOpenAt',
+          'closing_date': 'closingDate',
+          'target_irr': 'targetIrr',
+          'project_phase': 'projectPhase',
+        }
+        
+        details.forEach((d: any) => {
+          const field = d.loc[d.loc.length - 1]
+          const mappedField = fieldMap[field] || field
+          mappedErrors[mappedField] = d.msg
+        })
+
+        setFormErrors(prev => ({ ...prev, ...mappedErrors }))
+        setSubmitAttempted(true)
+        
+        const formatFieldName = (key: string) => {
+          const result = key.replace(/([A-Z])/g, ' $1')
+          return result.charAt(0).toUpperCase() + result.slice(1)
+        }
+        const fieldNames = Object.keys(mappedErrors).map(formatFieldName).join(', ')
+        
+        useToastStore.getState().addToast({ type: 'error', title: 'Check your input', message: `The following fields have invalid data: ${fieldNames}` })
+        
+        setStep('details')
+        setDetailsStepIndex(0)
+      } else {
+        setStep('shield')
+        useToastStore.getState().addToast({ type: 'error', title: 'Launch failed', message: 'Something went wrong. Please try again.' })
+      }
     }
   }
 
@@ -766,8 +806,8 @@ export default function CreateOpportunityPage() {
   }
 
   return (
-    <MainLayout showFooter={true}>
-      <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
+    <MainLayout showFooter={false}>
+      <div className="flex-1 flex flex-col bg-[var(--bg-base)]">
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
@@ -1095,7 +1135,7 @@ export default function CreateOpportunityPage() {
                     onChange={(e) => handleChange('title', e.target.value)}
                     placeholder="e.g. Premium 2BHK Residences in Banjara Hills"
                   />
-                  {fe('title') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                  {fe('title') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.title}</p>}
                 </div>
                 <div>
                   <label className={LABEL_CLS}>Tagline <span className="text-red-400">*</span></label>
@@ -1105,7 +1145,7 @@ export default function CreateOpportunityPage() {
                     onChange={(e) => handleChange('tagline', e.target.value)}
                     placeholder="e.g. Verified docs · Fixed 14% returns · 3-year tenure"
                   />
-                  {fe('tagline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                  {fe('tagline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.tagline}</p>}
                 </div>
                 <div>
                   <label className={LABEL_CLS}>Description <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
@@ -1131,7 +1171,7 @@ export default function CreateOpportunityPage() {
                 {/* Property Type */}
                 <div className={CARD_CLS}>
                   <h3 className={SECTION_HEADING}>Property Type <span className="text-red-400">*</span></h3>
-                  {fe('propertyType') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> Required</p>}
+                  {fe('propertyType') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> {formErrors.propertyType}</p>}
                   <div className="grid grid-cols-3 gap-3">
                     {PROPERTY_TYPE_OPTIONS.map((opt) => (
                       <button
@@ -1225,7 +1265,7 @@ export default function CreateOpportunityPage() {
                               {sqftConversions(Number(projectOverview.landParcelSqft)).sqft} sqft · {sqftConversions(Number(projectOverview.landParcelSqft)).sqyd} sqyd · {sqftConversions(Number(projectOverview.landParcelSqft)).guntha} guntha
                             </p>
                           )}
-                          {fe('landParcelSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('landParcelSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.landParcelSqft}</p>}
                         </div>
                       </div>
                     </div>
@@ -1261,12 +1301,12 @@ export default function CreateOpportunityPage() {
                         <div>
                           <label className={LABEL_CLS}>Total Construction Area (Sq.Ft) <span className="text-red-400">*</span></label>
                           <input type="number" min={0} className={fe('totalProjectArea') ? INPUT_ERR_CLS : INPUT_CLS} value={totalProjectAreaSqft} onChange={(e) => setTotalProjectAreaSqft(e.target.value)} placeholder="e.g. 250000" />
-                          {fe('totalProjectArea') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('totalProjectArea') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.totalProjectArea}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>₹ / Sq.Ft <span className="text-red-400">*</span></label>
                           <input type="number" min={0} className={fe('pricePerSqft') ? INPUT_ERR_CLS : INPUT_CLS} value={pricePerSqftField} onChange={(e) => setPricePerSqftField(e.target.value)} placeholder="e.g. 6500" />
-                          {fe('pricePerSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('pricePerSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.pricePerSqft}</p>}
                         </div>
                         {/* Total project cost — auto calculated, read-only */}
                         {pricePerSqftField && totalProjectAreaSqft && (() => {
@@ -1288,12 +1328,12 @@ export default function CreateOpportunityPage() {
                         <div>
                           <label className={LABEL_CLS}>Target Investment Amount (₹) <span className="text-red-400">*</span></label>
                           <input type="number" min={0} className={fe('targetAmount') ? INPUT_ERR_CLS : INPUT_CLS} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} placeholder="Auto-computed or override" />
-                          {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.targetAmount}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Min Investment (₹) <span className="text-red-400">*</span></label>
                           <input type="number" min={0} className={fe('minInvestment') ? INPUT_ERR_CLS : INPUT_CLS} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} placeholder="e.g. 500000" />
-                          {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.minInvestment}</p>}
                         </div>
                       </div>
                     </div>
@@ -1373,7 +1413,7 @@ export default function CreateOpportunityPage() {
                           <div>
                             <label className={LABEL_CLS}>Funding Opens <span className="text-red-400">*</span></label>
                             <input type="date" className={fe('fundingOpenAt') ? INPUT_ERR_CLS : INPUT_CLS} value={form.fundingOpenAt ? form.fundingOpenAt.slice(0, 10) : ''} onChange={(e) => handleChange('fundingOpenAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)} />
-                            {fe('fundingOpenAt') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                            {fe('fundingOpenAt') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.fundingOpenAt}</p>}
                           </div>
                           <div>
                             <label className={LABEL_CLS}>Funding Deadline <span className="text-[#8a9a9a] text-xs">(optional)</span></label>
@@ -1394,7 +1434,7 @@ export default function CreateOpportunityPage() {
                 {/* Property type selector */}
                 <div className={CARD_CLS}>
                   <h3 className={SECTION_HEADING}>Property Type <span className="text-red-400">*</span></h3>
-                  {fe('propertyType') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> Required</p>}
+                  {fe('propertyType') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> {formErrors.propertyType}</p>}
                   <div className="grid grid-cols-3 gap-3">
                     {PROPERTY_TYPE_OPTIONS.map((opt) => (
                       <button key={opt.value} type="button" onClick={() => setPropertyType(opt.value)} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-xs font-medium ${propertyType === opt.value ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#8B6914]' : 'border-[rgba(209,196,157,0.4)] bg-white text-[var(--text-secondary)] hover:border-[#D4AF37]/50'}`}>
@@ -1411,7 +1451,7 @@ export default function CreateOpportunityPage() {
                     <div>
                       <label className={LABEL_CLS}>Interest Rate (% p.a.) <span className="text-red-400">*</span></label>
                       <input type="number" min={0} step={0.01} className={fe('interestRate') ? INPUT_ERR_CLS : INPUT_CLS} value={(safeVaultData.interest_rate as number) || ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, interest_rate: Number(e.target.value) }))} placeholder="e.g. 14" />
-                      {fe('interestRate') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                      {fe('interestRate') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.interestRate}</p>}
                     </div>
                     <div>
                       <label className={LABEL_CLS}>Payout Frequency</label>
@@ -1422,17 +1462,17 @@ export default function CreateOpportunityPage() {
                     <div>
                       <label className={LABEL_CLS}>Tenure (months) <span className="text-red-400">*</span></label>
                       <input type="number" min={1} className={fe('tenureMonths') ? INPUT_ERR_CLS : INPUT_CLS} value={(safeVaultData.tenure_months as number) ?? ''} onChange={(e) => setSafeVaultData((p) => ({ ...p, tenure_months: e.target.value ? Number(e.target.value) : null }))} placeholder="e.g. 36" />
-                      {fe('tenureMonths') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                      {fe('tenureMonths') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.tenureMonths}</p>}
                     </div>
                     <div>
                       <label className={LABEL_CLS}>Target Amount (₹) <span className="text-red-400">*</span></label>
                       <input type="number" min={0} className={fe('targetAmount') ? INPUT_ERR_CLS : INPUT_CLS} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} placeholder="e.g. 50000000" />
-                      {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                      {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.targetAmount}</p>}
                     </div>
                     <div>
                       <label className={LABEL_CLS}>Min Investment (₹) <span className="text-red-400">*</span></label>
                       <input type="number" min={0} className={fe('minInvestment') ? INPUT_ERR_CLS : INPUT_CLS} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} placeholder="e.g. 500000" />
-                      {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                      {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.minInvestment}</p>}
                     </div>
                   </div>
                 </div>
@@ -1492,7 +1532,7 @@ export default function CreateOpportunityPage() {
                       <option value="">Select…</option>
                       {COMMUNITY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
-                    {fe('communityType') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                    {fe('communityType') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.communityType}</p>}
                   </div>
                   <div>
                     <label className={LABEL_CLS}>Collaboration Type <span className="text-red-400">*</span></label>
@@ -1500,12 +1540,12 @@ export default function CreateOpportunityPage() {
                       <option value="">Select…</option>
                       {COLLABORATION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
-                    {fe('collaborationType') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                    {fe('collaborationType') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.collaborationType}</p>}
                   </div>
                   <div>
                     <label className={LABEL_CLS}>Target Amount (₹) <span className="text-red-400">*</span></label>
                     <input type="number" min={0} className={fe('targetAmount') ? INPUT_ERR_CLS : INPUT_CLS} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} placeholder="e.g. 10000000" />
-                    {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                    {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.targetAmount}</p>}
                   </div>
 
                   {/* Co-Investor specifics */}
@@ -1514,7 +1554,7 @@ export default function CreateOpportunityPage() {
                       <div>
                         <label className={LABEL_CLS}>Min Investment (₹) <span className="text-red-400">*</span></label>
                         <input type="number" min={0} className={fe('minInvestment') ? INPUT_ERR_CLS : INPUT_CLS} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} placeholder="e.g. 100000" />
-                        {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.minInvestment}</p>}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -1523,7 +1563,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {INVESTMENT_TENURES.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
-                          {fe('investmentTenure') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('investmentTenure') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.investmentTenure}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Revenue Model <span className="text-red-400">*</span></label>
@@ -1531,7 +1571,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {REVENUE_MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
                           </select>
-                          {fe('revenueModel') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('revenueModel') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.revenueModel}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Legal Structure <span className="text-red-400">*</span></label>
@@ -1539,7 +1579,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {LEGAL_STRUCTURES.map((l) => <option key={l} value={l}>{l}</option>)}
                           </select>
-                          {fe('legalStructure') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('legalStructure') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.legalStructure}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Risk Level <span className="text-red-400">*</span></label>
@@ -1547,7 +1587,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {RISK_LEVELS.map((r) => <option key={r} value={r}>{r}</option>)}
                           </select>
-                          {fe('riskLevel') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('riskLevel') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.riskLevel}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Projected Timeline <span className="text-red-400">*</span></label>
@@ -1555,7 +1595,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {TIMELINE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
-                          {fe('projectedTimeline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('projectedTimeline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.projectedTimeline}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Exit Strategy <span className="text-[#8a9a9a] text-xs">(optional)</span></label>
@@ -1572,7 +1612,7 @@ export default function CreateOpportunityPage() {
                         <div>
                           <label className={LABEL_CLS}>Equity Share (%) <span className="text-red-400">*</span></label>
                           <input type="number" min={0} max={100} className={fe('equityShare') ? INPUT_ERR_CLS : INPUT_CLS} value={(communityDetails.equityShare as string) ?? ''} onChange={(e) => handleCommunityDetailChange('equityShare', e.target.value)} placeholder="e.g. 25" />
-                          {fe('equityShare') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('equityShare') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.equityShare}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Time Commitment <span className="text-red-400">*</span></label>
@@ -1580,7 +1620,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {TIME_COMMITMENTS.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
-                          {fe('timeCommitment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('timeCommitment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.timeCommitment}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Partnership Duration <span className="text-red-400">*</span></label>
@@ -1588,7 +1628,7 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {PARTNERSHIP_DURATIONS.map((d) => <option key={d} value={d}>{d}</option>)}
                           </select>
-                          {fe('partnershipDuration') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('partnershipDuration') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.partnershipDuration}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLS}>Decision Authority <span className="text-red-400">*</span></label>
@@ -1596,18 +1636,18 @@ export default function CreateOpportunityPage() {
                             <option value="">Select…</option>
                             {DECISION_AUTHORITIES.map((d) => <option key={d} value={d}>{d}</option>)}
                           </select>
-                          {fe('decisionAuthority') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          {fe('decisionAuthority') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.decisionAuthority}</p>}
                         </div>
                       </div>
                       <div>
                         <label className={LABEL_CLS}>Partner Role <span className="text-red-400">*</span></label>
                         <input className={fe('partnerRole') ? INPUT_ERR_CLS : INPUT_CLS} value={(communityDetails.partnerRole as string) ?? ''} onChange={(e) => handleCommunityDetailChange('partnerRole', e.target.value)} placeholder="e.g. Operations Lead" />
-                        {fe('partnerRole') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        {fe('partnerRole') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.partnerRole}</p>}
                       </div>
                       <div>
                         <label className={LABEL_CLS}>Key Responsibilities <span className="text-red-400">*</span></label>
                         <textarea rows={3} className={`${fe('keyResponsibilities') ? 'border-red-500/60' : 'border-[#c9d0ce]'} w-full rounded-lg border bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] px-3 py-2.5 text-sm outline-none resize-none`} value={(communityDetails.keyResponsibilities as string) ?? ''} onChange={(e) => handleCommunityDetailChange('keyResponsibilities', e.target.value)} placeholder="Describe key responsibilities..." />
-                        {fe('keyResponsibilities') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        {fe('keyResponsibilities') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.keyResponsibilities}</p>}
                       </div>
                       <div>
                         <label className={LABEL_CLS}>Partner Benefits <span className="text-[#8a9a9a] text-xs">(optional)</span></label>
@@ -1615,7 +1655,7 @@ export default function CreateOpportunityPage() {
                       </div>
                       <div>
                         <label className={LABEL_CLS}>Required Skills <span className="text-red-400">*</span></label>
-                        {fe('requiredSkills') && <p className={`${ERR_MSG} mb-2`}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        {fe('requiredSkills') && <p className={`${ERR_MSG} mb-2`}><AlertCircle className="h-3 w-3" /> {formErrors.requiredSkills}</p>}
                         <div className="flex flex-wrap gap-2">
                           {PARTNER_SKILLS.map((skill) => {
                             const selected = ((communityDetails.requiredSkills as string[]) ?? []).includes(skill)

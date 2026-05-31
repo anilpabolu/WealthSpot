@@ -20,16 +20,12 @@ class UnitConfiguration(BaseModel):
     """Individual BHK / unit configuration within a flat or villa project."""
 
     type: str  # "Studio" | "1 BHK" | "2 BHK" | "3 BHK" | "4 BHK" | "Penthouse"
-    carpet_area_sqft: float | None = None
     super_built_up_sqft: float | None = None
     built_up_sqft: float | None = None  # for villas / independent floors
     plot_area_sqyd: float | None = None  # villa/bungalow plot area
-    balconies: int | None = None
-    bathrooms: int | None = None
     car_parks: int | None = None
     floors: int | None = None  # for villas / duplex
     available_units: int | None = None
-    total_units: int | None = None
     price_per_sqft: float | None = None
 
 
@@ -71,7 +67,7 @@ class PropertySpecsFlat(BaseModel):
     total_towers: int | None = None
     land_parcel_area_sqft: float | None = None
     project_total_area_sqft: float | None = None
-    possession_quarter: str | None = None  # e.g., "Q3 2027"
+    possession_year: int | None = None
     launch_price_per_sqft: float | None = None
     current_price_per_sqft: float | None = None
     floor_plan_url: str | None = None
@@ -86,7 +82,7 @@ class PropertySpecsVilla(BaseModel):
     project_total_area_acres: float | None = None
     project_total_area_sqft: float | None = None
     land_parcel_area_sqft: float | None = None
-    possession_quarter: str | None = None
+    possession_year: int | None = None
     current_price_per_sqft: float | None = None
 
 
@@ -323,6 +319,11 @@ class PaginatedOpportunities(BaseModel):
     total_pages: int
 
 
+class LocationUspSchema(BaseModel):
+    text: str
+    category: str
+
+
 class OpportunityCreateRequest(BaseModel):
     """Unified create request — fields depend on vault_type."""
 
@@ -350,8 +351,8 @@ class OpportunityCreateRequest(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     maps_url: str | None = None
-    # Location USPs — list of {text: str, category: str}
-    location_usps: list[dict] | None = None
+    # Location USPs
+    location_usps: list[LocationUspSchema] | None = None
     # Startup fields
     industry: str | None = None
     stage: str | None = None
@@ -378,6 +379,7 @@ class OpportunityCreateRequest(BaseModel):
     closing_date: datetime | None = None
     # Investment configuration mode: 'lumpsum' or 'unit_config'
     investment_mode: str | None = "lumpsum"
+    shield_answers: dict[str, Any] | None = None
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -406,8 +408,8 @@ class OpportunityUpdateRequest(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     maps_url: str | None = None
-    # Location USPs — list of {text: str, category: str}
-    location_usps: list[dict] | None = None
+    # Location USPs
+    location_usps: list[LocationUspSchema] | None = None
     # Startup fields
     industry: str | None = None
     stage: str | None = None

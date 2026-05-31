@@ -144,11 +144,16 @@ function AdminSubItemRow({
   )
 
   async function runVerdict(action: VerdictAction) {
+    let finalNote = draftNote.trim()
+    if (action === 'pass' && !finalNote) {
+      finalNote = 'Ok'
+    }
+
     await review.mutateAsync({
       opportunityId,
       subcategoryCode: sub.code,
       action,
-      reviewerNote: draftNote.trim() || undefined,
+      reviewerNote: finalNote || undefined,
       riskSeverity: action === 'flag' ? severity : undefined,
     })
   }

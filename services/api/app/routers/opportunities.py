@@ -13,12 +13,14 @@ from sqlalchemy import func, select
 from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.assessments import ASSESSMENT_CATEGORIES, AssessmentStatus
 from app.core.database import get_db
 from app.core.exceptions import APIError
 from app.middleware.auth import get_current_user, get_optional_user, require_role
 from app.models.approval import ApprovalCategory, ApprovalRequest
 from app.models.company import Company
 from app.models.opportunity import Opportunity, OpportunityStatus, VaultType
+from app.models.opportunity_assessment import OpportunityAssessment
 from app.models.opportunity_form_option import OpportunityFormOption
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.opportunity_like import OpportunityLike, UserActivity
@@ -947,6 +949,30 @@ async def create_opportunity(
         # Link approval to opportunity (mutual reference — must be in same savepoint)
         opportunity.approval_id = approval.id
         await db.flush()
+
+        # Handle builder answers for shield assessment
+        if body.shield_answers:
+            for subcode, ans in body.shield_answers.items():
+                cat_code = None
+                for cat in ASSESSMENT_CATEGORIES:
+                    for sub in cat.sub_items:
+                        if sub.code == subcode:
+                            cat_code = cat.code
+                            break
+                    if cat_code:
+                        break
+                if cat_code:
+                    db.add(
+                        OpportunityAssessment(
+                            opportunity_id=opportunity.id,
+                            category_code=cat_code,
+                            subcategory_code=subcode,
+                            status=AssessmentStatus.IN_PROGRESS.value,
+                            builder_answer=ans,
+                            is_public=True,
+                        )
+                    )
+            await db.flush()
 
     await db.refresh(opportunity)
 

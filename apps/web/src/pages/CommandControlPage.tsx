@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import sidebarBg from '@/assets/sidebar-bg.avif'
+
 import {
   LayoutDashboard,
   Users,
@@ -115,10 +115,10 @@ function TabFallback() {
 
 
 const pillCls = (isActive: boolean) =>
-  `w-full flex items-center gap-2.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+  `group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
     isActive
-      ? 'border border-[#D4AF37] bg-[#D4AF37] text-[#0D1324] font-semibold shadow-md'
-      : 'border border-white/55 text-white hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10'
+      ? 'border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 text-[#8B6914] font-bold shadow-[0_4px_20px_rgba(212,175,55,0.15)]'
+      : 'border border-transparent text-[var(--text-secondary)] hover:border-[rgba(209,196,157,0.28)] hover:bg-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 hover:text-[#8B6914]'
   }`
 
 /* ------------------------------------------------------------------ */
@@ -157,25 +157,8 @@ export default function CommandControlPage() {
       {/* Body */}
       <div className="flex flex-col md:flex-row flex-1 w-full relative">
         {/* Side Nav */}
-        <aside className="relative hidden md:flex flex-col w-64 shrink-0 border-r border-theme/20 sticky top-[4rem] h-[calc(100vh-4rem)] overflow-hidden" style={{ background: 'transparent' }}>
-          {/* Background image with dark overlay for text legibility */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `url(${sidebarBg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
-          {/* Dark gradient overlay so white text stays readable */}
-          <div
-            className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-950/80 via-slate-900/90 to-slate-950/95"
-            aria-hidden="true"
-          />
-
-          <div className="relative z-10 flex flex-col h-full overflow-y-auto px-3 py-5">
+        <aside className="relative hidden md:flex flex-col w-64 shrink-0 border-r border-[rgba(209,196,157,0.28)] bg-white sticky top-[4rem] h-[calc(100vh-4rem)] overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
+          <div className="relative z-10 flex flex-col h-full overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-[rgba(209,196,157,0.3)]">
             <nav className="space-y-1.5">
             {visibleSections.map((s, i) => {
               const Icon = s.icon
@@ -186,7 +169,7 @@ export default function CommandControlPage() {
               return (
                 <div key={s.id}>
                   {showGroup && (
-                    <p className={`text-[10px] font-bold uppercase tracking-wider text-white/60 px-2.5 ${i > 0 ? 'pt-4' : ''} pb-1.5`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)] px-3 ${i > 0 ? 'pt-5' : 'pt-2'} pb-2.5`}>
                       {s.group}
                     </p>
                   )}
@@ -194,7 +177,7 @@ export default function CommandControlPage() {
                     onClick={() => setActiveSection(s.id)}
                     className={pillCls(active)}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#0D1324]' : 'text-white/70'}`} />
+                    <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors ${active ? 'text-[#D4AF37]' : 'text-[var(--text-tertiary)] group-hover:text-[#D4AF37]'}`} />
                     {s.label}
                   </button>
                 </div>

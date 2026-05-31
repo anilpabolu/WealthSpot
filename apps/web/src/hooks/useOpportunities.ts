@@ -164,6 +164,8 @@ export interface OpportunityCreatePayload {
   closingDate?: string
   // Builder shield assessment
   shield_answers?: Record<string, unknown>
+  targetIrr?: number
+  projectPhase?: string
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {
@@ -272,9 +274,11 @@ export function useCreateOpportunity() {
         property_amenities: data.property_amenities,
         amenity_cost_estimate: data.amenity_cost_estimate,
         investment_mode: data.investmentMode ?? 'lumpsum',
-        funding_open_at: data.fundingOpenAt,
-        closing_date: data.closingDate,
+        funding_open_at: data.fundingOpenAt || undefined,
+        closing_date: data.closingDate || undefined,
         shield_answers: data.shield_answers,
+        target_irr: data.targetIrr,
+        project_phase: data.projectPhase,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
@@ -321,8 +325,11 @@ export function useUpdateOpportunity() {
         ...(data.amenity_cost_estimate !== undefined && { amenity_cost_estimate: data.amenity_cost_estimate }),
         ...(data.investmentMode !== undefined && { investment_mode: data.investmentMode }),
         ...(data.status !== undefined && { status: data.status }),
-        ...(data.closingDate !== undefined && { closing_date: data.closingDate }),
+        ...(data.closingDate !== undefined && { closing_date: data.closingDate || undefined }),
+        ...(data.fundingOpenAt !== undefined && { funding_open_at: data.fundingOpenAt || undefined }),
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),
+        ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
+        ...(data.projectPhase !== undefined && { project_phase: data.projectPhase }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })

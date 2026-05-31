@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
 interface SecureDocViewerProps {
@@ -24,6 +24,8 @@ export function SecureDocViewer({
   open,
   onClose,
 }: SecureDocViewerProps) {
+  const [isHidden, setIsHidden] = useState(false)
+
   useEffect(() => {
     if (!open) return
     function handleKeyDown(e: KeyboardEvent) {
@@ -31,8 +33,18 @@ export function SecureDocViewer({
         e.preventDefault()
       }
     }
+    
+    function handleVisibilityChange() {
+      setIsHidden(document.hidden)
+    }
+
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [open])
 
   if (!open) return null
@@ -49,7 +61,7 @@ export function SecureDocViewer({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] bg-theme-card rounded-xl overflow-hidden flex flex-col"
+        className={`relative w-full max-w-4xl max-h-[90vh] bg-theme-card rounded-xl overflow-hidden flex flex-col ${isHidden ? 'blur-md' : ''}`}
         style={{ userSelect: 'none' }}
         onClick={(e) => e.stopPropagation()}
         onContextMenu={(e) => e.preventDefault()}
