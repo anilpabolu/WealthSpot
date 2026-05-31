@@ -48,11 +48,6 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
         style={{ background: 'linear-gradient(120deg, rgba(6,34,36,0.55) 0%, rgba(6,34,36,0.15) 45%, rgba(0,0,0,0.4) 100%)' }}
       />
 
-      {/* Angled dark slab to mimic the reference hero composition */}
-      <div
-        className="absolute bottom-0 left-0 h-[38%] w-[46%] bg-black/80 pointer-events-none"
-        style={{ clipPath: 'polygon(0 0, 86% 0, 100% 100%, 0 100%)' }}
-      />
 
       {/* Content â€” left-aligned, anchored lower-left */}
       <div className="relative z-10 mt-auto w-full">
