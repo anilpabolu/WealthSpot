@@ -70,8 +70,14 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     // 5. Share logic
     const file = new File([blob], `wealthspot-${data.slug}.png`, { type: 'image/png' });
     
-    // The user requested to attempt native sharing on Desktop as well, even if Windows/Mac 
-    // occasionally drops the file payload for certain apps like WhatsApp.
+    // Windows Desktop often drops the 'text' field if a 'file' is included when handing off to WhatsApp.
+    // To ensure the user doesn't lose the marketing text and link, we automatically copy it to their clipboard first.
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      console.warn("Failed to copy text to clipboard beforehand", e);
+    }
+
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         title: data.title,
