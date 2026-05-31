@@ -744,7 +744,7 @@ export default function CreateOpportunityPage() {
 
   return (
     <MainLayout showFooter={true}>
-      <div className={`min-h-screen flex flex-col ${step === 'vault' ? 'bg-[#07101e]' : 'bg-[var(--bg-base)]'}`}>
+      <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
         {step !== 'vault' && step !== 'community-subtype' && (
@@ -798,39 +798,37 @@ export default function CreateOpportunityPage() {
         )}
 
       {/* Content */}
-      <div className={step === 'details' ? 'w-full' : step === 'shield' ? '' : step === 'vault' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
+      <div className={step === 'vault' ? 'flex-1 flex flex-col lg:overflow-x-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
-        {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section
-            className="-mt-16 relative overflow-hidden"
+          <section id="hero" className="relative overflow-hidden pt-[8.5rem] pb-14 lg:pb-16 -mt-16"
             style={{
-              backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.92) 0%, rgba(15,27,58,0.82) 50%, rgba(7,16,31,0.92) 100%), url('/images/page-hero-bg-2.jpg')",
+              backgroundImage: "linear-gradient(135deg, rgba(7,16,31,0.85) 0%, rgba(15,27,58,0.75) 50%, rgba(7,16,31,0.85) 100%), url('/images/page-hero-bg-2.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-            }}
-          >
-            {/* Geometric blur decorations */}
+            }}>
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
               <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full bg-violet-500/12 blur-3xl" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-indigo-400/6 blur-3xl" />
             </div>
-
-            <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 pb-10">
-              {/* Page heading */}
-              <div className="pt-24 sm:pt-28 pb-6 sm:pb-8">
-                <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight leading-[1.1]">
+            <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
+              <div className="animate-fade-up">
+                <h1 className="font-hero text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight leading-[1.1]">
                   Create Opportunity
                 </h1>
-                <p className="text-white/55 max-w-xl text-sm sm:text-base leading-relaxed">
-                  List your new investment class — real estate, fixed-income, or collaborative ventures.
+                <p className="text-white/60 max-w-2xl text-base leading-relaxed font-body">
+                  List your new investment class — real estate, fixed-income, or collaborative ventures. Find the one that matches your ambition.
                 </p>
               </div>
+            </div>
+          </section>
+        )}
 
-              {/* Vault selector card — content-height, centred */}
-              <div className="pb-10">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl w-full max-w-5xl mx-auto" style={{ minHeight: '460px' }}>
+        {/* ─── Step: Vault Selection ─── */}
+        {step === 'vault' && (
+          <section className="flex-1 w-full px-3 sm:px-6 lg:px-8 pb-20 flex items-start justify-center mt-20">
+            <div className="relative overflow-hidden rounded-[26px] border border-white/18 shadow-2xl h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0">
               <img
                 src="/images/vault-selector-abstract.svg"
                 alt=""
@@ -964,10 +962,8 @@ export default function CreateOpportunityPage() {
                   </div>
                 </aside>
               </div>
-            </div>{/* end card rounded-[26px] */}
-          </div>{/* end pb-10 card wrapper */}
-        </div>{/* end z-10 content wrapper */}
-      </section>
+            </div>
+          </section>
         )}
 
         {/* ─── Step: Community Subtype ─── */}
