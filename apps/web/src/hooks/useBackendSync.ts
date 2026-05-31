@@ -72,8 +72,8 @@ function isTokenExpired(token: string): boolean {
     const parts = token.split('.')
     if (parts.length < 2) return true
     const payload = JSON.parse(atob(parts[1]!))
-    // 60s buffer so we refresh before it actually expires
-    return payload.exp * 1000 < Date.now() - 60_000
+    // 60s lookahead: treat tokens expiring within the next 60s as already expired
+    return payload.exp * 1000 < Date.now() + 60_000
   } catch {
     return true
   }
