@@ -132,7 +132,12 @@ export interface OpportunityCreatePayload {
   // Financials
   targetAmount?: number
   minInvestment?: number
-
+  // Geo-coordinates & maps
+  latitude?: number
+  longitude?: number
+  mapsUrl?: string
+  // Location USPs
+  locationUsps?: Array<{ text: string; category: string }>
   // Startup
   industry?: string
   stage?: string
@@ -247,6 +252,10 @@ export function useCreateOpportunity() {
         country: data.country,
         target_amount: data.targetAmount,
         min_investment: data.minInvestment,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        maps_url: data.mapsUrl,
+        location_usps: data.locationUsps,
         industry: data.industry,
         stage: data.stage,
         founder_name: data.founderName,
@@ -265,6 +274,7 @@ export function useCreateOpportunity() {
         investment_mode: data.investmentMode ?? 'lumpsum',
         funding_open_at: data.fundingOpenAt,
         closing_date: data.closingDate,
+        shield_answers: data.shield_answers,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })

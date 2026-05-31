@@ -142,8 +142,12 @@ class Opportunity(Base):
     property_amenities: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
     # Combined cost estimate for all amenities (e.g. ₹50,000 per unit)
     amenity_cost_estimate: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
-    # Unique Selling Propositions (USPs)
+    # Unique Selling Propositions (USPs) — legacy flat list
     usps: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    # Location USPs — structured list of {text, category} items (mall, metro, hospital, etc.)
+    location_usps: Mapped[list[dict] | None] = mapped_column(JSONB)
+    # Google Maps URL / share link
+    maps_url: Mapped[str | None] = mapped_column(Text)
     # Project lifecycle phase
     project_phase: Mapped[str | None] = mapped_column(String(50))
     # Valuation (appreciation tracking)

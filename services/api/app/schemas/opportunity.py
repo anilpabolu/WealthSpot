@@ -346,6 +346,12 @@ class OpportunityCreateRequest(BaseModel):
     target_amount: float | None = None
     min_investment: float | None = None
     target_irr: float | None = None
+    # Geo-coordinates (Google Maps)
+    latitude: float | None = None
+    longitude: float | None = None
+    maps_url: str | None = None
+    # Location USPs — list of {text: str, category: str}
+    location_usps: list[dict] | None = None
     # Startup fields
     industry: str | None = None
     stage: str | None = None
@@ -396,6 +402,12 @@ class OpportunityUpdateRequest(BaseModel):
     target_amount: float | None = None
     min_investment: float | None = None
     target_irr: float | None = None
+    # Geo-coordinates (Google Maps)
+    latitude: float | None = None
+    longitude: float | None = None
+    maps_url: str | None = None
+    # Location USPs — list of {text: str, category: str}
+    location_usps: list[dict] | None = None
     # Startup fields
     industry: str | None = None
     stage: str | None = None

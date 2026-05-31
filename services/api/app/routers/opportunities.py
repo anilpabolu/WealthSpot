@@ -906,6 +906,11 @@ async def create_opportunity(
             community_subtype=body.community_subtype,
             community_details=body.community_details,
             safe_vault_data=safe_vault_payload,
+            # Geo-coordinates & maps
+            latitude=body.latitude,
+            longitude=body.longitude,
+            maps_url=body.maps_url,
+            location_usps=body.location_usps,
             # Real-estate property specification fields
             property_type=body.property_type,
             price_per_sqft=body.price_per_sqft,

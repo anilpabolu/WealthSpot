@@ -119,7 +119,7 @@ const PARTNER_SKILLS = [
 const PROPERTY_TYPE_OPTIONS = [
   { value: PropertyType.FLAT, label: 'Flat / Apartment', icon: '🏢' },
   { value: PropertyType.VILLA, label: 'Villa / Row House', icon: '🏡' },
-  { value: PropertyType.PLOT, label: 'Plot / Land', icon: '🏞️' },
+  { value: PropertyType.PLOT, label: 'Plot / Land / Farm Land', icon: '🏞️' },
   { value: PropertyType.COMMERCIAL, label: 'Commercial', icon: '🏪' },
   { value: PropertyType.WAREHOUSE, label: 'Warehouse', icon: '🏭' },
   { value: PropertyType.MIXED_USE, label: 'Mixed Use', icon: '🏙️' },
@@ -137,35 +137,38 @@ function getBhkTypes(pt: string) {
   return BHK_TYPES_RESIDENTIAL
 }
 
-// PLOT_TYPE_OPTIONS reserved for future plot-type selector
-
-function generatePossessionQuarters(): string[] {
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentQ = Math.ceil((now.getMonth() + 1) / 3)
-  const quarters: string[] = ['Ready to Move']
-  for (let y = currentYear; y <= currentYear + 5; y++) {
-    const startQ = y === currentYear ? currentQ : 1
-    for (let q = startQ; q <= 4; q++) {
-      quarters.push(`Q${q} ${y}`)
-    }
-  }
-  return quarters
-}
-const POSSESSION_QUARTERS = generatePossessionQuarters()
+const CURRENT_YEAR = new Date().getFullYear()
+const POSSESSION_YEAR_MIN = CURRENT_YEAR + 1
+const POSSESSION_YEAR_MAX = CURRENT_YEAR + 10
 
 interface PropertyFieldConfig {
-  showPossessionQuarter: boolean; showTotalTowers: boolean
+  showPossessionYear: boolean; showTotalTowers: boolean
   showTotalFloors: boolean; showUnitConfig: boolean; showPlotConfig: boolean; unitConfigLabel: string
 }
 const PROPERTY_FIELD_CONFIG: Record<string, PropertyFieldConfig> = {
-  [PropertyType.FLAT]:       { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'BHK / Unit Configurations' },
-  [PropertyType.VILLA]:      { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Villa / Row House Configurations' },
-  [PropertyType.PLOT]:       { showPossessionQuarter: false, showTotalTowers: false, showTotalFloors: false, showUnitConfig: false, showPlotConfig: true,  unitConfigLabel: '' },
-  [PropertyType.COMMERCIAL]: { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
-  [PropertyType.WAREHOUSE]:  { showPossessionQuarter: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Bay / Unit Configurations' },
-  [PropertyType.MIXED_USE]:  { showPossessionQuarter: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+  [PropertyType.FLAT]:       { showPossessionYear: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'BHK / Unit Configurations' },
+  [PropertyType.VILLA]:      { showPossessionYear: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Villa / Row House Configurations' },
+  [PropertyType.PLOT]:       { showPossessionYear: false, showTotalTowers: false, showTotalFloors: false, showUnitConfig: false, showPlotConfig: true,  unitConfigLabel: '' },
+  [PropertyType.COMMERCIAL]: { showPossessionYear: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
+  [PropertyType.WAREHOUSE]:  { showPossessionYear: true,  showTotalTowers: false, showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Bay / Unit Configurations' },
+  [PropertyType.MIXED_USE]:  { showPossessionYear: true,  showTotalTowers: true,  showTotalFloors: true,  showUnitConfig: true,  showPlotConfig: false, unitConfigLabel: 'Unit Configurations' },
 }
+
+const USP_CATEGORIES = [
+  { value: 'mall', label: 'Shopping Mall' },
+  { value: 'commercial_complex', label: 'Commercial Complex' },
+  { value: 'metro', label: 'Metro / Rail' },
+  { value: 'transport', label: 'Transport Hub' },
+  { value: 'it_park', label: 'IT Park / Tech Office' },
+  { value: 'hospital', label: 'Hospital / Healthcare' },
+  { value: 'school', label: 'School / Education' },
+  { value: 'airport', label: 'Airport' },
+  { value: 'highway', label: 'Highway / Expressway' },
+  { value: 'park', label: 'Park / Lake' },
+  { value: 'other', label: 'Other' },
+]
+
+interface LocationUsp { id: string; text: string; category: string }
 
 
 const LAND_UNITS = [
@@ -187,19 +190,18 @@ function sqftConversions(sqft: number) {
 }
 
 interface UnitConfigRow {
-  id: string; bhkType: string; carpetAreaSqft: string; superBuiltUpSqft: string
-  bathrooms: string; balconies: string; totalUnits: string; pricePerSqft: string
+  id: string; bhkType: string; superBuiltUpSqft: string; pricePerSqft: string
 }
 interface PlotConfigRow {
   id: string; plotType: string; areaSqft: string; totalPlots: string; pricePerSqft: string
 }
 interface ProjectOverview {
-  totalTowers: string; totalFloors: string; possessionQuarter: string; landParcelSqft: string
+  totalTowers: string; totalFloors: string; possessionYear: string; landParcelSqft: string
 }
 
-const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', carpetAreaSqft: '', superBuiltUpSqft: '', bathrooms: '', balconies: '', totalUnits: '', pricePerSqft: '' }
+const DEFAULT_UNIT_CONFIG: UnitConfigRow = { id: '1', bhkType: '', superBuiltUpSqft: '', pricePerSqft: '' }
 const DEFAULT_PLOT_CONFIG: PlotConfigRow = { id: '1', plotType: '', areaSqft: '', totalPlots: '', pricePerSqft: '' }
-const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionQuarter: '', landParcelSqft: '' }
+const DEFAULT_PROJECT_OVERVIEW: ProjectOverview = { totalTowers: '', totalFloors: '', possessionYear: '', landParcelSqft: '' }
 
 type CommunityDetailsState = Record<string, string | number | string[]>
 
@@ -410,6 +412,12 @@ export default function CreateOpportunityPage() {
   const [detailsStepIndex, setDetailsStepIndex] = useState(0)
   const [shieldStepIndex, setShieldStepIndex] = useState(0)
   const [shieldStepAttempted, setShieldStepAttempted] = useState(false)
+  // Geo / maps
+  const [mapsLatitude, setMapsLatitude] = useState<string>('')
+  const [mapsLongitude, setMapsLongitude] = useState<string>('')
+  const [mapsUrl, setMapsUrl] = useState<string>('')
+  // Location USPs
+  const [locationUsps, setLocationUsps] = useState<LocationUsp[]>([{ id: '1', text: '', category: 'other' }])
 
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
@@ -472,31 +480,40 @@ export default function CreateOpportunityPage() {
     const errors: Record<string, string> = {}
     if (!form.title?.trim()) errors.title = 'Required'
     if (!form.tagline?.trim()) errors.tagline = 'Required'
-    if (!form.description?.trim()) errors.description = 'Required'
+    // description is optional — no validation
 
     if (vaultType === 'wealth' || vaultType === 'safe') {
       if (!propertyType) errors.propertyType = 'Required'
-      if (!pricePerSqftField) errors.pricePerSqft = 'Required'
-      if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
+      // price_per_sqft and total_project_area_sqft only required for lumpsum mode
+      if (investmentMode === 'lumpsum' || vaultType === 'safe') {
+        if (!pricePerSqftField) errors.pricePerSqft = 'Required'
+        if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
+      }
       if (propertyType) {
         const fc = PROPERTY_FIELD_CONFIG[propertyType]
         if (fc) {
-          if (fc.showPossessionQuarter && !projectOverview.possessionQuarter) errors.possessionQuarter = 'Required'
-          if (fc.showTotalFloors && !projectOverview.totalFloors) errors.totalFloors = 'Required'
+          if (fc.showPossessionYear) {
+            const yr = parseInt(projectOverview.possessionYear)
+            if (!projectOverview.possessionYear) {
+              errors.possessionYear = 'Required'
+            } else if (isNaN(yr) || yr < POSSESSION_YEAR_MIN || yr > POSSESSION_YEAR_MAX) {
+              errors.possessionYear = `Enter a year between ${POSSESSION_YEAR_MIN} and ${POSSESSION_YEAR_MAX}`
+            }
+          }
+          // totalFloors and totalTowers are optional — no required validation
           if (!projectOverview.landParcelSqft) errors.landParcelSqft = 'Required'
-          const showConfigs = vaultType === 'safe' || investmentMode === 'unit_config'
-          if (showConfigs) {
+          if (vaultType === 'safe' || investmentMode === 'unit_config') {
             if (fc.showUnitConfig) {
-              const hasValidUnit = unitConfigs.some((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits)
-              if (!hasValidUnit) errors.unitConfig = 'At least one complete unit config required'
-              if (investmentMode === 'unit_config') {
-                const hasPrice = unitConfigs.some((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits && u.pricePerSqft)
-                if (!hasPrice) errors.unitConfig = 'At least one complete unit config with ₹/sqft pricing required'
+              const hasValidUnit = unitConfigs.some((u) => u.bhkType && u.superBuiltUpSqft)
+              if (!hasValidUnit) errors.unitConfig = 'At least one unit configuration with SBU and ₹/Sqft is required'
+              else {
+                const hasPrice = unitConfigs.some((u) => u.bhkType && u.superBuiltUpSqft && u.pricePerSqft)
+                if (!hasPrice) errors.unitConfig = 'Each unit configuration needs ₹/Sqft pricing'
               }
             }
             if (fc.showPlotConfig) {
               const hasValidPlot = plotConfigs.some((p) => p.plotType && p.areaSqft && p.totalPlots)
-              if (!hasValidPlot) errors.plotConfig = 'At least one complete plot config required'
+              if (!hasValidPlot) errors.plotConfig = 'At least one plot configuration is required'
               if (investmentMode === 'unit_config') {
                 const hasPrice = plotConfigs.some((p) => p.plotType && p.areaSqft && p.totalPlots && p.pricePerSqft)
                 if (!hasPrice) errors.plotConfig = 'At least one complete plot config with ₹/sqft pricing required'
@@ -640,7 +657,7 @@ export default function CreateOpportunityPage() {
     if (propertyType) {
       const base: Record<string, unknown> = {
         property_type: propertyType,
-        ...(projectOverview.possessionQuarter && { possession_date: projectOverview.possessionQuarter }),
+        ...(projectOverview.possessionYear && { possession_date: projectOverview.possessionYear }),
         ...(projectOverview.totalTowers && { total_towers: Number(projectOverview.totalTowers) }),
         ...(projectOverview.totalFloors && { total_floors: Number(projectOverview.totalFloors) }),
         ...(projectOverview.landParcelSqft && { land_parcel_sqft: Number(projectOverview.landParcelSqft) }),
@@ -655,25 +672,27 @@ export default function CreateOpportunityPage() {
       } else {
         base.unit_configurations = unitConfigs.filter((u) => u.bhkType).map((u) => ({
           bhk_type: u.bhkType,
-          ...(u.carpetAreaSqft && { carpet_area_sqft: Number(u.carpetAreaSqft) }),
           ...(u.superBuiltUpSqft && { super_built_up_sqft: Number(u.superBuiltUpSqft) }),
-          ...(u.bathrooms && { bathrooms: Number(u.bathrooms) }),
-          ...(u.balconies && { balconies: Number(u.balconies) }),
-          ...(u.totalUnits && { total_units: Number(u.totalUnits) }),
           ...(u.pricePerSqft && { price_per_sqft: Number(u.pricePerSqft) }),
         }))
       }
       propertySpecsPayload = base
     }
 
+    // For unit_config: sum of (sbu × price_per_sqft) per config type × assumed count of 1
     let unitConfigTargetAmount: number | undefined
     if (vaultType === 'wealth' && investmentMode === 'unit_config' && propertyType) {
       if (propertyType === PropertyType.PLOT) {
         unitConfigTargetAmount = plotConfigs.filter((p) => p.plotType && p.areaSqft && p.totalPlots).reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
       } else {
-        unitConfigTargetAmount = unitConfigs.filter((u) => u.bhkType && u.carpetAreaSqft && u.totalUnits).reduce((sum, u) => sum + Number(u.totalUnits) * Number(u.carpetAreaSqft) * Number(u.pricePerSqft || 0), 0)
+        unitConfigTargetAmount = unitConfigs.filter((u) => u.bhkType && u.superBuiltUpSqft).reduce((sum, u) => sum + Number(u.superBuiltUpSqft) * Number(u.pricePerSqft || 0), 0)
       }
     }
+
+    // Build maps / location data
+    const parsedLat = mapsLatitude ? parseFloat(mapsLatitude) : undefined
+    const parsedLng = mapsLongitude ? parseFloat(mapsLongitude) : undefined
+    const validUsps = locationUsps.filter((u) => u.text.trim()).map(({ text, category }) => ({ text: text.trim(), category }))
 
     const payload: OpportunityCreatePayload = {
       ...form,
@@ -688,6 +707,10 @@ export default function CreateOpportunityPage() {
       }),
       ...(vaultType === 'wealth' && investmentMode && { investmentMode: investmentMode as 'lumpsum' | 'unit_config' }),
       ...(unitConfigTargetAmount !== undefined && { targetAmount: unitConfigTargetAmount, minInvestment: undefined }),
+      ...(parsedLat !== undefined && !isNaN(parsedLat) && { latitude: parsedLat }),
+      ...(parsedLng !== undefined && !isNaN(parsedLng) && { longitude: parsedLng }),
+      ...(mapsUrl.trim() && { mapsUrl: mapsUrl.trim() }),
+      ...(validUsps.length > 0 && { locationUsps: validUsps }),
       shield_answers: shieldAnswers,
     }
 
@@ -1085,15 +1108,14 @@ export default function CreateOpportunityPage() {
                   {fe('tagline') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Description <span className="text-red-400">*</span></label>
+                  <label className={LABEL_CLS}>Description <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
                   <textarea
                     rows={5}
-                    className={`${fe('description') ? 'border-red-500/60' : 'border-[#c9d0ce]'} w-full rounded-lg border bg-[#f8faf9] text-[#2f4a4a] font-body placeholder-[#768588] px-3 py-2.5 text-sm focus:border-[#2f4a4a]/45 focus:ring-1 focus:ring-[#2f4a4a]/20 outline-none resize-none`}
+                    className="w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12 outline-none resize-none transition-colors"
                     value={form.description ?? ''}
                     onChange={(e) => handleChange('description', e.target.value)}
                     placeholder="Describe the investment opportunity in detail..."
                   />
-                  {fe('description') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
                 </div>
               </div>
             </div>
@@ -1135,31 +1157,39 @@ export default function CreateOpportunityPage() {
                     <div className={CARD_CLS}>
                       <h3 className={SECTION_HEADING}>Project Overview</h3>
                       <div className="grid grid-cols-2 gap-3.5">
-                        {PROPERTY_FIELD_CONFIG[propertyType]?.showPossessionQuarter && (
+                        {PROPERTY_FIELD_CONFIG[propertyType]?.showPossessionYear && (
                           <div>
-                            <label className={LABEL_CLS}>Possession Quarter <span className="text-red-400">*</span></label>
-                            <select className={fe('possessionQuarter') ? SELECT_ERR_CLS : SELECT_CLS} value={projectOverview.possessionQuarter} onChange={(e) => setProjectOverview((p) => ({ ...p, possessionQuarter: e.target.value }))}>
-                              <option value="">Select…</option>
-                              {POSSESSION_QUARTERS.map((q) => <option key={q} value={q}>{q}</option>)}
-                            </select>
-                            {fe('possessionQuarter') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                            <label className={LABEL_CLS}>Possession Year <span className="text-red-400">*</span></label>
+                            <input
+                              type="number"
+                              min={POSSESSION_YEAR_MIN}
+                              max={POSSESSION_YEAR_MAX}
+                              className={fe('possessionYear') ? INPUT_ERR_CLS : INPUT_CLS}
+                              value={projectOverview.possessionYear}
+                              onChange={(e) => setProjectOverview((p) => ({ ...p, possessionYear: e.target.value }))}
+                              placeholder={`e.g. ${POSSESSION_YEAR_MIN}`}
+                            />
+                            {fe('possessionYear') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.possessionYear}</p>}
                           </div>
                         )}
-                        {PROPERTY_FIELD_CONFIG[propertyType]?.showTotalTowers && (
-                          <div>
-                            <label className={LABEL_CLS}>Total Towers</label>
-                            <input type="number" min={0} className={INPUT_CLS} value={projectOverview.totalTowers} onChange={(e) => setProjectOverview((p) => ({ ...p, totalTowers: e.target.value }))} placeholder="e.g. 4" />
-                          </div>
-                        )}
-                        {PROPERTY_FIELD_CONFIG[propertyType]?.showTotalFloors && (
-                          <div>
-                            <label className={LABEL_CLS}>Total Floors <span className="text-red-400">*</span></label>
-                            <input type="number" min={0} className={fe('totalFloors') ? INPUT_ERR_CLS : INPUT_CLS} value={projectOverview.totalFloors} onChange={(e) => setProjectOverview((p) => ({ ...p, totalFloors: e.target.value }))} placeholder="e.g. 20" />
-                            {fe('totalFloors') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        {(PROPERTY_FIELD_CONFIG[propertyType]?.showTotalTowers || PROPERTY_FIELD_CONFIG[propertyType]?.showTotalFloors) && (
+                          <div className="col-span-2 grid grid-cols-2 gap-3">
+                            {PROPERTY_FIELD_CONFIG[propertyType]?.showTotalTowers && (
+                              <div>
+                                <label className={LABEL_CLS}>Total Towers <span className="text-[var(--text-muted)] text-[10px] font-normal">(optional)</span></label>
+                                <input type="number" min={0} max={100} className={INPUT_CLS} value={projectOverview.totalTowers} onChange={(e) => { const v = e.target.value; if (v === '' || (Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) <= 100)) setProjectOverview((p) => ({ ...p, totalTowers: v })) }} placeholder="0–100" />
+                              </div>
+                            )}
+                            {PROPERTY_FIELD_CONFIG[propertyType]?.showTotalFloors && (
+                              <div>
+                                <label className={LABEL_CLS}>Total Floors <span className="text-[var(--text-muted)] text-[10px] font-normal">(optional)</span></label>
+                                <input type="number" min={0} max={100} className={INPUT_CLS} value={projectOverview.totalFloors} onChange={(e) => { const v = e.target.value; if (v === '' || (Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) <= 100)) setProjectOverview((p) => ({ ...p, totalFloors: v })) }} placeholder="0–100" />
+                              </div>
+                            )}
                           </div>
                         )}
                         <div className="col-span-2">
-                          <label className={LABEL_CLS}>Land Parcel <span className="text-red-400">*</span></label>
+                          <label className={LABEL_CLS}>Land Parcel (decimal allowed) <span className="text-red-400">*</span></label>
                           <div className="flex gap-2">
                             <input
                               type="number"
@@ -1223,101 +1253,114 @@ export default function CreateOpportunityPage() {
                       </div>
                     </div>
 
-                    {/* Price & Area */}
+                    {/* Price & Area — only shown for lumpsum mode */}
+                    {investmentMode === 'lumpsum' && (
                     <div className={CARD_CLS}>
                       <h3 className={SECTION_HEADING}>Pricing</h3>
                       <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className={LABEL_CLS}>Total Construction Area (Sq.Ft) <span className="text-red-400">*</span></label>
+                          <input type="number" min={0} className={fe('totalProjectArea') ? INPUT_ERR_CLS : INPUT_CLS} value={totalProjectAreaSqft} onChange={(e) => setTotalProjectAreaSqft(e.target.value)} placeholder="e.g. 250000" />
+                          {fe('totalProjectArea') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        </div>
                         <div>
                           <label className={LABEL_CLS}>₹ / Sq.Ft <span className="text-red-400">*</span></label>
                           <input type="number" min={0} className={fe('pricePerSqft') ? INPUT_ERR_CLS : INPUT_CLS} value={pricePerSqftField} onChange={(e) => setPricePerSqftField(e.target.value)} placeholder="e.g. 6500" />
                           {fe('pricePerSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
                         </div>
+                        {/* Total project cost — auto calculated, read-only */}
+                        {pricePerSqftField && totalProjectAreaSqft && (() => {
+                          const computed = Number(pricePerSqftField) * Number(totalProjectAreaSqft)
+                          if (computed <= 0) return null
+                          const crore = computed / 1e7
+                          const lakh = computed / 1e5
+                          const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
+                          return (
+                            <div className="col-span-2">
+                              <label className={LABEL_CLS}>Total Project Cost <span className="text-[var(--text-muted)] text-[10px]">(auto-calculated)</span></label>
+                              <div className="w-full rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/6 px-3.5 py-2.5 text-sm font-bold text-[#8B6914] flex items-center justify-between">
+                                <span>{display}</span>
+                                <span className="text-[11px] font-normal text-[var(--text-tertiary)]">Total Area × ₹/Sqft</span>
+                              </div>
+                            </div>
+                          )
+                        })()}
                         <div>
-                          <label className={LABEL_CLS}>Total Project Area (Sq.Ft) <span className="text-red-400">*</span></label>
-                          <input type="number" min={0} className={fe('totalProjectArea') ? INPUT_ERR_CLS : INPUT_CLS} value={totalProjectAreaSqft} onChange={(e) => setTotalProjectAreaSqft(e.target.value)} placeholder="e.g. 250000" />
-                          {fe('totalProjectArea') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                          <label className={LABEL_CLS}>Target Investment Amount (₹) <span className="text-red-400">*</span></label>
+                          <input type="number" min={0} className={fe('targetAmount') ? INPUT_ERR_CLS : INPUT_CLS} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} placeholder="Auto-computed or override" />
+                          {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
                         </div>
-                        {investmentMode === 'lumpsum' && (
-                          <>
-                            <div>
-                              <label className={LABEL_CLS}>Target Amount (₹) <span className="text-red-400">*</span></label>
-                              <input type="number" min={0} className={fe('targetAmount') ? INPUT_ERR_CLS : INPUT_CLS} value={form.targetAmount ?? ''} onChange={(e) => handleChange('targetAmount', Number(e.target.value))} placeholder="Auto-computed or override" />
-                              {fe('targetAmount') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
-                            </div>
-                            <div>
-                              <label className={LABEL_CLS}>Min Investment (₹) <span className="text-red-400">*</span></label>
-                              <input type="number" min={0} className={fe('minInvestment') ? INPUT_ERR_CLS : INPUT_CLS} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} placeholder="e.g. 500000" />
-                              {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
-                            </div>
-                          </>
-                        )}
+                        <div>
+                          <label className={LABEL_CLS}>Min Investment (₹) <span className="text-red-400">*</span></label>
+                          <input type="number" min={0} className={fe('minInvestment') ? INPUT_ERR_CLS : INPUT_CLS} value={form.minInvestment ?? ''} onChange={(e) => handleChange('minInvestment', Number(e.target.value))} placeholder="e.g. 500000" />
+                          {fe('minInvestment') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> Required</p>}
+                        </div>
                       </div>
-                      {/* Lumpsum auto banner */}
-                      {investmentMode === 'lumpsum' && pricePerSqftField && totalProjectAreaSqft && (() => {
-                        const computed = Number(pricePerSqftField) * Number(totalProjectAreaSqft)
-                        if (computed <= 0) return null
-                        const crore = computed / 1e7
-                        const lakh = computed / 1e5
-                        const display = crore >= 1 ? `₹${crore.toFixed(2)} Cr` : `₹${lakh.toFixed(2)} L`
-                        return (
-                          <div className="mt-3 px-4 py-3 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-between">
-                            <div>
-                              <p className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wide">Auto-computed Target</p>
-                              <p className="text-xs text-[#738383]">₹/sqft × Total Area</p>
-                            </div>
-                            <div className="text-lg font-bold text-[#D4AF37]">{display}</div>
-                          </div>
-                        )
-                      })()}
                     </div>
+                    )}
 
                     {/* Unit Configs */}
                     {(investmentMode === 'unit_config') && PROPERTY_FIELD_CONFIG[propertyType]?.showUnitConfig && (
                       <div className={CARD_CLS}>
                         <div className="flex items-center justify-between mb-4">
                           <h3 className={SECTION_HEADING.replace('mb-4', '')}>{PROPERTY_FIELD_CONFIG[propertyType]?.unitConfigLabel}</h3>
-                          <button type="button" onClick={() => setUnitConfigs((p) => [...p, { ...DEFAULT_UNIT_CONFIG, id: String(Date.now()) }])} className="text-xs text-[#D4AF37] hover:text-[#D4AF37]/80 border border-[#D4AF37]/30 px-3 py-1.5 rounded-lg">+ Add Row</button>
+                          <button type="button" onClick={() => setUnitConfigs((p) => [...p, { ...DEFAULT_UNIT_CONFIG, id: String(Date.now()) }])} className="text-xs text-[#D4AF37] hover:text-[#D4AF37]/80 border border-[#D4AF37]/30 px-3 py-1.5 rounded-lg">+ Add Config</button>
                         </div>
                         {fe('unitConfig') && <p className={`${ERR_MSG} mb-3`}><AlertCircle className="h-3 w-3" /> {formErrors.unitConfig}</p>}
                         <div className="space-y-3">
-                          {unitConfigs.map((row, idx) => (
-                            <div key={row.id} className="relative grid grid-cols-4 gap-2 p-3 rounded-xl bg-[rgba(209,196,157,0.06)] border border-[rgba(209,196,157,0.3)]">
-                              <div className="col-span-2">
-                                <p className="text-[var(--text-tertiary)] text-[10px] mb-1">Type</p>
-                                <select className={SELECT_CLS} value={row.bhkType} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, bhkType: e.target.value } : r))}>
-                                  <option value="">Select…</option>
-                                  {getBhkTypes(propertyType).map((t) => <option key={t} value={t}>{t}</option>)}
-                                </select>
+                          {unitConfigs.map((row, idx) => {
+                            const sbu = parseFloat(row.superBuiltUpSqft) || 0
+                            const price = parseFloat(row.pricePerSqft) || 0
+                            const unitCost = sbu > 0 && price > 0 ? sbu * price : null
+                            const unitCostDisplay = unitCost ? (unitCost >= 1e7 ? `₹${(unitCost / 1e7).toFixed(2)} Cr` : `₹${(unitCost / 1e5).toFixed(2)} L`) : '—'
+                            return (
+                              <div key={row.id} className="relative grid grid-cols-4 gap-2 p-3 rounded-xl bg-[rgba(209,196,157,0.06)] border border-[rgba(209,196,157,0.3)]">
+                                <div>
+                                  <p className="text-[var(--text-tertiary)] text-[10px] mb-1 font-semibold">Type</p>
+                                  <select className={SELECT_CLS} value={row.bhkType} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, bhkType: e.target.value } : r))}>
+                                    <option value="">Select…</option>
+                                    {getBhkTypes(propertyType).map((t) => <option key={t} value={t}>{t}</option>)}
+                                  </select>
+                                </div>
+                                <div>
+                                  <p className="text-[var(--text-tertiary)] text-[10px] mb-1 font-semibold">SBU (Sqft) <span className="text-red-400">*</span></p>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    className={INPUT_CLS}
+                                    value={row.superBuiltUpSqft}
+                                    onChange={(e) => {
+                                      const v = e.target.value
+                                      if (v === '' || (Number.isInteger(Number(v)) && Number(v) > 0))
+                                        setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, superBuiltUpSqft: v } : r))
+                                    }}
+                                    placeholder="e.g. 1150"
+                                  />
+                                </div>
+                                <div>
+                                  <p className="text-[var(--text-tertiary)] text-[10px] mb-1 font-semibold">₹/Sqft <span className="text-red-400">*</span></p>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    className={INPUT_CLS}
+                                    value={row.pricePerSqft}
+                                    onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, pricePerSqft: e.target.value } : r))}
+                                    placeholder="e.g. 7000"
+                                  />
+                                </div>
+                                <div>
+                                  <p className="text-[var(--text-tertiary)] text-[10px] mb-1 font-semibold">Unit Cost</p>
+                                  <div className={`rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/6 px-3 py-2.5 text-sm font-bold text-[#8B6914] text-center ${!unitCost ? 'text-[var(--text-muted)]' : ''}`}>
+                                    {unitCostDisplay}
+                                  </div>
+                                </div>
+                                {unitConfigs.length > 1 && (
+                                  <button type="button" onClick={() => setUnitConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-red-900/60 text-red-400 text-xs font-bold hover:bg-red-800/60">×</button>
+                                )}
                               </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">Carpet (Sqft)</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.carpetAreaSqft} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, carpetAreaSqft: e.target.value } : r))} placeholder="e.g. 950" />
-                              </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">Total Units</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.totalUnits} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, totalUnits: e.target.value } : r))} placeholder="e.g. 40" />
-                              </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">SBU (Sqft)</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.superBuiltUpSqft} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, superBuiltUpSqft: e.target.value } : r))} placeholder="e.g. 1150" />
-                              </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">Bathrooms</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.bathrooms} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, bathrooms: e.target.value } : r))} placeholder="e.g. 2" />
-                              </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">Balconies</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.balconies} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, balconies: e.target.value } : r))} placeholder="e.g. 1" />
-                              </div>
-                              <div>
-                                <p className="text-[#748484] text-[10px] mb-1">₹/Sqft</p>
-                                <input type="number" min={0} className={INPUT_CLS} value={row.pricePerSqft} onChange={(e) => setUnitConfigs((p) => p.map((r, i) => i === idx ? { ...r, pricePerSqft: e.target.value } : r))} placeholder="e.g. 7000" />
-                              </div>
-                              {unitConfigs.length > 1 && (
-                                <button type="button" onClick={() => setUnitConfigs((p) => p.filter((_, i) => i !== idx))} className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-red-900/60 text-red-400 text-xs font-bold hover:bg-red-800/60">×</button>
-                              )}
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       </div>
                     )}
@@ -1608,6 +1651,117 @@ export default function CreateOpportunityPage() {
                   <option value="">Select city…</option>
                   {INDIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
+              </div>
+            </div>
+
+            {/* Google Maps Location */}
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Map Location <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></h3>
+              <p className="text-[var(--text-tertiary)] text-xs mb-4 leading-relaxed">
+                Paste a Google Maps share link, or enter coordinates directly. To get your link: open Google Maps → find the property → tap Share → Copy link.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className={LABEL_CLS}>Google Maps Link</label>
+                  <input
+                    type="url"
+                    className={INPUT_CLS}
+                    value={mapsUrl}
+                    onChange={(e) => {
+                      const url = e.target.value
+                      setMapsUrl(url)
+                      // Auto-extract coordinates from standard Google Maps URLs
+                      const match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/) || url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+                      if (match && match[1] && match[2]) {
+                        setMapsLatitude(match[1])
+                        setMapsLongitude(match[2])
+                      }
+                    }}
+                    placeholder="https://maps.google.com/... or https://goo.gl/maps/..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={LABEL_CLS}>Latitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className={INPUT_CLS}
+                      value={mapsLatitude}
+                      onChange={(e) => setMapsLatitude(e.target.value)}
+                      placeholder="e.g. 12.9716"
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_CLS}>Longitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className={INPUT_CLS}
+                      value={mapsLongitude}
+                      onChange={(e) => setMapsLongitude(e.target.value)}
+                      placeholder="e.g. 77.5946"
+                    />
+                  </div>
+                </div>
+                {mapsLatitude && mapsLongitude && (
+                  <a
+                    href={`https://www.google.com/maps?q=${mapsLatitude},${mapsLongitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#8B6914] hover:text-[#D4AF37] transition-colors font-medium"
+                  >
+                    <MapPin className="h-3.5 w-3.5" /> Verify on Google Maps ↗
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Location USPs */}
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Location USPs <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></h3>
+              <p className="text-[var(--text-tertiary)] text-xs mb-4">Highlight what makes this location premium — nearby infrastructure, amenities, connectivity.</p>
+              <div className="space-y-2">
+                {locationUsps.map((usp, idx) => (
+                  <div key={usp.id} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      className={`${INPUT_CLS} flex-1`}
+                      value={usp.text}
+                      onChange={(e) => setLocationUsps((p) => p.map((u, i) => i === idx ? { ...u, text: e.target.value } : u))}
+                      placeholder={`e.g. 500m from Phoenix Mall`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          if (usp.text.trim()) setLocationUsps((p) => [...p, { id: String(Date.now()), text: '', category: 'other' }])
+                        }
+                      }}
+                    />
+                    <select
+                      className="rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] px-2.5 py-2.5 text-xs outline-none appearance-none shrink-0"
+                      value={usp.category}
+                      onChange={(e) => setLocationUsps((p) => p.map((u, i) => i === idx ? { ...u, category: e.target.value } : u))}
+                    >
+                      {USP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </select>
+                    {usp.text.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => setLocationUsps((p) => [...p, { id: String(Date.now()), text: '', category: 'other' }])}
+                        className="h-9 w-9 flex items-center justify-center rounded-xl border border-[#D4AF37]/40 text-[#8B6914] hover:bg-[#D4AF37]/10 transition-colors text-lg font-bold shrink-0"
+                        title="Add another USP"
+                      >+</button>
+                    )}
+                    {locationUsps.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setLocationUsps((p) => p.filter((_, i) => i !== idx))}
+                        className="h-9 w-9 flex items-center justify-center rounded-xl border border-red-300/40 text-red-400 hover:bg-red-50 transition-colors text-sm shrink-0"
+                        title="Remove"
+                      >×</button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 

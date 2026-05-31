@@ -57,7 +57,12 @@ export default function AddressDialog({ value, onChange }: Props) {
     setLocal((prev) => ({ ...prev, [field]: val }))
   }
 
+  const [saveError, setSaveError] = useState('')
+
   const handleSave = () => {
+    if (!local.city.trim()) { setSaveError('City is required'); return }
+    if (!local.state.trim()) { setSaveError('State is required'); return }
+    setSaveError('')
     onChange(local)
     setOpen(false)
   }
@@ -112,7 +117,7 @@ export default function AddressDialog({ value, onChange }: Props) {
             <div className="p-5 space-y-4">
               {/* Pincode — hero input */}
               <Input
-                label="Pincode *"
+                label="Pincode"
                 value={local.pincode}
                 onChange={(e) => handleField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="Enter 6-digit pincode"
@@ -123,11 +128,6 @@ export default function AddressDialog({ value, onChange }: Props) {
                 successText={
                   pincodeResults && pincodeResults.length > 0 && pincodeResults[0]
                     ? `✓ ${pincodeResults[0].officeName} — ${pincodeResults[0].district}, ${pincodeResults[0].state}`
-                    : undefined
-                }
-                errorText={
-                  local.pincode.length === 6 && pincodeResults && pincodeResults.length === 0 && !isFetching
-                    ? '⚠ Not found — enter details manually'
                     : undefined
                 }
               />
@@ -163,7 +163,7 @@ export default function AddressDialog({ value, onChange }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-theme-primary mb-1">City</label>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">City <span className="text-red-500">*</span></label>
                   <Select
                     value={local.city}
                     onChange={(v) => handleField('city', v)}
@@ -185,7 +185,7 @@ export default function AddressDialog({ value, onChange }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="State"
+                  label="State *"
                   value={local.state}
                   onChange={(e) => handleField('state', e.target.value)}
                   placeholder="Auto-filled from pincode"
@@ -197,6 +197,10 @@ export default function AddressDialog({ value, onChange }: Props) {
                   disabled
                 />
               </div>
+
+              {saveError && (
+                <p className="text-xs text-red-500 flex items-center gap-1">⚠ {saveError}</p>
+              )}
 
               {/* Save */}
               <div className="flex gap-3 pt-2">
