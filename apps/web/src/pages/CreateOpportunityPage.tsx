@@ -842,7 +842,7 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 lg:py-14 flex items-start justify-center">
+          <section className="w-full px-4 sm:px-8 lg:px-12 pt-6 sm:pt-8 lg:pt-10 pb-0 flex items-start justify-center">
             <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0"
               style={{ boxShadow: '0 8px 40px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,175,55,0.15)' }}
             >
