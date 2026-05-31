@@ -42,8 +42,8 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
           url={url}
         />
       );
-      // Give React a frame to mount and load fonts
-      setTimeout(resolve, 500);
+      // Give React just enough time to mount before snapping, to prevent User Gesture expiry.
+      setTimeout(resolve, 50);
     });
 
     // 3. Find the exact DOM element to snapshot
@@ -99,13 +99,21 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     }
   } catch (error: any) {
     console.error("Error generating share postcard:", error);
-    alert(`Debug: Postcard generation failed. Reason: ${error.message || String(error)}. Sharing link instead.`);
-    // Ultimate fallback if html-to-image fails (e.g. CORS issues)
-    if (navigator.share) {
-      await navigator.share({ title: data.title, text });
-    } else {
-      navigator.clipboard.writeText(text);
-      alert("Link copied to clipboard!");
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: data.title, text });
+      } else {
+        throw new Error("No navigator.share");
+      }
+    } catch (fallbackError) {
+      // If user gesture expired, it throws NotAllowedError
+      try {
+        await navigator.clipboard.writeText(text);
+        alert(`Could not generate image due to network security (CORS) on the image. Link copied to clipboard instead!`);
+      } catch (clipboardErr) {
+        alert("Link: " + url);
+      }
     }
   }
 }
