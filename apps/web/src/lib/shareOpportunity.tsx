@@ -97,8 +97,9 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
       
       alert("Postcard image downloaded to your computer!\n\nThe message/link has been copied to your clipboard. You can now paste them directly into WhatsApp or LinkedIn.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating share postcard:", error);
+    alert(`Debug: Postcard generation failed. Reason: ${error.message || String(error)}. Sharing link instead.`);
     // Ultimate fallback if html-to-image fails (e.g. CORS issues)
     if (navigator.share) {
       await navigator.share({ title: data.title, text });

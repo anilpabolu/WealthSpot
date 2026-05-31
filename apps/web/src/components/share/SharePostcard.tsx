@@ -25,7 +25,7 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
     >
       {/* Background Image */}
       {coverImage ? (
-        <img src={coverImage} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
            <Building2 className="w-48 h-48 opacity-20" />
