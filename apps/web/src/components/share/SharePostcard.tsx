@@ -23,9 +23,9 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
       style={{ width: '1200px', height: '630px' }}
       className="relative flex flex-col justify-end bg-slate-900 text-white overflow-hidden"
     >
-      {/* Background Image - Wrapped in a CORS proxy to bypass R2 blocking */}
+      {/* Background Image - Wrapped in Weserv image proxy to bypass R2 blocking */}
       {coverImage ? (
-        <img src={`https://corsproxy.io/?${encodeURIComponent(coverImage)}`} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={`https://wsrv.nl/?url=${encodeURIComponent(coverImage)}`} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
            <Building2 className="w-48 h-48 opacity-20" />
