@@ -15,7 +15,10 @@ export interface ShareData {
 }
 
 export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
-  const url = `${window.location.origin}/opportunity/${data.slug}${data.referralCode ? `?ref=${data.referralCode}` : ''}`;
+  // Enforce production domain for the QR code if generating from local dev, 
+  // so the QR code remains scannable globally by mobile devices.
+  const baseUrl = window.location.hostname === 'localhost' ? 'https://wealthspot.in' : window.location.origin;
+  const url = `${baseUrl}/opportunity/${data.slug}${data.referralCode ? `?ref=${data.referralCode}` : ''}`;
   const text = `Discover this exclusive ${data.title} on WealthSpot.\n\nExplore the opportunity here: ${url}\nFor more details, contact us at 632909773`;
 
   try {
