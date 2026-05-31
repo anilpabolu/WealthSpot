@@ -7,9 +7,9 @@ Adds 2 new nullable columns:
 Also surfaces latitude/longitude (already exist on the model from migration 011)
 so the create/update API can now receive them. No column change needed for those.
 
-Revision ID: 051_maps_and_usps
-Revises: 050_property_specs
-Create Date: 2026-05-31 00:00:00.000000
+Revision ID: 067_maps_and_usps
+Revises: aa16902c5305
+Create Date: 2026-06-01 00:00:00.000000
 """
 
 from __future__ import annotations
@@ -21,8 +21,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from alembic import op
 
-revision: str = "051_maps_and_usps"
-down_revision: Union[str, None] = "050_property_specs"
+revision: str = "067_maps_and_usps"
+down_revision: Union[str, None] = "aa16902c5305"
 branch_labels: Union[str, tuple[str, ...], None] = None
 depends_on: Union[str, tuple[str, ...], None] = None
 
