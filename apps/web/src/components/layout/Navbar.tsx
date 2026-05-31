@@ -59,9 +59,12 @@ export default function Navbar(_props?: NavbarProps) {
       
       lastScrollY.current = current
 
-      // Handle dark/light mode based on scroll position
-      // The hero is typically dark, and content below is light.
-      if (current > 60) {
+      // Handle dark/light mode based on scroll position.
+      // Some pages are entirely dark — keep nav transparent regardless of scroll.
+      const alwaysDark = ['/create-opportunity'].some((p) => location.pathname.startsWith(p))
+      if (alwaysDark) {
+        setOnDark(true)
+      } else if (current > 60) {
         setOnDark(false)
       } else {
         setOnDark(true)
