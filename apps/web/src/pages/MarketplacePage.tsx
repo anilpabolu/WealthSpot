@@ -24,7 +24,7 @@ const VAULT_HERO_IMAGES: Record<string, string> = {
 import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
-
+import { shareOpportunityDynamic } from '@/lib/shareOpportunity'
 
 /* ------------------------------------------------------------------ */
 /*  Per-vault hero theming (gradient · accent · copy)                  */
@@ -135,10 +135,10 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
               <button
                 key={f}
                 onClick={() => setFilter('payoutFrequency', f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:shadow-md ${
                   filters.payoutFrequency === f
-                    ? 'bg-[#20E3B2] text-[#0D4A3A] font-bold'
-                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
+                    ? 'bg-[#20E3B2] text-[#0D4A3A] font-bold shadow-md'
+                    : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)] shadow-sm'
                 }`}
               >
                 {f === '' ? 'Any' : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -156,10 +156,10 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
             <button
               key={s}
               onClick={() => setFilter('status', s)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:shadow-md ${
                 filters.status === s
-                  ? 'bg-primary text-white'
-                  : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)]'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-theme-surface-hover text-theme-secondary hover:bg-[var(--bg-surface-hover)] shadow-sm'
               }`}
             >
               {s === '' ? 'All' : s === 'upcoming' ? 'Upcoming' : s === 'live' ? 'Live' : s === 'fully_funded' ? 'Fully Funded' : 'Deal Closed'}
@@ -184,7 +184,7 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
       </div>
 
       {/* Reset */}
-      <button onClick={resetFilters} className="btn-ghost text-sm w-full">
+      <button onClick={resetFilters} className="btn-ghost text-sm w-full shadow-sm hover:shadow-md transition-shadow">
         Reset All Filters
       </button>
     </div>
@@ -193,7 +193,7 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-gray-200 sticky top-[4.5rem] h-[calc(100vh-4.5rem)] bg-white z-10 overflow-hidden">
+      <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-gray-200 shadow-[4px_0_24px_rgba(0,0,0,0.06)] sticky top-[4.5rem] h-[calc(100vh-4.5rem)] bg-white z-10 overflow-hidden">
         <div className="flex-1 overflow-y-auto px-6 py-8">
           <h3 className="font-display font-bold text-gray-900 mb-6 flex items-center gap-2">
             <SlidersHorizontal className="h-5 w-5" />
@@ -265,6 +265,7 @@ export default function MarketplacePage() {
   const { data, isLoading } = useProperties(apiFilters)
   const queryClient = useQueryClient()
   const userRole = useUserStore((s) => s.user?.role)
+  const userReferralCode = useUserStore((s) => s.user?.referralCode)
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const [toast, setToast] = useState<string | null>(null)
   const [showShieldPopup, setShowShieldPopup] = useState(false)
@@ -356,7 +357,7 @@ export default function MarketplacePage() {
       <ShieldInfoModal open={showShieldPopup} onClose={() => setShowShieldPopup(false)} />
 
       {/* New Hero Section */}
-      <div className="relative border-b border-theme/20 pt-28 pb-12 px-6 sm:px-8 overflow-hidden bg-black">
+      <div className="relative border-b border-theme/20 pt-24 pb-8 px-6 sm:px-8 overflow-hidden bg-black">
         {/* Background Image - Matches Vault Page */}
         <img
           src={VAULT_HERO_IMAGES[vaultKey] || VAULT_HERO_IMAGES.wealth}
@@ -367,17 +368,11 @@ export default function MarketplacePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-3">
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-2">
               {hero.badge}
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mb-4 leading-relaxed font-light">
+            <p className="text-base md:text-lg text-white/80 max-w-2xl leading-relaxed font-light">
               {heroSubtitle}
-            </p>
-            <p className="text-sm text-white/60 max-w-3xl leading-relaxed">
-              Every listing passes through a rigorous 7-layer Shield review — from builder credibility to exit clauses — before it earns Shield Certified status.
-              <button onClick={() => setShowShieldPopup(true)} className="ml-2 text-[#D4AF37] hover:underline inline-flex items-center gap-1 font-semibold">
-                Learn more
-              </button>
             </p>
           </div>
         </div>
@@ -400,10 +395,10 @@ export default function MarketplacePage() {
                 <button
                   key={val}
                   onClick={() => handleCommunityFilter(val)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all hover:shadow-md ${
                     communityFilter === val
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 shadow-sm'
                   }`}
                 >
                   {label}
@@ -444,8 +439,8 @@ export default function MarketplacePage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid md:grid-cols-2 gap-10 lg:gap-14 px-4 sm:px-10 lg:px-16 xl:px-28'
-                  : 'space-y-6 px-4 sm:px-10 lg:px-16 xl:px-28'
+                  ? 'grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-5xl xl:max-w-6xl'
+                  : 'space-y-6 max-w-5xl xl:max-w-6xl'
               }
             >
               {isLoading
@@ -456,9 +451,14 @@ export default function MarketplacePage() {
                   <>
                     {/* Opportunity tiles */}
                     {opportunities.map((opp) => {
-                      const coverUrl = opp.media?.find(m => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
-                      const oppStatus = (opp.status ?? '').toLowerCase() as StatusType
-                      const targetIRR = (opp as any).targetIRR ?? '14%'
+                      const coverUrl = opp.media?.find((m: any) => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
+                      const rawStatus = (opp.status ?? '').toLowerCase()
+                      const oppStatus = rawStatus === 'approved' ? 'Upcoming' : (rawStatus === 'active' || rawStatus === 'funding' ? 'Live' : (rawStatus === 'funded' ? 'Fully Funded' : (rawStatus === 'closed' || rawStatus === 'exited' ? 'Deal Closed' : rawStatus)))
+                      
+                      const allImages = opp.media?.length ? opp.media.map((m: any) => m.url) : (coverUrl ? [coverUrl] : [])
+                      // Duplicate single image so it can be scrolled endlessly
+                      const carouselImages = allImages.length === 1 ? [allImages[0], allImages[0], allImages[0]] : allImages
+
                       const tenure = (opp as any).tenure ?? '3 yr'
                       return (
                         <div
@@ -467,8 +467,13 @@ export default function MarketplacePage() {
                           className="bg-white rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] border border-gray-100 transition-all cursor-pointer group flex flex-col h-full"
                         >
                           <div className="aspect-[16/9] relative bg-gray-100 overflow-hidden">
-                            {coverUrl ? (
-                              <img src={coverUrl} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                            {carouselImages.length > 0 ? (
+                              <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                {carouselImages.map((url: string, idx: number) => (
+                                  <img key={idx} src={url} alt={`${opp.title} ${idx}`} className="w-full h-full flex-shrink-0 object-cover snap-center transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                ))}
+                                <style>{`.snap-x::-webkit-scrollbar { display: none; }`}</style>
+                              </div>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300">
                                 <Building2 className="h-10 w-10" />
@@ -481,14 +486,6 @@ export default function MarketplacePage() {
                                  {oppStatus}
                                </div>
                             )}
-
-                            {/* Refer & Earn button */}
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); navigate('/referrals') }}
-                              className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-black/80 transition-colors"
-                            >
-                              <Gift className="h-3.5 w-3.5" /> Refer & Earn
-                            </button>
 
                             {/* Admin Controls */}
                             {isAdmin && (
@@ -530,11 +527,7 @@ export default function MarketplacePage() {
                             </div>
 
                             {/* Specs Grid */}
-                            <div className="grid grid-cols-3 gap-4 mb-8">
-                               <div>
-                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Target IRR</p>
-                                 <p className="font-display text-lg font-bold text-gray-900">{targetIRR}</p>
-                               </div>
+                            <div className="grid grid-cols-2 gap-4 mb-8">
                                <div>
                                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Tenure</p>
                                  <p className="font-display text-lg font-bold text-gray-900">{tenure}</p>
@@ -551,18 +544,26 @@ export default function MarketplacePage() {
                                <button 
                                  onClick={(e) => {
                                    e.stopPropagation();
-                                   if (navigator.share) {
-                                     navigator.share({
-                                       title: opp.title,
-                                       text: `Check out this opportunity on WealthSpot: ${opp.title}`,
-                                       url: window.location.origin + `/opportunity/${opp.slug}`
-                                     }).catch(console.error);
-                                   } else {
-                                     navigator.clipboard.writeText(window.location.origin + `/opportunity/${opp.slug}`);
-                                     alert("Link copied to clipboard!");
-                                   }
+                                   const btn = e.currentTarget;
+                                   const originalHTML = btn.innerHTML;
+                                   btn.innerHTML = '<span class="animate-pulse">Generating...</span>';
+                                   btn.disabled = true;
+                                   
+                                   shareOpportunityDynamic({
+                                     title: opp.title,
+                                     targetIRR: (opp as any).targetIRR ?? '14%',
+                                     tenure: (opp as any).tenure ?? '3 yr',
+                                     minEntry: opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD',
+                                     coverImage: coverUrl,
+                                     city: opp.city || undefined,
+                                     slug: opp.slug,
+                                     referralCode: userReferralCode || undefined
+                                   }).finally(() => {
+                                     btn.innerHTML = originalHTML;
+                                     btn.disabled = false;
+                                   });
                                  }}
-                                 className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                                 className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed"
                                >
                                  <Gift className="h-4 w-4" /> Refer
                                </button>

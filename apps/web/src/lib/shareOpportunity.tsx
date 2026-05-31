@@ -1,0 +1,103 @@
+import { toBlob } from 'html-to-image';
+import { createRoot } from 'react-dom/client';
+import { SharePostcard } from '@/components/share/SharePostcard';
+
+
+export interface ShareData {
+  title: string;
+  targetIRR?: string;
+  tenure?: string;
+  minEntry?: string;
+  coverImage?: string;
+  city?: string;
+  slug: string;
+  referralCode?: string;
+}
+
+export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
+  const url = `${window.location.origin}/opportunity/${data.slug}${data.referralCode ? `?ref=${data.referralCode}` : ''}`;
+  const text = `Discover this exclusive ${data.title} on WealthSpot.\n\nExplore the opportunity here: ${url}\nFor more details, contact us at 632909773`;
+
+  try {
+    // 1. Create a detached DOM node
+    const container = document.createElement('div');
+    // Hide it far off screen so it doesn't affect layout
+    container.style.position = 'fixed';
+    container.style.top = '-9999px';
+    container.style.left = '-9999px';
+    document.body.appendChild(container);
+
+    // 2. Render the postcard into the node
+    const root = createRoot(container);
+    
+    await new Promise<void>((resolve) => {
+      root.render(
+        <SharePostcard
+          title={data.title}
+          targetIRR={data.targetIRR}
+          tenure={data.tenure}
+          minEntry={data.minEntry}
+          coverImage={data.coverImage}
+          city={data.city}
+          url={url}
+        />
+      );
+      // Give React a frame to mount and load fonts
+      setTimeout(resolve, 500);
+    });
+
+    // 3. Find the exact DOM element to snapshot
+    const element = container.firstElementChild as HTMLElement;
+    if (!element) throw new Error("Failed to render postcard");
+
+    // 4. Generate the image blob
+    const blob = await toBlob(element, { 
+      cacheBust: true,
+      pixelRatio: 1, // 1200x630 is perfectly sized
+      // Fallback style to ensure backgrounds render nicely
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left',
+      }
+    });
+
+    // Clean up DOM immediately
+    root.unmount();
+    document.body.removeChild(container);
+
+    if (!blob) throw new Error("Failed to generate image blob");
+
+    // 5. Share logic
+    const file = new File([blob], `wealthspot-${data.slug}.png`, { type: 'image/png' });
+    
+    // Check if navigator.canShare supports sharing files (this is true on iOS/Android and some desktop browsers)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: data.title,
+        text: text,
+        files: [file],
+      });
+    } else {
+      // Desktop Fallback: Download the image and copy the text
+      await navigator.clipboard.writeText(text);
+      
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `wealthspot-${data.slug}.png`;
+      a.click();
+      URL.revokeObjectURL(downloadUrl);
+      
+      alert("Postcard downloaded and message copied to your clipboard! Paste it into WhatsApp or LinkedIn.");
+    }
+  } catch (error) {
+    console.error("Error generating share postcard:", error);
+    // Ultimate fallback if html-to-image fails (e.g. CORS issues)
+    if (navigator.share) {
+      await navigator.share({ title: data.title, text });
+    } else {
+      navigator.clipboard.writeText(text);
+      alert("Link copied to clipboard!");
+    }
+  }
+}

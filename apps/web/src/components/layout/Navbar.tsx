@@ -51,27 +51,31 @@ export default function Navbar(_props?: NavbarProps) {
     const onScroll = () => {
       const current = window.scrollY
       const delta = current - lastScrollY.current
+      
+      // Handle visibility
       if (current <= 10) setNavVisible(true)
       else if (delta > 5 && current > 80) setNavVisible(false)
       else if (delta < -5) setNavVisible(true)
+      
       lastScrollY.current = current
+
+      // Handle dark/light mode based on scroll position
+      // The hero is typically dark, and content below is light.
+      if (current > 60) {
+        setOnDark(false)
+      } else {
+        setOnDark(true)
+      }
     }
+    
+    // Initial check
+    onScroll()
+    
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [location.pathname])
-
-  useEffect(() => {
-    const updateOnDark = () => {
-      // Force 100% transparent navbar globally
-      setOnDark(true)
-    }
-
-    updateOnDark()
-    window.addEventListener('scroll', updateOnDark, { passive: true })
-    window.addEventListener('resize', updateOnDark)
+    window.addEventListener('resize', onScroll)
     return () => {
-      window.removeEventListener('scroll', updateOnDark)
-      window.removeEventListener('resize', updateOnDark)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
     }
   }, [location.pathname])
 
@@ -101,23 +105,21 @@ export default function Navbar(_props?: NavbarProps) {
   return (
     <>
     <header
-      className={cn('z-50 w-full fixed top-0')}
+      className={cn(
+        'z-50 w-full fixed top-0 transition-all duration-300',
+        !onDark ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/50 shadow-sm' : 'bg-transparent border-b border-transparent'
+      )}
       style={{
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
-        transition: 'transform 0.35s ease',
-        background: 'transparent',
-        backdropFilter: 'none',
-        WebkitBackdropFilter: 'none',
-        borderBottom: 'none',
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-14 items-center justify-between">
           {/* Logo */}
             <Link to="/vaults" className="flex items-center gap-0.5 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={54} light={onDark} className="transition-all duration-300" />
+            <WLogo3D size={48} light={onDark} className="transition-all duration-300" />
             <div className="flex flex-col">
-              <span className={cn('text-2xl font-bold tracking-tight leading-none', onDark ? 'text-white' : 'text-slate-950')} 
+              <span className={cn('text-xl sm:text-2xl font-bold tracking-tight leading-none', onDark ? 'text-white' : 'text-slate-950')} 
                 style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>

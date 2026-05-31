@@ -522,7 +522,7 @@ export default function VaultsPage() {
             {VAULTS.map((vault) => {
               const comingSoon = !isVaultEnabled(vault.id)
               return (
-                <div key={vault.id} className="h-[580px] lg:h-[620px]">
+                <div key={vault.id} className="h-[480px] md:h-[540px] lg:h-[590px]">
                   <VaultCard
                       vault={vault}
                       stats={statsMap.get(vault.id)}

@@ -73,12 +73,12 @@ export function Select({
         onClick={() => { setOpen(!open); setSearch(''); }}
         className={`
           w-full flex items-center justify-between gap-2 ${py} px-3 ${textSize}
-          bg-[var(--bg-surface)] border border-theme rounded-xl
+          bg-[var(--bg-surface)] border border-theme rounded-xl shadow-sm
           transition-all duration-150
-          hover:border-theme
+          hover:border-theme hover:shadow-md
           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${open ? 'ring-2 ring-primary/30 border-primary' : ''}
+          ${open ? 'ring-2 ring-primary/30 border-primary shadow-md' : ''}
         `}
       >
         <span className={selected ? 'text-theme-primary truncate' : 'text-theme-tertiary truncate'}>
