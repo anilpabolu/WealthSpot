@@ -674,6 +674,7 @@ export default function OpportunityDetailPage() {
                 address={opp.addressLine1 ?? opp.address}
                 city={opp.city}
                 state={opp.state}
+                pincode={opp.pincode}
               />
             )}
 
