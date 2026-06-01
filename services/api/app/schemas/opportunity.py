@@ -297,6 +297,7 @@ class OpportunityRead(BaseModel):
     creator: OpportunityCreatorRead | None = None
     media: list[OpportunityMediaRead] = []
     company: CompanySummary | None = None
+    location_usps: list[dict] | None = None
 
     model_config = {"from_attributes": True}
 

@@ -74,6 +74,7 @@ export interface OpportunityItem {
   fundingOpenAt: string | null
   closingDate: string | null
   createdAt: string
+  locationUsps: Array<{ text: string; category: string }> | null
   creator?: { id: string; fullName: string; avatarUrl: string | null }
   media: OpportunityMedia[]
   company: CompanySummary | null

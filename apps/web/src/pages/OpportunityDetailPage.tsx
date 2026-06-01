@@ -24,6 +24,7 @@ import {
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import ProjectUspPanel from '@/components/ProjectUspPanel'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
 import { ShieldSection } from '@/components/shield/ShieldSection'
 import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
@@ -716,6 +717,11 @@ export default function OpportunityDetailPage() {
 
             {/* Builder Updates — separate section */}
             <BuilderUpdatesPanel opportunityId={opp.id} />
+
+            {/* Project USPs */}
+            <div className="mt-4">
+              <ProjectUspPanel usps={opp.locationUsps} />
+            </div>
           </div>
         </div>
         </div>
