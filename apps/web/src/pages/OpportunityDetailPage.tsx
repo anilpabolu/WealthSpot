@@ -22,6 +22,7 @@ import {
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
+import LocationMapEmbed from '@/components/LocationMapEmbed'
 import ProjectUspPanel from '@/components/ProjectUspPanel'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
 import { ShieldSection } from '@/components/shield/ShieldSection'
@@ -664,30 +665,16 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
-            {/* Company / Builder Info */}
-            {opp.company && (
-              <button
-                type="button"
-                onClick={() => setShowCompanyModal(true)}
-                className="card p-6 w-full text-left cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-500/70 via-sky-400/50 to-sky-500/10" />
-                <h2 className="font-display text-lg font-bold text-theme-primary mb-4">Developer / Company</h2>
-                <div className="flex items-center gap-4">
-                  {opp.company.logoUrl ? (
-                    <img src={opp.company.logoUrl} alt={opp.company.companyName} className="h-12 w-12 rounded-lg object-contain border border-theme" />
-                  ) : (
-                    <div className="h-12 w-12 rounded-lg bg-theme-surface-hover flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-theme-tertiary" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-theme-primary group-hover:text-primary transition-colors">{opp.company.companyName}</p>
-                    {opp.company.brandName && <p className="text-xs text-theme-secondary">{opp.company.brandName}</p>}
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-theme-tertiary group-hover:text-primary transition-colors shrink-0" />
-                </div>
-              </button>
+            {/* Location Map */}
+            {(opp.latitude || opp.longitude || opp.mapsUrl) && (
+              <LocationMapEmbed
+                latitude={opp.latitude}
+                longitude={opp.longitude}
+                mapsUrl={opp.mapsUrl}
+                address={opp.addressLine1 ?? opp.address}
+                city={opp.city}
+                state={opp.state}
+              />
             )}
 
             {/* Founder Info (for Opportunity Vault) */}

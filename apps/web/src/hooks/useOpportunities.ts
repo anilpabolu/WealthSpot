@@ -75,6 +75,9 @@ export interface OpportunityItem {
   closingDate: string | null
   createdAt: string
   locationUsps: Array<{ text: string; category: string }> | null
+  latitude: number | null
+  longitude: number | null
+  mapsUrl: string | null
   creator?: { id: string; fullName: string; avatarUrl: string | null }
   media: OpportunityMedia[]
   company: CompanySummary | null

@@ -298,6 +298,9 @@ class OpportunityRead(BaseModel):
     media: list[OpportunityMediaRead] = []
     company: CompanySummary | None = None
     location_usps: list[dict] | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    maps_url: str | None = None
 
     model_config = {"from_attributes": True}
 
