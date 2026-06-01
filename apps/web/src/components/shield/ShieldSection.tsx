@@ -3,6 +3,7 @@ import { AlertTriangle, ChevronDown, ChevronRight, EyeOff, ShieldCheck } from 'l
 import {
   ASSESSMENT_CATEGORIES,
   findCategory,
+  findSubItem,
   humanStatus,
   iconForCategory,
   type AssessmentSubItemRead,
@@ -89,7 +90,12 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
           const cat = findCategory(catRead.code)
           if (!cat) return null
           const Icon = iconForCategory(cat.icon)
-          const open = openCats[cat.code] ?? catRead.status === 'flagged'
+          const hasAnswers = catRead.subItems.some(
+            (s) => extractAnswerValue(s.builderAnswer) !== null,
+          )
+          const open =
+            openCats[cat.code] ??
+            (catRead.status === 'flagged' || hasAnswers)
           return (
             <div
               key={cat.code}
@@ -123,6 +129,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
                     <SubItemRow
                       key={sub.code}
                       opportunityId={opportunityId}
+                      categoryCode={catRead.code}
                       sub={sub}
                     />
                   ))}
@@ -163,14 +170,29 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
   )
 }
 
+function extractAnswerValue(
+  builderAnswer: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!builderAnswer) return null
+  const v = builderAnswer.value ?? builderAnswer.text
+  return v !== null && v !== undefined && v !== '' ? String(v) : null
+}
+
 function SubItemRow({
   opportunityId,
+  categoryCode,
   sub,
 }: {
   opportunityId: string
+  categoryCode: string
   sub: AssessmentSubItemRead
 }) {
+  const subDef = findSubItem(categoryCode, sub.code)
   const visibleDocs = sub.documents.filter((d) => !d.locked)
+  const answerValue = extractAnswerValue(
+    sub.builderAnswer as Record<string, unknown> | null,
+  )
+
   return (
     <div className="px-5 py-3 bg-theme-card/60">
       <div className="flex items-start justify-between gap-3">
@@ -187,11 +209,20 @@ function SubItemRow({
               </span>
             )}
           </div>
-          {!!(sub.builderAnswer as Record<string, string> | null)?.value && (
-            <blockquote className="mt-1.5 pl-3 border-l-2 border-primary/50 text-[11px] text-theme-primary bg-primary/5 rounded-r py-1">
-              <span className="text-theme-tertiary font-semibold">Builder answer: </span>
-              {String((sub.builderAnswer as Record<string, string>).value)}
+          {subDef?.promptForBuilder && (
+            <p className="mt-1 text-[11px] text-theme-tertiary italic">
+              {subDef.promptForBuilder}
+            </p>
+          )}
+          {answerValue !== null ? (
+            <blockquote className="mt-1.5 pl-3 border-l-2 border-primary/50 text-[11px] text-theme-primary bg-primary/5 rounded-r py-1 pr-2">
+              <span className="text-theme-tertiary font-semibold">Builder: </span>
+              {answerValue}
             </blockquote>
+          ) : (
+            <p className="mt-1 text-[11px] text-theme-tertiary/60 italic">
+              No answer provided yet
+            </p>
           )}
           {sub.reviewerNote && (
             <p className="mt-1.5 text-[11px] text-theme-secondary italic">

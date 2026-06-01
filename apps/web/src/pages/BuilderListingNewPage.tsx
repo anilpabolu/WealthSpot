@@ -352,7 +352,7 @@ export default function BuilderListingNewPage() {
           items: answeredItems.map((a) => ({
             categoryCode: a.categoryCode,
             subcategoryCode: a.subcategoryCode,
-            builderAnswer: a.value ? { text: a.value } : null,
+            builderAnswer: a.value ? { value: a.value } : null,
             isPublic: a.isPublic,
           })),
         })
