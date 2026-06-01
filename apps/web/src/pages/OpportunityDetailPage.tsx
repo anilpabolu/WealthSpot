@@ -12,13 +12,12 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
+  ShieldCheck, Lock, EyeOff, TrendingUp, CheckCircle2, Target,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
-import {
-} from '@/lib/constants'
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import BuilderUpdatesPanel from '@/components/BuilderUpdatesPanel'
@@ -290,56 +289,169 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
   )
 }
 
+/* ── Small helpers ──────────────────────────────────────────────────── */
+
+function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string }>; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+      <span className="text-[9px] text-theme-tertiary leading-tight text-center">{label}</span>
+    </div>
+  )
+}
+
+function InvestmentHighlights({ minInvestment, targetAmount, closingDate, investorCount }: {
+  minInvestment: number | null
+  targetAmount: number | null
+  closingDate: string | null
+  investorCount: number
+}) {
+  const items = [
+    minInvestment != null && {
+      label: 'Min. Investment', value: formatINRCompact(minInvestment),
+      bg: 'bg-emerald-500/10', color: 'text-emerald-500', Icon: TrendingUp,
+    },
+    targetAmount != null && {
+      label: 'Target Raise', value: formatINRCompact(targetAmount),
+      bg: 'bg-blue-500/10', color: 'text-blue-500', Icon: Target,
+    },
+    closingDate && {
+      label: 'Days Remaining', value: String(Math.max(0, daysRemaining(closingDate))),
+      bg: 'bg-amber-500/10', color: 'text-amber-500', Icon: Clock,
+    },
+    {
+      label: 'Investors', value: String(investorCount),
+      bg: 'bg-violet-500/10', color: 'text-violet-500', Icon: Users,
+    },
+  ].filter(Boolean) as Array<{ label: string; value: string; bg: string; color: string; Icon: typeof TrendingUp }>
+
+  if (items.length < 2) return null
+  return (
+    <div className="card p-5 border-primary/10">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {items.map((item, i) => (
+          <div key={item.label} className={`flex items-start gap-3 ${i > 0 ? 'sm:pl-4 sm:border-l sm:border-theme' : ''}`}>
+            <div className={`h-9 w-9 rounded-xl ${item.bg} flex items-center justify-center shrink-0 mt-0.5`}>
+              <item.Icon className={`h-4 w-4 ${item.color}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-theme-tertiary uppercase tracking-wider leading-tight mb-0.5 truncate">{item.label}</p>
+              <p className="text-xl font-bold text-theme-primary font-mono leading-tight">{item.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function WealthSpotAssured() {
+  const points = [
+    '7-layer independent due diligence framework',
+    'Legal review by empanelled law firm',
+    'Builder credibility independently assessed',
+    'Your contact details are never shared',
+  ]
+  return (
+    <div className="card p-4 border-primary/20" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.04) 0%, transparent 60%)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+        </div>
+        <span className="text-sm font-bold text-theme-primary">WealthSpot Assured</span>
+      </div>
+      <div className="space-y-2">
+        {points.map(p => (
+          <div key={p} className="flex items-start gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+            <span className="text-[11px] text-theme-secondary leading-snug">{p}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ── Interest Panel (premium redesign) ─────────────────────────────── */
+
 function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
   const isClosed = opportunity.status === 'closed'
+  const isUrgent = daysLeft > 0 && daysLeft <= 10
 
   return (
     <>
-      <div className="card p-6 sticky top-20 relative overflow-hidden ring-1 ring-primary/10">
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/80 via-amber-400/60 to-primary/20" />
-        <div className="flex items-center justify-between mb-4">
-          <StatusBadge status={opportunity.status as StatusType} />
-          {daysLeft > 0 && (
-            <span className="text-xs text-theme-secondary flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" /> {daysLeft} days left
-            </span>
-          )}
-        </div>
-
-        <div className="mt-1 mb-4 text-xs text-theme-secondary flex items-center gap-1">
-          <Users className="h-3.5 w-3.5" /> {opportunity.investorCount} investors
-        </div>
-
-        <div className="mb-4">
-          {opportunity.minInvestment != null && (
-            <div className="bg-primary/5 rounded-xl border border-primary/15 p-3">
-              <p className="text-xs text-theme-secondary uppercase font-semibold">Min. Invest</p>
-              <p className="font-mono font-bold text-lg text-theme-primary mt-1">{formatINRCompact(opportunity.minInvestment)}</p>
+      <div className="rounded-3xl overflow-hidden shadow-2xl shadow-black/20 ring-1 ring-primary/25 transition-all duration-300 hover:ring-primary/40">
+        {/* Dark premium header — matches hero palette */}
+        <div className="relative px-5 pt-5 pb-6 overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #0d1324 0%, #13102e 55%, #0d1324 100%)' }}>
+          <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full blur-2xl"
+            style={{ background: 'rgba(212,175,55,0.12)' }} />
+          <div className="absolute top-0 left-0 right-0 h-px"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)' }} />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <StatusBadge status={opportunity.status as StatusType} />
+              {daysLeft > 0 && (
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
+                  isUrgent
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'text-white/50'
+                }`}>
+                  <Clock className="h-3.5 w-3.5" /> {daysLeft} days left
+                </span>
+              )}
             </div>
-          )}
+            <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-1.5">Minimum Investment</p>
+            <p className="font-mono font-bold text-2xl leading-none" style={{ color: '#D4AF37' }}>
+              {opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'}
+            </p>
+            {opportunity.investorCount > 0 && (
+              <p className="mt-2.5 text-white/40 text-[11px] flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                {opportunity.investorCount} investor{opportunity.investorCount !== 1 ? 's' : ''} have expressed interest
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Express Interest button */}
-        {!isClosed ? (
-          <button
-            onClick={() => setShowEOI(true)}
-            className="btn-primary w-full text-base py-3 inline-flex items-center justify-center gap-2"
-          >
-            <HandCoins className="h-5 w-5" />
-            Express Interest
-          </button>
-        ) : (
-          <button disabled className="w-full text-base py-3 bg-[var(--bg-surface-hover)] text-theme-secondary rounded-lg cursor-not-allowed font-semibold">
-            Opportunity Closed
-          </button>
-        )}
+        {/* Card body */}
+        <div className="bg-[var(--bg-card)] px-5 pt-4 pb-5">
+          {!isClosed ? (
+            <button
+              onClick={() => setShowEOI(true)}
+              className="w-full py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37 0%, #f0d060 50%, #b8952e 100%)',
+                color: '#1a0e00',
+                boxShadow: '0 8px 24px rgba(212,175,55,0.25)',
+              }}
+            >
+              <HandCoins className="h-5 w-5" />
+              Express Interest
+            </button>
+          ) : (
+            <button disabled className="w-full py-3.5 rounded-xl bg-[var(--bg-surface-hover)] text-theme-secondary font-semibold cursor-not-allowed text-base">
+              Opportunity Closed
+            </button>
+          )}
 
-        <p className="text-center text-[11px] text-theme-tertiary mt-3">
-          By expressing interest, you agree to our <Link to="/legal/terms" className="underline">Terms</Link>.
-          Your contact details will not be shared.
-        </p>
+          <p className="text-center text-[10px] text-theme-tertiary mt-2.5 leading-relaxed">
+            By expressing interest, you agree to our{' '}
+            <Link to="/legal/terms" className="underline hover:text-theme-secondary">Terms</Link>.
+            {' '}Your contact details will not be shared.
+          </p>
+
+          {/* Trust signals */}
+          <div className="mt-4 pt-4 border-t border-theme grid grid-cols-3 gap-2">
+            <TrustBadge icon={ShieldCheck} label="WealthSpot Verified" />
+            <TrustBadge icon={Lock} label="Secure & Private" />
+            <TrustBadge icon={EyeOff} label="Discreet Contact" />
+          </div>
+        </div>
       </div>
 
       {showEOI && (
@@ -457,7 +569,7 @@ export default function OpportunityDetailPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border backdrop-blur-md transition-all ${
@@ -480,6 +592,37 @@ export default function OpportunityDetailPage() {
               </button>
             </div>
           </div>
+
+          {/* Quick-stats strip at the bottom of hero */}
+          {(opp.minInvestment || opp.targetAmount || opp.closingDate) && (
+            <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {opp.minInvestment && (
+                <div>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Min. Investment</p>
+                  <p className="font-mono font-bold text-xl text-white">{formatINRCompact(opp.minInvestment)}</p>
+                </div>
+              )}
+              {opp.targetAmount && (
+                <div>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Target Raise</p>
+                  <p className="font-mono font-bold text-xl text-white">{formatINRCompact(opp.targetAmount)}</p>
+                </div>
+              )}
+              {opp.closingDate && (
+                <div>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Closes In</p>
+                  <p className="font-bold text-xl text-white">
+                    {daysRemaining(opp.closingDate)}{' '}
+                    <span className="text-sm font-normal text-white/50">days</span>
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Investors</p>
+                <p className="font-bold text-xl text-white">{opp.investorCount}</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -488,9 +631,9 @@ export default function OpportunityDetailPage() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left — Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Gallery with lifecycle ribbon */}
-            <div className="relative shadow-2xl shadow-black/10 rounded-xl overflow-hidden ring-1 ring-white/10">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/15 ring-1 ring-primary/10">
               {ribbon && (
                 <div className={`absolute top-4 left-0 z-10 ${ribbon.color} text-white text-xs font-bold px-4 py-1.5 rounded-r-full shadow-lg`}>
                   {ribbon.label}
@@ -499,10 +642,20 @@ export default function OpportunityDetailPage() {
               <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} propertyVideosEnabled={propertyVideosEnabled} />
             </div>
 
-            {/* Description */}
+            {/* Investment Highlights */}
+            <InvestmentHighlights
+              minInvestment={opp.minInvestment}
+              targetAmount={opp.targetAmount}
+              closingDate={opp.closingDate}
+              investorCount={opp.investorCount}
+            />
+
+            {/* About this Opportunity */}
             {opp.description && (
               <div className="card p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
+                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
+                  style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.3), transparent)' }} />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/15 text-amber-500 dark:text-amber-400 shrink-0"><FileText className="h-4 w-4" /></span>
                   About this Opportunity
@@ -553,9 +706,7 @@ export default function OpportunityDetailPage() {
               if (opp.closingDate)
                 details.push({ label: 'Closing Date', value: new Date(opp.closingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), icon: Calendar })
 
-              const hasDetails = details.length > 0
-              const hasDescription = !!opp.description
-              if (!hasDetails && !hasDescription) return null
+              if (details.length === 0) return null
               return (
                 <div className="card p-6 relative overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-blue-500/10" />
@@ -563,67 +714,27 @@ export default function OpportunityDetailPage() {
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/15 text-blue-500 dark:text-blue-400 shrink-0"><FolderKanban className="h-4 w-4" /></span>
                     Project Details
                   </h2>
-                  {hasDescription && (
-                    <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line mb-4">{opp.description}</p>
-                  )}
-                  {hasDetails && (
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {details.map(d => {
-                        const Icon = d.icon
-                        return (
-                          <div key={d.label} className="flex items-center gap-3 p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                            <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
-                            <div>
-                              <p className="text-xs text-theme-secondary">{d.label}</p>
-                              <p className="text-sm font-semibold text-theme-primary">{d.value}</p>
-                            </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {details.map(d => {
+                      const Icon = d.icon
+                      return (
+                        <div key={d.label} className="flex items-center gap-3 p-3.5 bg-[var(--bg-surface-hover)]/60 rounded-2xl border border-[var(--border-subtle)] hover:border-primary/20 transition-colors">
+                          <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+                            <Icon className="h-4 w-4 text-primary" />
                           </div>
-                        )
-                      })}
-                    </div>
-                  )}
+                          <div>
+                            <p className="text-[10px] text-theme-tertiary uppercase tracking-wide mb-0.5">{d.label}</p>
+                            <p className="text-sm font-semibold text-theme-primary">{d.value}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })()}
 
-            {/* Location */}
-            {(opp.address || opp.addressLine1 || opp.city) && (
-              <div className="card p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500/70 via-emerald-400/50 to-emerald-500/10" />
-                <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 shrink-0"><MapPin className="h-4 w-4" /></span>
-                  Location Details
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {opp.addressLine1 && (
-                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                      <p className="text-xs text-theme-secondary mb-0.5">Address</p>
-                      <p className="text-sm font-medium text-theme-primary">{opp.addressLine1}{opp.addressLine2 ? `, ${opp.addressLine2}` : ''}</p>
-                    </div>
-                  )}
-                  {opp.locality && (
-                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                      <p className="text-xs text-theme-secondary mb-0.5">Area</p>
-                      <p className="text-sm font-medium text-theme-primary">{opp.locality}</p>
-                    </div>
-                  )}
-                  {opp.city && (
-                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                      <p className="text-xs text-theme-secondary mb-0.5">City</p>
-                      <p className="text-sm font-medium text-theme-primary">{opp.city}</p>
-                    </div>
-                  )}
-                  {opp.pincode && (
-                    <div className="p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                      <p className="text-xs text-theme-secondary mb-0.5">Pincode</p>
-                      <p className="text-sm font-medium text-theme-primary">{opp.pincode}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* WealthSpot Shield */}
+            {/* WealthSpot Shield — placed high for trust-first UX */}
             <ShieldSection opportunityId={opp.id} />
 
             {/* Amenities & Features — shown for wealth/safe vault properties that have amenities */}
@@ -680,13 +791,18 @@ export default function OpportunityDetailPage() {
 
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
-              <div className="card p-6 bg-gradient-to-r from-violet-50 to-violet-100/50 border-violet-200 dark:border-violet-700/40">
-                <h2 className="font-display text-lg font-bold text-theme-primary mb-2 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-violet-500" /> Founder
+              <div className="card p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  Founder
                 </h2>
-                <p className="text-sm font-medium text-theme-primary">{opp.founderName}</p>
+                <p className="text-sm font-semibold text-theme-primary">{opp.founderName}</p>
                 {opp.pitchDeckUrl && (
-                  <a href={opp.pitchDeckUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm text-violet-600 dark:text-violet-400 font-semibold hover:underline">
+                  <a href={opp.pitchDeckUrl} target="_blank" rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary font-semibold hover:underline">
                     View Pitch Deck <ChevronRight className="h-4 w-4" />
                   </a>
                 )}
@@ -694,30 +810,24 @@ export default function OpportunityDetailPage() {
             )}
           </div>
 
-          {/* Right — Interest Panel + Builder Updates */}
-          <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
-            <div className="mb-6">
-              <InterestPanel opportunity={{
-                id: opp.id,
-                title: opp.title,
-                status: opp.status,
-                raisedAmount: opp.raisedAmount,
-                targetAmount: opp.targetAmount,
-                minInvestment: opp.minInvestment,
-                investorCount: opp.investorCount,
-                closingDate: opp.closingDate,
-                property_type: opp.property_type,
-                property_specs: opp.property_specs,
-              }} />
-            </div>
+          {/* Right — Sidebar */}
+          <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto space-y-4">
+            <InterestPanel opportunity={{
+              id: opp.id,
+              title: opp.title,
+              status: opp.status,
+              raisedAmount: opp.raisedAmount,
+              targetAmount: opp.targetAmount,
+              minInvestment: opp.minInvestment,
+              investorCount: opp.investorCount,
+              closingDate: opp.closingDate,
+              property_type: opp.property_type,
+              property_specs: opp.property_specs,
+            }} />
 
-            {/* Builder Updates — separate section */}
+            <WealthSpotAssured />
             <BuilderUpdatesPanel opportunityId={opp.id} />
-
-            {/* Project USPs */}
-            <div className="mt-4">
-              <ProjectUspPanel usps={opp.locationUsps} />
-            </div>
+            <ProjectUspPanel usps={opp.locationUsps} />
           </div>
         </div>
         </div>
