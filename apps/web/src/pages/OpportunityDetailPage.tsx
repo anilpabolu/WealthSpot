@@ -482,7 +482,7 @@ export default function OpportunityDetailPage() {
         </div>
       </section>
 
-      <div className="page-section -mt-10 relative z-20">
+      <div className="page-section mt-6 relative z-20">
         <div className="page-section-container">
 
         <div className="grid lg:grid-cols-3 gap-8">
