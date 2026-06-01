@@ -12,7 +12,7 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
-  ShieldCheck, Lock, EyeOff, TrendingUp, Target,
+  ShieldCheck, Lock, EyeOff, TrendingUp,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -302,35 +302,25 @@ function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string
   )
 }
 
-function InvestmentHighlights({ minInvestment, targetAmount, closingDate, investorCount }: {
+function InvestmentHighlights({ minInvestment, closingDate }: {
   minInvestment: number | null
-  targetAmount: number | null
   closingDate: string | null
-  investorCount: number
 }) {
   const items = [
     minInvestment != null && {
       label: 'Min. Investment', value: formatINRCompact(minInvestment),
       bg: 'bg-emerald-500/10', color: 'text-emerald-500', Icon: TrendingUp,
     },
-    targetAmount != null && {
-      label: 'Target Raise', value: formatINRCompact(targetAmount),
-      bg: 'bg-blue-500/10', color: 'text-blue-500', Icon: Target,
-    },
     closingDate && {
       label: 'Days Remaining', value: String(Math.max(0, daysRemaining(closingDate))),
       bg: 'bg-amber-500/10', color: 'text-amber-500', Icon: Clock,
     },
-    {
-      label: 'Investors', value: String(investorCount),
-      bg: 'bg-violet-500/10', color: 'text-violet-500', Icon: Users,
-    },
   ].filter(Boolean) as Array<{ label: string; value: string; bg: string; color: string; Icon: typeof TrendingUp }>
 
-  if (items.length < 2) return null
+  if (items.length < 1) return null
   return (
     <div className="card p-5 border-primary/10">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {items.map((item, i) => (
           <div key={item.label} className={`flex items-start gap-3 ${i > 0 ? 'sm:pl-4 sm:border-l sm:border-theme' : ''}`}>
             <div className={`h-9 w-9 rounded-xl ${item.bg} flex items-center justify-center shrink-0 mt-0.5`}>
@@ -608,9 +598,7 @@ export default function OpportunityDetailPage() {
             {/* Investment Highlights */}
             <InvestmentHighlights
               minInvestment={opp.minInvestment}
-              targetAmount={opp.targetAmount}
               closingDate={opp.closingDate}
-              investorCount={opp.investorCount}
             />
 
             {/* About this Opportunity */}
