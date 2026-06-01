@@ -12,7 +12,7 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
-  ShieldCheck, Lock, EyeOff, TrendingUp, CheckCircle2, Target,
+  ShieldCheck, Lock, EyeOff, TrendingUp, Target,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -347,33 +347,6 @@ function InvestmentHighlights({ minInvestment, targetAmount, closingDate, invest
   )
 }
 
-function WealthSpotAssured() {
-  const points = [
-    '7-layer independent due diligence framework',
-    'Legal review by empanelled law firm',
-    'Builder credibility independently assessed',
-    'Your contact details are never shared',
-  ]
-  return (
-    <div className="card p-4 border-primary/20" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.04) 0%, transparent 60%)' }}>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-          <ShieldCheck className="h-4 w-4 text-primary" />
-        </div>
-        <span className="text-sm font-bold text-theme-primary">WealthSpot Assured</span>
-      </div>
-      <div className="space-y-2">
-        {points.map(p => (
-          <div key={p} className="flex items-start gap-2">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-            <span className="text-[11px] text-theme-secondary leading-snug">{p}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /* ── Interest Panel (premium redesign) ─────────────────────────────── */
 
 function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
@@ -594,18 +567,12 @@ export default function OpportunityDetailPage() {
           </div>
 
           {/* Quick-stats strip at the bottom of hero */}
-          {(opp.minInvestment || opp.targetAmount || opp.closingDate) && (
-            <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6">
+          {(opp.minInvestment || opp.closingDate) && (
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-10">
               {opp.minInvestment && (
                 <div>
                   <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Min. Investment</p>
                   <p className="font-mono font-bold text-xl text-white">{formatINRCompact(opp.minInvestment)}</p>
-                </div>
-              )}
-              {opp.targetAmount && (
-                <div>
-                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Target Raise</p>
-                  <p className="font-mono font-bold text-xl text-white">{formatINRCompact(opp.targetAmount)}</p>
                 </div>
               )}
               {opp.closingDate && (
@@ -617,10 +584,6 @@ export default function OpportunityDetailPage() {
                   </p>
                 </div>
               )}
-              <div>
-                <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Investors</p>
-                <p className="font-bold text-xl text-white">{opp.investorCount}</p>
-              </div>
             </div>
           )}
         </div>
@@ -825,9 +788,8 @@ export default function OpportunityDetailPage() {
               property_specs: opp.property_specs,
             }} />
 
-            <WealthSpotAssured />
-            <BuilderUpdatesPanel opportunityId={opp.id} />
             <ProjectUspPanel usps={opp.locationUsps} />
+            <BuilderUpdatesPanel opportunityId={opp.id} />
           </div>
         </div>
         </div>
