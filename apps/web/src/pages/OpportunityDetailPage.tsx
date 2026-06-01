@@ -2,7 +2,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import AuthGateModal from '@/components/AuthGateModal'
 import SEOHead from '@/components/SEOHead'
-import FundingBar from '@/components/wealth/FundingBar'
 import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useOpportunityBySlug } from '@/hooks/useOpportunities'
 import { useLikeStatus, useToggleLike, useTrackShare, usePropertyReferralCode } from '@/hooks/useOpportunityActions'
@@ -19,7 +18,6 @@ import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import {
-  getEntityTypeLabel,
 } from '@/lib/constants'
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -309,11 +307,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           )}
         </div>
 
-        {opportunity.targetAmount != null && (
-          <FundingBar raised={opportunity.raisedAmount} target={opportunity.targetAmount} showLabels showPercent showAmount />
-        )}
-
-        <div className="mt-3 mb-4 text-xs text-theme-secondary flex items-center gap-1">
+        <div className="mt-1 mb-4 text-xs text-theme-secondary flex items-center gap-1">
           <Users className="h-3.5 w-3.5" /> {opportunity.investorCount} investors
         </div>
 
@@ -534,9 +528,14 @@ export default function OpportunityDetailPage() {
               // Project phase (any vault — shows current construction/progress phase)
               if (opp.projectPhase)
                 details.push({ label: 'Current Phase', value: opp.projectPhase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
-              // Wealth vault: Entity Type
-              if (opp.company && (opp.company as CompanyData).entityType)
-                details.push({ label: 'Entity Type', value: getEntityTypeLabel((opp.company as CompanyData).entityType), icon: Building2 })
+              // Investment mode
+              if (opp.investment_mode)
+                details.push({ label: 'Investment Mode', value: opp.investment_mode.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: HandCoins })
+              // Real-estate specific
+              if (opp.price_per_sqft)
+                details.push({ label: 'Price / Sq.Ft', value: formatINRCompact(opp.price_per_sqft), icon: Building2 })
+              if (opp.total_project_area_sqft)
+                details.push({ label: 'Total Project Area', value: `${opp.total_project_area_sqft.toLocaleString('en-IN')} sq.ft`, icon: Ruler })
               // Opportunity vault: Stage & Industry
               if (opp.stage)
                 details.push({ label: 'Stage', value: opp.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: FolderKanban })
@@ -547,11 +546,15 @@ export default function OpportunityDetailPage() {
                 details.push({ label: 'Community Type', value: opp.communityType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: Users })
               if (opp.collaborationType)
                 details.push({ label: 'Collaboration', value: opp.collaborationType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), icon: HandCoins })
-              // Launch date (any vault)
+              // Dates
               if (opp.launchDate)
                 details.push({ label: 'Launch Date', value: new Date(opp.launchDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), icon: Calendar })
+              if (opp.closingDate)
+                details.push({ label: 'Closing Date', value: new Date(opp.closingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), icon: Calendar })
 
-              if (details.length === 0) return null
+              const hasDetails = details.length > 0
+              const hasDescription = !!opp.description
+              if (!hasDetails && !hasDescription) return null
               return (
                 <div className="card p-6 relative overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-blue-500/10" />
@@ -559,20 +562,25 @@ export default function OpportunityDetailPage() {
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/15 text-blue-500 dark:text-blue-400 shrink-0"><FolderKanban className="h-4 w-4" /></span>
                     Project Details
                   </h2>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {details.map(d => {
-                      const Icon = d.icon
-                      return (
-                        <div key={d.label} className="flex items-center gap-3 p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
-                          <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
-                          <div>
-                            <p className="text-xs text-theme-secondary">{d.label}</p>
-                            <p className="text-sm font-semibold text-theme-primary">{d.value}</p>
+                  {hasDescription && (
+                    <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line mb-4">{opp.description}</p>
+                  )}
+                  {hasDetails && (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {details.map(d => {
+                        const Icon = d.icon
+                        return (
+                          <div key={d.label} className="flex items-center gap-3 p-3 bg-[var(--bg-surface-hover)]/60 rounded-xl border border-[var(--border-subtle)]">
+                            <Icon className="h-5 w-5 text-theme-tertiary shrink-0" />
+                            <div>
+                              <p className="text-xs text-theme-secondary">{d.label}</p>
+                              <p className="text-sm font-semibold text-theme-primary">{d.value}</p>
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )
             })()}

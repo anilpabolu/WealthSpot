@@ -35,11 +35,11 @@ export default function ProjectUspPanel({ usps }: { usps: Usp[] | null | undefin
         <MapPin className="h-5 w-5 text-primary" /> Project USPs
       </h3>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {usps.map((usp, idx) => (
           <div
             key={idx}
-            className="flex items-start gap-3 p-3 rounded-lg bg-theme-surface"
+            className="flex items-start gap-2.5 p-2 rounded-lg bg-theme-surface"
           >
             <span className="mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
               {CATEGORY_LABELS[usp.category] ?? usp.category}
