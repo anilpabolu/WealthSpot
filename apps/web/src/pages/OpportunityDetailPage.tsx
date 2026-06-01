@@ -438,7 +438,7 @@ export default function OpportunityDetailPage() {
         path={`/opportunity/${opp.slug}`}
         type="article"
       />
-      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[6.5rem] pb-8">
+      <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[9rem] pb-8">
         {/* Geometric blur decorations — matches Vaults page */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
