@@ -154,7 +154,7 @@ jobs:
           az containerapp exec \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --command "alembic upgrade head" || true
+            --command "alembic upgrade head"
           echo "Migration step complete"
 
       - name: Smoke test liveness endpoint

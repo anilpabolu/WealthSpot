@@ -69,20 +69,25 @@ setup_logging(app_env=settings.app_env)
 
 # ── Sentry ───────────────────────────────────────────────────────────────────
 
-if settings.sentry_dsn and settings.app_env == "production":
+if settings.sentry_dsn:
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
 
-    sentry_logging = LoggingIntegration(
-        level=logging.INFO,  # Capture info and above as breadcrumbs
-        event_level=logging.ERROR,  # Send errors as events
-    )
-
+    _is_prod = settings.app_env == "production"
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
-        traces_sample_rate=0.2,
-        profiles_sample_rate=0.1,
         environment=settings.app_env,
-        integrations=[sentry_logging],
+        traces_sample_rate=0.2 if _is_prod else 0.0,
+        profiles_sample_rate=0.1 if _is_prod else 0.0,
+        send_default_pii=False,
+        integrations=[
+            StarletteIntegration(transaction_style="endpoint"),
+            FastApiIntegration(transaction_style="endpoint"),
+            SqlalchemyIntegration(),
+            LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+        ],
     )
 
 
@@ -239,8 +244,7 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions — returns 500 with CORS headers preserved."""
     _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
-    if settings.app_env == "production":
-        sentry_sdk.capture_exception(exc)
+    # FastApiIntegration captures this automatically; no manual capture needed.
     return JSONResponse(
         status_code=500,
         content={
@@ -277,8 +281,7 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
 async def operational_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
     """Handle database connectivity issues with a clear 503."""
     _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
-    if settings.app_env == "production":
-        sentry_sdk.capture_exception(exc)
+    # FastApiIntegration captures this automatically.
     return JSONResponse(
         status_code=503,
         content={

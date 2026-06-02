@@ -8,6 +8,7 @@ import uuid as _uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import sentry_sdk
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy import update as sql_update
@@ -888,6 +889,22 @@ async def create_opportunity(
     Create a new opportunity. Automatically generates an approval ticket.
     The opportunity stays in PENDING_APPROVAL until an approver acts.
     """
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("vault_type", body.vault_type.value)
+        scope.set_tag("has_shield_answers", str(bool(body.shield_answers)))
+        scope.set_user({"id": str(user.id), "email": user.email})
+        scope.set_context(
+            "opportunity_create",
+            {
+                "title": body.title,
+                "city": body.city,
+                "vault_type": body.vault_type.value,
+                "shield_answer_count": len(body.shield_answers or {}),
+                "has_company": bool(body.company_id),
+                "property_type": body.property_type,
+            },
+        )
+
     # Validate community_subtype for community vault
     if body.vault_type == VaultType.COMMUNITY:
         if not body.community_subtype or body.community_subtype not in (
@@ -1035,7 +1052,8 @@ async def create_opportunity(
             .where(Company.id == company_uuid)
             .values(projects_completed=Company.projects_completed + 1)
         )
-        await db.commit()
+
+    await db.commit()  # always commit regardless of company_uuid
 
     return await _build_opportunity_read(opportunity, db)
 
