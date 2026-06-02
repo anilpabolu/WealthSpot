@@ -999,7 +999,9 @@ async def create_opportunity(
                     property_type=body.property_type,
                     price_per_sqft=body.price_per_sqft,
                     total_project_area_sqft=body.total_project_area_sqft,
-                    property_specs=body.property_specs,
+                    property_specs=body.property_specs.model_dump()
+                    if body.property_specs
+                    else None,
                     property_amenities=body.property_amenities,
                     amenity_cost_estimate=body.amenity_cost_estimate,
                     funding_open_at=body.funding_open_at,

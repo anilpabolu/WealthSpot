@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiPost, apiGet } from '@/lib/api'
+import { useUser } from '@clerk/clerk-react'
 
 interface LikeResponse {
   liked: boolean
@@ -33,10 +34,11 @@ export interface UserActivityItem {
 }
 
 export function useLikeStatus(opportunityId: string) {
+  const { isSignedIn } = useUser()
   return useQuery({
     queryKey: ['opportunity-like', opportunityId],
     queryFn: () => apiGet<LikeStatus>(`/opportunities/${opportunityId}/like-status`),
-    enabled: !!opportunityId,
+    enabled: !!opportunityId && !!isSignedIn,
     staleTime: 10_000,
   })
 }
@@ -81,18 +83,21 @@ export function useTrackShare() {
 }
 
 export function usePropertyReferralCode(opportunityId: string) {
+  const { isSignedIn } = useUser()
   return useQuery({
     queryKey: ['property-referral-code', opportunityId],
     queryFn: () => apiGet<ReferralCodeResponse>(`/opportunities/${opportunityId}/referral-code`),
-    enabled: !!opportunityId,
+    enabled: !!opportunityId && !!isSignedIn,
     staleTime: Infinity, // static code, never changes
   })
 }
 
 export function useUserActivities(limit = 20) {
+  const { isSignedIn } = useUser()
   return useQuery({
     queryKey: ['user-activities', limit],
     queryFn: () => apiGet<UserActivityItem[]>('/opportunities/user/activities', { params: { limit } }),
+    enabled: !!isSignedIn,
     staleTime: 15_000,
   })
 }
