@@ -24,6 +24,7 @@ from app.models.opportunity_assessment import OpportunityAssessment
 from app.models.opportunity_form_option import OpportunityFormOption
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.opportunity_like import OpportunityLike, UserActivity
+from app.models.opportunity_media import OpportunityMedia
 from app.models.profiling import UserProfileAnswer, VaultProfileQuestion
 from app.models.property_referral import PropertyReferralCode
 from app.models.user import User, UserRole
@@ -34,10 +35,61 @@ from app.schemas.opportunity import (
     OpportunityRead,
     OpportunityUpdateRequest,
     PaginatedOpportunities,
+    ShieldAssessmentOut,
+    ShieldDocumentOut,
     VaultStatsResponse,
 )
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
+
+
+async def _build_opportunity_read(opp: "Opportunity", db: AsyncSession) -> OpportunityRead:
+    """Build OpportunityRead, populating shield_assessments with their documents."""
+    read = OpportunityRead.model_validate(opp)
+
+    # Load assessments for this opportunity
+    assessments_result = await db.execute(
+        select(OpportunityAssessment).where(OpportunityAssessment.opportunity_id == opp.id)
+    )
+    assessments = assessments_result.scalars().all()
+
+    if assessments:
+        # Load all shield documents for this opportunity in one query
+        docs_result = await db.execute(
+            select(OpportunityMedia).where(
+                OpportunityMedia.opportunity_id == opp.id,
+                OpportunityMedia.assessment_subcategory_code.isnot(None),
+            )
+        )
+        all_docs = docs_result.scalars().all()
+        docs_by_sub: dict[str, list[OpportunityMedia]] = {}
+        for doc in all_docs:
+            key = doc.assessment_subcategory_code or ""
+            docs_by_sub.setdefault(key, []).append(doc)
+
+        read.shield_assessments = [
+            ShieldAssessmentOut(
+                id=a.id,
+                category_code=a.category_code,
+                subcategory_code=a.subcategory_code,
+                status=a.status,
+                builder_answer=a.builder_answer,
+                is_public=a.is_public,
+                documents=[
+                    ShieldDocumentOut(
+                        id=d.id,
+                        filename=d.filename,
+                        content_type=d.content_type,
+                        size_bytes=d.size_bytes,
+                        url=d.url,
+                    )
+                    for d in docs_by_sub.get(a.subcategory_code, [])
+                ],
+            )
+            for a in assessments
+        ]
+
+    return read
 
 
 def _slugify(text: str) -> str:
@@ -809,7 +861,7 @@ async def get_opportunity_by_slug(
     opp = result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-    return OpportunityRead.model_validate(opp)
+    return await _build_opportunity_read(opp, db)
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityRead)
@@ -823,7 +875,7 @@ async def get_opportunity(
     opp = result.scalar_one_or_none()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-    return OpportunityRead.model_validate(opp)
+    return await _build_opportunity_read(opp, db)
 
 
 @router.post("", response_model=OpportunityRead)
@@ -985,7 +1037,7 @@ async def create_opportunity(
         )
         await db.commit()
 
-    return OpportunityRead.model_validate(opportunity)
+    return await _build_opportunity_read(opportunity, db)
 
 
 @router.post("/{opportunity_id}/assign-role")

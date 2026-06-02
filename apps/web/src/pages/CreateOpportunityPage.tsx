@@ -423,6 +423,11 @@ export default function CreateOpportunityPage() {
   const { isVaultEnabled } = useVaultConfig()
   useOpportunityFormOptions()
 
+  const uploadShieldDocs = async (oppId: string, category: string, subcategory: string, fd: FormData) => {
+    const { api } = await import('@/lib/api')
+    await api.post(`/uploads/opportunity/${oppId}/assessment-document?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`, fd)
+  }
+
   // Reset configs when propertyType changes
   useEffect(() => {
     setUnitConfigs([{ ...DEFAULT_UNIT_CONFIG }])
@@ -720,7 +725,13 @@ export default function CreateOpportunityPage() {
       ...(parsedLng !== undefined && !isNaN(parsedLng) && { longitude: parsedLng }),
       ...(mapsUrl.trim() && { mapsUrl: mapsUrl.trim() }),
       ...(validUsps.length > 0 && { locationUsps: validUsps }),
-      shield_answers: shieldAnswers,
+      // Strip File objects — not JSON-serialisable; uploaded separately below
+      shield_answers: Object.fromEntries(
+        Object.entries(shieldAnswers).map(([code, ans]) => [
+          code,
+          { categoryCode: ans.categoryCode, subcategoryCode: ans.subcategoryCode, value: ans.value, isPublic: ans.isPublic },
+        ])
+      ),
     }
 
     try {
@@ -739,6 +750,19 @@ export default function CreateOpportunityPage() {
           setUploadProgress('Uploading video...')
           await uploadMutation.mutateAsync({ opportunityId: opp.id, files: videoFiles })
         }
+      }
+
+      // Upload any shield assessment documents attached to answers
+      const shieldDocEntries = Object.entries(shieldAnswers).filter(([, ans]) => ans.files?.length > 0)
+      if (shieldDocEntries.length > 0) {
+        setUploadProgress(`Uploading ${shieldDocEntries.reduce((n, [, a]) => n + a.files.length, 0)} shield document(s)...`)
+        await Promise.all(
+          shieldDocEntries.map(([code, ans]) => {
+            const fd = new FormData()
+            ans.files.forEach((f) => fd.append('files', f))
+            return uploadShieldDocs(opp.id, ans.categoryCode, code, fd)
+          })
+        )
       }
 
       const vaultLabel = VAULT_OPTIONS.find((v) => v.value === vaultType)?.label ?? 'Vault'

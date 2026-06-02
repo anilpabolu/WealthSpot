@@ -238,6 +238,32 @@ class AddressDetail(BaseModel):
     country: str = "India"
 
 
+class ShieldDocumentOut(BaseModel):
+    id: uuid.UUID
+    filename: str | None = None
+    content_type: str | None = None
+    size_bytes: int | None = None
+    url: str
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("url", mode="before")
+    def rewrite_url(cls, v):
+        return ensure_current_public_url(v)
+
+
+class ShieldAssessmentOut(BaseModel):
+    id: uuid.UUID
+    category_code: str
+    subcategory_code: str
+    status: str
+    builder_answer: dict[str, Any] | None = None
+    is_public: bool = True
+    documents: list[ShieldDocumentOut] = []
+
+    model_config = {"from_attributes": True}
+
+
 class OpportunityRead(BaseModel):
     id: uuid.UUID
     creator_id: uuid.UUID
@@ -301,6 +327,7 @@ class OpportunityRead(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     maps_url: str | None = None
+    shield_assessments: list[ShieldAssessmentOut] = []
 
     model_config = {"from_attributes": True}
 
