@@ -59,6 +59,7 @@ class UserRead(UserBase):
     avatar_url: str | None = None
     kyc_status: KycStatus
     referral_code: str | None = None
+    referred_by: uuid.UUID | None = None
     wealth_pass_active: bool
     is_active: bool
     roles: list[str] = []

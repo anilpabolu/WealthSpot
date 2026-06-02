@@ -215,6 +215,19 @@ export default function Navbar(_props?: NavbarProps) {
                 {link.label}
               </Link>
             ))}
+            <Show when="signed-in">
+              {(userRoles.includes('admin') || userRoles.includes('super_admin')) && (
+                <div className="pt-3 border-t border-white/20">
+                  <button
+                    onClick={() => { navigate('/create-opportunity'); setMobileOpen(false); }}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium border border-[#D4AF37]/60 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] transition-all"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Opportunity
+                  </button>
+                </div>
+              )}
+            </Show>
             <Show when="signed-out">
               <div className="pt-3 border-t border-white/20 space-y-2">
                 <div className="flex gap-2">

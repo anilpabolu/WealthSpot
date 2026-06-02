@@ -37,6 +37,7 @@ interface MeResponse {
   personaSelectedAt: string | null
   kycStatus: string
   referralCode: string | null
+  referredBy: string | null
   wealthPassActive: boolean
   isActive: boolean
   createdAt: string
@@ -137,11 +138,13 @@ export function useBackendSync() {
       // Step 4: Auto-apply referral code if captured from ?ref= URL param
       const pendingRef = localStorage.getItem('ws_referral_code')
       if (pendingRef) {
-        try {
-          await apiPost('/referrals/apply', { code: pendingRef })
-          diagLog('auth', 'info', `Referral code ${pendingRef} applied`)
-        } catch {
-          // Already applied or invalid — silently ignore
+        if (!profile.referredBy) {
+          try {
+            await apiPost('/referrals/apply', { code: pendingRef })
+            diagLog('auth', 'info', `Referral code ${pendingRef} applied`)
+          } catch {
+            // Invalid code or self-referral — silently ignore
+          }
         }
         localStorage.removeItem('ws_referral_code')
       }
@@ -149,11 +152,13 @@ export function useBackendSync() {
       // Step 5: Auto-apply property referral code if captured from ?pref= URL param
       const pendingPref = localStorage.getItem('ws_property_referral_code')
       if (pendingPref) {
-        try {
-          await apiPost('/referrals/apply', { code: pendingPref })
-          diagLog('auth', 'info', `Property referral code ${pendingPref} applied`)
-        } catch {
-          // Already applied or invalid — silently ignore
+        if (!profile.referredBy) {
+          try {
+            await apiPost('/referrals/apply', { code: pendingPref })
+            diagLog('auth', 'info', `Property referral code ${pendingPref} applied`)
+          } catch {
+            // Invalid code or self-referral — silently ignore
+          }
         }
         localStorage.removeItem('ws_property_referral_code')
       }

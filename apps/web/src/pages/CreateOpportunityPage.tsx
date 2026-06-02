@@ -232,14 +232,14 @@ function getShieldValidationErrors(answers: Record<string, BuilderAnswer>, categ
 }
 
 // ─── Shared CSS helpers ──────────────────────────────────────────────────────
-const INPUT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12 outline-none transition-colors'
-const INPUT_ERR_CLS = 'w-full rounded-xl border border-red-400 bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm outline-none transition-colors'
-const SELECT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body px-3.5 py-2.5 text-sm outline-none appearance-none transition-colors focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12'
-const SELECT_ERR_CLS = 'w-full rounded-xl border border-red-400 bg-white text-[var(--text-primary)] font-body px-3.5 py-2.5 text-sm outline-none appearance-none transition-colors'
+const INPUT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-4 py-2.5 text-sm focus:border-[#D4AF37]/70 focus:ring-2 focus:ring-[#D4AF37]/15 outline-none transition-all shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+const INPUT_ERR_CLS = 'w-full rounded-xl border border-red-400/70 bg-red-50/40 text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-4 py-2.5 text-sm outline-none transition-all shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-2 ring-red-300/30'
+const SELECT_CLS = 'w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body px-4 py-2.5 text-sm outline-none appearance-none transition-all focus:border-[#D4AF37]/70 focus:ring-2 focus:ring-[#D4AF37]/15 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+const SELECT_ERR_CLS = 'w-full rounded-xl border border-red-400/70 bg-red-50/40 text-[var(--text-primary)] font-body px-4 py-2.5 text-sm outline-none appearance-none transition-all ring-2 ring-red-300/30 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
 const LABEL_CLS = 'block text-[var(--text-tertiary)] text-[11px] font-bold uppercase tracking-wider mb-1.5'
-const CARD_CLS = 'bg-white border border-[rgba(209,196,157,0.28)] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)]'
-const SECTION_HEADING = 'font-display text-[var(--text-primary)] font-bold text-sm uppercase tracking-wider mb-4'
-const ERR_MSG = 'text-red-500 text-xs mt-1.5 flex items-center gap-1'
+const CARD_CLS = 'bg-white border border-[rgba(212,175,55,0.22)] rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.07),0_1px_4px_rgba(0,0,0,0.05)]'
+const SECTION_HEADING = 'font-display text-[var(--text-primary)] font-bold text-[11px] uppercase tracking-widest mb-5'
+const ERR_MSG = 'text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium'
 
 // Step definitions
 type WizardStep = 'vault' | 'community-subtype' | 'details' | 'shield' | 'uploading'
@@ -571,14 +571,17 @@ export default function CreateOpportunityPage() {
     setSubmitAttempted(true)
     const errors = validateForm()
     setFormErrors(errors)
-    
+
     const step0Keys = ['title', 'tagline', 'description']
+    const step2Keys = ['city', 'state']
     let currentStepErrors: string[] = []
-    
+
     if (detailsStepIndex === 0) {
       currentStepErrors = Object.keys(errors).filter(k => step0Keys.includes(k))
     } else if (detailsStepIndex === 1) {
-      currentStepErrors = Object.keys(errors).filter(k => !step0Keys.includes(k))
+      currentStepErrors = Object.keys(errors).filter(k => !step0Keys.includes(k) && !step2Keys.includes(k))
+    } else if (detailsStepIndex === 2) {
+      currentStepErrors = Object.keys(errors).filter(k => step2Keys.includes(k))
     }
 
     if (currentStepErrors.length > 0) {
@@ -806,7 +809,7 @@ export default function CreateOpportunityPage() {
   }
 
   return (
-    <MainLayout showFooter={false}>
+    <MainLayout>
       <div className="flex-1 flex flex-col bg-[var(--bg-base)]">
         <SEOHead noIndex />
         {/* Top Navigation Stepper */}
@@ -882,8 +885,8 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="w-full px-4 sm:px-8 lg:px-12 pt-6 sm:pt-8 lg:pt-10 pb-0 flex items-start justify-center">
-            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 h-auto min-h-[460px] w-full max-w-5xl mx-auto shrink-0"
+          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 pt-6 sm:pt-8 lg:pt-10 pb-4 flex flex-col">
+            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 flex-1 min-h-[440px] w-full max-w-5xl mx-auto"
               style={{ boxShadow: '0 8px 40px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,175,55,0.15)' }}
             >
               <img
@@ -1681,17 +1684,38 @@ export default function CreateOpportunityPage() {
                     {/* Location */}
             <div className={CARD_CLS}>
               <h3 className={SECTION_HEADING}>Location</h3>
+
+              {/* City + State — always-visible required fields */}
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                <div>
+                  <label className={LABEL_CLS}>City <span className="text-red-400">*</span></label>
+                  <select
+                    className={fe('city') ? SELECT_ERR_CLS : SELECT_CLS}
+                    value={address.city}
+                    onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
+                  >
+                    <option value="">Select city…</option>
+                    {INDIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  {fe('city') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.city}</p>}
+                </div>
+                <div>
+                  <label className={LABEL_CLS}>State <span className="text-red-400">*</span></label>
+                  <input
+                    className={fe('state') ? INPUT_ERR_CLS : INPUT_CLS}
+                    value={address.state}
+                    onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
+                    placeholder="e.g. Telangana"
+                  />
+                  {fe('state') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.state}</p>}
+                </div>
+              </div>
+
+              {/* Full address details (pincode auto-fill, address lines, etc.) */}
               <AddressDialog
                 value={address}
                 onChange={setAddress}
               />
-              <div className="mt-4">
-                <label className={LABEL_CLS}>City</label>
-                <select className={SELECT_CLS} value={address.city} onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}>
-                  <option value="">Select city…</option>
-                  {INDIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
             </div>
 
             {/* Google Maps Location */}
