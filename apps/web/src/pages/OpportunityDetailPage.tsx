@@ -728,7 +728,7 @@ export default function OpportunityDetailPage() {
             })()}
 
             {/* Location Map */}
-            {(opp.latitude || opp.longitude || opp.mapsUrl) && (
+            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
               <LocationMapEmbed
                 latitude={opp.latitude}
                 longitude={opp.longitude}
