@@ -558,7 +558,7 @@ export default function MarketplacePage() {
                                      city: opp.city || undefined,
                                      slug: opp.slug,
                                      referralCode: userReferralCode || undefined
-                                   }).finally(() => {
+                                   }).catch(() => {/* shareOpportunityDynamic handles all errors internally */}).finally(() => {
                                      btn.innerHTML = originalHTML;
                                      btn.disabled = false;
                                    });

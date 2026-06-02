@@ -45,8 +45,9 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
           url={url}
         />
       );
-      // Give React just enough time to mount before snapping, to prevent User Gesture expiry.
-      setTimeout(resolve, 50);
+      // Double rAF keeps execution within the browser's frame pipeline,
+      // which is less likely to expire the user-gesture token than setTimeout.
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
 
     // 3. Find the exact DOM element to snapshot
@@ -84,11 +85,12 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     }
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: data.title,
-        text: text,
-        files: [file],
-      });
+      try {
+        await navigator.share({ title: data.title, text, files: [file] });
+      } catch (shareErr: any) {
+        if (shareErr?.name === 'AbortError') return; // user cancelled
+        throw shareErr; // re-throw so outer catch handles it
+      }
     } else {
       // Desktop Fallback: Download the image and copy the text
       try {
@@ -109,22 +111,18 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
       alert("Postcard image downloaded to your computer!\n\nThe message/link has been copied to your clipboard. You can now paste them directly into WhatsApp or LinkedIn.");
     }
   } catch (error: any) {
-    console.error("Error generating share postcard:", error);
-    
+    // User cancelled the share sheet — not an error, exit silently.
+    if (error?.name === 'AbortError') return;
+
+    console.warn("Share postcard failed, falling back to clipboard:", error?.message ?? error);
+
+    // Do NOT retry navigator.share() here — the user gesture has already expired
+    // and calling it again will always throw NotAllowedError.
     try {
-      if (navigator.share) {
-        await navigator.share({ title: data.title, text });
-      } else {
-        throw new Error("No navigator.share");
-      }
-    } catch (fallbackError) {
-      // If user gesture expired, it throws NotAllowedError
-      try {
-        await navigator.clipboard.writeText(text);
-        alert(`Could not generate image due to network security (CORS) on the image. Link copied to clipboard instead!`);
-      } catch (clipboardErr) {
-        alert("Link: " + url);
-      }
+      await navigator.clipboard.writeText(text);
+      alert("Link copied to clipboard!");
+    } catch {
+      alert(`Share link: ${url}`);
     }
   }
 }
