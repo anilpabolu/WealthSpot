@@ -10,7 +10,6 @@ import MainLayout from '@/components/layout/MainLayout'
 import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
-import { INDIAN_CITIES } from '@/lib/constants'
 import MediaUploadZone from '@/components/MediaUploadZone'
 import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
@@ -1683,39 +1682,15 @@ export default function CreateOpportunityPage() {
                   <>
                     {/* Location */}
             <div className={CARD_CLS}>
-              <h3 className={SECTION_HEADING}>Location</h3>
-
-              {/* City + State — always-visible required fields */}
-              <div className="grid grid-cols-2 gap-4 mb-5">
-                <div>
-                  <label className={LABEL_CLS}>City <span className="text-red-400">*</span></label>
-                  <select
-                    className={fe('city') ? SELECT_ERR_CLS : SELECT_CLS}
-                    value={address.city}
-                    onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
-                  >
-                    <option value="">Select city…</option>
-                    {INDIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  {fe('city') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.city}</p>}
-                </div>
-                <div>
-                  <label className={LABEL_CLS}>State <span className="text-red-400">*</span></label>
-                  <input
-                    className={fe('state') ? INPUT_ERR_CLS : INPUT_CLS}
-                    value={address.state}
-                    onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
-                    placeholder="e.g. Telangana"
-                  />
-                  {fe('state') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.state}</p>}
-                </div>
-              </div>
-
-              {/* Full address details (pincode auto-fill, address lines, etc.) */}
+              <h3 className={SECTION_HEADING}>Location <span className="text-red-400">*</span></h3>
               <AddressDialog
                 value={address}
                 onChange={setAddress}
+                hasError={submitAttempted && (!address.city?.trim() || !address.state?.trim())}
               />
+              {submitAttempted && (!address.city?.trim() || !address.state?.trim()) && (
+                <p className={ERR_MSG + ' mt-2'}><AlertCircle className="h-3 w-3" /> City and state are required — open the address form above</p>
+              )}
             </div>
 
             {/* Google Maps Location */}

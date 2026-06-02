@@ -19,6 +19,7 @@ export interface AddressFields {
 interface Props {
   value: AddressFields
   onChange: (fields: AddressFields) => void
+  hasError?: boolean
 }
 
 const EMPTY_ADDRESS: AddressFields = {
@@ -33,7 +34,7 @@ const EMPTY_ADDRESS: AddressFields = {
   country: 'India',
 }
 
-export default function AddressDialog({ value, onChange }: Props) {
+export default function AddressDialog({ value, onChange, hasError = false }: Props) {
   const [open, setOpen] = useState(false)
   const [local, setLocal] = useState<AddressFields>(value.pincode ? value : EMPTY_ADDRESS)
 
@@ -84,7 +85,7 @@ export default function AddressDialog({ value, onChange }: Props) {
         }}
         className={`
           w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed text-left transition-all
-          ${hasAddress ? 'border-primary/30 bg-primary/5' : 'border-theme hover:border-gray-400'}
+          ${hasError ? 'border-red-400/60 bg-red-50/30' : hasAddress ? 'border-primary/30 bg-primary/5' : 'border-theme hover:border-gray-400'}
         `}
       >
         <MapPin className={`h-5 w-5 shrink-0 ${hasAddress ? 'text-primary' : 'text-theme-tertiary'}`} />
@@ -184,12 +185,14 @@ export default function AddressDialog({ value, onChange }: Props) {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="State *"
-                  value={local.state}
-                  onChange={(e) => handleField('state', e.target.value)}
-                  placeholder="Auto-filled from pincode"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">State <span className="text-red-500">*</span></label>
+                  <Input
+                    value={local.state}
+                    onChange={(e) => handleField('state', e.target.value)}
+                    placeholder="Auto-filled from pincode"
+                  />
+                </div>
                 <Input
                   label="Country"
                   value={local.country}
