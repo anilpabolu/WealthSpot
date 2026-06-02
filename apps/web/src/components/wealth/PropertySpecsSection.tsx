@@ -93,7 +93,7 @@ export function PropertySpecsSection({
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="font-display text-lg font-bold text-theme-primary flex items-center gap-2">
-          <span>{meta.icon}</span> Property Specifications
+          <span>{meta.icon}</span> Project Details
         </h2>
 <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-primary/5 border border-primary/20 text-primary text-xs font-semibold rounded-full">
@@ -174,6 +174,35 @@ export function PropertySpecsSection({
                 <p className="text-[10px] text-blue-500 dark:text-blue-400 uppercase">{unit}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lumpsum configuration table */}
+      {investmentMode === 'lumpsum' && (
+        <div>
+          <h3 className="text-sm font-semibold text-theme-primary mb-3">Lumpsum Configuration</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="bg-theme-surface rounded-t-lg">
+                  <th className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">Config</th>
+                  <th className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">Total Area</th>
+                  <th className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">Price / sqft</th>
+                  <th className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">Total Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-transparent">
+                  <td className="px-3 py-2.5 font-semibold text-blue-600 dark:text-blue-400">Lumpsum</td>
+                  <td className="px-3 py-2.5 text-theme-primary">{totalProjectAreaSqft ? `${totalProjectAreaSqft.toLocaleString('en-IN')} sqft` : '—'}</td>
+                  <td className="px-3 py-2.5 text-theme-primary">{pricePerSqft ? `₹${pricePerSqft.toLocaleString('en-IN')}` : '—'}</td>
+                  <td className="px-3 py-2.5 font-bold text-theme-primary">
+                    {pricePerSqft && totalProjectAreaSqft ? `₹${((pricePerSqft * totalProjectAreaSqft)/10000000 >= 1 ? ((pricePerSqft * totalProjectAreaSqft)/10000000).toFixed(2) + ' Cr' : ((pricePerSqft * totalProjectAreaSqft)/100000).toFixed(2) + ' L')}` : '—'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}

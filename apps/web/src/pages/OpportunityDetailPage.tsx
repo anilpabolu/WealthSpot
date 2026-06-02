@@ -615,15 +615,16 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
-            {/* Property Specifications — for Wealth & Safe vault with property type set */}
-            {opp.property_type && opp.property_specs && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+            {/* Property Specifications / Project Details — for Wealth & Safe vault */}
+            {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
               <PropertySpecsSection
-                propertyType={opp.property_type}
+                propertyType={opp.property_type || 'flat'}
                 pricePerSqft={opp.price_per_sqft}
                 totalProjectAreaSqft={opp.total_project_area_sqft}
-                specs={opp.property_specs}
+                specs={opp.property_specs || {}}
                 amenities={opp.property_amenities ?? []}
                 amenityCostEstimate={opp.amenity_cost_estimate}
+                investmentMode={opp.investment_mode}
               />
             )}
 
