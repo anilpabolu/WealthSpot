@@ -99,13 +99,15 @@ jobs:
             --identity "$IDENTITY_ID"
 
       - name: Update Container App with new image
+        env:
+          SECRET_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           az containerapp update \
             --name "$CONTAINER_APP_NAME" \
             --resource-group "${{ env.RESOURCE_GROUP }}" \
             --image "${{ needs.build.outputs.full_image }}" \
             --set-env-vars \
-              "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+              "SENTRY_DSN=${SECRET_SENTRY_DSN}" \
               "S3_ENDPOINT_URL=https://33fb2c1e5523aeb4cf5971fd9e385a3e.r2.cloudflarestorage.com" \
               "S3_PUBLIC_URL=https://pub-ef97cf3860e74922b7c4be088f0e076d.r2.dev" \
               "AWS_S3_BUCKET=wealthspot-media-prod" \
