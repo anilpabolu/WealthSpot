@@ -23,7 +23,12 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    const isChunkError = error.name === 'ChunkLoadError' || error.message.includes('Failed to fetch dynamically imported module') || error.message.includes('Importing a module script failed')
+    const isChunkError =
+      error.name === 'ChunkLoadError' ||
+      error.message.includes('Failed to fetch dynamically imported module') ||
+      error.message.includes('Importing a module script failed') ||
+      error.message.includes('is not a valid JavaScript MIME type') ||
+      error.message.includes('Failed to load module script')
     const lastReload = sessionStorage.getItem('ws_last_chunk_error_reload')
     const now = Date.now()
     const isReloading = isChunkError && (!lastReload || now - parseInt(lastReload, 10) > 10000)

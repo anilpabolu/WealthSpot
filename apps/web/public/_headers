@@ -1,0 +1,18 @@
+# Cloudflare Pages custom headers
+# See: https://developers.cloudflare.com/pages/configuration/headers/
+
+# HTML entry points — never cache so stale Vite chunk references never happen
+/*.html
+  Cache-Control: no-store, must-revalidate
+
+# Vite assets have content-hashed filenames — safe to cache forever
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images — cache for 30 days
+/images/*
+  Cache-Control: public, max-age=2592000
+
+# SPA catch-all: the root HTML is served for all routes, so it must not be cached
+/
+  Cache-Control: no-store, must-revalidate
