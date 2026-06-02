@@ -156,7 +156,7 @@ async def get_opportunity_form_flags(db: AsyncSession = Depends(get_db)) -> dict
         if cfg is None:
             return False
         # Stored as `is_active` flag — no value needed
-        return bool(cfg.is_active)
+        return cfg.is_active
 
     return {
         "show_investment_config": _flag("show_investment_config"),
