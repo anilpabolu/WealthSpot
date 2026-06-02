@@ -624,7 +624,7 @@ export default function OpportunityDetailPage() {
                 specs={opp.property_specs || {}}
                 amenities={opp.property_amenities ?? []}
                 amenityCostEstimate={opp.amenity_cost_estimate}
-                investmentMode={opp.investment_mode}
+                investmentMode={opp.investment_mode ?? undefined}
               />
             )}
 

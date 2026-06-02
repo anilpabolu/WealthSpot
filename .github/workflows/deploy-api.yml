@@ -100,7 +100,7 @@ jobs:
 
       - name: Update Container App with new image
         env:
-          SECRET_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SECRET_SENTRY_DSN: ${{ secrets['SENTRY_DSN'] }}
         run: |
           az containerapp update \
             --name "$CONTAINER_APP_NAME" \
