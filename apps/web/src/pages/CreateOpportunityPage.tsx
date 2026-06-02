@@ -885,8 +885,8 @@ export default function CreateOpportunityPage() {
 
         {/* ─── Step: Vault Selection ─── */}
         {step === 'vault' && (
-          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 pt-6 sm:pt-8 lg:pt-10 pb-4 flex flex-col">
-            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 flex-1 min-h-[440px] w-full max-w-5xl mx-auto"
+          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 pt-8 pb-10 flex flex-col items-center" style={{ background: 'linear-gradient(180deg, #080d1a 0%, #050a12 100%)' }}>
+            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 h-auto min-h-[440px] w-full max-w-5xl"
               style={{ boxShadow: '0 8px 40px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,175,55,0.15)' }}
             >
               <img
