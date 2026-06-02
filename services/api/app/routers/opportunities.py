@@ -1043,8 +1043,6 @@ async def create_opportunity(
                     )
             await db.flush()
 
-    await db.refresh(opportunity)
-
     # Increment the builder's project count
     if company_uuid:
         await db.execute(
@@ -1055,7 +1053,12 @@ async def create_opportunity(
 
     await db.commit()  # always commit regardless of company_uuid
 
-    return await _build_opportunity_read(opportunity, db)
+    # Re-fetch the opportunity to ensure all selectin relationships are populated
+    # and avoid MissingGreenlet during serialization.
+    result = await db.execute(select(Opportunity).where(Opportunity.id == opportunity.id))
+    opp_reloaded = result.scalar_one()
+
+    return await _build_opportunity_read(opp_reloaded, db)
 
 
 @router.post("/{opportunity_id}/assign-role")
