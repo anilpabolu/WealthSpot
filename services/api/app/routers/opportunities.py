@@ -905,160 +905,198 @@ async def create_opportunity(
             },
         )
 
-    # Validate community_subtype for community vault
-    if body.vault_type == VaultType.COMMUNITY:
-        if not body.community_subtype or body.community_subtype not in (
-            "co_investor",
-            "co_partner",
-        ):
-            raise APIError(
-                status_code=422,
-                detail="Community vault requires a co-investor or co-partner subtype.",
-                code="COMMUNITY_SUBTYPE_REQUIRED",
+        try:
+            # Validate community_subtype for community vault
+            if body.vault_type == VaultType.COMMUNITY:
+                if not body.community_subtype or body.community_subtype not in (
+                    "co_investor",
+                    "co_partner",
+                ):
+                    raise APIError(
+                        status_code=422,
+                        detail="Community vault requires a co-investor or co-partner subtype.",
+                        code="COMMUNITY_SUBTYPE_REQUIRED",
+                    )
+
+            # Parse company UUID up front so we surface a clean 422 instead of a 500.
+            company_uuid: _uuid.UUID | None = None
+            if body.company_id:
+                try:
+                    company_uuid = _uuid.UUID(body.company_id)
+                except (ValueError, AttributeError) as exc:
+                    raise APIError(
+                        status_code=422,
+                        detail="Invalid company id.",
+                        code="INVALID_COMPANY_ID",
+                    ) from exc
+
+            # JSONB columns need plain dicts — Pydantic models do not auto-serialize.
+            safe_vault_payload = body.safe_vault_data.model_dump() if body.safe_vault_data else None
+            location_usps_payload = (
+                [usp.model_dump() for usp in body.location_usps] if body.location_usps else None
             )
 
-    # Parse company UUID up front so we surface a clean 422 instead of a 500.
-    company_uuid: _uuid.UUID | None = None
-    if body.company_id:
-        try:
-            company_uuid = _uuid.UUID(body.company_id)
-        except (ValueError, AttributeError) as exc:
-            raise APIError(
-                status_code=422,
-                detail="Invalid company id.",
-                code="INVALID_COMPANY_ID",
-            ) from exc
+            # Determine approval category based on vault type
+            category_map = {
+                VaultType.WEALTH: ApprovalCategory.PROPERTY_LISTING,
+                VaultType.SAFE: ApprovalCategory.SAFE_LISTING,
+                VaultType.COMMUNITY: ApprovalCategory.COMMUNITY_PROJECT,
+            }
 
-    # JSONB columns need plain dicts — Pydantic models do not auto-serialize.
-    safe_vault_payload = body.safe_vault_data.model_dump() if body.safe_vault_data else None
+            slug = _slugify(body.title)
 
-    # Determine approval category based on vault type
-    category_map = {
-        VaultType.WEALTH: ApprovalCategory.PROPERTY_LISTING,
-        VaultType.SAFE: ApprovalCategory.SAFE_LISTING,
-        VaultType.COMMUNITY: ApprovalCategory.COMMUNITY_PROJECT,
-    }
+            sentry_sdk.add_breadcrumb(
+                category="opportunity",
+                message="Validation passed, starting database transaction",
+                level="info",
+            )
 
-    slug = _slugify(body.title)
+            # TENANCY: workspace-scope candidate — opportunity + approval form a single atomic unit.
+            async with db.begin_nested():
+                sentry_sdk.add_breadcrumb(
+                    category="opportunity", message="Creating Opportunity model", level="info"
+                )
+                opportunity = Opportunity(
+                    creator_id=user.id,
+                    vault_type=body.vault_type,
+                    status=OpportunityStatus.PENDING_APPROVAL,
+                    title=body.title,
+                    slug=slug,
+                    tagline=body.tagline,
+                    description=body.description,
+                    city=body.city,
+                    state=body.state,
+                    address=body.address,
+                    # Address details
+                    address_line1=body.address_line1,
+                    address_line2=body.address_line2,
+                    landmark=body.landmark,
+                    locality=body.locality,
+                    pincode=body.pincode,
+                    district=body.district,
+                    country=body.country,
+                    # Company
+                    company_id=company_uuid,
+                    # Financials
+                    target_amount=body.target_amount,
+                    min_investment=body.min_investment,
+                    target_irr=body.target_irr,
+                    industry=body.industry,
+                    stage=body.stage,
+                    founder_name=body.founder_name,
+                    pitch_deck_url=body.pitch_deck_url,
+                    community_type=body.community_type,
+                    collaboration_type=body.collaboration_type,
+                    community_subtype=body.community_subtype,
+                    community_details=body.community_details,
+                    safe_vault_data=safe_vault_payload,
+                    # Geo-coordinates & maps
+                    latitude=body.latitude,
+                    longitude=body.longitude,
+                    maps_url=body.maps_url,
+                    location_usps=location_usps_payload,
+                    # Real-estate property specification fields
+                    property_type=body.property_type,
+                    price_per_sqft=body.price_per_sqft,
+                    total_project_area_sqft=body.total_project_area_sqft,
+                    property_specs=body.property_specs,
+                    property_amenities=body.property_amenities,
+                    amenity_cost_estimate=body.amenity_cost_estimate,
+                    funding_open_at=body.funding_open_at,
+                    closing_date=body.closing_date,
+                    # Investment configuration mode
+                    investment_mode=body.investment_mode or "lumpsum",
+                )
+                db.add(opportunity)
+                await db.flush()
 
-    # TENANCY: workspace-scope candidate — opportunity + approval form a single atomic unit.
-    async with db.begin_nested():
-        opportunity = Opportunity(
-            creator_id=user.id,
-            vault_type=body.vault_type,
-            status=OpportunityStatus.PENDING_APPROVAL,
-            title=body.title,
-            slug=slug,
-            tagline=body.tagline,
-            description=body.description,
-            city=body.city,
-            state=body.state,
-            address=body.address,
-            # Address details
-            address_line1=body.address_line1,
-            address_line2=body.address_line2,
-            landmark=body.landmark,
-            locality=body.locality,
-            pincode=body.pincode,
-            district=body.district,
-            country=body.country,
-            # Company
-            company_id=company_uuid,
-            # Financials
-            target_amount=body.target_amount,
-            min_investment=body.min_investment,
-            target_irr=body.target_irr,
-            industry=body.industry,
-            stage=body.stage,
-            founder_name=body.founder_name,
-            pitch_deck_url=body.pitch_deck_url,
-            community_type=body.community_type,
-            collaboration_type=body.collaboration_type,
-            community_subtype=body.community_subtype,
-            community_details=body.community_details,
-            safe_vault_data=safe_vault_payload,
-            # Geo-coordinates & maps
-            latitude=body.latitude,
-            longitude=body.longitude,
-            maps_url=body.maps_url,
-            location_usps=body.location_usps,
-            # Real-estate property specification fields
-            property_type=body.property_type,
-            price_per_sqft=body.price_per_sqft,
-            total_project_area_sqft=body.total_project_area_sqft,
-            property_specs=body.property_specs,
-            property_amenities=body.property_amenities,
-            amenity_cost_estimate=body.amenity_cost_estimate,
-            funding_open_at=body.funding_open_at,
-            closing_date=body.closing_date,
-            # Investment configuration mode
-            investment_mode=body.investment_mode or "lumpsum",
-        )
-        db.add(opportunity)
-        await db.flush()
+                # Create corresponding approval request
+                approval = ApprovalRequest(
+                    requester_id=user.id,
+                    category=category_map.get(
+                        body.vault_type, ApprovalCategory.OPPORTUNITY_LISTING
+                    ),
+                    title=f"New {body.vault_type.value.title()} Opportunity: {body.title}",
+                    description=body.description or body.tagline,
+                    resource_type="opportunity",
+                    resource_id=str(opportunity.id),
+                    payload={
+                        "vault_type": body.vault_type.value,
+                        "title": body.title,
+                        "city": body.city,
+                        "target_amount": body.target_amount,
+                    },
+                )
+                db.add(approval)
+                await db.flush()
 
-        # Create corresponding approval request
-        approval = ApprovalRequest(
-            requester_id=user.id,
-            category=category_map.get(body.vault_type, ApprovalCategory.OPPORTUNITY_LISTING),
-            title=f"New {body.vault_type.value.title()} Opportunity: {body.title}",
-            description=body.description or body.tagline,
-            resource_type="opportunity",
-            resource_id=str(opportunity.id),
-            payload={
-                "vault_type": body.vault_type.value,
-                "title": body.title,
-                "city": body.city,
-                "target_amount": body.target_amount,
-            },
-        )
-        db.add(approval)
-        await db.flush()
+                # Link approval to opportunity (mutual reference — must be in same savepoint)
+                opportunity.approval_id = approval.id
+                await db.flush()
 
-        # Link approval to opportunity (mutual reference — must be in same savepoint)
-        opportunity.approval_id = approval.id
-        await db.flush()
-
-        # Handle builder answers for shield assessment
-        if body.shield_answers:
-            for subcode, ans in body.shield_answers.items():
-                cat_code = None
-                for cat in ASSESSMENT_CATEGORIES:
-                    for sub in cat.sub_items:
-                        if sub.code == subcode:
-                            cat_code = cat.code
-                            break
-                    if cat_code:
-                        break
-                if cat_code:
-                    db.add(
-                        OpportunityAssessment(
-                            opportunity_id=opportunity.id,
-                            category_code=cat_code,
-                            subcategory_code=subcode,
-                            status=AssessmentStatus.IN_PROGRESS.value,
-                            builder_answer=ans,
-                            is_public=True,
-                        )
+                # Handle builder answers for shield assessment
+                if body.shield_answers:
+                    sentry_sdk.add_breadcrumb(
+                        category="opportunity", message="Adding shield answers", level="info"
                     )
-            await db.flush()
+                    for subcode, ans in body.shield_answers.items():
+                        cat_code = None
+                        for cat in ASSESSMENT_CATEGORIES:
+                            for sub in cat.sub_items:
+                                if sub.code == subcode:
+                                    cat_code = cat.code
+                                    break
+                            if cat_code:
+                                break
+                        if cat_code:
+                            db.add(
+                                OpportunityAssessment(
+                                    opportunity_id=opportunity.id,
+                                    category_code=cat_code,
+                                    subcategory_code=subcode,
+                                    status=AssessmentStatus.IN_PROGRESS.value,
+                                    builder_answer=ans,
+                                    is_public=True,
+                                )
+                            )
+                    await db.flush()
 
-    # Increment the builder's project count
-    if company_uuid:
-        await db.execute(
-            sql_update(Company)
-            .where(Company.id == company_uuid)
-            .values(projects_completed=Company.projects_completed + 1)
-        )
+            # Increment the builder's project count
+            if company_uuid:
+                sentry_sdk.add_breadcrumb(
+                    category="opportunity",
+                    message="Incrementing builder project count",
+                    level="info",
+                )
+                await db.execute(
+                    sql_update(Company)
+                    .where(Company.id == company_uuid)
+                    .values(projects_completed=Company.projects_completed + 1)
+                )
 
-    await db.commit()  # always commit regardless of company_uuid
+            sentry_sdk.add_breadcrumb(
+                category="opportunity", message="Committing transaction", level="info"
+            )
+            await db.commit()  # always commit regardless of company_uuid
 
-    # Re-fetch the opportunity to ensure all selectin relationships are populated
-    # and avoid MissingGreenlet during serialization.
-    result = await db.execute(select(Opportunity).where(Opportunity.id == opportunity.id))
-    opp_reloaded = result.scalar_one()
+            # Re-fetch the opportunity to ensure all selectin relationships are populated
+            # and avoid MissingGreenlet during serialization.
+            sentry_sdk.add_breadcrumb(
+                category="opportunity",
+                message="Re-fetching opportunity with relationships",
+                level="info",
+            )
+            result = await db.execute(select(Opportunity).where(Opportunity.id == opportunity.id))
+            opp_reloaded = result.scalar_one()
 
-    return await _build_opportunity_read(opp_reloaded, db)
+            sentry_sdk.add_breadcrumb(
+                category="opportunity", message="Building response", level="info"
+            )
+            return await _build_opportunity_read(opp_reloaded, db)
+
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise
 
 
 @router.post("/{opportunity_id}/assign-role")

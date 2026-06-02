@@ -13,7 +13,8 @@ PREFIX = "/api/v1/opportunities"
 
 @pytest.mark.asyncio
 class TestOpportunityCreate:
-    async def test_create_opportunity_authenticated(self, client: AsyncClient, test_user: User):
+    async def test_create_opportunity_authenticated_full(self, client: AsyncClient, test_user: User):
+        """Test creating an opportunity with all complex fields (location_usps, shield_answers)."""
         headers = auth_headers(test_user)
         resp = await client.post(
             PREFIX,
@@ -27,15 +28,50 @@ class TestOpportunityCreate:
                 "target_amount": 50_000_000,
                 "min_investment": 500_000,
                 "target_irr": 18.5,
+                "maps_url": "https://goo.gl/maps/example",
+                "location_usps": [
+                    {
+                        "text": "5 km from Airport",
+                        "category": "transport"
+                    },
+                    {
+                        "text": "1 km from Metro Station",
+                        "category": "transport"
+                    }
+                ],
+                "shield_answers": {
+                    "legal_due_diligence": "Yes, clear title.",
+                    "rera_approved": "Yes, RERA-12345"
+                }
             },
             headers=headers,
         )
-        assert resp.status_code in (200, 201)
+        assert resp.status_code in (200, 201), f"Expected 200/201, got {resp.status_code}. Response: {resp.text}"
         data = resp.json()
         assert data["title"] == "Premium Villas at MG Road"
         assert data["vault_type"] == "wealth"
+        assert data["maps_url"] == "https://goo.gl/maps/example"
+        assert len(data["location_usps"]) == 2
+        assert data["location_usps"][0]["text"] == "5 km from Airport"
+
+    async def test_create_opportunity_invalid_company_id(self, client: AsyncClient, test_user: User):
+        """Test negative scenario: Invalid company UUID format."""
+        headers = auth_headers(test_user)
+        resp = await client.post(
+            PREFIX,
+            json={
+                "vault_type": "wealth",
+                "title": "Invalid Company Opp",
+                "company_id": "not-a-uuid"
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 422
+        data = resp.json()
+        assert data["code"] == "INVALID_COMPANY_ID"
 
     async def test_create_opportunity_unauthenticated(self, client: AsyncClient):
+        """Test negative scenario: Missing authentication."""
         resp = await client.post(
             PREFIX,
             json={
@@ -51,16 +87,17 @@ class TestOpportunityList:
     async def test_list_opportunities(self, client: AsyncClient, test_user: User):
         headers = auth_headers(test_user)
         # Create one first
-        await client.post(
+        resp_post = await client.post(
             PREFIX,
             json={
-                "vault_type": "opportunity",
+                "vault_type": "wealth",
                 "title": "FinTech Startup Series A",
                 "industry": "FinTech",
                 "stage": "Series A",
             },
             headers=headers,
         )
+        assert resp_post.status_code in (200, 201), f"Failed to create: {resp_post.text}"
         resp = await client.get(PREFIX, headers=headers)
         assert resp.status_code == 200
         data = resp.json()
