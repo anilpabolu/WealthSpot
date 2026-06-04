@@ -738,7 +738,7 @@ export default function CreateOpportunityPage() {
       ...(propertyType && {
         property_type: propertyType,
         ...(developmentType && { development_type: developmentType }),
-        ...(projectPhaseField && { projectPhase: projectPhaseField }),
+        ...(projectPhaseField && { project_phase: projectPhaseField }),
         ...(holdingPeriodMonthsField && { holding_period_months: Number(holdingPeriodMonthsField) }),
         ...(gstPercentage && { gst_percentage: Number(gstPercentage) }),
         ...(projectedMarketValueAtExit && { projected_market_value_at_exit: Number(projectedMarketValueAtExit) }),

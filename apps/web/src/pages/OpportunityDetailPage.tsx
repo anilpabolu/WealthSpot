@@ -618,16 +618,16 @@ export default function OpportunityDetailPage() {
               type SnapshotRow = { label: string; value: React.ReactNode }
               const snapshotData: SnapshotRow[] = [
                 { label: 'Project Code Name', value: opp.title },
-                opp.property_type || opp.industry
-                  ? { label: 'Asset Class', value: fmt(opp.property_type || opp.industry || '') }
+                opp.propertyType || opp.industry
+                  ? { label: 'Asset Class', value: fmt(opp.propertyType || opp.industry || '') }
                   : null,
                 { label: 'Investment Category', value: formatVaultType(opp.vaultType) },
                 locationValue ? { label: 'Location', value: locationValue } : null,
                 opp.mapsUrl
                   ? { label: 'GPS Location', value: <a href={opp.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{opp.mapsUrl}</a> }
                   : null,
-                opp.development_type
-                  ? { label: 'Development Type', value: opp.development_type }
+                opp.developmentType
+                  ? { label: 'Development Type', value: opp.developmentType }
                   : null,
                 opp.projectPhase
                   ? { label: 'Current Stage', value: fmt(opp.projectPhase) }
@@ -635,11 +635,11 @@ export default function OpportunityDetailPage() {
                 opp.holdingPeriodMonths != null
                   ? { label: 'Holding Period', value: `${opp.holdingPeriodMonths} Months` }
                   : null,
-                { label: 'Entry Price', value: opp.price_per_sqft ? `₹${opp.price_per_sqft.toLocaleString('en-IN')} / Sq.Ft` : 'TBA' },
-                opp.gst_percentage != null
-                  ? { label: 'GST', value: `${opp.gst_percentage}%` }
+                { label: 'Entry Price', value: opp.pricePerSqft ? `₹${opp.pricePerSqft.toLocaleString('en-IN')} / Sq.Ft` : 'TBA' },
+                opp.gstPercentage != null
+                  ? { label: 'GST', value: `${opp.gstPercentage}%` }
                   : null,
-                { label: 'Target Exit Valuation', value: opp.projected_market_value_at_exit ? `₹${opp.projected_market_value_at_exit.toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
+                { label: 'Projected Market Value at exit', value: opp.projectedMarketValueAtExit ? `₹${opp.projectedMarketValueAtExit.toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
                 opp.tagline
                   ? { label: 'Investment Objective', value: opp.tagline }
                   : null,

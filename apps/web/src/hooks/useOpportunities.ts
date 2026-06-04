@@ -195,7 +195,7 @@ export interface OpportunityCreatePayload {
   // Builder shield assessment
   shield_answers?: Record<string, unknown>
   targetIrr?: number
-  projectPhase?: string
+  project_phase?: string
   project_roadmap?: Array<Record<string, any>>
   risk_factors?: string
   why_investors?: string
