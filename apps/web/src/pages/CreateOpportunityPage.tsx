@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Building2, Users, Loader2, Lock, Wallet, Handshake, ShieldCheck,
   AlertCircle, CheckCircle2, ChevronRight, ArrowLeft,
@@ -369,6 +369,9 @@ const SHIELD_META: Record<string, ShieldMetaEntry> = {
 
 export default function CreateOpportunityPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const initialVault = searchParams.get('vault') as VaultOptionValue | null
   const user = useUserStore((s) => s.user)
 
   // Block non-admins
@@ -378,12 +381,12 @@ export default function CreateOpportunityPage() {
     }
   }, [user, navigate])
 
-  const [step, setStep] = useState<WizardStep>('vault')
-  const [vaultType, setVaultType] = useState('')
-  const [vaultPreview, setVaultPreview] = useState<VaultOptionValue>('wealth')
+  const [step, setStep] = useState<WizardStep>(initialVault ? 'details' : 'vault')
+  const [vaultType, setVaultType] = useState(initialVault || '')
+  const [vaultPreview, setVaultPreview] = useState<VaultOptionValue>(initialVault || 'wealth')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
-  const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: '', title: '' })
+  const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: initialVault || '', title: '' })
   const [safeVaultData, setSafeVaultData] = useState<Record<string, unknown>>({
     interest_rate: 0, payout_frequency: 'monthly', tenure_months: null,
     mortgage_agreement: { enabled: false, details: '', period_description: '' },

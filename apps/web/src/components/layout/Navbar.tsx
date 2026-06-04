@@ -1,7 +1,7 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, X, Plus, PieChart, Sparkles, Vault } from 'lucide-react'
+import { Menu, X, PieChart, Sparkles, Vault } from 'lucide-react'
 import {
   Show,
   SignInButton,
@@ -26,7 +26,6 @@ interface NavbarProps {
 
 export default function Navbar(_props?: NavbarProps) {
   const location = useLocation()
-  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
   const userRole = useUserStore((s) => s.user?.role)
@@ -151,15 +150,6 @@ export default function Navbar(_props?: NavbarProps) {
             
             {/* Clerk auth: signed-in → Create Opp + UserButton, signed-out → Sign In / Sign Up */}
             <Show when="signed-in">
-              {(userRoles.includes('admin') || userRoles.includes('super_admin')) && (
-              <button
-                onClick={() => navigate('/create-opportunity')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37]/60 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Create Opportunity
-              </button>
-              )}
               <ProfileIndicator size="sm" />
             </Show>
             <Show when="signed-out">
@@ -216,17 +206,7 @@ export default function Navbar(_props?: NavbarProps) {
               </Link>
             ))}
             <Show when="signed-in">
-              {(userRoles.includes('admin') || userRoles.includes('super_admin')) && (
-                <div className="pt-3 border-t border-white/20">
-                  <button
-                    onClick={() => { navigate('/create-opportunity'); setMobileOpen(false); }}
-                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium border border-[#D4AF37]/60 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] transition-all"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create Opportunity
-                  </button>
-                </div>
-              )}
+              <div className="pt-3 border-t border-white/20" />
             </Show>
             <Show when="signed-out">
               <div className="pt-3 border-t border-white/20 space-y-2">

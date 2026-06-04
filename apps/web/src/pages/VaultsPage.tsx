@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   BarChart2,
   CalendarClock,
+  Plus,
   type LucideIcon,
 } from 'lucide-react'
 import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
@@ -320,6 +321,7 @@ function VaultCard({
   onComingSoon,
   onCommunityExplore,
   onExplore,
+  onCreateOpportunity,
 }: {
   vault: (typeof VAULTS)[number]
   stats?: any
@@ -331,6 +333,7 @@ function VaultCard({
   onComingSoon: () => void
   onCommunityExplore?: () => void
   onExplore?: () => void
+  onCreateOpportunity?: () => void
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const navigate = useNavigate()
@@ -388,6 +391,16 @@ function VaultCard({
               Coming Soon
             </span>
           )}
+          {onCreateOpportunity && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onCreateOpportunity(); }}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-[#D4AF37] bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black hover:scale-105 transition-all shadow-lg"
+              aria-label={`Create Opportunity for ${vault.title}`}
+            >
+              <Plus className="h-3 w-3" />
+              Create Opportunity
+            </button>
+          )}
           {onPlayVideo && (
             <button
               onClick={onPlayVideo}
@@ -441,6 +454,8 @@ export default function VaultsPage() {
   const [comingSoonToast, setComingSoonToast] = useState<string | null>(null)
   const [profilingVault, setProfilingVault] = useState<string | null>(null)
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const userRoles = useUserStore((s) => s.user?.roles ?? [])
+  const isSuperAdmin = userRoles.includes('super_admin')
   const navigate = useNavigate()
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
   const { mutate: recordExplorer } = useRecordExplorer()
@@ -531,6 +546,7 @@ export default function VaultsPage() {
                       archetype={archetypeMap[vault.id]}
                       comingSoon={comingSoon}
                       enabledMetrics={metricsConfig?.[vault.id] ?? ALL_VAULT_METRICS[vault.id] ?? []}
+                      onCreateOpportunity={isSuperAdmin && vault.id === 'wealth' ? () => navigate(`/create-opportunity?vault=${vault.id}`) : undefined}
                       onPlayVideo={
                         vaultVideosEnabled
                           ? () => setActiveVideo({ title: vault.title, videoSrc: resolveVideo(VAULT_VIDEO_TAGS[vault.id], vault.videoSrc) })
