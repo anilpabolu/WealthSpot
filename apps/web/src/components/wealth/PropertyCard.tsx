@@ -102,7 +102,8 @@ export default memo(function PropertyCard({
   }
 
   const isFunded = status === 'funded'
-  const isUpcoming = status === 'upcoming'
+  const isClosed = status === 'closed' || status === 'exited'
+  const isUpcoming = status === 'upcoming' || status === 'approved' || status === 'pending_approval'
   const fundedPct = target > 0 ? Math.round((raised / target) * 100) : 0
 
   const goPrev = (e: React.MouseEvent) => {
@@ -301,14 +302,14 @@ export default memo(function PropertyCard({
                 <Mail className="h-4 w-4 text-primary" />
               </a>
             </div>
-          ) : isFunded ? (
-            /* Fully Funded: disabled button */
+          ) : isFunded || isClosed ? (
+            /* Fully Funded or Closed: disabled button */
             <button
               disabled
               className="text-theme-tertiary font-semibold text-sm ml-auto cursor-not-allowed select-none"
-              aria-label="This property is fully funded"
+              aria-label={isClosed ? 'Deal Closed' : 'This property is fully funded'}
             >
-              FULLY FUNDED ✓
+              {isClosed ? 'DEAL CLOSED' : 'FULLY FUNDED ✓'}
             </button>
           ) : (
             /* Default: invest now */

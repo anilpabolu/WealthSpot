@@ -12,9 +12,7 @@ from __future__ import annotations
 
 from typing import Union
 
-import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import postgresql
 
 revision: str = "064_missing_opportunity_columns"
 down_revision: Union[str, None] = "063_opportunity_form_options"
@@ -24,15 +22,9 @@ depends_on = None
 
 def upgrade() -> None:
     # Use ADD COLUMN IF NOT EXISTS to be idempotent in case partial columns exist.
-    op.execute(
-        "ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS safe_vault_data JSONB"
-    )
-    op.execute(
-        "ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS template_s3_key TEXT"
-    )
-    op.execute(
-        "ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS template_data JSONB"
-    )
+    op.execute("ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS safe_vault_data JSONB")
+    op.execute("ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS template_s3_key TEXT")
+    op.execute("ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS template_data JSONB")
 
 
 def downgrade() -> None:

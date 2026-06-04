@@ -19,7 +19,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiPost } from '@/lib/api'
 
-function PropertyGallery({ images, title, videoUrl }: { images: string[]; title: string; videoUrl?: string }) {
+function PropertyGallery({ images, title, videoUrl, status }: { images: string[]; title: string; videoUrl?: string; status?: string }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const touchStartRef = useRef(0)
@@ -97,8 +97,14 @@ function PropertyGallery({ images, title, videoUrl }: { images: string[]; title:
             </div>
           </>
         )}
+        {/* Status badge */}
+        {status && (
+          <span className="absolute top-3 left-3 z-10">
+            <StatusBadge status={status as StatusType} />
+          </span>
+        )}
         {/* Image counter */}
-        <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+        <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md z-10">
           {activeIdx + 1} / {images.length}
         </span>
         {/* Video link */}
@@ -166,7 +172,9 @@ function InvestmentPanel({
   return (
     <div className="card p-6 sticky top-20">
       <div className="flex items-center justify-between mb-4">
-        <StatusBadge status={status as StatusType} />
+        {status !== 'upcoming' && status !== 'approved' && status !== 'pending_approval' ? (
+          <StatusBadge status={status as StatusType} />
+        ) : <div />}
         {daysLeft > 0 && (
           <span className="text-xs text-theme-secondary flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
@@ -305,7 +313,7 @@ export default function PropertyDetailPage() {
           {/* Left — Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Gallery */}
-            <PropertyGallery images={property.gallery?.length ? property.gallery : [property.coverImage]} title={property.title} videoUrl={property.videoUrl} />
+            <PropertyGallery images={property.gallery?.length ? property.gallery : [property.coverImage]} title={property.title} videoUrl={property.videoUrl} status={property.status} />
 
             {/* Title / Location */}
             <div>
