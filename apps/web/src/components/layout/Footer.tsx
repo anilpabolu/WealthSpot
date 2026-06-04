@@ -132,7 +132,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="font-body text-sm text-white font-semibold leading-relaxed max-w-[220px]">
-              India&apos;s trusted fractional real estate investment platform. Build generational wealth, one fraction at a time.
+              An intelligence-led platform for disciplined real estate discovery, strategic advisory, and governance-driven evaluation across India’s emerging asset landscape.
             </p>
             <div className="space-y-2">
               <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white font-semibold hover:text-[#D4AF37] transition-colors">
