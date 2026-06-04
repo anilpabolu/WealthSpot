@@ -120,7 +120,7 @@ export default function PortfolioScreen() {
             message="Start investing in properties to build your portfolio"
           />
         )}
-        {(holdings ?? []).map((prop, index) => (
+        {(holdings ?? []).map((prop: any, index: number) => (
           <FadeInView key={prop.propertyId} delay={280 + index * 50}>
           <Pressable
             className="rounded-2xl p-4 mb-3"

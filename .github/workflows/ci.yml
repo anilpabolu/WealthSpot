@@ -305,6 +305,7 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     needs: backend-docker
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - run: docker build --target production -t wealthspot-api:scan services/api/

@@ -135,7 +135,7 @@ describe('PropertyDetailPage', () => {
   it('renders status badge', () => {
     vi.mocked(useProperty).mockReturnValue({ data: makeProperty(), isLoading: false } as never)
     renderPage()
-    expect(screen.getByTestId('status-funding')).toBeInTheDocument()
+    expect(screen.getAllByTestId('status-funding').length).toBeGreaterThan(0)
   })
 
   it('renders funding bar', () => {

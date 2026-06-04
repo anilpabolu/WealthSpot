@@ -55,7 +55,7 @@ export default function InvestScreen() {
     if (!property) return
     setProcessing(true)
     try {
-      const order = await initiateMutation.mutateAsync({
+      const order: any = await initiateMutation.mutateAsync({
         propertyId: property.id,
         amount: totalAmount,
         units,

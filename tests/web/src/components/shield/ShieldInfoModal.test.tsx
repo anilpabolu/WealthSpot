@@ -16,7 +16,7 @@ describe('ShieldInfoModal', () => {
     expect(
       screen.getByText(/7 layers of trust between you/i),
     ).toBeInTheDocument()
-    expect(screen.getByText('WealthSpot Shield')).toBeInTheDocument()
+    expect(screen.getByText('Due Diligence')).toBeInTheDocument()
   })
 
   it('renders one card per assessment category', () => {

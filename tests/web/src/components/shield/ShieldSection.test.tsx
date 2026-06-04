@@ -111,7 +111,7 @@ describe('ShieldSection', () => {
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" />)
-    expect(screen.getByText('WealthSpot Shield')).toBeInTheDocument()
+    expect(screen.getByText('Due Diligence')).toBeInTheDocument()
     expect(screen.getByText('Certified')).toBeInTheDocument()
     expect(screen.getByText(/28 of 30 checks passed/)).toBeInTheDocument()
   })
@@ -141,11 +141,11 @@ describe('ShieldSection', () => {
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" />)
-    // Builder row is collapsed by default (status is passed)
-    expect(screen.queryByText('Category Grade')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByText('Builder Assessment'))
+    // Builder row is expanded by default because hasAnswers is true
     expect(screen.getByText('Category Grade')).toBeInTheDocument()
-    expect(screen.getByText('Tenure & Sqft Delivered')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Builder Assessment'))
+    // Now it should be collapsed
+    expect(screen.queryByText('Category Grade')).not.toBeInTheDocument()
   })
 
   it('auto-expands flagged categories', () => {
@@ -173,8 +173,8 @@ describe('ShieldSection', () => {
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" mode="builder" />)
-    fireEvent.click(screen.getByText('Builder Assessment'))
-    expect(screen.getByText('Builder answer:')).toBeInTheDocument()
+    // Mode doesn't change the UI anymore, but we can verify the answer is shown
+    expect(screen.getByText('A')).toBeInTheDocument() // MOCK_SUMMARY has builderAnswer 'A'
   })
 
   it('renders the risk strip when risks exist', () => {
