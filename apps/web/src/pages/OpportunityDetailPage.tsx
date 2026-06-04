@@ -2,7 +2,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layout'
 import AuthGateModal from '@/components/AuthGateModal'
 import SEOHead from '@/components/SEOHead'
-import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useOpportunityBySlug } from '@/hooks/useOpportunities'
 import { useLikeStatus, useToggleLike, useTrackShare, usePropertyReferralCode } from '@/hooks/useOpportunityActions'
 import ShareModal from '@/components/share/ShareModal'
@@ -166,8 +165,11 @@ function getLifecycleRibbon(opp: { status: string; closingDate: string | null; r
   if ((daysLeft !== null && daysLeft <= 7 && daysLeft > 0) || fundedPct >= 90)
     return { label: 'CLOSING SOON', color: 'bg-orange-500' }
 
-  if (['approved', 'active', 'funding'].includes(opp.status))
+  if (['active', 'funding', 'live'].includes(opp.status))
     return { label: 'LIVE', color: 'bg-green-600' }
+
+  if (['approved', 'pending_approval', 'upcoming'].includes(opp.status))
+    return { label: 'UPCOMING', color: 'bg-blue-600' }
 
   return null
 }
@@ -311,8 +313,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           <div className="absolute top-0 left-0 right-0 h-px"
             style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)' }} />
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <StatusBadge status={opportunity.status as StatusType} />
+            <div className="flex items-center justify-end mb-4">
               {daysLeft > 0 && (
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
                   isUrgent
