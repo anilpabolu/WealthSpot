@@ -141,38 +141,43 @@ describe('ShieldSection', () => {
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" />)
-    // Builder row is expanded by default because hasAnswers is true
-    expect(screen.getByText('Category Grade')).toBeInTheDocument()
-    fireEvent.click(screen.getByText('Builder Assessment'))
-    // Now it should be collapsed
+    // All categories are collapsed by default
     expect(screen.queryByText('Category Grade')).not.toBeInTheDocument()
+    // Clicking the row expands it to reveal its sub-items
+    fireEvent.click(screen.getByText('Builder Assessment'))
+    expect(screen.getByText('Category Grade')).toBeInTheDocument()
   })
 
-  it('auto-expands flagged categories', () => {
+  it('keeps flagged categories collapsed by default', () => {
     vi.mocked(useOpportunityAssessments).mockReturnValue({
       data: MOCK_SUMMARY,
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" />)
-    // Legal is flagged, should be auto-expanded
+    // Flagged Legal category is collapsed by default (no auto-expand)
+    expect(screen.queryByText('Title Deeds')).not.toBeInTheDocument()
+    // Expands on click
+    fireEvent.click(screen.getByText('Legal Assessment'))
     expect(screen.getByText('Title Deeds')).toBeInTheDocument()
   })
 
-  it('shows reviewer notes on sub-items', () => {
+  it('shows reviewer notes on sub-items after expanding', () => {
     vi.mocked(useOpportunityAssessments).mockReturnValue({
       data: MOCK_SUMMARY,
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" />)
+    fireEvent.click(screen.getByText('Legal Assessment'))
     expect(screen.getByText(/Parent deed missing/)).toBeInTheDocument()
   })
 
-  it('shows builder answer in builder mode', () => {
+  it('shows builder answer in builder mode after expanding', () => {
     vi.mocked(useOpportunityAssessments).mockReturnValue({
       data: MOCK_SUMMARY,
       isLoading: false,
     } as never)
     render(<ShieldSection opportunityId="opp-1" mode="builder" />)
+    fireEvent.click(screen.getByText('Builder Assessment'))
     // Mode doesn't change the UI anymore, but we can verify the answer is shown
     expect(screen.getByText('A')).toBeInTheDocument() // MOCK_SUMMARY has builderAnswer 'A'
   })
