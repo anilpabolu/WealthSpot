@@ -92,6 +92,9 @@ export interface OpportunityItem {
   risk_factors: string | null
   why_investors: string | null
   investment_thesis: string | null
+  maps_url?: string | null
+  project_phase?: string | null
+  holding_period_months?: number | null
   coverImage: string | null
   videoUrl: string | null
   gallery: string[] | null

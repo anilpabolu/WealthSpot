@@ -685,13 +685,6 @@ export default function OpportunityDetailPage() {
             {(() => {
               const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
-              const formatVaultType = (vaultType: string) => {
-                if (vaultType === 'wealth') return 'Wealth Vault'
-                if (vaultType === 'safe') return 'Safe Vault'
-                if (vaultType === 'community') return 'Community Vault'
-                return vaultType
-              }
-
               const locationValue = opp.address ||
                 [opp.locality, opp.district, opp.city, opp.state].filter(Boolean).join(', ') || null
 
@@ -701,25 +694,24 @@ export default function OpportunityDetailPage() {
                 opp.propertyType || opp.industry
                   ? { label: 'Asset Class', value: fmt(opp.propertyType || opp.industry || '') }
                   : null,
-                { label: 'Investment Category', value: formatVaultType(opp.vaultType) },
                 locationValue ? { label: 'Location', value: locationValue } : null,
-                opp.mapsUrl
-                  ? { label: 'GPS Location', value: <a href={opp.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{opp.mapsUrl}</a> }
+                (opp.mapsUrl || opp.maps_url)
+                  ? { label: 'GPS Location', value: <a href={(opp.mapsUrl || opp.maps_url) as string} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{(opp.mapsUrl || opp.maps_url) as string}</a> }
                   : null,
-                opp.developmentType
-                  ? { label: 'Development Type', value: opp.developmentType }
+                (opp.developmentType || opp.development_type)
+                  ? { label: 'Development Type', value: (opp.developmentType || opp.development_type) as string }
                   : null,
-                opp.projectPhase
-                  ? { label: 'Current Stage', value: fmt(opp.projectPhase) }
+                (opp.projectPhase || opp.project_phase)
+                  ? { label: 'Current Stage', value: fmt((opp.projectPhase || opp.project_phase) as string) }
                   : null,
-                opp.holdingPeriodMonths != null
-                  ? { label: 'Holding Period', value: `${opp.holdingPeriodMonths} Months` }
+                (opp.holdingPeriodMonths != null || opp.holding_period_months != null)
+                  ? { label: 'Holding Period', value: `${opp.holdingPeriodMonths ?? opp.holding_period_months} Months` }
                   : null,
-                { label: 'Entry Price', value: opp.pricePerSqft ? `₹${opp.pricePerSqft.toLocaleString('en-IN')} / Sq.Ft` : 'TBA' },
-                opp.gstPercentage != null
-                  ? { label: 'GST', value: `${opp.gstPercentage}%` }
+                { label: 'Entry Price', value: (opp.pricePerSqft || opp.price_per_sqft) ? `₹${Number(opp.pricePerSqft || opp.price_per_sqft).toLocaleString('en-IN')} / Sq.Ft` : 'TBA' },
+                (opp.gstPercentage != null || opp.gst_percentage != null)
+                  ? { label: 'GST', value: `${opp.gstPercentage ?? opp.gst_percentage}%` }
                   : null,
-                { label: 'Projected Market Value at exit', value: opp.projectedMarketValueAtExit ? `₹${opp.projectedMarketValueAtExit.toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
+                { label: 'Projected Market Value at exit', value: (opp.projectedMarketValueAtExit || opp.projected_market_value_at_exit) ? `₹${Number(opp.projectedMarketValueAtExit || opp.projected_market_value_at_exit).toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
                 opp.tagline
                   ? { label: 'Investment Objective', value: opp.tagline }
                   : null,
