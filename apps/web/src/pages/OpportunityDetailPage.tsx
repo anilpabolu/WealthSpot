@@ -761,18 +761,18 @@ export default function OpportunityDetailPage() {
             )}
 
             {/* Offering Configurations — unit or plot table derived from property_specs */}
-            {opp.property_specs && (() => {
-              const specs = opp.property_specs as Record<string, unknown>
-              const isPlot = opp.property_type === 'plot'
+            {(opp.propertySpecs || opp.property_specs) && (() => {
+              const specs = (opp.propertySpecs || opp.property_specs) as Record<string, unknown>
+              const isPlot = (opp.propertyType || opp.property_type) === 'plot'
 
-              type UnitCfg = { type: string; super_built_up_sqft?: number; price_per_sqft?: number }
-              type PlotCfg = { type: string; area_sqft?: number; price_per_sqft?: number; total_plots?: number }
+              type UnitCfg = { type: string; super_built_up_sqft?: number; superBuiltUpSqft?: number; price_per_sqft?: number; pricePerSqft?: number }
+              type PlotCfg = { type: string; area_sqft?: number; areaSqft?: number; price_per_sqft?: number; pricePerSqft?: number; total_plots?: number; totalPlots?: number }
 
               const unitConfigs = !isPlot
-                ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
+                ? ((specs.configurations || specs.unit_configurations || specs.unitConfigurations) as UnitCfg[] | undefined)?.filter(u => u.type || (u as any).bhkType)
                 : undefined
               const plotConfigs = isPlot
-                ? (specs.plot_configurations as PlotCfg[] | undefined)?.filter(p => p.type)
+                ? ((specs.plot_configurations || specs.plotConfigurations) as PlotCfg[] | undefined)?.filter(p => p.type || (p as any).plotType)
                 : undefined
 
               const rows = isPlot ? plotConfigs : unitConfigs
@@ -793,11 +793,11 @@ export default function OpportunityDetailPage() {
                       <thead>
                         <tr className="border-b border-[var(--border-default)]">
                           <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 pr-4">Type</th>
-                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">
+                          <th className="text-right text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">
                             {isPlot ? 'Area (Sq.Ft)' : 'SBU (Sq.Ft)'}
                           </th>
-                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">₹ / Sq.Ft</th>
-                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 pl-4">
+                          <th className="text-right text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">₹ / Sq.Ft</th>
+                          <th className="text-right text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 pl-4">
                             {isPlot ? 'Plot Cost' : 'Unit Cost'}
                           </th>
                         </tr>
@@ -805,13 +805,16 @@ export default function OpportunityDetailPage() {
                       <tbody className="divide-y divide-[var(--border-subtle)]">
                         {isPlot
                           ? (plotConfigs as PlotCfg[]).map((p, i) => {
-                              const cost = p.area_sqft && p.price_per_sqft ? p.area_sqft * p.price_per_sqft : null
+                              const area = p.area_sqft || p.areaSqft
+                              const price = p.price_per_sqft || p.pricePerSqft
+                              const cost = area && price ? area * price : null
+                              const typeVal = p.type || (p as any).plotType
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
-                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{p.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.area_sqft ? p.area_sqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.price_per_sqft ? `₹${p.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
-                                  <td className="py-3.5 pl-4">
+                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{typeVal}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary text-right">{area ? area.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary text-right">{price ? `₹${price.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 pl-4 text-right">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
                                       : <span className="text-theme-tertiary">—</span>}
@@ -820,13 +823,16 @@ export default function OpportunityDetailPage() {
                               )
                             })
                           : (unitConfigs as UnitCfg[]).map((u, i) => {
-                              const cost = u.super_built_up_sqft && u.price_per_sqft ? u.super_built_up_sqft * u.price_per_sqft : null
+                              const area = u.super_built_up_sqft || u.superBuiltUpSqft
+                              const price = u.price_per_sqft || u.pricePerSqft
+                              const cost = area && price ? area * price : null
+                              const typeVal = u.type || (u as any).bhkType
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
-                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{u.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.super_built_up_sqft ? u.super_built_up_sqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.price_per_sqft ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
-                                  <td className="py-3.5 pl-4">
+                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{typeVal}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary text-right">{area ? area.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary text-right">{price ? `₹${price.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 pl-4 text-right">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
                                       : <span className="text-theme-tertiary">—</span>}
@@ -938,8 +944,9 @@ export default function OpportunityDetailPage() {
             )}
 
             {/* Amenities & Features — shown for wealth/safe vault properties that have amenities */}
-            {opp.property_amenities && opp.property_amenities.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (() => {
-              const resolved = AMENITIES.filter(a => (opp.property_amenities ?? []).includes(a.key))
+            {((opp.propertyAmenities || opp.property_amenities) && (opp.propertyAmenities || opp.property_amenities)!.length > 0) && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (() => {
+              const amenitiesList = opp.propertyAmenities || opp.property_amenities || []
+              const resolved = AMENITIES.filter(a => amenitiesList.includes(a.key))
               const byCategory = Object.fromEntries(
                 (Object.keys(AMENITY_CATEGORIES) as AmenityCategory[]).map(cat => [
                   cat,
@@ -983,10 +990,10 @@ export default function OpportunityDetailPage() {
 
             <ProjectThesisSection
               title={opp.title}
-              projectRoadmap={opp.projectRoadmap as any[] | null}
-              riskFactors={opp.riskFactors as string | null}
-              whyInvestors={opp.whyInvestors as string | null}
-              investmentThesis={opp.investmentThesis as string | null}
+              projectRoadmap={(opp.projectRoadmap || opp.project_roadmap) as any[] | null}
+              riskFactors={(opp.riskFactors || opp.risk_factors) as string | null}
+              whyInvestors={(opp.whyInvestors || opp.why_investors) as string | null}
+              investmentThesis={(opp.investmentThesis || opp.investment_thesis) as string | null}
             />
 
             {/* Founder Info (for Opportunity Vault) */}
