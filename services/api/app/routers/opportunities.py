@@ -999,11 +999,18 @@ async def create_opportunity(
                     location_usps=location_usps_payload,
                     # Real-estate property specification fields
                     property_type=body.property_type,
+                    development_type=body.development_type,
+                    gst_percentage=body.gst_percentage,
+                    holding_period_months=body.holding_period_months,
+                    projected_market_value_at_exit=body.projected_market_value_at_exit,
+                    purpose_of_funds=body.purpose_of_funds,
                     price_per_sqft=body.price_per_sqft,
                     total_project_area_sqft=body.total_project_area_sqft,
                     property_specs=body.property_specs,
                     property_amenities=body.property_amenities,
                     amenity_cost_estimate=body.amenity_cost_estimate,
+                    # Project lifecycle phase
+                    project_phase=body.project_phase,
                     funding_open_at=body.funding_open_at,
                     closing_date=body.closing_date,
                     # Investment configuration mode
