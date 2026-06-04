@@ -4,7 +4,79 @@ import { useClerk } from '@clerk/react'
 import { ArrowRight, Users, Shield, CheckCircle2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+
+/* ─────────────────────────────────────────────────
+   SECTION JUMPER NAVIGATION
+───────────────────────────────────────────────── */
+const ABOUT_SECTIONS = [
+  { id: 'vision', label: 'Vision', tooltip: 'Discover our founding philosophy and mission.' },
+  { id: 'ecosystem', label: 'Ecosystem', tooltip: 'Explore our intelligence-driven platform.' },
+  { id: 'principles', label: 'Principles', tooltip: 'Clarity, Discipline, and Trust.' },
+  { id: 'framework', label: 'Framework', tooltip: 'Our institutional governance and due diligence.' },
+  { id: 'leadership', label: 'Leadership', tooltip: 'Meet the founding team.' },
+]
+
+function AboutPageNavigation() {
+  const [activeId, setActiveId] = useState<string>('')
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        })
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+    )
+
+    ABOUT_SECTIONS.forEach((s) => {
+      const el = document.getElementById(s.id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      // Offset for the sticky header
+      const y = el.getBoundingClientRect().top + window.scrollY - 100
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
+  }
+
+  return (
+    <div className="sticky top-[72px] z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
+        <div className="flex items-center justify-center gap-2 sm:gap-6 overflow-x-auto scrollbar-hide py-3">
+          {ABOUT_SECTIONS.map((section) => {
+            const isActive = activeId === section.id
+            return (
+              <button
+                key={section.id}
+                onClick={() => scrollTo(section.id)}
+                className={`relative px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 group ${
+                  isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-transparent'
+                }`}
+              >
+                {section.label}
+                {/* Tooltip */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-52 p-2.5 bg-[#0f172a] text-white text-[12px] leading-relaxed font-medium text-center rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl z-50 pointer-events-none">
+                  {section.tooltip}
+                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45" />
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /* ─────────────────────────────────────────────────
    SECTION 1 — HERO
@@ -42,6 +114,7 @@ function HeroSection() {
 function IntroSection() {
   return (
     <section
+      id="vision"
       className="relative overflow-hidden py-20 sm:py-24"
       style={{ background: '#ffffff' }}
     >
@@ -88,6 +161,7 @@ function IntroSection() {
 function EcosystemSection() {
   return (
     <section
+      id="ecosystem"
       className="relative overflow-hidden py-20 sm:py-28"
       style={{ background: 'linear-gradient(180deg, #080d18 0%, #0b1120 60%, #0a0f1c 100%)' }}
     >
@@ -163,7 +237,7 @@ const PRINCIPLES = [
 
 function PrinciplesSection() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
+    <section id="principles" className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
         <div className="text-center mb-14">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">Our Core Principles</p>
@@ -255,7 +329,7 @@ const FRAMEWORK = [
 
 function FrameworkSection() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
+    <section id="framework" className="relative overflow-hidden py-20 sm:py-28" style={{ background: '#ffffff' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
         <div className="mb-14 max-w-3xl text-center mx-auto">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The WealthSpot Framework</p>
@@ -374,7 +448,7 @@ function FoundingTeamSection() {
   }
 
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32" style={{ background: '#f8f9fa' }}>
+    <section id="leadership" className="relative overflow-hidden py-24 sm:py-32" style={{ background: '#f8f9fa' }}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
         <div className="mb-14 text-center max-w-3xl mx-auto">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The Leadership</p>
@@ -523,6 +597,7 @@ export default function AboutPage() {
         path="/about"
       />
       <HeroSection />
+      <AboutPageNavigation />
       <IntroSection />
       <EcosystemSection />
       <PrinciplesSection />
