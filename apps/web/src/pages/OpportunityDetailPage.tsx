@@ -765,7 +765,7 @@ export default function OpportunityDetailPage() {
                   <div className="mt-5 pt-4 border-t border-[var(--border-subtle)]">
                     <p className="text-[11px] text-theme-tertiary leading-relaxed">
                       <span className="font-semibold text-theme-secondary">Disclaimer: </span>
-                      The unit configurations, floor plans, and indicative pricing presented herein are subject to revision and may be amended in accordance with final statutory approvals, RERA registration, and applicable regulatory or planning authority sanctions. All information is provided solely for indicative purposes and does not constitute a binding offer, representation, or warranty of any kind. Prospective investors are strongly advised to conduct independent due diligence and review the final approved project plans, RERA disclosures, and all relevant documentation prior to making any investment decision.
+                      Unit configurations and area statements are indicative placeholders and subject to revision based on final design and government statutory approvals.
                     </p>
                   </div>
                 </div>
