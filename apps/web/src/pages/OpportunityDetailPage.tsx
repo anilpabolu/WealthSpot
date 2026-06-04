@@ -11,7 +11,7 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
-  ShieldCheck, Lock, EyeOff, Camera,
+  ShieldCheck, Lock, EyeOff, Camera, Home
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -588,17 +588,27 @@ export default function OpportunityDetailPage() {
 
         <div className="page-section-container relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-            <div>
-              <h1 className="font-display text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
-                {opp.title}
-              </h1>
-              {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
+            <div className="flex items-start gap-4">
+              <button 
+                onClick={() => navigate(opp.vaultType ? `/vaults/${opp.vaultType}` : '/vaults')}
+                className="mt-1 flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-colors backdrop-blur-md shrink-0"
+                aria-label="Back to Vault"
+                title="Back to Vault"
+              >
+                <Home className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="font-display text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
+                  {opp.title}
+                </h1>
+                {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
 
-              {opp.city && (
-                <p className="text-white/80 flex items-center gap-1.5 mt-3 text-sm font-medium">
-                  <MapPin className="h-4 w-4 text-[#D4AF37]" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
-                </p>
-              )}
+                {opp.city && (
+                  <p className="text-white/80 flex items-center gap-1.5 mt-3 text-sm font-medium">
+                    <MapPin className="h-4 w-4 text-[#D4AF37]" /> {opp.locality ? `${opp.locality}, ` : ''}{opp.city}{opp.state ? `, ${opp.state}` : ''}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
