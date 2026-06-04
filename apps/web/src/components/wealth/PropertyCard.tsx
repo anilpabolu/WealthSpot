@@ -236,17 +236,17 @@ export default memo(function PropertyCard({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-6 md:p-8 flex-1 flex flex-col">
         {/* Financial metrics */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-4">
           <div>
-            <p className="text-xs uppercase tracking-wider text-theme-secondary font-semibold">Min Invest</p>
+            <p className="text-[10px] uppercase tracking-widest text-theme-secondary font-semibold mb-1">Min Invest</p>
             <p className="font-mono font-bold text-2xl text-theme-primary">{formatINRCompact(minInvestment)}</p>
           </div>
           {pricePerSqft != null && (
             <div className="text-right">
-              <p className="text-xs text-theme-tertiary">Price</p>
-              <p className="text-sm font-bold text-theme-primary">₹{pricePerSqft.toLocaleString('en-IN')}<span className="text-xs font-normal text-theme-secondary">/sqft</span></p>
+              <p className="text-[10px] uppercase tracking-widest text-theme-tertiary font-semibold mb-1">Price</p>
+              <p className="text-base font-bold text-theme-primary">₹{pricePerSqft.toLocaleString('en-IN')}<span className="text-xs font-normal text-theme-secondary">/sqft</span></p>
             </div>
           )}
         </div>
