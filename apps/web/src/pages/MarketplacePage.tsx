@@ -439,8 +439,8 @@ export default function MarketplacePage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-5xl xl:max-w-6xl'
-                  : 'space-y-6 max-w-5xl xl:max-w-6xl'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 w-full max-w-none'
+                  : 'space-y-6 w-full max-w-none'
               }
             >
               {isLoading
@@ -464,20 +464,20 @@ export default function MarketplacePage() {
                         <div
                           key={`opp-${opp.id}`}
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
-                          className="bg-white rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] border border-gray-100 transition-all cursor-pointer group flex flex-col h-full"
+                          className="bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1.5 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer group flex flex-col h-full"
                         >
-                          <div className="aspect-[16/9] relative bg-gray-100 overflow-hidden">
+                          <div className="aspect-[4/3] relative bg-gray-100 overflow-hidden">
                             {carouselImages.length > 0 ? (
-                              <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                              <div className="absolute inset-0 w-full h-full flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {carouselImages.map((url: string, idx: number) => (
-                                  <div key={idx} className="w-full h-full flex-shrink-0 snap-center overflow-hidden">
-                                    <img src={url} alt={`${opp.title} ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                  <div key={idx} className="w-full h-full flex-shrink-0 snap-center overflow-hidden relative">
+                                    <img src={url} alt={`${opp.title} ${idx}`} className="absolute inset-0 block w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105" loading="lazy" />
                                   </div>
                                 ))}
                                 <style>{`.snap-x::-webkit-scrollbar { display: none; }`}</style>
                               </div>
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <div className="absolute inset-0 w-full h-full flex items-center justify-center text-gray-300">
                                 <Building2 className="h-10 w-10" />
                               </div>
                             )}
@@ -569,7 +569,7 @@ export default function MarketplacePage() {
                                >
                                  <Gift className="h-4 w-4" /> Refer & Earn
                                </button>
-                               <button className="px-5 py-2.5 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5">
+                               <button className="px-5 py-2.5 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-600 hover:text-white transition-colors duration-300 flex items-center gap-1.5 shadow-sm hover:shadow-md">
                                  Express Interest <ChevronRight className="h-4 w-4" />
                                </button>
                             </div>

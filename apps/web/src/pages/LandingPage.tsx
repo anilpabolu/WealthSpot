@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import { useContent } from '@/hooks/useSiteContent'
 import { useClerk } from '@clerk/react'
+import { usePublicVideo } from '@/hooks/useAppVideos'
 import SEOHead from '@/components/SEOHead'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import JourneyConstellation from '@/components/landing/JourneyConstellation'
@@ -23,7 +24,9 @@ function HeroSection({ onRequestAccess }: WithRequestAccess) {
   const heroSub     = useContent('landing', 'hero_sub', 'A Digital Discovery Platform To Find Assets At Intrinsic Value')
   const heroCta     = useContent('landing', 'hero_cta', 'Request Access')
   const heroLink    = useContent('landing', 'hero_link', 'Learn how it works')
-  const heroVideoUrl = useContent('landing', 'hero_video_url', 'https://videos.ctfassets.net/9x3tafuqbgo7/01mmgjnzqBUgPEllSYW8a0/ddb34bd8b12922f0be54332c2313af69/Crowd_Street_1920x960_01-v1-.mp4')
+  const defaultVideoUrl = useContent('landing', 'hero_video_url', 'https://videos.ctfassets.net/9x3tafuqbgo7/01mmgjnzqBUgPEllSYW8a0/ddb34bd8b12922f0be54332c2313af69/Crowd_Street_1920x960_01-v1-.mp4')
+  const { data: heroVideo } = usePublicVideo('home', 'hero_video')
+  const heroVideoUrl = heroVideo?.videoUrl || defaultVideoUrl
 
   return (
     <section

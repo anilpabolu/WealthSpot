@@ -120,7 +120,7 @@ export default memo(function PropertyCard({
   return (
     <div
       className={cn(
-        'card overflow-hidden cursor-pointer group relative',
+        'bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1.5 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer group relative flex flex-col h-full',
         className
       )}
       onClick={onCardClick}
@@ -129,7 +129,7 @@ export default memo(function PropertyCard({
     >
       {/* Image Carousel */}
       <div
-        className="aspect-video relative overflow-hidden"
+        className="aspect-[4/3] relative bg-gray-100 overflow-hidden shrink-0"
         onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? 0 }}
         onTouchEnd={(e) => {
           const diff = touchStartRef.current - (e.changedTouches[0]?.clientX ?? 0)
@@ -143,10 +143,10 @@ export default memo(function PropertyCard({
         <img
           src={images[activeIdx]}
           alt={`${title} - Image ${activeIdx + 1}`}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="absolute inset-0 block w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
           loading="lazy"
           width={640}
-          height={360}
+          height={480}
         />
 
         {/* Prev/Next buttons (visible on hover) */}

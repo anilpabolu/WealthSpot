@@ -50,15 +50,13 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
       <div className="absolute top-12 left-14 z-50 flex items-center gap-4">
         <WLogo3D size={64} light={true} />
         <div className="flex flex-col">
-          <span className="text-4xl font-bold tracking-tight text-white leading-none" style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}>
+          <p className="text-white font-serif font-bold text-4xl leading-none tracking-wide">
             Wealth<span className="text-[#D4AF37]">Spot</span>
-          </span>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
-              Private Wealth Access
-            </span>
-            <div className="h-px w-12 bg-[#D4AF37]/50" />
-          </div>
+          </p>
+          <p className="text-white/70 text-xs font-semibold tracking-widest leading-none mt-2">
+            Research. Evaluate. Invest.
+          </p>
+          <div className="h-px w-12 bg-[#D4AF37]/50 mt-3" />
         </div>
       </div>
 

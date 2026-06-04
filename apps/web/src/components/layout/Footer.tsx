@@ -117,17 +117,17 @@ export default function Footer() {
 
           {/* Brand column */}
           <div className="flex flex-col gap-5">
-            <Link to="/" className="flex items-center gap-2.5">
-              <WLogo3D size={36} />
-              <div className="flex flex-col">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <WLogo3D size={56} />
+              <div className="flex flex-col justify-center mt-1">
                 <span
-                  className="text-lg font-bold tracking-tight text-white leading-none"
+                  className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-none"
                   style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
                 >
                   Wealth<span className="text-[#D4AF37]">Spot</span>
                 </span>
-                <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/65 leading-none mt-0.5">
-                  Private Wealth Access
+                <span className="text-[10px] font-semibold tracking-widest text-white/70 leading-none mt-1.5">
+                  Research. Evaluate. Invest.
                 </span>
               </div>
             </Link>
