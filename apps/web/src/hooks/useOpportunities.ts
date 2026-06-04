@@ -67,6 +67,7 @@ export interface OpportunityItem {
   property_specs: Record<string, unknown> | null
   property_amenities: string[] | null
   amenity_cost_estimate: number | null
+  holdingPeriodMonths: number | null
   projectPhase: string | null
   currentValuation: number | null
   project_roadmap: Array<Record<string, any>> | null
@@ -166,6 +167,7 @@ export interface OpportunityCreatePayload {
   property_type?: string
   development_type?: string
   gst_percentage?: number
+  holding_period_months?: number
   projected_market_value_at_exit?: number
   purpose_of_funds?: string
   price_per_sqft?: number
@@ -290,6 +292,7 @@ export function useCreateOpportunity() {
         property_type: data.property_type,
         development_type: data.development_type,
         gst_percentage: data.gst_percentage,
+        holding_period_months: data.holding_period_months,
         projected_market_value_at_exit: data.projected_market_value_at_exit,
         purpose_of_funds: data.purpose_of_funds,
         price_per_sqft: data.price_per_sqft,
@@ -344,6 +347,7 @@ export function useUpdateOpportunity() {
         ...(data.property_type !== undefined && { property_type: data.property_type }),
         ...(data.development_type !== undefined && { development_type: data.development_type }),
         ...(data.gst_percentage !== undefined && { gst_percentage: data.gst_percentage }),
+        ...(data.holding_period_months !== undefined && { holding_period_months: data.holding_period_months }),
         ...(data.projected_market_value_at_exit !== undefined && { projected_market_value_at_exit: data.projected_market_value_at_exit }),
         ...(data.purpose_of_funds !== undefined && { purpose_of_funds: data.purpose_of_funds }),
         ...(data.price_per_sqft !== undefined && { price_per_sqft: data.price_per_sqft }),

@@ -617,39 +617,47 @@ export default function OpportunityDetailPage() {
 
             {/* Opportunity Snapshot */}
             {(() => {
-              const getHoldingPeriod = (opp: any) => {
-                if (opp.communityDetails?.investmentTenure) return String(opp.communityDetails.investmentTenure)
-                if (opp.safeVaultData?.tenure_months) return `${opp.safeVaultData.tenure_months} Months (Estimated)`
-                if (opp.tenure) return String(opp.tenure)
-                return '48 Months (Estimated)'
-              }
-            
+              const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+
               const formatVaultType = (vaultType: string) => {
                 if (vaultType === 'wealth') return 'Wealth Vault'
                 if (vaultType === 'safe') return 'Safe Vault'
                 if (vaultType === 'community') return 'Community Vault'
                 return vaultType
               }
-            
-              const formatLocation = (opp: any) => {
-                const parts = [opp.locality, opp.district, opp.city, opp.state].filter(Boolean)
-                return parts.length > 0 ? parts.join(', ') : 'Location on Request'
-              }
-            
-              const snapshotData = [
+
+              const locationValue = opp.address ||
+                [opp.locality, opp.district, opp.city, opp.state].filter(Boolean).join(', ') || null
+
+              type SnapshotRow = { label: string; value: React.ReactNode }
+              const snapshotData: SnapshotRow[] = [
                 { label: 'Project Code Name', value: opp.title },
-                { label: 'Asset Class', value: opp.property_type || opp.industry || 'Residential Real Estate' },
+                opp.property_type || opp.industry
+                  ? { label: 'Asset Class', value: fmt(opp.property_type || opp.industry || '') }
+                  : null,
                 { label: 'Investment Category', value: formatVaultType(opp.vaultType) },
-                { label: 'Location', value: formatLocation(opp) },
-                { label: 'GPS Location', value: opp.mapsUrl ? <a href={opp.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{opp.mapsUrl}</a> : 'Not Disclosed' },
-                { label: 'Development Type', value: opp.development_type || 'Integrated Residential Township' },
-                { label: 'Current Stage', value: opp.projectPhase?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || opp.stage?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Land Acquisition Phase' },
-                { label: 'Holding Period', value: getHoldingPeriod(opp) },
-                { label: 'Entry Price', value: opp.price_per_sqft ? `₹${opp.price_per_sqft.toLocaleString('en-IN')} / Sq.Ft` : opp.minInvestment ? formatINRCompact(opp.minInvestment) : 'TBA' },
-                { label: 'GST', value: opp.gst_percentage != null ? `${opp.gst_percentage}%` : '5%' },
+                locationValue ? { label: 'Location', value: locationValue } : null,
+                opp.mapsUrl
+                  ? { label: 'GPS Location', value: <a href={opp.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{opp.mapsUrl}</a> }
+                  : null,
+                opp.development_type
+                  ? { label: 'Development Type', value: opp.development_type }
+                  : null,
+                opp.projectPhase
+                  ? { label: 'Current Stage', value: fmt(opp.projectPhase) }
+                  : null,
+                opp.holdingPeriodMonths != null
+                  ? { label: 'Holding Period', value: `${opp.holdingPeriodMonths} Months` }
+                  : null,
+                { label: 'Entry Price', value: opp.price_per_sqft ? `₹${opp.price_per_sqft.toLocaleString('en-IN')} / Sq.Ft` : 'TBA' },
+                opp.gst_percentage != null
+                  ? { label: 'GST', value: `${opp.gst_percentage}%` }
+                  : null,
                 { label: 'Target Exit Valuation', value: opp.projected_market_value_at_exit ? `₹${opp.projected_market_value_at_exit.toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
-                { label: 'Investment Objective', value: opp.purpose_of_funds || opp.investment_thesis || 'Capital Appreciation Through Early-Stage Entry' }
-              ]
+                opp.tagline
+                  ? { label: 'Investment Objective', value: opp.tagline }
+                  : null,
+              ].filter(Boolean) as SnapshotRow[]
               
               return (
                 <div className="card p-6 md:p-8 relative overflow-hidden">

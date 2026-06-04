@@ -135,6 +135,7 @@ class Opportunity(Base):
     # Additional property configurations
     development_type: Mapped[str | None] = mapped_column(String(100))
     gst_percentage: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    holding_period_months: Mapped[int | None] = mapped_column(Integer)
     projected_market_value_at_exit: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
     purpose_of_funds: Mapped[str | None] = mapped_column(Text)
     # Per-sqft rate (representative listed rate, stored for quick display)

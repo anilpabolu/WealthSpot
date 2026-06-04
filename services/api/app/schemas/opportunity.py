@@ -305,6 +305,7 @@ class OpportunityRead(BaseModel):
     property_type: str | None = None
     development_type: str | None = None
     gst_percentage: float | None = None
+    holding_period_months: int | None = None
     projected_market_value_at_exit: float | None = None
     purpose_of_funds: str | None = None
     price_per_sqft: float | None = None
@@ -409,6 +410,7 @@ class OpportunityCreateRequest(BaseModel):
     property_type: str | None = None
     development_type: str | None = None
     gst_percentage: float | None = None
+    holding_period_months: int | None = None
     projected_market_value_at_exit: float | None = None
     purpose_of_funds: str | None = None
     price_per_sqft: float | None = None
@@ -475,6 +477,7 @@ class OpportunityUpdateRequest(BaseModel):
     property_type: str | None = None
     development_type: str | None = None
     gst_percentage: float | None = None
+    holding_period_months: int | None = None
     projected_market_value_at_exit: float | None = None
     purpose_of_funds: str | None = None
     price_per_sqft: float | None = None

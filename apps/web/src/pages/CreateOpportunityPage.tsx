@@ -136,6 +136,17 @@ function getBhkTypes(pt: string) {
   return BHK_TYPES_RESIDENTIAL
 }
 
+const PROJECT_PHASE_OPTIONS = [
+  { value: 'planning',               label: 'Planning' },
+  { value: 'land_acquisition',       label: 'Land Acquisition' },
+  { value: 'approvals_in_progress',  label: 'Approvals in Progress' },
+  { value: 'foundation',             label: 'Foundation' },
+  { value: 'structure',              label: 'Structure' },
+  { value: 'finishing',              label: 'Finishing' },
+  { value: 'possession_ready',       label: 'Possession Ready' },
+  { value: 'completed',              label: 'Completed' },
+]
+
 const CURRENT_YEAR = new Date().getFullYear()
 const POSSESSION_YEAR_MIN = CURRENT_YEAR + 1
 const POSSESSION_YEAR_MAX = CURRENT_YEAR + 10
@@ -398,6 +409,8 @@ export default function CreateOpportunityPage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [propertyType, setPropertyType] = useState<string>('')
   const [developmentType, setDevelopmentType] = useState<string>('')
+  const [projectPhaseField, setProjectPhaseField] = useState<string>('')
+  const [holdingPeriodMonthsField, setHoldingPeriodMonthsField] = useState<string>('')
   const [gstPercentage, setGstPercentage] = useState<string>('')
   const [projectedMarketValueAtExit, setProjectedMarketValueAtExit] = useState<string>('')
   const [purposeOfFunds, setPurposeOfFunds] = useState<string>('')
@@ -725,6 +738,8 @@ export default function CreateOpportunityPage() {
       ...(propertyType && {
         property_type: propertyType,
         ...(developmentType && { development_type: developmentType }),
+        ...(projectPhaseField && { projectPhase: projectPhaseField }),
+        ...(holdingPeriodMonthsField && { holding_period_months: Number(holdingPeriodMonthsField) }),
         ...(gstPercentage && { gst_percentage: Number(gstPercentage) }),
         ...(projectedMarketValueAtExit && { projected_market_value_at_exit: Number(projectedMarketValueAtExit) }),
         ...(purposeOfFunds && { purpose_of_funds: purposeOfFunds }),
@@ -1162,6 +1177,19 @@ export default function CreateOpportunityPage() {
                           )}
                           {fe('landParcelSqft') && <p className={ERR_MSG}><AlertCircle className="h-3 w-3" /> {formErrors.landParcelSqft}</p>}
                         </div>
+                        <div className="col-span-2">
+                          <label className={LABEL_CLS}>Current Stage <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                          <select
+                            className={SELECT_CLS}
+                            value={projectPhaseField}
+                            onChange={(e) => setProjectPhaseField(e.target.value)}
+                          >
+                            <option value="">Select phase…</option>
+                            {PROJECT_PHASE_OPTIONS.map((p) => (
+                              <option key={p.value} value={p.value}>{p.label}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </div>
 
@@ -1306,6 +1334,18 @@ export default function CreateOpportunityPage() {
                         <h3 className={SECTION_HEADING}>Additional Financials</h3>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
+                            <label className={LABEL_CLS}>Holding Period (Months) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                            <input
+                              type="number"
+                              min={1}
+                              step={1}
+                              className={INPUT_CLS}
+                              value={holdingPeriodMonthsField}
+                              onChange={(e) => setHoldingPeriodMonthsField(e.target.value)}
+                              placeholder="e.g. 48"
+                            />
+                          </div>
+                          <div>
                             <label className={LABEL_CLS}>GST Percentage (%) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
                             <input
                               type="number"
@@ -1317,15 +1357,15 @@ export default function CreateOpportunityPage() {
                               placeholder="e.g. 5"
                             />
                           </div>
-                          <div>
-                            <label className={LABEL_CLS}>Projected Market Value at exit (₹) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                          <div className="col-span-2">
+                            <label className={LABEL_CLS}>Projected Market Value at exit (₹/Sq.Ft) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
                             <input
                               type="number"
                               min={0}
                               className={INPUT_CLS}
                               value={projectedMarketValueAtExit}
                               onChange={(e) => setProjectedMarketValueAtExit(e.target.value)}
-                              placeholder="e.g. 15000000"
+                              placeholder="e.g. 14000"
                             />
                           </div>
                           <div className="col-span-2">
