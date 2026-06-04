@@ -10,10 +10,10 @@ interface FoundingTeamMember {
   name: string
   title: string
   description: string
-  previous_experience: string[]
-  photo_url?: string
-  sort_order: number
-  is_active: boolean
+  previousExperience: string[]
+  photoUrl?: string
+  sortOrder: number
+  isActive: boolean
 }
 
 export function FoundingTeamPanel() {
@@ -132,7 +132,7 @@ export function FoundingTeamPanel() {
           </p>
         </div>
         <button
-          onClick={() => setEditing({ name: '', title: '', description: '', previous_experience: [], sort_order: 0, is_active: true })}
+          onClick={() => setEditing({ name: '', title: '', description: '', previousExperience: [], sortOrder: 0, isActive: true })}
           className="btn-primary inline-flex items-center gap-2 text-sm"
         >
           <Plus className="h-4 w-4" /> Add Member
@@ -143,8 +143,8 @@ export function FoundingTeamPanel() {
         {members?.map((member) => (
           <div key={member.id} className="bg-[var(--bg-card)] rounded-xl border border-theme/60 p-4 flex gap-4">
             <div className="relative h-24 w-24 rounded-xl overflow-hidden bg-theme-surface shrink-0 border border-theme flex items-center justify-center group">
-              {member.photo_url ? (
-                <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
+              {member.photoUrl ? (
+                <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
               ) : (
                 <Users className="h-8 w-8 text-theme-tertiary" />
               )}
@@ -167,8 +167,8 @@ export function FoundingTeamPanel() {
                   <p className="text-xs font-medium text-primary mt-0.5">{member.title}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${member.is_active ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-theme-surface-hover text-theme-tertiary'}`}>
-                    {member.is_active ? 'Active' : 'Hidden'}
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${member.isActive ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-theme-surface-hover text-theme-tertiary'}`}>
+                    {member.isActive ? 'Active' : 'Hidden'}
                   </span>
                   <button onClick={() => setEditing(member)} className="p-1.5 rounded-lg border border-theme hover:bg-theme-surface text-theme-tertiary hover:text-theme-secondary transition-colors">
                     <Edit2 className="h-3.5 w-3.5" />
@@ -227,8 +227,8 @@ export function FoundingTeamPanel() {
                 <label className="block text-xs font-semibold text-theme-secondary mb-1">Previous Experience (Comma separated)</label>
                 <input
                   type="text"
-                  value={editing.previous_experience?.join(', ') || ''}
-                  onChange={(e) => setEditing({ ...editing, previous_experience: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  value={editing.previousExperience?.join(', ') || ''}
+                  onChange={(e) => setEditing({ ...editing, previousExperience: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                   className="w-full rounded-xl border border-theme bg-theme-surface px-4 py-2.5 text-sm text-theme-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   placeholder="e.g. Ex-Google, Ex-McKinsey"
                 />
@@ -237,8 +237,8 @@ export function FoundingTeamPanel() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={editing.is_active ?? true}
-                    onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })}
+                    checked={editing.isActive ?? true}
+                    onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })}
                     className="rounded border-theme text-primary focus:ring-primary"
                   />
                   <span className="text-sm font-medium text-theme-primary">Active (Visible)</span>
@@ -248,8 +248,8 @@ export function FoundingTeamPanel() {
                   <span className="text-xs font-semibold text-theme-secondary">Sort Order</span>
                   <input
                     type="number"
-                    value={editing.sort_order || 0}
-                    onChange={(e) => setEditing({ ...editing, sort_order: parseInt(e.target.value) || 0 })}
+                    value={editing.sortOrder || 0}
+                    onChange={(e) => setEditing({ ...editing, sortOrder: parseInt(e.target.value) || 0 })}
                     className="w-20 rounded-lg border border-theme bg-theme-surface px-3 py-1.5 text-sm text-theme-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </label>
