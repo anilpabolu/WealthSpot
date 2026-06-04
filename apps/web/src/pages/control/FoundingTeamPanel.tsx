@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, Check, Loader2, Upload, Users, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
@@ -186,8 +187,8 @@ export function FoundingTeamPanel() {
         ))}
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      {editing && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style={{ zIndex: 9999 }}>
           <div className="bg-[var(--bg-card)] rounded-2xl w-full max-w-lg border border-theme shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-theme-surface/30">
               <h3 className="font-display font-semibold text-theme-primary">{editing.id ? 'Edit Member' : 'Add Member'}</h3>
@@ -271,7 +272,8 @@ export function FoundingTeamPanel() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
