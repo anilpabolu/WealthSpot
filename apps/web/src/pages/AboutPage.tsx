@@ -342,9 +342,9 @@ function FoundingTeamSection() {
 
   // Use dummy data if no members yet for showcase
   const displayMembers = members && members.length > 0 ? members : [
-    { id: '1', name: 'Alexander Sterling', title: 'Founder & CEO', description: 'With over 20 years in institutional real estate, Alexander has structured more than $2B in premium asset transactions globally. He previously served as Managing Director at a premier global investment firm, where he pioneered structured real estate products for UHNW individuals. His vision for WealthSpot is to democratize access to the top 1% of real estate opportunities with uncompromising governance.', previous_experience: ['Ex-Managing Director, BlackRock Real Estate', 'Wharton MBA', '20+ Years Institutional RE'], photo_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800' },
-    { id: '2', name: 'Elena Rostova', title: 'Chief Investment Officer', description: 'Elena brings rigorous institutional discipline to WealthSpot. As former Head of Alternatives at a major European sovereign wealth fund, she specialized in prime commercial and luxury residential markets. She leads WealthSpot’s independent advisory panel and due diligence frameworks, ensuring every opportunity presented meets the strictest global standards of capital preservation and yield generation.', previous_experience: ['Former Head of Alternatives, Sovereign Fund', 'London School of Economics', '15+ Years Global Markets'], photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800' },
-    { id: '3', name: 'Marcus Chen', title: 'Chief Technology Officer', description: 'A highly accomplished technologist, Marcus architected scalable, high-security financial infrastructure for top-tier fintech unicorns. He ensures the WealthSpot platform operates with enterprise-grade data privacy, seamless transaction architecture, and real-time intelligence, delivering a flawless digital experience that matches the exclusivity of our real estate portfolio.', previous_experience: ['Ex-Stripe Engineering Lead', 'Stanford Computer Science', 'Fintech Infrastructure Expert'], photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800' },
+    { id: '1', name: 'Alexander Sterling', title: 'Founder & CEO', description: 'With over 20 years in institutional real estate, Alexander has structured more than $2B in premium asset transactions globally. He previously served as Managing Director at a premier global investment firm, where he pioneered structured real estate products for UHNW individuals. His vision for WealthSpot is to democratize access to the top 1% of real estate opportunities with uncompromising governance.', previousExperience: ['Ex-Managing Director, BlackRock Real Estate', 'Wharton MBA', '20+ Years Institutional RE'], photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800' },
+    { id: '2', name: 'Elena Rostova', title: 'Chief Investment Officer', description: 'Elena brings rigorous institutional discipline to WealthSpot. As former Head of Alternatives at a major European sovereign wealth fund, she specialized in prime commercial and luxury residential markets. She leads WealthSpot’s independent advisory panel and due diligence frameworks, ensuring every opportunity presented meets the strictest global standards of capital preservation and yield generation.', previousExperience: ['Former Head of Alternatives, Sovereign Fund', 'London School of Economics', '15+ Years Global Markets'], photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800' },
+    { id: '3', name: 'Marcus Chen', title: 'Chief Technology Officer', description: 'A highly accomplished technologist, Marcus architected scalable, high-security financial infrastructure for top-tier fintech unicorns. He ensures the WealthSpot platform operates with enterprise-grade data privacy, seamless transaction architecture, and real-time intelligence, delivering a flawless digital experience that matches the exclusivity of our real estate portfolio.', previousExperience: ['Ex-Stripe Engineering Lead', 'Stanford Computer Science', 'Fintech Infrastructure Expert'], photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800' },
   ]
 
   const activeMember = displayMembers[activeIndex]
@@ -401,8 +401,8 @@ function FoundingTeamSection() {
                   className={`snap-center shrink-0 w-[280px] sm:w-[320px] aspect-[3/4] rounded-3xl overflow-hidden relative cursor-pointer transition-all duration-500 ${activeIndex === idx ? 'scale-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ring-4 ring-[#D4AF37]/30' : 'scale-90 opacity-50 hover:opacity-80'}`}
                   onClick={() => scrollTo(idx)}
                 >
-                  {member.photo_url ? (
-                    <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
+                  {member.photoUrl ? (
+                    <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-slate-200 flex items-center justify-center">
                       <Users className="w-16 h-16 text-slate-400" />
@@ -450,11 +450,11 @@ function FoundingTeamSection() {
                 {activeMember?.description}
               </p>
 
-              {activeMember?.previous_experience && activeMember.previous_experience.length > 0 && (
+              {activeMember?.previousExperience && activeMember.previousExperience.length > 0 && (
                 <div className="relative z-10">
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">Previous Experience</p>
                   <ul className="space-y-3">
-                    {activeMember.previous_experience.map((exp: string, idx: number) => (
+                    {activeMember.previousExperience.map((exp: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-3">
                         <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0 shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
                         <span className="font-body text-[14px] text-[#111827] font-medium leading-snug">{exp}</span>
