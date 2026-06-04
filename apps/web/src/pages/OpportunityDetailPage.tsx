@@ -683,20 +683,19 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
-            {/* Offering Configurations — reads camelCase keys (convertKeysToCamel is deep recursive) */}
-            {opp.propertySpecs && (() => {
-              const specs = opp.propertySpecs as Record<string, unknown>
-              const isPlot = opp.propertyType === 'plot'
+            {/* Offering Configurations — unit or plot table derived from property_specs */}
+            {opp.property_specs && (() => {
+              const specs = opp.property_specs as Record<string, unknown>
+              const isPlot = opp.property_type === 'plot'
 
-              // After the deep camelCase transform: super_built_up_sqft → superBuiltUpSqft, etc.
-              type UnitCfg = { type: string; superBuiltUpSqft?: number; pricePerSqft?: number }
-              type PlotCfg = { type: string; areaSqft?: number; pricePerSqft?: number; totalPlots?: number }
+              type UnitCfg = { type: string; super_built_up_sqft?: number; price_per_sqft?: number }
+              type PlotCfg = { type: string; area_sqft?: number; price_per_sqft?: number; total_plots?: number }
 
               const unitConfigs = !isPlot
                 ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
                 : undefined
               const plotConfigs = isPlot
-                ? (specs.plotConfigurations as PlotCfg[] | undefined)?.filter(p => p.type)
+                ? (specs.plot_configurations as PlotCfg[] | undefined)?.filter(p => p.type)
                 : undefined
 
               const rows = isPlot ? plotConfigs : unitConfigs
@@ -729,12 +728,12 @@ export default function OpportunityDetailPage() {
                       <tbody className="divide-y divide-[var(--border-subtle)]">
                         {isPlot
                           ? (plotConfigs as PlotCfg[]).map((p, i) => {
-                              const cost = p.areaSqft && p.pricePerSqft ? p.areaSqft * p.pricePerSqft : null
+                              const cost = p.area_sqft && p.price_per_sqft ? p.area_sqft * p.price_per_sqft : null
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{p.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.areaSqft ? p.areaSqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.pricePerSqft ? `₹${p.pricePerSqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.area_sqft ? p.area_sqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.price_per_sqft ? `₹${p.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
                                   <td className="py-3.5 pl-4">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
@@ -744,12 +743,12 @@ export default function OpportunityDetailPage() {
                               )
                             })
                           : (unitConfigs as UnitCfg[]).map((u, i) => {
-                              const cost = u.superBuiltUpSqft && u.pricePerSqft ? u.superBuiltUpSqft * u.pricePerSqft : null
+                              const cost = u.super_built_up_sqft && u.price_per_sqft ? u.super_built_up_sqft * u.price_per_sqft : null
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{u.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.superBuiltUpSqft ? u.superBuiltUpSqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.pricePerSqft ? `₹${u.pricePerSqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.super_built_up_sqft ? u.super_built_up_sqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.price_per_sqft ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
                                   <td className="py-3.5 pl-4">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
@@ -766,7 +765,7 @@ export default function OpportunityDetailPage() {
                   <div className="mt-5 pt-4 border-t border-[var(--border-subtle)]">
                     <p className="text-[11px] text-theme-tertiary leading-relaxed">
                       <span className="font-semibold text-theme-secondary">Disclaimer: </span>
-                      Unit configurations and area statements are indicative placeholders and subject to revision based on final design and government statutory approvals.
+                      The unit configurations, floor plans, and indicative pricing presented herein are subject to revision and may be amended in accordance with final statutory approvals, RERA registration, and applicable regulatory or planning authority sanctions. All information is provided solely for indicative purposes and does not constitute a binding offer, representation, or warranty of any kind. Prospective investors are strongly advised to conduct independent due diligence and review the final approved project plans, RERA disclosures, and all relevant documentation prior to making any investment decision.
                     </p>
                   </div>
                 </div>
