@@ -6,6 +6,7 @@ import type { StatusType } from './StatusBadge'
 import { Mail, MessageCircle, Trash2, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { memo, useState, useEffect, useRef, useCallback } from 'react'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
+import WLogo3D from '@/components/ui/WLogo3D'
 
 export interface PropertyCardProps {
   title: string
@@ -67,6 +68,7 @@ export default memo(function PropertyCard({
 
   // All hooks must be called unconditionally (before any early return)
   const [activeIdx, setActiveIdx] = useState(0)
+  const [imageError, setImageError] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const touchStartRef = useRef<number>(0)
 
@@ -140,14 +142,21 @@ export default memo(function PropertyCard({
           }
         }}
       >
-        <img
-          src={images[activeIdx]}
-          alt={`${title} - Image ${activeIdx + 1}`}
-          className="absolute inset-0 block w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
-          loading="lazy"
-          width={640}
-          height={480}
-        />
+        {(!images[activeIdx] || imageError) ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-50 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105">
+            <WLogo3D size={64} light={false} />
+          </div>
+        ) : (
+          <img
+            src={images[activeIdx]}
+            alt={`${title} - Image ${activeIdx + 1}`}
+            className="absolute inset-0 block w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
+            loading="lazy"
+            width={640}
+            height={480}
+            onError={() => setImageError(true)}
+          />
+        )}
 
         {/* Prev/Next buttons (visible on hover) */}
         {hasMultiple && (
