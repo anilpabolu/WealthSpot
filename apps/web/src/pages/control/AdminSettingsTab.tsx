@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Edit3, Check, Loader2, ChevronDown, ChevronUp,
   Lock, Unlock, Video, Eye, Play, Bell, FileSpreadsheet,
-  Settings, ClipboardCheck, Building2, Users, Palette, LayoutList,
+  Settings, ClipboardCheck, Building2, Users, Palette, LayoutList, Upload
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -15,6 +15,83 @@ import { useToastStore } from '@/stores/toastStore'
 import { applyThemePalette } from '@/lib/colorUtils'
 import { CenteredLoader } from './shared'
 import { FoundingTeamPanel } from './FoundingTeamPanel'
+import { useAdminVideos, useCreateAppVideo, useUploadAppVideo } from '@/hooks/useAppVideos'
+
+/* ------------------------------------------------------------------ */
+/*  HeroVideoPanel                                                     */
+/* ------------------------------------------------------------------ */
+
+function HeroVideoPanel() {
+  const { data: adminVideos, isLoading } = useAdminVideos('home')
+  const heroVideo = adminVideos?.find((v) => v.sectionTag === 'hero_video')
+  const createVideo = useCreateAppVideo()
+  const uploadVideo = useUploadAppVideo()
+
+  const [uploading, setUploading] = useState(false)
+
+  const handleUpload = async (file: File) => {
+    setUploading(true)
+    try {
+      if (heroVideo) {
+        await uploadVideo.mutateAsync({ id: heroVideo.id, file })
+      } else {
+        const newVideo = await createVideo.mutateAsync({
+          page: 'home',
+          sectionTag: 'hero_video',
+          title: 'Landing Page Hero Video',
+          videoUrl: '', 
+        })
+        await uploadVideo.mutateAsync({ id: newVideo.id, file })
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  if (isLoading) return <CenteredLoader />
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-theme-primary">Current Hero Video</h3>
+          <p className="text-xs text-theme-secondary">This video is currently playing on the landing page.</p>
+        </div>
+        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors cursor-pointer disabled:opacity-50">
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? 'Uploading...' : 'Upload New Video'}
+          <input
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            className="sr-only"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) handleUpload(f)
+              e.target.value = ''
+            }}
+          />
+        </label>
+      </div>
+
+      <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-theme">
+        {heroVideo?.videoUrl ? (
+          <video
+            src={heroVideo.videoUrl}
+            controls
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50">
+            <Video className="h-10 w-10 mb-2" />
+            <p className="text-sm">No custom video uploaded.</p>
+            <p className="text-xs mt-1">Default landing video is currently active.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  ConfigTab (generic)                                                */
@@ -1052,6 +1129,7 @@ function OpportunityFormPanel() {
 /* ------------------------------------------------------------------ */
 
 const ADMIN_SECTIONS = [
+  { key: 'hero-video', title: 'Landing Hero Video', description: 'Change the video playing on the landing page hero section.', icon: Video },
   { key: 'opportunity-form', title: 'Opportunity Form Sections', description: 'Show or hide Investment Configuration, Investment Details, and Amenities sections on the opportunity creation form.', icon: LayoutList },
   { key: 'vaults', title: 'Vault Management', description: 'Enable or disable vaults platform-wide. Disabled vaults show "Coming Soon" everywhere.', icon: Lock },
   { key: 'video-content', title: 'Video Content', description: 'Control video visibility per category — intro, vault, property, and admin video management.', icon: Video },
@@ -1093,7 +1171,7 @@ export default function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-theme px-5 py-5">
-                  {sec.key === 'opportunity-form' ? <OpportunityFormPanel /> : sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'founding-team' ? <FoundingTeamPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
+                  {sec.key === 'hero-video' ? <HeroVideoPanel /> : sec.key === 'opportunity-form' ? <OpportunityFormPanel /> : sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'founding-team' ? <FoundingTeamPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>
