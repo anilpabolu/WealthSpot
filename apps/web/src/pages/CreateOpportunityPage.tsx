@@ -240,7 +240,7 @@ const SECTION_HEADING = 'font-display text-[var(--text-primary)] font-bold text-
 const ERR_MSG = 'text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium'
 
 // Step definitions
-type WizardStep = 'vault' | 'community-subtype' | 'details' | 'shield' | 'uploading'
+type WizardStep = 'vault' | 'community-subtype' | 'details' | 'shield' | 'thesis' | 'uploading'
 
 
 
@@ -421,6 +421,19 @@ export default function CreateOpportunityPage() {
   const [mapsUrl, setMapsUrl] = useState<string>('')
   // Location USPs
   const [locationUsps, setLocationUsps] = useState<LocationUsp[]>([{ id: '1', text: '', category: 'other' }])
+
+  // Roadmap & Thesis
+  const [projectRoadmap, setProjectRoadmap] = useState([
+    { id: '1', phase: 'Phase 1', stage: 'Land Acquisition Completion', timeline: 'Mar-2026 - July-2027' },
+    { id: '2', phase: 'Phase 2', stage: 'Investor Allocation & Share Deed Execution', timeline: '' },
+    { id: '3', phase: 'Phase 3', stage: 'Regulatory & RERA Approvals', timeline: '' },
+    { id: '4', phase: 'Phase 4', stage: 'Construction & Development', timeline: '' },
+    { id: '5', phase: 'Phase 5', stage: 'Project Launch & Value Realisation', timeline: '' },
+    { id: '6', phase: 'Phase 6', stage: 'Possession / Exit Event', timeline: '' }
+  ])
+  const [riskFactors, setRiskFactors] = useState('Real estate investments are subject to market risk, approval delays, execution risks, regulatory changes and liquidity constraints. Investors should review all project documentation before investing.')
+  const [whyInvestors, setWhyInvestors] = useState("A rare opportunity to participate at the land-acquisition stage of a future integrated township in Bengaluru's high-growth Sarjapur corridor, with exposure to the value creation journey from acquisition to development and eventual market launch.")
+  const [investmentThesis, setInvestmentThesis] = useState("Why This Opportunity?\n\n✓ Entry at pre-development valuation\n✓ Located in Bengaluru's fastest-growing residential corridor\n✓ Integrated township model with residential, retail, healthcare and education ecosystem\n✓ Strong infrastructure growth expected in the Sarjapur belt\n✓ Potential appreciation from land-stage pricing to launch-stage valuation\n✓ Institutional-style due diligence framework conducted by WealthSpot")
 
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
@@ -635,7 +648,8 @@ export default function CreateOpportunityPage() {
       setShieldStepAttempted(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      handleSubmit()
+      setStep('thesis')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -731,6 +745,10 @@ export default function CreateOpportunityPage() {
           { categoryCode: ans.categoryCode, subcategoryCode: ans.subcategoryCode, value: ans.value, isPublic: ans.isPublic },
         ])
       ),
+      project_roadmap: projectRoadmap.map(r => ({ phase: r.phase, stage: r.stage, timeline: r.timeline })),
+      risk_factors: riskFactors,
+      why_investors: whyInvestors,
+      investment_thesis: investmentThesis,
     }
 
     try {
@@ -1957,22 +1975,153 @@ export default function CreateOpportunityPage() {
               <button
                 type="button"
                 onClick={handleShieldNext}
-                disabled={createMutation.isPending}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm bg-[#0A1A2F] text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#0d2240] hover:border-[#D4AF37]/60 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
               >
-                {shieldStepIndex === ASSESSMENT_CATEGORIES.length - 1 ? (
-                  createMutation.isPending ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
-                  ) : (
-                    <><ShieldCheck className="h-4 w-4" /> Submit for Approval</>
-                  )
-                ) : (
-                  <>Continue <ChevronRight className="h-4 w-4" /></>
-                )}
+                Continue <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
 
+        )}
+
+        {/* ─── Roadmap & Thesis Step ─── */}
+        {step === 'thesis' && (
+          <div className="space-y-6 max-w-4xl mx-auto pb-10">
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Project Roadmap</h3>
+              <p className="text-[var(--text-tertiary)] text-[11px] mb-4 leading-relaxed">
+                Define the phases and stages of the project. This helps investors understand the value creation journey and timeline.
+              </p>
+              
+              <div className="space-y-4 relative">
+                {/* Connecting Line background */}
+                <div className="absolute left-4 top-4 bottom-4 w-[2px] bg-[#D4AF37]/20 z-0"></div>
+                
+                {projectRoadmap.map((r, i) => (
+                  <div key={r.id} className="relative z-10 flex gap-4">
+                    {/* Node indicator */}
+                    <div className="w-8 h-8 rounded-full bg-white border-2 border-[#D4AF37] flex-shrink-0 flex items-center justify-center shadow-sm">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37]" />
+                    </div>
+                    
+                    <div className="flex-grow grid grid-cols-[1fr_2fr_1fr_auto] gap-3 items-start bg-white border border-[rgba(209,196,157,0.3)] p-3 rounded-xl shadow-sm">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-[var(--text-tertiary)] mb-1">Phase</label>
+                        <input
+                          className="w-full text-sm border-b border-[rgba(209,196,157,0.5)] focus:border-[#D4AF37] outline-none py-1 text-[#2f4a4a]"
+                          value={r.phase}
+                          placeholder="e.g. Phase 1"
+                          onChange={(e) => {
+                            setProjectRoadmap(projectRoadmap.map((item, idx) => idx === i ? { ...item, phase: e.target.value } : item))
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-[var(--text-tertiary)] mb-1">Stage</label>
+                        <input
+                          className="w-full text-sm border-b border-[rgba(209,196,157,0.5)] focus:border-[#D4AF37] outline-none py-1 text-[#2f4a4a]"
+                          value={r.stage}
+                          placeholder="e.g. Land Acquisition"
+                          onChange={(e) => {
+                            setProjectRoadmap(projectRoadmap.map((item, idx) => idx === i ? { ...item, stage: e.target.value } : item))
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-[var(--text-tertiary)] mb-1">Timeline</label>
+                        <input
+                          className="w-full text-sm border-b border-[rgba(209,196,157,0.5)] focus:border-[#D4AF37] outline-none py-1 text-[#2f4a4a]"
+                          value={r.timeline}
+                          placeholder="e.g. Mar-2026 - July-2027"
+                          onChange={(e) => {
+                            setProjectRoadmap(projectRoadmap.map((item, idx) => idx === i ? { ...item, timeline: e.target.value } : item))
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setProjectRoadmap(projectRoadmap.filter((_, idx) => idx !== i))}
+                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg mt-4 transition-colors"
+                        title="Remove stage"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-5 ml-12">
+                <button
+                  type="button"
+                  onClick={() => setProjectRoadmap([...projectRoadmap, { id: crypto.randomUUID(), phase: '', stage: '', timeline: '' }])}
+                  className="text-xs font-semibold text-[#8B6914] bg-[rgba(212,175,55,0.1)] hover:bg-[rgba(212,175,55,0.2)] px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  <span className="text-lg leading-none">+</span> Add Roadmap Stage
+                </button>
+              </div>
+              
+              <p className="text-xs italic text-[var(--text-tertiary)] mt-6 text-center">
+                Timelines are indicative and subject to statutory approvals and market conditions.
+              </p>
+            </div>
+
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Risk Factors</h3>
+              <textarea
+                rows={4}
+                className="w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] px-4 py-3 text-sm outline-none resize-y focus:border-[#D4AF37]/70 focus:ring-2 focus:ring-[#D4AF37]/15"
+                value={riskFactors}
+                onChange={(e) => setRiskFactors(e.target.value)}
+              />
+            </div>
+
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Why Investors Are Looking At {form.title || 'This Project'}</h3>
+              <textarea
+                rows={4}
+                className="w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] px-4 py-3 text-sm outline-none resize-y focus:border-[#D4AF37]/70 focus:ring-2 focus:ring-[#D4AF37]/15"
+                value={whyInvestors}
+                onChange={(e) => setWhyInvestors(e.target.value)}
+              />
+            </div>
+
+            <div className={CARD_CLS}>
+              <h3 className={SECTION_HEADING}>Investment Thesis</h3>
+              <textarea
+                rows={8}
+                className="w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-[#f8faf9] text-[#2f4a4a] placeholder-[#768588] px-4 py-3 text-sm outline-none resize-y focus:border-[#D4AF37]/70 focus:ring-2 focus:ring-[#D4AF37]/15 whitespace-pre-wrap font-mono"
+                value={investmentThesis}
+                onChange={(e) => setInvestmentThesis(e.target.value)}
+              />
+            </div>
+
+            <div className="bg-white border border-[rgba(209,196,157,0.28)] rounded-2xl px-6 py-4 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.05)] mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('shield')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] text-sm font-medium transition-colors px-3 py-2 rounded-lg hover:bg-[rgba(212,175,55,0.08)]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Shield
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={createMutation.isPending}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm bg-[#0A1A2F] text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#0d2240] hover:border-[#D4AF37]/60 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+              >
+                {createMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                ) : (
+                  <><ShieldCheck className="h-4 w-4" /> Submit for Approval</>
+                )}
+              </button>
+            </div>
+          </div>
         )}
 
       </div>

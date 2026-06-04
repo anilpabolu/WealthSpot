@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, Check, Loader2, Upload, Users, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -75,9 +75,7 @@ export function FoundingTeamPanel() {
     mutationFn: async ({ id, file }: { id: string; file: File }) => {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await api.post(`/founding-team/admin/${id}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      const res = await api.post(`/founding-team/admin/${id}/photo`, formData)
       return res.data
     },
     onSuccess: () => {
@@ -90,7 +88,6 @@ export function FoundingTeamPanel() {
   })
 
   const [editing, setEditing] = useState<Partial<FoundingTeamMember> | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingId, setUploadingId] = useState<string | null>(null)
 
   const handleSave = () => {
@@ -114,7 +111,7 @@ export function FoundingTeamPanel() {
         onSettled: () => setUploadingId(null)
       })
     }
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    e.target.value = ''
   }
 
   if (isLoading) {

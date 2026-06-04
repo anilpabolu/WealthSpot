@@ -69,6 +69,10 @@ export interface OpportunityItem {
   amenity_cost_estimate: number | null
   projectPhase: string | null
   currentValuation: number | null
+  project_roadmap: Array<Record<string, any>> | null
+  risk_factors: string | null
+  why_investors: string | null
+  investment_thesis: string | null
   coverImage: string | null
   videoUrl: string | null
   gallery: string[] | null
@@ -178,6 +182,10 @@ export interface OpportunityCreatePayload {
   shield_answers?: Record<string, unknown>
   targetIrr?: number
   projectPhase?: string
+  project_roadmap?: Array<Record<string, any>>
+  risk_factors?: string
+  why_investors?: string
+  investment_thesis?: string
 }
 
 export type OpportunityUpdatePayload = Partial<OpportunityCreatePayload> & {

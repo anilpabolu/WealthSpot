@@ -150,7 +150,12 @@ class Opportunity(Base):
     # Unique Selling Propositions (USPs) — legacy flat list
     usps: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
     # Location USPs — structured list of {text, category} items (mall, metro, hospital, etc.)
-    location_usps: Mapped[list[dict] | None] = mapped_column(JSONB)
+    location_usps: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    # Project Roadmap and Thesis
+    project_roadmap: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    risk_factors: Mapped[str | None] = mapped_column(Text)
+    why_investors: Mapped[str | None] = mapped_column(Text)
+    investment_thesis: Mapped[str | None] = mapped_column(Text)
     # Google Maps URL / share link
     maps_url: Mapped[str | None] = mapped_column(Text)
     # Project lifecycle phase

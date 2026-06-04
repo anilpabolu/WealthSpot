@@ -64,7 +64,24 @@ function PropertyGallery({ images, title, videoUrl, status }: { images: string[]
           src={images[activeIdx]}
           alt={`${title} - Image ${activeIdx + 1}`}
           className="w-full h-full object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-theme-surface-hover'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }}
+          onError={(e) => { 
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none'; 
+            target.parentElement?.classList.add('bg-theme-surface-hover');
+            
+            if (!target.parentElement?.querySelector('.fallback-placeholder')) {
+              const placeholder = document.createElement('div'); 
+              placeholder.className = 'fallback-placeholder absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; 
+              placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; 
+              target.parentElement?.appendChild(placeholder);
+            }
+          }}
+          onLoad={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'block';
+            const placeholder = target.parentElement?.querySelector('.fallback-placeholder');
+            if (placeholder) placeholder.remove();
+          }}
         />
         {images.length > 1 && (
           <>

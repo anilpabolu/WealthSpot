@@ -322,6 +322,10 @@ class OpportunityRead(BaseModel):
     closing_date: datetime | None = None
     # Investment configuration mode
     investment_mode: str | None = "lumpsum"
+    project_roadmap: list[dict[str, Any]] | None = None
+    risk_factors: str | None = None
+    why_investors: str | None = None
+    investment_thesis: str | None = None
     created_at: datetime
     updated_at: datetime
     creator: OpportunityCreatorRead | None = None
@@ -419,6 +423,10 @@ class OpportunityCreateRequest(BaseModel):
     # Investment configuration mode: 'lumpsum' or 'unit_config'
     investment_mode: str | None = "lumpsum"
     shield_answers: dict[str, Any] | None = None
+    project_roadmap: list[dict[str, Any]] | None = None
+    risk_factors: str | None = None
+    why_investors: str | None = None
+    investment_thesis: str | None = None
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -481,6 +489,11 @@ class OpportunityUpdateRequest(BaseModel):
     status: str | None = None
     # Investment configuration mode: 'lumpsum' or 'unit_config'
     investment_mode: str | None = None
+    shield_answers: dict[str, Any] | None = None
+    project_roadmap: list[dict[str, Any]] | None = None
+    risk_factors: str | None = None
+    why_investors: str | None = None
+    investment_thesis: str | None = None
     # Investment management (admin only)
     cancel_investments: bool = False
 

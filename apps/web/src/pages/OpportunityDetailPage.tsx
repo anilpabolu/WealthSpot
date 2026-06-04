@@ -205,7 +205,7 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
     <>
       <div className="space-y-3">
         <div
-          className="rounded-xl overflow-hidden relative bg-black/5 dark:bg-white/5"
+          className="aspect-video rounded-xl overflow-hidden relative bg-black/5 dark:bg-white/5"
           onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? 0 }}
           onTouchEnd={(e) => {
             const diff = touchStartRef.current - (e.changedTouches[0]?.clientX ?? 0)
@@ -216,7 +216,30 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
             }
           }}
         >
-          <img src={images[activeIdx]} alt={`${title} - ${activeIdx + 1}`} className="w-full h-auto block object-contain" onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('bg-theme-surface-hover'); const placeholder = document.createElement('div'); placeholder.className = 'absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; (e.target as HTMLImageElement).parentElement?.appendChild(placeholder); }} />
+          <img 
+            src={images[activeIdx]} 
+            alt={`${title} - ${activeIdx + 1}`} 
+            className="w-full h-full block object-contain" 
+            onError={(e) => { 
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none'; 
+              target.parentElement?.classList.add('bg-theme-surface-hover');
+              
+              // Only add placeholder if it doesn't exist
+              if (!target.parentElement?.querySelector('.fallback-placeholder')) {
+                const placeholder = document.createElement('div'); 
+                placeholder.className = 'fallback-placeholder absolute inset-0 flex items-center justify-center bg-theme-surface-hover'; 
+                placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-theme-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'; 
+                target.parentElement?.appendChild(placeholder);
+              }
+            }}
+            onLoad={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'block';
+              const placeholder = target.parentElement?.querySelector('.fallback-placeholder');
+              if (placeholder) placeholder.remove();
+            }}
+          />
           {images.length > 1 && (
             <>
               <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow" aria-label="Previous image">
