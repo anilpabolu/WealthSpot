@@ -728,7 +728,7 @@ export default function OpportunityDetailPage() {
               
               return (
                 <div id="snapshot" className="card p-6 md:p-8 relative overflow-hidden scroll-mt-32">
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-500/70 via-emerald-400/50 to-teal-500/10" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                   <h2 className="font-display text-xl font-bold text-theme-primary mb-6 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-teal-500/15 text-teal-500 shrink-0"><Camera className="h-4 w-4" /></span>
                     Opportunity Snapshot
@@ -753,7 +753,7 @@ export default function OpportunityDetailPage() {
             {/* About this Opportunity */}
             {opp.description && (
               <div id="about" className="card p-6 relative overflow-hidden scroll-mt-32">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
                   style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.3), transparent)' }} />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
@@ -784,7 +784,7 @@ export default function OpportunityDetailPage() {
 
               return (
                 <div id="configurations" className="card p-6 relative overflow-hidden scroll-mt-32">
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/70 via-blue-400/50 to-indigo-500/10" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-5 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-500 shrink-0">
                       <Ruler className="h-4 w-4" />
@@ -905,7 +905,7 @@ export default function OpportunityDetailPage() {
               if (details.length === 0) return null
               return (
                 <div id="project-details" className="card p-6 relative overflow-hidden scroll-mt-32">
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-blue-500/10" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/15 text-blue-500 dark:text-blue-400 shrink-0"><FolderKanban className="h-4 w-4" /></span>
                     Project Details
@@ -963,7 +963,7 @@ export default function OpportunityDetailPage() {
               if (nonEmpty.length === 0) return null
               return (
                 <div id="amenities" className="card p-6 relative overflow-hidden scroll-mt-32">
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 dark:text-violet-400 shrink-0"><Sparkles className="h-4 w-4" /></span>
                     Amenities &amp; Features
@@ -1003,7 +1003,7 @@ export default function OpportunityDetailPage() {
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
               <div id="founder" className="card p-6 relative overflow-hidden scroll-mt-32">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 shrink-0">
                     <Sparkles className="h-4 w-4" />
