@@ -400,6 +400,10 @@ export default function CreateOpportunityPage() {
   const [uploadProgress, setUploadProgress] = useState('')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [propertyType, setPropertyType] = useState<string>('')
+  const [developmentType, setDevelopmentType] = useState<string>('')
+  const [gstPercentage, setGstPercentage] = useState<string>('')
+  const [projectedMarketValueAtExit, setProjectedMarketValueAtExit] = useState<string>('')
+  const [purposeOfFunds, setPurposeOfFunds] = useState<string>('')
   const [unitConfigs, setUnitConfigs] = useState<UnitConfigRow[]>([{ ...DEFAULT_UNIT_CONFIG }])
   const [plotConfigs, setPlotConfigs] = useState<PlotConfigRow[]>([{ ...DEFAULT_PLOT_CONFIG }])
   const [pricePerSqftField, setPricePerSqftField] = useState<string>('')
@@ -718,6 +722,10 @@ export default function CreateOpportunityPage() {
       ...(vaultType === 'safe' && { safeVaultData }),
       ...(propertyType && {
         property_type: propertyType,
+        ...(developmentType && { development_type: developmentType }),
+        ...(gstPercentage && { gst_percentage: Number(gstPercentage) }),
+        ...(projectedMarketValueAtExit && { projected_market_value_at_exit: Number(projectedMarketValueAtExit) }),
+        ...(purposeOfFunds && { purpose_of_funds: purposeOfFunds }),
         ...(pricePerSqftField && { price_per_sqft: Number(pricePerSqftField) }),
         ...(totalProjectAreaSqft && { total_project_area_sqft: Number(totalProjectAreaSqft) }),
         property_specs: propertySpecsPayload,
@@ -1157,7 +1165,7 @@ export default function CreateOpportunityPage() {
               <h3 className={SECTION_HEADING}>Basic Information</h3>
               <div className="space-y-3.5">
                 <div>
-                  <label className={LABEL_CLS}>Title <span className="text-red-400">*</span></label>
+                  <label className={LABEL_CLS}>Project Code Name <span className="text-red-400">*</span></label>
                   <input
                     className={fe('title') ? INPUT_ERR_CLS : INPUT_CLS}
                     value={form.title ?? ''}
@@ -1218,6 +1226,17 @@ export default function CreateOpportunityPage() {
                       </button>
                     ))}
                   </div>
+                  {propertyType && (
+                    <div className="mt-4">
+                      <label className={LABEL_CLS}>Development Type <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                      <input
+                        className={INPUT_CLS}
+                        value={developmentType}
+                        onChange={(e) => setDevelopmentType(e.target.value)}
+                        placeholder="e.g. High-rise Residential, Plotted Layout, etc."
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {propertyType && (
@@ -1430,6 +1449,48 @@ export default function CreateOpportunityPage() {
                               </div>
                             )
                           })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Financials */}
+                    {!!investmentMode && (
+                      <div className={CARD_CLS}>
+                        <h3 className={SECTION_HEADING}>Additional Financials</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className={LABEL_CLS}>GST Percentage (%) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.1}
+                              className={INPUT_CLS}
+                              value={gstPercentage}
+                              onChange={(e) => setGstPercentage(e.target.value)}
+                              placeholder="e.g. 5"
+                            />
+                          </div>
+                          <div>
+                            <label className={LABEL_CLS}>Projected Market Value at exit (₹) <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                            <input
+                              type="number"
+                              min={0}
+                              className={INPUT_CLS}
+                              value={projectedMarketValueAtExit}
+                              onChange={(e) => setProjectedMarketValueAtExit(e.target.value)}
+                              placeholder="e.g. 15000000"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className={LABEL_CLS}>Purpose of the Funds <span className="text-[var(--text-muted)] text-[10px] font-normal normal-case">(optional)</span></label>
+                            <textarea
+                              rows={3}
+                              className="w-full rounded-xl border border-[rgba(209,196,157,0.5)] bg-white text-[var(--text-primary)] font-body placeholder-[var(--text-muted)] px-3.5 py-2.5 text-sm focus:border-[#D4AF37]/60 focus:ring-2 focus:ring-[#D4AF37]/12 outline-none resize-none transition-colors"
+                              value={purposeOfFunds}
+                              onChange={(e) => setPurposeOfFunds(e.target.value)}
+                              placeholder="Describe how the raised funds will be utilized..."
+                            />
+                          </div>
                         </div>
                       </div>
                     )}

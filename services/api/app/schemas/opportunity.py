@@ -303,6 +303,10 @@ class OpportunityRead(BaseModel):
     current_valuation: float | None = None
     # Real-estate property specification fields
     property_type: str | None = None
+    development_type: str | None = None
+    gst_percentage: float | None = None
+    projected_market_value_at_exit: float | None = None
+    purpose_of_funds: str | None = None
     price_per_sqft: float | None = None
     total_project_area_sqft: float | None = None
     property_specs: dict[str, Any] | None = None
@@ -399,6 +403,10 @@ class OpportunityCreateRequest(BaseModel):
     project_phase: str | None = None
     # Real-estate property specification fields (Wealth + Safe vaults)
     property_type: str | None = None
+    development_type: str | None = None
+    gst_percentage: float | None = None
+    projected_market_value_at_exit: float | None = None
+    purpose_of_funds: str | None = None
     price_per_sqft: float | None = None
     total_project_area_sqft: float | None = None
     property_specs: dict[str, Any] | None = None
@@ -457,6 +465,10 @@ class OpportunityUpdateRequest(BaseModel):
     project_phase: str | None = None
     # Real-estate property specification fields (Wealth + Safe vaults)
     property_type: str | None = None
+    development_type: str | None = None
+    gst_percentage: float | None = None
+    projected_market_value_at_exit: float | None = None
+    purpose_of_funds: str | None = None
     price_per_sqft: float | None = None
     total_project_area_sqft: float | None = None
     property_specs: dict[str, Any] | None = None

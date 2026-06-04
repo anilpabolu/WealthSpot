@@ -132,6 +132,11 @@ class Opportunity(Base):
     investment_mode: Mapped[str | None] = mapped_column(String(20), default="lumpsum")
     # Real-estate property type (flat | villa | plot | commercial | warehouse | mixed_use)
     property_type: Mapped[str | None] = mapped_column(String(30), index=True)
+    # Additional property configurations
+    development_type: Mapped[str | None] = mapped_column(String(100))
+    gst_percentage: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    projected_market_value_at_exit: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
+    purpose_of_funds: Mapped[str | None] = mapped_column(Text)
     # Per-sqft rate (representative listed rate, stored for quick display)
     price_per_sqft: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     # Total land/construction footprint (sqft)

@@ -58,6 +58,10 @@ export interface OpportunityItem {
   safeVaultData: Record<string, unknown> | null
   // Property Specs
   property_type: string | null
+  development_type: string | null
+  gst_percentage: number | null
+  projected_market_value_at_exit: number | null
+  purpose_of_funds: string | null
   price_per_sqft: number | null
   total_project_area_sqft: number | null
   property_specs: Record<string, unknown> | null
@@ -156,6 +160,10 @@ export interface OpportunityCreatePayload {
   safeVaultData?: Record<string, unknown>
   // Property Specs
   property_type?: string
+  development_type?: string
+  gst_percentage?: number
+  projected_market_value_at_exit?: number
+  purpose_of_funds?: string
   price_per_sqft?: number
   total_project_area_sqft?: number
   property_specs?: Record<string, unknown>
@@ -272,6 +280,10 @@ export function useCreateOpportunity() {
         community_details: data.communityDetails,
         safe_vault_data: data.safeVaultData,
         property_type: data.property_type,
+        development_type: data.development_type,
+        gst_percentage: data.gst_percentage,
+        projected_market_value_at_exit: data.projected_market_value_at_exit,
+        purpose_of_funds: data.purpose_of_funds,
         price_per_sqft: data.price_per_sqft,
         total_project_area_sqft: data.total_project_area_sqft,
         property_specs: data.property_specs,
@@ -322,6 +334,10 @@ export function useUpdateOpportunity() {
         ...(data.communityDetails !== undefined && { community_details: data.communityDetails }),
         ...(data.safeVaultData !== undefined && { safe_vault_data: data.safeVaultData }),
         ...(data.property_type !== undefined && { property_type: data.property_type }),
+        ...(data.development_type !== undefined && { development_type: data.development_type }),
+        ...(data.gst_percentage !== undefined && { gst_percentage: data.gst_percentage }),
+        ...(data.projected_market_value_at_exit !== undefined && { projected_market_value_at_exit: data.projected_market_value_at_exit }),
+        ...(data.purpose_of_funds !== undefined && { purpose_of_funds: data.purpose_of_funds }),
         ...(data.price_per_sqft !== undefined && { price_per_sqft: data.price_per_sqft }),
         ...(data.total_project_area_sqft !== undefined && { total_project_area_sqft: data.total_project_area_sqft }),
         ...(data.property_specs !== undefined && { property_specs: data.property_specs }),
