@@ -167,7 +167,12 @@ export function useUploadAppVideo() {
       const resp = await api.post<AppVideo>(
         `/app-videos/admin/${id}/upload`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          // Large video files (up to 200 MB) need far longer than the default
+          // 30s timeout — allow up to 10 minutes for the upload to complete.
+          timeout: 600_000,
+        },
       )
       return resp.data
     },
