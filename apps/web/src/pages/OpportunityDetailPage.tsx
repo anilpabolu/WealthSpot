@@ -657,10 +657,10 @@ export default function OpportunityDetailPage() {
         (opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) ? { id: 'location', label: 'Location', tooltip: 'Location map' } : null,
         (opp.propertyAmenities || opp.property_amenities) && (opp.propertyAmenities || opp.property_amenities)!.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') ? { id: 'amenities', label: 'Amenities', tooltip: 'Project features' } : null,
         { id: 'shield', label: 'Shield', tooltip: 'WealthSpot due diligence' },
-        (opp.whyInvestors || opp.why_investors) ? { id: 'why-investors', label: 'Why Investors', tooltip: 'Why investors are looking at this' } : null,
-        (opp.investmentThesis || opp.investment_thesis) ? { id: 'investment-thesis', label: 'Investment Thesis', tooltip: 'Our thesis on this project' } : null,
+        { id: 'why-investors', label: 'Why Investors', tooltip: 'Why investors are looking at this' },
+        { id: 'investment-thesis', label: 'Investment Thesis', tooltip: 'Our thesis on this project' },
         (opp.projectRoadmap || opp.project_roadmap) ? { id: 'roadmap', label: 'Roadmap', tooltip: 'Project timeline' } : null,
-        (opp.riskFactors || opp.risk_factors) ? { id: 'risk-factors', label: 'Risk Factors', tooltip: 'Key risks' } : null,
+        { id: 'risk-factors', label: 'Risk Factors', tooltip: 'Key risks' },
         opp.founderName ? { id: 'founder', label: 'Founder', tooltip: 'Founder details' } : null
       ].filter(Boolean) as { id: string; label: string; tooltip: string }[]} />
 
