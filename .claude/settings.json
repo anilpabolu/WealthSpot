@@ -3,7 +3,13 @@
     "allow": [
       "Bash(git commit -m ' *)",
       "Bash(git commit -m 'fix\\(ui\\): shorten configurations disclaimer to exact approved text *)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npx eslint *)",
+      "Bash(echo \"---exit:$?\")",
+      "Bash(python -m pytest tests/test_opportunities_vertical.py -v)",
+      "Bash(python -m pytest tests/test_opportunities.py tests/test_approvals_shield_gate.py -q)",
+      "Bash(gh api *)",
+      "Bash(git commit -m 'chore: add session command permissions to settings allowlist *)"
     ]
   }
 }
