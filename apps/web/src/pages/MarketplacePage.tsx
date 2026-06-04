@@ -466,12 +466,12 @@ export default function MarketplacePage() {
                           onClick={() => navigate(`/opportunity/${opp.slug}`)}
                           className="bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1.5 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer group flex flex-col h-full"
                         >
-                          <div className="aspect-[4/3] relative bg-gray-100 overflow-hidden">
+                          <div className="aspect-[5/4] relative bg-black overflow-hidden">
                             {carouselImages.length > 0 ? (
                               <div className="absolute inset-0 w-full h-full flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {carouselImages.map((url: string, idx: number) => (
                                   <div key={idx} className="w-full h-full flex-shrink-0 snap-center overflow-hidden relative">
-                                    <img src={url} alt={`${opp.title} ${idx}`} className="absolute inset-0 block w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105" loading="lazy" />
+                                    <img src={url} alt={`${opp.title} ${idx}`} className="absolute inset-0 block w-full h-full object-contain" loading="lazy" />
                                   </div>
                                 ))}
                                 <style>{`.snap-x::-webkit-scrollbar { display: none; }`}</style>
@@ -516,10 +516,10 @@ export default function MarketplacePage() {
                             )}
                           </div>
                           
-                          <div className="p-4 md:p-5 flex-1 flex flex-col">
-                            <h3 className="font-display text-lg md:text-xl font-bold text-gray-900 mb-1.5 truncate">{opp.title}</h3>
-                            
-                            <div className="flex flex-wrap items-center gap-2 mb-4 text-[11px] text-gray-500 font-medium">
+                          <div className="p-3 md:p-4 flex-1 flex flex-col">
+                            <h3 className="font-display text-base md:text-lg font-bold text-gray-900 mb-1 truncate">{opp.title}</h3>
+
+                            <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] text-gray-500 font-medium">
                               {opp.property_type && (
                                 <span className="flex items-center gap-1"><Building2 className="h-3 w-3 text-blue-500" /> {opp.property_type.replace(/_/g, ' ')}</span>
                               )}
@@ -529,14 +529,14 @@ export default function MarketplacePage() {
                             </div>
 
                             {/* Specs Grid */}
-                            <div className="grid grid-cols-2 gap-2 mb-5">
+                            <div className="grid grid-cols-2 gap-2 mb-3">
                                <div>
                                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-0.5">Tenure</p>
-                                 <p className="font-display text-base font-bold text-gray-900">{tenure}</p>
+                                 <p className="font-display text-sm font-bold text-gray-900">{tenure}</p>
                                </div>
                                <div>
                                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-0.5">Min. Entry</p>
-                                 <p className="font-display text-base font-bold text-gray-900">
+                                 <p className="font-display text-sm font-bold text-gray-900">
                                    {opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD'}
                                  </p>
                                </div>
