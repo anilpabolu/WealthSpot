@@ -683,6 +683,95 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
+            {/* Offering Configurations — unit or plot table derived from property_specs */}
+            {opp.property_specs && (() => {
+              const specs = opp.property_specs as Record<string, unknown>
+              const isPlot = opp.property_type === 'plot'
+
+              type UnitCfg = { type: string; super_built_up_sqft?: number; price_per_sqft?: number }
+              type PlotCfg = { type: string; area_sqft?: number; price_per_sqft?: number; total_plots?: number }
+
+              const unitConfigs = !isPlot
+                ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
+                : undefined
+              const plotConfigs = isPlot
+                ? (specs.plot_configurations as PlotCfg[] | undefined)?.filter(p => p.type)
+                : undefined
+
+              const rows = isPlot ? plotConfigs : unitConfigs
+              if (!rows?.length) return null
+
+              return (
+                <div className="card p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/70 via-blue-400/50 to-indigo-500/10" />
+                  <h2 className="font-display text-lg font-bold text-theme-primary mb-5 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-500 shrink-0">
+                      <Ruler className="h-4 w-4" />
+                    </span>
+                    {isPlot ? 'Plot Configurations' : 'BHK / Unit Configurations'}
+                  </h2>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse min-w-[420px]">
+                      <thead>
+                        <tr className="border-b border-[var(--border-default)]">
+                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 pr-4">Type</th>
+                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">
+                            {isPlot ? 'Area (Sq.Ft)' : 'SBU (Sq.Ft)'}
+                          </th>
+                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 px-4">₹ / Sq.Ft</th>
+                          <th className="text-left text-[10px] font-bold uppercase tracking-wider text-theme-tertiary pb-3 pl-4">
+                            {isPlot ? 'Plot Cost' : 'Unit Cost'}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)]">
+                        {isPlot
+                          ? (plotConfigs as PlotCfg[]).map((p, i) => {
+                              const cost = p.area_sqft && p.price_per_sqft ? p.area_sqft * p.price_per_sqft : null
+                              return (
+                                <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
+                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{p.type}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.area_sqft ? p.area_sqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.price_per_sqft ? `₹${p.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 pl-4">
+                                    {cost
+                                      ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
+                                      : <span className="text-theme-tertiary">—</span>}
+                                  </td>
+                                </tr>
+                              )
+                            })
+                          : (unitConfigs as UnitCfg[]).map((u, i) => {
+                              const cost = u.super_built_up_sqft && u.price_per_sqft ? u.super_built_up_sqft * u.price_per_sqft : null
+                              return (
+                                <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
+                                  <td className="py-3.5 pr-4 font-semibold text-theme-primary">{u.type}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.super_built_up_sqft ? u.super_built_up_sqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.price_per_sqft ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 pl-4">
+                                    {cost
+                                      ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
+                                      : <span className="text-theme-tertiary">—</span>}
+                                  </td>
+                                </tr>
+                              )
+                            })
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mt-5 pt-4 border-t border-[var(--border-subtle)]">
+                    <p className="text-[11px] text-theme-tertiary leading-relaxed">
+                      <span className="font-semibold text-theme-secondary">Disclaimer: </span>
+                      The unit configurations, floor plans, and indicative pricing presented herein are subject to revision and may be amended in accordance with final statutory approvals, RERA registration, and applicable regulatory or planning authority sanctions. All information is provided solely for indicative purposes and does not constitute a binding offer, representation, or warranty of any kind. Prospective investors are strongly advised to conduct independent due diligence and review the final approved project plans, RERA disclosures, and all relevant documentation prior to making any investment decision.
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Property Specifications / Project Details — for Wealth & Safe vault */}
             {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
               <PropertySpecsSection
