@@ -394,11 +394,11 @@ function VaultCard({
           {onCreateOpportunity && (
             <button
               onClick={(e) => { e.stopPropagation(); onCreateOpportunity(); }}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-[#D4AF37] bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black hover:scale-105 transition-all shadow-lg"
+              className="flex items-center justify-center h-8 w-8 text-[#D4AF37] bg-black/60 backdrop-blur-sm rounded-full border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black hover:scale-105 transition-all shadow-lg"
               aria-label={`Create Opportunity for ${vault.title}`}
+              title="Create Opportunity"
             >
-              <Plus className="h-3 w-3" />
-              Create Opportunity
+              <Plus className="h-4 w-4" />
             </button>
           )}
           {onPlayVideo && (
