@@ -1006,6 +1006,10 @@ async def create_opportunity(
                     closing_date=body.closing_date,
                     # Investment configuration mode
                     investment_mode=body.investment_mode or "lumpsum",
+                    project_roadmap=body.project_roadmap,
+                    risk_factors=body.risk_factors,
+                    why_investors=body.why_investors,
+                    investment_thesis=body.investment_thesis,
                 )
                 db.add(opportunity)
                 await db.flush()
@@ -1192,6 +1196,7 @@ async def update_opportunity(
 
     update_data = body.model_dump(exclude_unset=True)
     cancel_investments = update_data.pop("cancel_investments", False)
+    update_data.pop("shield_answers", None)
     new_status_str = update_data.get("status")
 
     if new_status_str and cancel_investments and is_approver:
