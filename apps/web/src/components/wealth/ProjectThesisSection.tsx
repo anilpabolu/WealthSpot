@@ -55,7 +55,7 @@ export function ProjectThesisSection({
             </span>
             Investment Thesis
           </h2>
-          <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-wrap font-mono">
+          <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-wrap">
             {investmentThesisText}
           </p>
         </div>
@@ -102,7 +102,7 @@ export function ProjectThesisSection({
             </span>
             Risk Factors
           </h2>
-          <p className="text-xs text-theme-secondary leading-relaxed whitespace-pre-wrap italic">
+          <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-wrap">
             {riskFactorsText}
           </p>
         </div>

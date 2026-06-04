@@ -842,13 +842,7 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
-            <ProjectThesisSection
-              title={opp.title}
-              projectRoadmap={opp.project_roadmap}
-              riskFactors={opp.risk_factors}
-              whyInvestors={opp.why_investors}
-              investmentThesis={opp.investment_thesis}
-            />
+
 
             {/* Location Map */}
             {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
@@ -904,6 +898,14 @@ export default function OpportunityDetailPage() {
 
             {/* WealthSpot Shield — placed high for trust-first UX */}
             <ShieldSection opportunityId={opp.id} />
+
+            <ProjectThesisSection
+              title={opp.title}
+              projectRoadmap={opp.project_roadmap}
+              riskFactors={opp.risk_factors}
+              whyInvestors={opp.why_investors}
+              investmentThesis={opp.investment_thesis}
+            />
 
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
