@@ -1,7 +1,10 @@
 import { MainLayout } from '@/components/layout'
 import SEOHead from '@/components/SEOHead'
 import { useClerk } from '@clerk/react'
-import { ArrowRight, Users, Shield, CheckCircle2, Search } from 'lucide-react'
+import { ArrowRight, Users, Shield, CheckCircle2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
+import { useState, useRef, useEffect } from 'react'
 
 /* ─────────────────────────────────────────────────
    SECTION 1 — HERO
@@ -323,7 +326,153 @@ function FrameworkSection() {
 }
 
 /* ─────────────────────────────────────────────────
-   SECTION 7 — CLOSING CTA & DISCLAIMER
+   SECTION 7 — FOUNDING TEAM
+───────────────────────────────────────────────── */
+function FoundingTeamSection() {
+  const { data: members, isLoading } = useQuery({
+    queryKey: ['public-founding-team'],
+    queryFn: async () => {
+      const res = await api.get('/founding-team')
+      return res.data
+    },
+  })
+
+  const [activeIndex, setActiveIndex] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Use dummy data if no members yet for showcase
+  const displayMembers = members && members.length > 0 ? members : [
+    { id: '1', name: 'Alexander Sterling', title: 'Founder & CEO', description: 'With over 20 years in institutional real estate, Alexander has structured more than $2B in premium asset transactions globally. He previously served as Managing Director at a premier global investment firm, where he pioneered structured real estate products for UHNW individuals. His vision for WealthSpot is to democratize access to the top 1% of real estate opportunities with uncompromising governance.', previous_experience: ['Ex-Managing Director, BlackRock Real Estate', 'Wharton MBA', '20+ Years Institutional RE'], photo_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800' },
+    { id: '2', name: 'Elena Rostova', title: 'Chief Investment Officer', description: 'Elena brings rigorous institutional discipline to WealthSpot. As former Head of Alternatives at a major European sovereign wealth fund, she specialized in prime commercial and luxury residential markets. She leads WealthSpot’s independent advisory panel and due diligence frameworks, ensuring every opportunity presented meets the strictest global standards of capital preservation and yield generation.', previous_experience: ['Former Head of Alternatives, Sovereign Fund', 'London School of Economics', '15+ Years Global Markets'], photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800' },
+    { id: '3', name: 'Marcus Chen', title: 'Chief Technology Officer', description: 'A highly accomplished technologist, Marcus architected scalable, high-security financial infrastructure for top-tier fintech unicorns. He ensures the WealthSpot platform operates with enterprise-grade data privacy, seamless transaction architecture, and real-time intelligence, delivering a flawless digital experience that matches the exclusivity of our real estate portfolio.', previous_experience: ['Ex-Stripe Engineering Lead', 'Stanford Computer Science', 'Fintech Infrastructure Expert'], photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800' },
+  ]
+
+  const activeMember = displayMembers[activeIndex]
+
+  const scrollTo = (index: number) => {
+    if (!scrollRef.current) return
+    setActiveIndex(index)
+    const cardWidth = 320 // approx width of image card
+    scrollRef.current.scrollTo({
+      left: index * cardWidth,
+      behavior: 'smooth'
+    })
+  }
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return
+    const scrollPosition = scrollRef.current.scrollLeft
+    const cardWidth = 320
+    const newIndex = Math.round(scrollPosition / cardWidth)
+    if (newIndex !== activeIndex && newIndex < displayMembers.length) {
+      setActiveIndex(newIndex)
+    }
+  }
+
+  if (isLoading) {
+    return <div className="py-20 flex justify-center"><div className="w-8 h-8 rounded-full border-4 border-[#D4AF37] border-t-transparent animate-spin" /></div>
+  }
+
+  return (
+    <section className="relative overflow-hidden py-24 sm:py-32" style={{ background: '#f8f9fa' }}>
+      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-16">
+        <div className="mb-14 text-center max-w-3xl mx-auto">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">The Leadership</p>
+          <h2 className="font-hero text-3xl sm:text-4xl font-bold text-[#111827] leading-[1.12] tracking-tight">
+            Meet the Founding Team
+          </h2>
+          <p className="mt-4 font-body text-[15px] text-[#6B7280] leading-relaxed">
+            Our leadership combines decades of institutional real estate, private equity, and enterprise technology experience to deliver an unparalleled advisory and discovery platform.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Photo Carousel */}
+          <div className="lg:col-span-7 relative">
+            <div 
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {displayMembers.map((member, idx) => (
+                <div 
+                  key={member.id} 
+                  className={`snap-center shrink-0 w-[280px] sm:w-[320px] aspect-[3/4] rounded-3xl overflow-hidden relative cursor-pointer transition-all duration-500 ${activeIndex === idx ? 'scale-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ring-4 ring-[#D4AF37]/30' : 'scale-90 opacity-50 hover:opacity-80'}`}
+                  onClick={() => scrollTo(idx)}
+                >
+                  {member.photo_url ? (
+                    <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                      <Users className="w-16 h-16 text-slate-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className={`absolute bottom-0 left-0 right-0 p-6 transition-transform duration-500 ${activeIndex === idx ? 'translate-y-0' : 'translate-y-4'}`}>
+                    <h3 className="font-hero text-xl font-bold text-white">{member.name}</h3>
+                    <p className="font-body text-sm font-medium text-[#D4AF37] mt-1">{member.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Navigation Arrows */}
+            <div className="absolute top-1/2 -translate-y-1/2 -left-4 -right-4 flex justify-between pointer-events-none hidden sm:flex">
+              <button 
+                onClick={() => scrollTo(Math.max(0, activeIndex - 1))}
+                className={`pointer-events-auto w-12 h-12 rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 flex items-center justify-center text-gray-600 transition-all hover:bg-gray-50 hover:scale-105 hover:text-primary ${activeIndex === 0 ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={() => scrollTo(Math.min(displayMembers.length - 1, activeIndex + 1))}
+                className={`pointer-events-auto w-12 h-12 rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 flex items-center justify-center text-gray-600 transition-all hover:bg-gray-50 hover:scale-105 hover:text-primary ${activeIndex === displayMembers.length - 1 ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Details Panel */}
+          <div className="lg:col-span-5 relative">
+            <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-gray-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 rounded-bl-full pointer-events-none" />
+              
+              <div className="mb-6 relative z-10">
+                <h3 className="font-hero text-2xl sm:text-3xl font-bold text-[#111827] mb-2 transition-all">{activeMember?.name}</h3>
+                <p className="font-body text-base font-bold text-[#D4AF37] tracking-wide uppercase">{activeMember?.title}</p>
+              </div>
+
+              <div className="w-12 h-1 bg-gradient-to-r from-[#D4AF37] to-transparent mb-6 rounded-full" />
+
+              <p className="font-body text-[15px] text-[#4B5563] leading-relaxed mb-8 relative z-10 transition-opacity duration-300">
+                {activeMember?.description}
+              </p>
+
+              {activeMember?.previous_experience && activeMember.previous_experience.length > 0 && (
+                <div className="relative z-10">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">Previous Experience</p>
+                  <ul className="space-y-3">
+                    {activeMember.previous_experience.map((exp: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0 shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
+                        <span className="font-body text-[14px] text-[#111827] font-medium leading-snug">{exp}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────
+   SECTION 8 — CLOSING CTA & DISCLAIMER
 ───────────────────────────────────────────────── */
 function ClosingSection() {
   const { openSignUp } = useClerk()
@@ -378,6 +527,7 @@ export default function AboutPage() {
       <EcosystemSection />
       <PrinciplesSection />
       <FrameworkSection />
+      <FoundingTeamSection />
       <ClosingSection />
     </MainLayout>
   )

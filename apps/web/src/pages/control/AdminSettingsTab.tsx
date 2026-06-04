@@ -14,6 +14,7 @@ import { useAdminEOIFormOptions, useUpdateEOIFormOption, type EOIFormOption } fr
 import { useToastStore } from '@/stores/toastStore'
 import { applyThemePalette } from '@/lib/colorUtils'
 import { CenteredLoader } from './shared'
+import { FoundingTeamPanel } from './FoundingTeamPanel'
 
 /* ------------------------------------------------------------------ */
 /*  ConfigTab (generic)                                                */
@@ -1056,6 +1057,7 @@ const ADMIN_SECTIONS = [
   { key: 'video-content', title: 'Video Content', description: 'Control video visibility per category — intro, vault, property, and admin video management.', icon: Video },
   { key: 'property-display', title: 'Property Display', description: 'Configure how empty property sections (specs, amenities, configurations) appear on property detail pages.', icon: Eye },
   { key: 'company-form', title: 'Company Form Validation', description: 'Configure which fields are mandatory when a builder registers their company.', icon: Building2 },
+  { key: 'founding-team', title: 'Founding Team', description: 'Manage the founding team members displayed on the About page.', icon: Users },
   { key: 'eoi-options', title: 'EOI Form Options', description: 'Enable or disable options shown in the Express Interest form (timeline, funding source, purpose, contact).', icon: ClipboardCheck },
   { key: 'approvals', title: 'Approval Configuration', description: 'Control approval workflows, thresholds, and auto-approval rules.', icon: ClipboardCheck },
   { key: 'notifications', title: 'Notification Settings', description: 'Manage email, SMS, and in-app notification triggers and templates.', icon: Bell },
@@ -1091,7 +1093,7 @@ export default function AdminSettingsTab() {
               </button>
               {isOpen && (
                 <div className="border-t border-theme px-5 py-5">
-                  {sec.key === 'opportunity-form' ? <OpportunityFormPanel /> : sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
+                  {sec.key === 'opportunity-form' ? <OpportunityFormPanel /> : sec.key === 'vaults' ? <VaultManagementPanel /> : sec.key === 'video-content' ? <VideoContentPanel /> : sec.key === 'property-display' ? <PropertyDisplayPanel /> : sec.key === 'company-form' ? <CompanyFormPanel /> : sec.key === 'founding-team' ? <FoundingTeamPanel /> : sec.key === 'eoi-options' ? <EoiOptionsPanel /> : sec.key === 'appearance' ? <AppearancePanel /> : sec.key === 'notifications' ? <NotificationsTab /> : <ConfigTab section={sec.key} title={sec.title} />}
                 </div>
               )}
             </div>

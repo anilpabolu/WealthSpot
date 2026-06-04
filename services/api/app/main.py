@@ -40,6 +40,7 @@ from app.routers import (
     control_centre,
     devices,
     eoi,
+    founding_team,
     investments,
     kyc,
     lender,
@@ -188,6 +189,7 @@ app.include_router(profile.router, prefix=API_PREFIX)
 app.include_router(kyc.router, prefix=API_PREFIX)
 app.include_router(bank_details.router, prefix=API_PREFIX)
 app.include_router(eoi.router, prefix=API_PREFIX)
+app.include_router(founding_team.router, prefix=API_PREFIX)
 app.include_router(portfolio.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.builder_router, prefix=API_PREFIX)

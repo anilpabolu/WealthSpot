@@ -35,6 +35,7 @@ from app.models.expression_of_interest import (  # noqa: F401
     EOIStatus,
     ExpressionOfInterest,
 )
+from app.models.founding_team import FoundingTeamMember  # noqa: F401
 from app.models.investment import (  # noqa: F401
     Investment,
     InvestmentStatus,
