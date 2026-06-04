@@ -864,8 +864,9 @@ export default function CreateOpportunityPage() {
 
               <div className="flex items-center gap-2 sm:gap-6 flex-1 justify-center">
                 {([
-                  { id: 'details', label: 'Details', icon: Building2, done: step === 'shield', active: step === 'details' },
-                  { id: 'shield', label: 'Shield', icon: ShieldCheck, done: false, active: step === 'shield' },
+                  { id: 'details', label: 'Details', icon: Building2, done: step === 'shield' || step === 'thesis', active: step === 'details' },
+                  { id: 'shield', label: 'Shield', icon: ShieldCheck, done: step === 'thesis', active: step === 'shield' },
+                  { id: 'thesis', label: 'Thesis', icon: TrendingUp, done: false, active: step === 'thesis' },
                   { id: 'submit', label: 'Review', icon: CheckCircle2, done: false, active: false },
                 ] as const).map((s, i) => (
                   <div key={s.id} className="flex items-center gap-1.5 sm:gap-2">
@@ -879,7 +880,7 @@ export default function CreateOpportunityPage() {
                       </div>
                       <span className="text-xs sm:text-sm font-semibold hidden sm:block">{s.label}</span>
                     </div>
-                    {i < 2 && <ChevronRight className="h-3.5 w-3.5 text-[rgba(209,196,157,0.5)] mx-0.5 sm:mx-1 shrink-0" />}
+                    {i < 3 && <ChevronRight className="h-3.5 w-3.5 text-[rgba(209,196,157,0.5)] mx-0.5 sm:mx-1 shrink-0" />}
                   </div>
                 ))}
               </div>
