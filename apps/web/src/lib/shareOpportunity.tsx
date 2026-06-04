@@ -95,7 +95,7 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
       // Desktop Fallback: Download the image and copy the text
       try {
         await navigator.clipboard.writeText(text);
-      } catch (err) {
+      } catch {
         console.warn("Clipboard access denied, text not copied");
       }
       
