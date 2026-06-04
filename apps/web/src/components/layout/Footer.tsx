@@ -68,7 +68,7 @@ function SlimFooter() {
 
           {/* Copyright + collapsible disclaimer */}
           <div className="flex-1 min-w-0">
-            <p className={`font-body text-[11px] text-white/35 leading-relaxed ${!expanded ? 'line-clamp-1' : ''}`}>
+            <p className={`font-body text-[11px] text-white font-medium leading-relaxed ${!expanded ? 'line-clamp-1' : ''}`}>
               &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd.
               {' · '}
               {DISCLAIMER}
@@ -87,7 +87,7 @@ function SlimFooter() {
               <Link
                 key={link.href}
                 to={link.href}
-                className="font-body text-[11px] text-white/35 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+                className="font-body text-[11px] text-white font-medium hover:text-[#D4AF37] transition-colors whitespace-nowrap"
               >
                 {link.label}
               </Link>
@@ -131,15 +131,15 @@ export default function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="font-body text-sm text-white/75 leading-relaxed max-w-[220px]">
+            <p className="font-body text-sm text-white font-medium leading-relaxed max-w-[220px]">
               India&apos;s trusted fractional real estate investment platform. Build generational wealth, one fraction at a time.
             </p>
             <div className="space-y-2">
-              <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white/75 hover:text-[#D4AF37] transition-colors">
+              <a href="mailto:hello@wealthspot.in" className="flex items-center gap-2 font-body text-sm text-white font-medium hover:text-[#D4AF37] transition-colors">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
                 hello@wealthspot.in
               </a>
-              <div className="flex items-start gap-2 font-body text-sm text-white/70">
+              <div className="flex items-start gap-2 font-body text-sm text-white font-medium">
                 <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 Bengaluru, Karnataka, India
               </div>
@@ -157,7 +157,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <Link
                       to={link.href}
-                      className="font-body text-sm text-white/80 hover:text-[#D4AF37] transition-colors"
+                      className="font-body text-sm text-white font-medium hover:text-[#D4AF37] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -179,7 +179,7 @@ export default function Footer() {
                     aria-label={s.label}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-9 h-9 rounded-full border border-white/15 text-white/55 hover:border-[#D4AF37]/50 hover:text-[#D4AF37] transition-all duration-200"
+                    className="flex items-center justify-center w-9 h-9 rounded-full border border-white/15 text-white font-medium hover:border-[#D4AF37]/50 hover:text-[#D4AF37] transition-all duration-200"
                   >
                     <s.icon className="h-4 w-4" />
                   </a>
@@ -193,7 +193,7 @@ export default function Footer() {
         <div className="border-t border-white/10" />
 
         {/* Regulatory & Compliance Disclosure */}
-        <div className="py-8 flex flex-col gap-4 font-body text-[11px] text-white/55 text-justify sm:text-left">
+        <div className="py-8 flex flex-col gap-4 font-body text-[11px] text-white font-medium text-justify sm:text-left">
           <h4 className="font-bold text-[#D4AF37] uppercase tracking-wider mb-2">Regulatory & Compliance Disclosure</h4>
           <CollapsiblePara>
             WealthSpot (including WealthSpot Technologies Pvt. Ltd. and WealthSpot Advisory LLP) operates strictly as a real estate discovery, market intelligence, networking, and independent property advisory platform. WealthSpot facilitates curated project discovery, developer introductions, real estate research insights, transaction coordination support, and investor-developer connectivity. WealthSpot does not operate as a bank, Non-Banking Financial Company (NBFC), Alternative Investment Fund (AIF), Portfolio Management Service (PMS), Collective Investment Scheme (CIS), crowdfunding platform, real estate investment trust (REIT), or Asset Management Company (AMC).
@@ -216,13 +216,13 @@ export default function Footer() {
               <Link
                 key={link.href}
                 to={link.href}
-                className="font-body text-xs text-white/65 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+                className="font-body text-xs text-white font-medium hover:text-[#D4AF37] transition-colors whitespace-nowrap"
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <p className="font-body text-xs text-white/55">
+          <p className="font-body text-xs text-white font-medium">
             &copy; {new Date().getFullYear()} WealthSpot Technologies Pvt. Ltd. All rights reserved.
           </p>
         </div>
