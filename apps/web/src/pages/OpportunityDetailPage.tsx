@@ -601,20 +601,6 @@ export default function OpportunityDetailPage() {
               <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} propertyVideosEnabled={propertyVideosEnabled} />
             </div>
 
-            {/* About this Opportunity */}
-            {opp.description && (
-              <div className="card p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
-                  style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.3), transparent)' }} />
-                <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/15 text-amber-500 dark:text-amber-400 shrink-0"><FileText className="h-4 w-4" /></span>
-                  About this Opportunity
-                </h2>
-                <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{opp.description}</p>
-              </div>
-            )}
-
             {/* Opportunity Snapshot */}
             {(() => {
               const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -682,6 +668,20 @@ export default function OpportunityDetailPage() {
                 </div>
               )
             })()}
+
+            {/* About this Opportunity */}
+            {opp.description && (
+              <div className="card p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
+                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
+                  style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.3), transparent)' }} />
+                <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/15 text-amber-500 dark:text-amber-400 shrink-0"><FileText className="h-4 w-4" /></span>
+                  About this Opportunity
+                </h2>
+                <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{opp.description}</p>
+              </div>
+            )}
 
             {/* Property Specifications / Project Details — for Wealth & Safe vault */}
             {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
@@ -802,19 +802,6 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
-            {/* Location Map */}
-            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
-              <LocationMapEmbed
-                latitude={opp.latitude}
-                longitude={opp.longitude}
-                mapsUrl={opp.mapsUrl}
-                address={opp.addressLine1 ?? opp.address}
-                city={opp.city}
-                state={opp.state}
-                pincode={opp.pincode}
-              />
-            )}
-
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
               <div className="card p-6 relative overflow-hidden">
@@ -851,8 +838,20 @@ export default function OpportunityDetailPage() {
               property_specs: opp.property_specs,
             }} />
 
+            {/* Location Map */}
+            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
+              <LocationMapEmbed
+                latitude={opp.latitude}
+                longitude={opp.longitude}
+                mapsUrl={opp.mapsUrl}
+                address={opp.addressLine1 ?? opp.address}
+                city={opp.city}
+                state={opp.state}
+                pincode={opp.pincode}
+              />
+            )}
+
             <ProjectUspPanel usps={opp.locationUsps} />
-            <BuilderUpdatesPanel opportunityId={opp.id} />
 
             {/* Developer / Company Info Button */}
             {opp.company && (
@@ -878,6 +877,8 @@ export default function OpportunityDetailPage() {
                 </div>
               </button>
             )}
+
+            <BuilderUpdatesPanel opportunityId={opp.id} />
           </div>
         </div>
         </div>
