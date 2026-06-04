@@ -850,8 +850,18 @@ export default function OpportunityDetailPage() {
               investmentThesis={opp.investment_thesis}
             />
 
-            {/* WealthSpot Shield — placed high for trust-first UX */}
-            <ShieldSection opportunityId={opp.id} />
+            {/* Location Map */}
+            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
+              <LocationMapEmbed
+                latitude={opp.latitude}
+                longitude={opp.longitude}
+                mapsUrl={opp.mapsUrl}
+                address={opp.addressLine1 ?? opp.address}
+                city={opp.city}
+                state={opp.state}
+                pincode={opp.pincode}
+              />
+            )}
 
             {/* Amenities & Features — shown for wealth/safe vault properties that have amenities */}
             {opp.property_amenities && opp.property_amenities.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (() => {
@@ -892,18 +902,8 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
-            {/* Location Map */}
-            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
-              <LocationMapEmbed
-                latitude={opp.latitude}
-                longitude={opp.longitude}
-                mapsUrl={opp.mapsUrl}
-                address={opp.addressLine1 ?? opp.address}
-                city={opp.city}
-                state={opp.state}
-                pincode={opp.pincode}
-              />
-            )}
+            {/* WealthSpot Shield — placed high for trust-first UX */}
+            <ShieldSection opportunityId={opp.id} />
 
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
