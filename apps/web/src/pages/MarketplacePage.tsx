@@ -470,7 +470,9 @@ export default function MarketplacePage() {
                             {carouselImages.length > 0 ? (
                               <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {carouselImages.map((url: string, idx: number) => (
-                                  <img key={idx} src={url} alt={`${opp.title} ${idx}`} className="w-full h-full flex-shrink-0 object-cover snap-center transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                  <div key={idx} className="w-full h-full flex-shrink-0 snap-center overflow-hidden">
+                                    <img src={url} alt={`${opp.title} ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                  </div>
                                 ))}
                                 <style>{`.snap-x::-webkit-scrollbar { display: none; }`}</style>
                               </div>
@@ -563,9 +565,9 @@ export default function MarketplacePage() {
                                      btn.disabled = false;
                                    });
                                  }}
-                                 className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed"
+                                 className="px-5 py-2.5 rounded-full bg-[#D4AF37] hover:bg-[#B8962E] text-white font-semibold text-sm transition-colors flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
                                >
-                                 <Gift className="h-4 w-4" /> Refer
+                                 <Gift className="h-4 w-4" /> Refer & Earn
                                </button>
                                <button className="px-5 py-2.5 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5">
                                  Express Interest <ChevronRight className="h-4 w-4" />
