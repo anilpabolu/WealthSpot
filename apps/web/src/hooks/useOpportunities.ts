@@ -324,6 +324,10 @@ export function useCreateOpportunity() {
         shield_answers: data.shield_answers,
         target_irr: data.targetIrr,
         project_phase: data.project_phase,
+        risk_factors: data.risk_factors,
+        why_investors: data.why_investors,
+        investment_thesis: data.investment_thesis,
+        project_roadmap: data.project_roadmap,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
@@ -380,6 +384,10 @@ export function useUpdateOpportunity() {
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),
         ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
         ...(data.project_phase !== undefined && { project_phase: data.project_phase }),
+        ...(data.risk_factors !== undefined && { risk_factors: data.risk_factors }),
+        ...(data.why_investors !== undefined && { why_investors: data.why_investors }),
+        ...(data.investment_thesis !== undefined && { investment_thesis: data.investment_thesis }),
+        ...(data.project_roadmap !== undefined && { project_roadmap: data.project_roadmap }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
