@@ -90,12 +90,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
           const cat = findCategory(catRead.code)
           if (!cat) return null
           const Icon = iconForCategory(cat.icon)
-          const hasAnswers = catRead.subItems.some(
-            (s) => extractAnswerValue(s.builderAnswer) !== null,
-          )
-          const open =
-            openCats[cat.code] ??
-            (catRead.status === 'flagged' || hasAnswers)
+          const open = openCats[cat.code] ?? false
           return (
             <div
               key={cat.code}
