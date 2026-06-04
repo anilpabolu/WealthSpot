@@ -9,7 +9,16 @@
       "Bash(python -m pytest tests/test_opportunities_vertical.py -v)",
       "Bash(python -m pytest tests/test_opportunities.py tests/test_approvals_shield_gate.py -q)",
       "Bash(gh api *)",
-      "Bash(git commit -m 'chore: add session command permissions to settings allowlist *)"
+      "Bash(git commit -m 'chore: add session command permissions to settings allowlist *)",
+      "Bash(ls -la \"C:\\\\Users\\\\anilk\\\\Downloads\\\\Wealth_Spot_hero.mp4\" 2>&1; echo \"---\"; cd \"c:\\\\Users\\\\repos\\\\WealthSpot\" && grep -rn \"S3_ENDPOINT_URL\\\\|AWS_S3_BUCKET\\\\|S3_PUBLIC_URL\\\\|AWS_ACCESS_KEY\\\\|R2\" services/api/app/core/config.py 2>&1 | head)",
+      "Read(//c/Users/anilk/Downloads/**)",
+      "Bash(az keyvault *)",
+      "Bash(export AZURE_CLI_DISABLE_CONNECTION_VERIFICATION=1)",
+      "Bash(env)",
+      "Bash(az config *)",
+      "Read(//etc/ssl/certs/**)",
+      "Read(//c//**)",
+      "Bash(export AZURE_CLI_DISABLE_CONNECTION_VERIFICATION=1 ADAL_PYTHON_SSL_NO_VERIFY=1 REQUESTS_CA_BUNDLE= SSL_CERT_FILE=)"
     ]
   }
 }

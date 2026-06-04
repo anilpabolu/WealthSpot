@@ -10,7 +10,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight, Plus } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight, Plus, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 
@@ -25,6 +25,7 @@ import { useUserStore } from '@/stores/user.store'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiDelete } from '@/lib/api'
 import { shareOpportunityDynamic } from '@/lib/shareOpportunity'
+import { useSourceClicks, getSourceClickCount, useIncrementSourceClick } from '@/hooks/useSourceClicks'
 
 /* ------------------------------------------------------------------ */
 /*  Per-vault hero theming (gradient · accent · copy)                  */
@@ -269,6 +270,8 @@ export default function MarketplacePage() {
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const [toast, setToast] = useState<string | null>(null)
   const [showShieldPopup, setShowShieldPopup] = useState(false)
+  const { data: sourceClicksMap } = useSourceClicks()
+  const { mutate: incrementClick } = useIncrementSourceClick()
 
   // Vault hero config (keyed by ?vault= param, defaults to wealth)
   const vaultParam = searchParams.get('vault') ?? ''
@@ -463,7 +466,10 @@ export default function MarketplacePage() {
                       return (
                         <div
                           key={`opp-${opp.id}`}
-                          onClick={() => navigate(`/opportunity/${opp.slug}`)}
+                          onClick={() => {
+                            incrementClick({ sourceType: 'opportunity', sourceId: opp.id })
+                            navigate(`/opportunity/${opp.slug}`)
+                          }}
                           className="bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1.5 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer group flex flex-col h-full"
                         >
                           <div className="aspect-[5/4] relative bg-black overflow-hidden">
@@ -488,6 +494,17 @@ export default function MarketplacePage() {
                                  {oppStatus}
                                </div>
                             )}
+
+                            {/* Visit counter badge — top left */}
+                            <div className="absolute bottom-3 left-3 z-10">
+                              <span
+                                className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 shadow-lg select-none"
+                                title="Total visits — the number of times users have viewed this opportunity"
+                              >
+                                <Eye className="h-3.5 w-3.5 text-white/80" />
+                                {getSourceClickCount(sourceClicksMap, 'opportunity', opp.id).toLocaleString('en-IN')}
+                              </span>
+                            </div>
 
                             {/* Admin Controls */}
                             {isAdmin && (

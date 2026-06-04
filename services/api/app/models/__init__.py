@@ -74,6 +74,8 @@ from app.models.profiling import (  # noqa: F401
 from app.models.property import AssetType, Builder, Property, PropertyStatus  # noqa: F401
 from app.models.property_referral import PropertyReferralCode  # noqa: F401
 from app.models.role_group import GroupMessage, RoleGroup  # noqa: F401
+from app.models.site_content import SiteContent  # noqa: F401
+from app.models.source_click import SourceClick  # noqa: F401
 from app.models.user import BankDetail, KycDocument, KycStatus, User, UserRole  # noqa: F401
 from app.models.user_point import UserPoint  # noqa: F401
 from app.models.vault_explorer import VaultExplorer  # noqa: F401

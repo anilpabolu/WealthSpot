@@ -55,6 +55,7 @@ from app.routers import (
     properties,
     referrals,
     site_content,
+    source_clicks,
     templates,
     uploads,
     vault_features,
@@ -205,6 +206,7 @@ app.include_router(appreciation.property_router, prefix=API_PREFIX)
 app.include_router(assessments.router, prefix=API_PREFIX)
 app.include_router(comm.router, prefix=API_PREFIX)
 app.include_router(consent.router, prefix=API_PREFIX)
+app.include_router(source_clicks.router, prefix=API_PREFIX)
 
 
 # ── Global exception handlers ────────────────────────────────────────────────

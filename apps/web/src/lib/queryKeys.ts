@@ -295,4 +295,9 @@ export const Q = {
   pincodes: {
     lookup: (pincode: string) => ['pincodes', pincode] as const,
   },
+  sourceClicks: {
+    all: () => ['source-clicks'] as const,
+    bySource: (sourceType: string, sourceId: string) =>
+      ['source-clicks', sourceType, sourceId] as const,
+  },
 } as const;

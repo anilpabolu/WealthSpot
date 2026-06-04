@@ -23,6 +23,7 @@ import {
   BarChart2,
   CalendarClock,
   Plus,
+  Eye,
   type LucideIcon,
 } from 'lucide-react'
 import CommunitySubtypeModal, { type CommunitySubtypeValue } from '@/components/CommunitySubtypeModal'
@@ -33,6 +34,7 @@ import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { useVaultMetricsConfig } from '@/hooks/useVaultMetricsConfig'
 import { useContent } from '@/hooks/useSiteContent'
 import { getVaultComingSoonText } from '@/components/VaultComingSoonOverlay'
+import { useSourceClicks, getSourceClickCount, useIncrementSourceClick } from '@/hooks/useSourceClicks'
 
 /* Map vault/pillar IDs → app_videos section_tag */
 const VAULT_VIDEO_TAGS: Record<string, string> = {
@@ -322,6 +324,7 @@ function VaultCard({
   onCommunityExplore,
   onExplore,
   onCreateOpportunity,
+  visitCount,
 }: {
   vault: (typeof VAULTS)[number]
   stats?: any
@@ -334,6 +337,7 @@ function VaultCard({
   onCommunityExplore?: () => void
   onExplore?: () => void
   onCreateOpportunity?: () => void
+  visitCount: number
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const navigate = useNavigate()
@@ -379,7 +383,15 @@ function VaultCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
       
       {/* Top section: Badges */}
-      <div className="absolute top-6 left-6 right-6 flex justify-end items-start z-10 pointer-events-none">
+      <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10 pointer-events-none">
+        {/* Visit counter badge — top left */}
+        <span
+          className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 shadow-lg pointer-events-auto select-none"
+          title="Total visits — the number of times users have entered this vault"
+        >
+          <Eye className="h-3.5 w-3.5 text-white/80" />
+          {visitCount.toLocaleString('en-IN')}
+        </span>
 
 
         <div className="flex flex-col items-end gap-2 pointer-events-auto">
@@ -457,6 +469,8 @@ export default function VaultsPage() {
   const navigate = useNavigate()
   const { isVaultEnabled, vaultVideosEnabled } = useVaultConfig()
   const { mutate: recordExplorer } = useRecordExplorer()
+  const { data: sourceClicksMap } = useSourceClicks()
+  const { mutate: incrementClick } = useIncrementSourceClick()
 
   
   const { data: metricsConfig } = useVaultMetricsConfig()
@@ -552,8 +566,11 @@ export default function VaultsPage() {
                       }
                       onComingSoon={() => showComingSoon(vault.id)}
                       onCommunityExplore={vault.id === 'community' ? () => setShowCommunityExplore(true) : undefined}
-                      onExplore={() => { if (isAuthenticated) recordExplorer(vault.id) }}
-                      
+                      onExplore={() => {
+                        incrementClick({ sourceType: 'vault', sourceId: vault.id })
+                        if (isAuthenticated) recordExplorer(vault.id)
+                      }}
+                      visitCount={getSourceClickCount(sourceClicksMap, 'vault', vault.id)}
                     />
                   </div>
                 )
