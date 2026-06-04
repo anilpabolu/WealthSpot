@@ -10,7 +10,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight, Plus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
 
@@ -449,6 +449,18 @@ export default function MarketplacePage() {
                   ))
                 : (
                   <>
+                    {isAdmin && (
+                      <div
+                        onClick={() => navigate(vaultParam ? `/create-opportunity?vault=${vaultParam}` : '/create-opportunity')}
+                        className="bg-white rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.16)] border-2 border-dashed border-gray-300 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all cursor-pointer group flex flex-col h-full min-h-[400px] items-center justify-center text-center p-8"
+                      >
+                        <div className="h-16 w-16 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mb-4 group-hover:bg-[#D4AF37] transition-colors">
+                          <Plus className="h-8 w-8 text-gray-400 group-hover:text-white transition-colors" />
+                        </div>
+                        <h3 className="font-display text-xl font-bold text-gray-900 group-hover:text-[#D4AF37] transition-colors">Create New Opportunity</h3>
+                        <p className="text-sm text-gray-500 mt-2">Add a new investment listing to this vault</p>
+                      </div>
+                    )}
                     {/* Opportunity tiles */}
                     {opportunities.map((opp) => {
                       const coverUrl = opp.media?.find((m: any) => m.isCover)?.url ?? opp.coverImage ?? opp.gallery?.[0]
