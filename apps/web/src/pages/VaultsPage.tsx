@@ -379,10 +379,8 @@ function VaultCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
       
       {/* Top section: Badges */}
-      <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10 pointer-events-none">
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] bg-black/40 backdrop-blur-md border border-[#D4AF37]/30`}>
-          {vault.risk} Risk
-        </span>
+      <div className="absolute top-6 left-6 right-6 flex justify-end items-start z-10 pointer-events-none">
+
 
         <div className="flex flex-col items-end gap-2 pointer-events-auto">
           {comingSoon && (
