@@ -35,6 +35,67 @@ function _AmenityIcon({ name, className }: { name: string; className?: string })
   return <Icon className={className ?? 'h-3.5 w-3.5'} />
 }
 
+/* ── Sticky Navigation ─────────────────────────────────────────────── */
+
+function OpportunityNavigation({ sections }: { sections: Array<{ id: string, label: string, tooltip: string }> }) {
+  const [activeId, setActiveId] = useState<string>('')
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        })
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+    )
+
+    sections.forEach((s) => {
+      const el = document.getElementById(s.id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [sections])
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 140
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
+  }
+
+  if (sections.length === 0) return null
+
+  return (
+    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] shadow-sm transition-all duration-300 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-6 hidden md:block rounded-b-2xl">
+      <div className="flex flex-wrap items-center gap-2 lg:gap-4 py-3 overflow-x-auto no-scrollbar">
+        {sections.map((section) => {
+          const isActive = activeId === section.id
+          return (
+            <button
+              key={section.id}
+              onClick={() => scrollTo(section.id)}
+              className={`relative px-4 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-300 group whitespace-nowrap ${
+                isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
+              }`}
+            >
+              {section.label}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2.5 bg-[#0f172a] text-white text-[11px] leading-relaxed font-medium text-center rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl z-50 pointer-events-none">
+                {section.tooltip}
+                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45" />
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 /* ── Company Info Modal ─────────────────────────────────────────────── */
 
 interface CompanyData {
@@ -587,6 +648,22 @@ export default function OpportunityDetailPage() {
 
       <div className="page-section mt-6 relative z-20">
         <div className="page-section-container">
+          
+          <OpportunityNavigation sections={[
+            { id: 'snapshot', label: 'Snapshot', tooltip: 'Key metrics and overview' },
+            opp.description ? { id: 'about', label: 'About', tooltip: 'Project description' } : null,
+            opp.property_specs ? { id: 'configurations', label: 'Configurations', tooltip: 'Unit or plot configurations' } : null,
+            (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) ? { id: 'specifications', label: 'Specs', tooltip: 'Property details' } : null,
+            opp.projectPhase || opp.investment_mode || opp.price_per_sqft || opp.total_project_area_sqft || opp.stage || opp.industry || opp.communityType || opp.collaborationType || opp.launchDate ? { id: 'project-details', label: 'Details', tooltip: 'Vault-specific details' } : null,
+            (opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) ? { id: 'location', label: 'Location', tooltip: 'Location map' } : null,
+            opp.property_amenities && opp.property_amenities.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') ? { id: 'amenities', label: 'Amenities', tooltip: 'Project features' } : null,
+            { id: 'shield', label: 'Shield', tooltip: 'WealthSpot due diligence' },
+            opp.whyInvestors ? { id: 'why-investors', label: 'Why Investors', tooltip: 'Why investors are looking at this' } : null,
+            opp.investmentThesis ? { id: 'investment-thesis', label: 'Thesis', tooltip: 'Investment thesis' } : null,
+            opp.projectRoadmap && (opp.projectRoadmap as any[]).length > 0 ? { id: 'roadmap', label: 'Roadmap', tooltip: 'Project timeline' } : null,
+            opp.riskFactors ? { id: 'risk-factors', label: 'Risk Factors', tooltip: 'Key risks' } : null,
+            opp.founderName ? { id: 'founder', label: 'Founder', tooltip: 'Founder information' } : null,
+          ].filter(Boolean) as Array<{ id: string, label: string, tooltip: string }>} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left — Content */}
@@ -646,7 +723,7 @@ export default function OpportunityDetailPage() {
               ].filter(Boolean) as SnapshotRow[]
               
               return (
-                <div className="card p-6 md:p-8 relative overflow-hidden">
+                <div id="snapshot" className="card p-6 md:p-8 relative overflow-hidden scroll-mt-32">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-500/70 via-emerald-400/50 to-teal-500/10" />
                   <h2 className="font-display text-xl font-bold text-theme-primary mb-6 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-teal-500/15 text-teal-500 shrink-0"><Camera className="h-4 w-4" /></span>
@@ -671,7 +748,7 @@ export default function OpportunityDetailPage() {
 
             {/* About this Opportunity */}
             {opp.description && (
-              <div className="card p-6 relative overflow-hidden">
+              <div id="about" className="card p-6 relative overflow-hidden scroll-mt-32">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/70 via-primary/60 to-amber-500/20" />
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
                   style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.3), transparent)' }} />
@@ -702,7 +779,7 @@ export default function OpportunityDetailPage() {
               if (!rows?.length) return null
 
               return (
-                <div className="card p-6 relative overflow-hidden">
+                <div id="configurations" className="card p-6 relative overflow-hidden scroll-mt-32">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/70 via-blue-400/50 to-indigo-500/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-5 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-500 shrink-0">
@@ -774,15 +851,17 @@ export default function OpportunityDetailPage() {
 
             {/* Property Specifications / Project Details — for Wealth & Safe vault */}
             {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
-              <PropertySpecsSection
-                propertyType={opp.property_type || 'flat'}
-                pricePerSqft={opp.price_per_sqft}
-                totalProjectAreaSqft={opp.total_project_area_sqft}
-                specs={opp.property_specs || {}}
-                amenities={opp.property_amenities ?? []}
-                amenityCostEstimate={opp.amenity_cost_estimate}
-                investmentMode={opp.investment_mode ?? undefined}
-              />
+              <div id="specifications" className="scroll-mt-32">
+                <PropertySpecsSection
+                  propertyType={opp.property_type || 'flat'}
+                  pricePerSqft={opp.price_per_sqft}
+                  totalProjectAreaSqft={opp.total_project_area_sqft}
+                  specs={opp.property_specs || {}}
+                  amenities={opp.property_amenities ?? []}
+                  amenityCostEstimate={opp.amenity_cost_estimate}
+                  investmentMode={opp.investment_mode ?? undefined}
+                />
+              </div>
             )}
 
             {/* Vault-Specific Project Details */}
@@ -815,7 +894,7 @@ export default function OpportunityDetailPage() {
 
               if (details.length === 0) return null
               return (
-                <div className="card p-6 relative overflow-hidden">
+                <div id="project-details" className="card p-6 relative overflow-hidden scroll-mt-32">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-blue-500/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/15 text-blue-500 dark:text-blue-400 shrink-0"><FolderKanban className="h-4 w-4" /></span>
@@ -845,15 +924,17 @@ export default function OpportunityDetailPage() {
 
             {/* Location Map */}
             {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
-              <LocationMapEmbed
-                latitude={opp.latitude}
-                longitude={opp.longitude}
-                mapsUrl={opp.mapsUrl}
-                address={opp.addressLine1 ?? opp.address}
-                city={opp.city}
-                state={opp.state}
-                pincode={opp.pincode}
-              />
+              <div id="location" className="scroll-mt-32">
+                <LocationMapEmbed
+                  latitude={opp.latitude}
+                  longitude={opp.longitude}
+                  mapsUrl={opp.mapsUrl}
+                  address={opp.addressLine1 ?? opp.address}
+                  city={opp.city}
+                  state={opp.state}
+                  pincode={opp.pincode}
+                />
+              </div>
             )}
 
             {/* Amenities & Features — shown for wealth/safe vault properties that have amenities */}
@@ -870,7 +951,7 @@ export default function OpportunityDetailPage() {
               )
               if (nonEmpty.length === 0) return null
               return (
-                <div className="card p-6 relative overflow-hidden">
+                <div id="amenities" className="card p-6 relative overflow-hidden scroll-mt-32">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
                   <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 dark:text-violet-400 shrink-0"><Sparkles className="h-4 w-4" /></span>
@@ -896,7 +977,9 @@ export default function OpportunityDetailPage() {
             })()}
 
             {/* WealthSpot Shield — placed high for trust-first UX */}
-            <ShieldSection opportunityId={opp.id} />
+            <div id="shield" className="scroll-mt-32">
+              <ShieldSection opportunityId={opp.id} />
+            </div>
 
             <ProjectThesisSection
               title={opp.title}
@@ -908,7 +991,7 @@ export default function OpportunityDetailPage() {
 
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
-              <div className="card p-6 relative overflow-hidden">
+              <div id="founder" className="card p-6 relative overflow-hidden scroll-mt-32">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/70 via-violet-400/50 to-violet-500/10" />
                 <h2 className="font-display text-lg font-bold text-theme-primary mb-3 flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 shrink-0">
