@@ -116,17 +116,17 @@ export default function Navbar(_props?: NavbarProps) {
       }}
     >
       <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
-        <div className="flex h-14 items-center justify-between">
+        <div className="flex h-[72px] md:h-20 items-center justify-between">
           {/* Logo */}
-            <Link to="/vaults" className="flex items-center gap-2 shrink-0" aria-label="WealthSpot Home">
-            <WLogo3D size={56} light={onDark} className="transition-all duration-300" />
-            <div className="flex flex-col justify-center mt-1">
-              <span className={cn('text-xl sm:text-2xl font-bold tracking-tight leading-none', onDark ? 'text-white' : 'text-slate-950')} 
+          <Link to="/vaults" className="flex items-center gap-1.5 shrink-0" aria-label="WealthSpot Home">
+            <WLogo3D size={72} light={onDark} className="transition-all duration-300" />
+            <div className="flex flex-col justify-center">
+              <span className={cn('text-2xl sm:text-[28px] font-bold tracking-tight leading-none', onDark ? 'text-white' : 'text-slate-950')} 
                 style={{ fontFamily: 'Constantia, Cambria, Georgia, serif' }}
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
-              <span className={cn('text-[10px] font-semibold tracking-widest leading-none mt-1.5', onDark ? 'text-white/70' : 'text-slate-500')}>
+              <span className={cn('text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] leading-none mt-1', onDark ? 'text-white/70' : 'text-slate-500')}>
                 Research. Evaluate. Invest.
               </span>
             </div>
