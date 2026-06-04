@@ -4,7 +4,7 @@ import { useClerk } from '@clerk/react'
 import { ArrowRight, Users, Shield, CheckCircle2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 
 /* ─────────────────────────────────────────────────
    SECTION 1 — HERO
@@ -395,7 +395,7 @@ function FoundingTeamSection() {
               className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {displayMembers.map((member, idx) => (
+              {displayMembers.map((member: any, idx: number) => (
                 <div 
                   key={member.id} 
                   className={`snap-center shrink-0 w-[280px] sm:w-[320px] aspect-[3/4] rounded-3xl overflow-hidden relative cursor-pointer transition-all duration-500 ${activeIndex === idx ? 'scale-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ring-4 ring-[#D4AF37]/30' : 'scale-90 opacity-50 hover:opacity-80'}`}
