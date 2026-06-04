@@ -381,8 +381,8 @@ export default function CreateOpportunityPage() {
     }
   }, [user, navigate])
 
-  const [step, setStep] = useState<WizardStep>(initialVault ? 'details' : 'vault')
-  const [vaultType, setVaultType] = useState(initialVault || '')
+  const [step, setStep] = useState<WizardStep>('details')
+  const [vaultType, setVaultType] = useState(initialVault || 'wealth')
   const [vaultPreview, setVaultPreview] = useState<VaultOptionValue>(initialVault || 'wealth')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
@@ -623,7 +623,7 @@ export default function CreateOpportunityPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       if (vaultType === 'community') setStep('community-subtype')
-      else setStep('vault')
+      else navigate('/vaults')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -851,7 +851,7 @@ export default function CreateOpportunityPage() {
           <div className="bg-white/95 backdrop-blur-sm border-b border-[rgba(209,196,157,0.3)] px-4 py-3 sticky top-0 z-50 shadow-[0_1px_8px_rgba(0,0,0,0.06)]">
             <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
               <button
-                onClick={() => setStep('vault')}
+                onClick={() => navigate('/vaults')}
                 className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] transition-colors text-sm font-medium shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -900,174 +900,16 @@ export default function CreateOpportunityPage() {
       {/* Content */}
       <div className={step === 'vault' ? 'flex-1 flex flex-col lg:overflow-x-hidden' : step === 'details' ? 'w-full' : step === 'shield' ? '' : 'max-w-3xl mx-auto px-4 py-8 space-y-6'}>
 
-        {step === 'vault' && (
-          <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[8.5rem] pb-10 lg:pb-12">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/18 blur-3xl" />
-              <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-violet-500/12 blur-3xl" />
-            </div>
-            <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-16 relative z-10">
-              <h1 className="font-hero text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-2 tracking-tight leading-[1.1]">
-                Create Opportunity
-              </h1>
-              <p className="text-white/55 max-w-xl text-sm leading-relaxed">
-                List your new investment class — real estate, fixed-income, or collaborative ventures.
-              </p>
-            </div>
-          </section>
-        )}
 
-        {/* ─── Step: Vault Selection ─── */}
-        {step === 'vault' && (
-          <section className="flex-1 w-full px-4 sm:px-8 lg:px-12 pt-8 pb-10 flex flex-col items-center bg-[var(--bg-base)]">
-            <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] border border-[#D4AF37]/35 h-auto min-h-[440px] w-full max-w-5xl"
-              style={{ boxShadow: '0 8px 40px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,175,55,0.15)' }}
-            >
-              <img
-                src="/images/vault-selector-abstract.svg"
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover"
-                draggable={false}
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(105deg,rgba(7,13,28,0.74)_0%,rgba(11,19,38,0.62)_45%,rgba(15,24,44,0.32)_100%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(60%_65%_at_84%_16%,rgba(232,182,74,0.24),transparent_74%)]" />
-              <div className="absolute -top-12 -right-14 h-44 w-44 rounded-full bg-[#e8b64a]/25 blur-3xl" aria-hidden="true" />
-              <div className="absolute -bottom-10 left-8 h-36 w-36 rounded-full bg-[#20E3B2]/20 blur-3xl" aria-hidden="true" />
-              <div className="absolute top-[22%] right-[12%] h-20 w-20 rounded-[22px] border border-white/14 bg-white/[0.04] rotate-12" aria-hidden="true" />
-              <div className="absolute bottom-[16%] right-[28%] h-px w-28 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden="true" />
-              <div className="absolute top-[34%] left-[8%] h-px w-24 bg-gradient-to-r from-transparent via-[#20E3B2]/45 to-transparent" aria-hidden="true" />
-
-              <div className="relative h-full p-4 sm:p-5 lg:p-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-5 items-center">
-                <div className="flex h-full flex-col">
-                  <div className="mb-3.5">
-                    <p className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/85">
-                      Vault Composer
-                    </p>
-                    <h2 className="mt-2.5 font-hero text-white text-[33px] sm:text-[37px] lg:text-[44px] leading-[1.04] font-bold max-w-[16ch]">
-                      Pick your vault.
-                    </h2>
-                    <p className="mt-2 text-[13px] sm:text-sm text-[#d8e2f1]/90 max-w-[52ch] leading-relaxed">
-                      One unified launch frame for all vault types. Choose the path, unlock a tailored questionnaire, and continue with an aligned, high-clarity workflow.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {VAULT_OPTIONS.map((opt) => {
-                      const Icon = opt.icon
-                      const comingSoon = !isVaultEnabled(opt.value)
-                      return (
-                        <button
-                          key={opt.value}
-                          onClick={() => !comingSoon && handleVaultSelect(opt.value)}
-                          onFocus={() => setVaultPreview(opt.value)}
-                          aria-disabled={comingSoon}
-                          className={`w-full rounded-xl border px-3.5 sm:px-4 py-2.5 transition-all text-left group ${comingSoon ? 'cursor-not-allowed' : ''}`}
-                          style={{
-                            background: comingSoon ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)',
-                            borderColor: comingSoon ? 'rgba(255,255,255,0.14)' : PAGE_ACCENT,
-                            boxShadow: comingSoon ? 'none' : '0 10px 20px rgba(5,10,22,0.20)',
-                          }}
-                          onMouseEnter={(e) => {
-                            setVaultPreview(opt.value)
-                            if (!comingSoon) {
-                              const button = e.currentTarget as HTMLButtonElement
-                              button.style.borderColor = opt.accentHover
-                              button.style.transform = 'translateY(-1px)'
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!comingSoon) {
-                              const button = e.currentTarget as HTMLButtonElement
-                              button.style.borderColor = opt.accentBorder
-                              button.style.transform = 'translateY(0px)'
-                            }
-                          }}
-                        >
-                          <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3">
-                            <div
-                              className="h-[42px] w-[42px] rounded-lg flex items-center justify-center shrink-0 border"
-                              style={{
-                                background: comingSoon ? 'rgba(255,255,255,0.08)' : 'rgba(212,175,55,0.14)',
-                                borderColor: comingSoon ? 'rgba(255,255,255,0.12)' : PAGE_ACCENT,
-                              }}
-                            >
-                              {comingSoon ? (
-                                <Lock className="h-4 w-4 text-white/65" />
-                              ) : (
-                                <Icon className="h-4.5 w-4.5" style={{ color: PAGE_ACCENT }} />
-                              )}
-                            </div>
-
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-semibold text-white text-[14px] sm:text-[15px] leading-tight">{opt.label}</span>
-                                {comingSoon && (
-                                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 bg-amber-500/20 border border-amber-300/25 px-2 py-0.5 rounded-full">
-                                    Coming Soon
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[12px] text-[#d0daea] mt-0.5 truncate sm:whitespace-normal">{opt.sublabel}</p>
-                            </div>
-
-                            {!comingSoon ? (
-                              <ChevronRight className="h-4 w-4 shrink-0" style={{ color: PAGE_ACCENT }} />
-                            ) : (
-                              <span className="text-xs text-white/50 font-medium">Locked</span>
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <aside className="hidden lg:flex h-full flex-col justify-between rounded-2xl border border-[#D4AF37]/20 bg-[#07121f]/90 p-4">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/60 font-semibold">Selection Guide</p>
-                    <h3 className="mt-2 text-white font-hero text-[28px] leading-[1.03] max-w-[12ch]">
-                      {activeVaultPreview.label}
-                    </h3>
-                    <p className="mt-2 text-[12px] text-white/70 leading-relaxed">
-                      {activeVaultPreview.sublabel}
-                    </p>
-                  </div>
-                  <div className="space-y-2 text-[12px] text-white/85">
-                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Best for</span><span>{activeVaultPreview.bestFor}</span></p>
-                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Model</span><span>{activeVaultPreview.ticket}</span></p>
-                    <p className="flex items-start gap-2"><span className="text-white/55 w-[66px] shrink-0">Horizon</span><span>{activeVaultPreview.timeline}</span></p>
-                  </div>
-                    <div className="rounded-xl border border-white/15 bg-black/15 px-3 py-2.5">
-                      <p className="text-[10px] uppercase tracking-[0.14em] text-white/60 mb-2">What unlocks next</p>
-                      <div className="space-y-1.5 text-[11.5px] text-white">
-                        {activeVaultPreview.unlocks.map((item, idx) => (
-                          <p key={item} className="flex items-start gap-2 text-white">
-                            <span style={{ color: PAGE_ACCENT }} className="font-bold">0{idx + 1}</span>
-                            <span className="text-white">{item}</span>
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  <div className="grid grid-cols-3 gap-2.5 pt-1">
-                    <div className="rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/12 px-2.5 py-2 text-[11px] text-[#f2ddb0] text-center">Growth</div>
-                    <div className="rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/12 px-2.5 py-2 text-[11px] text-[#f2ddb0] text-center">Stability</div>
-                    <div className="rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/12 px-2.5 py-2 text-[11px] text-[#f2ddb0] text-center">Community</div>
-                  </div>
-                </aside>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ─── Step: Community Subtype ─── */}
         {step === 'community-subtype' && (
           <div className="max-w-2xl mx-auto w-full px-4 py-10 space-y-4">
             <button
-              onClick={() => setStep('vault')}
+              onClick={() => navigate('/vaults')}
               className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] text-sm font-medium transition-colors mb-2"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to vault selection
+              <ArrowLeft className="h-4 w-4" /> Back to vaults
             </button>
 
             <div className="mb-6">
