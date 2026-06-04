@@ -11,7 +11,7 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
-  ShieldCheck, Lock, EyeOff,
+  ShieldCheck, Lock, EyeOff, Camera,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -614,6 +614,66 @@ export default function OpportunityDetailPage() {
                 <p className="text-sm text-theme-secondary leading-relaxed whitespace-pre-line">{opp.description}</p>
               </div>
             )}
+
+            {/* Opportunity Snapshot */}
+            {(() => {
+              const getHoldingPeriod = (opp: any) => {
+                if (opp.communityDetails?.investmentTenure) return String(opp.communityDetails.investmentTenure)
+                if (opp.safeVaultData?.tenure_months) return `${opp.safeVaultData.tenure_months} Months (Estimated)`
+                if (opp.tenure) return String(opp.tenure)
+                return '48 Months (Estimated)'
+              }
+            
+              const formatVaultType = (vaultType: string) => {
+                if (vaultType === 'wealth') return 'Wealth Vault'
+                if (vaultType === 'safe') return 'Safe Vault'
+                if (vaultType === 'community') return 'Community Vault'
+                return vaultType
+              }
+            
+              const formatLocation = (opp: any) => {
+                const parts = [opp.locality, opp.district, opp.city, opp.state].filter(Boolean)
+                return parts.length > 0 ? parts.join(', ') : 'Location on Request'
+              }
+            
+              const snapshotData = [
+                { label: 'Project Code Name', value: opp.title },
+                { label: 'Asset Class', value: opp.property_type || opp.industry || 'Residential Real Estate' },
+                { label: 'Investment Category', value: formatVaultType(opp.vaultType) },
+                { label: 'Location', value: formatLocation(opp) },
+                { label: 'GPS Location', value: opp.mapsUrl ? <a href={opp.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2 break-all">{opp.mapsUrl}</a> : 'Not Disclosed' },
+                { label: 'Development Type', value: opp.development_type || 'Integrated Residential Township' },
+                { label: 'Current Stage', value: opp.projectPhase?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || opp.stage?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Land Acquisition Phase' },
+                { label: 'Holding Period', value: getHoldingPeriod(opp) },
+                { label: 'Entry Price', value: opp.price_per_sqft ? `₹${opp.price_per_sqft.toLocaleString('en-IN')} / Sq.Ft` : opp.minInvestment ? formatINRCompact(opp.minInvestment) : 'TBA' },
+                { label: 'GST', value: opp.gst_percentage != null ? `${opp.gst_percentage}%` : '5%' },
+                { label: 'Target Exit Valuation', value: opp.projected_market_value_at_exit ? `₹${opp.projected_market_value_at_exit.toLocaleString('en-IN')} / Sq.Ft (Projected)` : 'TBA' },
+                { label: 'Investment Objective', value: opp.purpose_of_funds || opp.investment_thesis || 'Capital Appreciation Through Early-Stage Entry' }
+              ]
+              
+              return (
+                <div className="card p-6 md:p-8 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-500/70 via-emerald-400/50 to-teal-500/10" />
+                  <h2 className="font-display text-xl font-bold text-theme-primary mb-6 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-teal-500/15 text-teal-500 shrink-0"><Camera className="h-4 w-4" /></span>
+                    Opportunity Snapshot
+                  </h2>
+                  
+                  <div className="flex flex-col text-sm">
+                    <div className="flex items-center pb-3 border-b border-[var(--border-default)] mb-1">
+                        <div className="w-[35%] md:w-[30%] font-bold text-theme-primary">Field</div>
+                        <div className="w-[65%] md:w-[70%] font-bold text-theme-primary">Details</div>
+                    </div>
+                    {snapshotData.map((row, idx) => (
+                      <div key={row.label} className={`flex items-start sm:items-center py-4 ${idx !== snapshotData.length - 1 ? 'border-b border-[var(--border-subtle)]' : ''}`}>
+                        <div className="w-[35%] md:w-[30%] text-theme-secondary font-medium pr-4">{row.label}</div>
+                        <div className="w-[65%] md:w-[70%] text-theme-primary font-medium">{row.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Property Specifications / Project Details — for Wealth & Safe vault */}
             {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
