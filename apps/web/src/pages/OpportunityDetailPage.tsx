@@ -590,7 +590,7 @@ export default function OpportunityDetailPage() {
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div className="flex items-start gap-4">
               <button 
-                onClick={() => navigate(opp.vaultType ? `/vaults/${opp.vaultType}` : '/vaults')}
+                onClick={() => navigate(opp.vaultType ? `/marketplace?vault=${opp.vaultType}` : '/marketplace')}
                 className="mt-1 flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-colors backdrop-blur-md shrink-0"
                 aria-label="Back to Vault"
                 title="Back to Vault"
