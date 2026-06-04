@@ -12,7 +12,7 @@ import {
   ChevronRight, Play, Heart, Share2,
   Clock, ChevronLeft, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
-  ShieldCheck, Lock, EyeOff, TrendingUp,
+  ShieldCheck, Lock, EyeOff,
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -240,15 +240,6 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
             </button>
           )}
         </div>
-        {images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {images.map((img, i) => (
-              <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`w-20 h-14 rounded-lg overflow-hidden shrink-0 ring-2 transition-all ${i === activeIdx ? 'ring-primary' : 'ring-transparent hover:ring-gray-300'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-[var(--bg-surface-hover)]'); }} />
-              </button>
-          ))}
-        </div>
-      )}
       </div>
 
       {/* Video Player Modal */}
@@ -301,42 +292,6 @@ function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string
     </div>
   )
 }
-
-function InvestmentHighlights({ minInvestment, closingDate }: {
-  minInvestment: number | null
-  closingDate: string | null
-}) {
-  const items = [
-    minInvestment != null && {
-      label: 'Min. Investment', value: formatINRCompact(minInvestment),
-      bg: 'bg-emerald-500/10', color: 'text-emerald-500', Icon: TrendingUp,
-    },
-    closingDate && {
-      label: 'Days Remaining', value: String(Math.max(0, daysRemaining(closingDate))),
-      bg: 'bg-amber-500/10', color: 'text-amber-500', Icon: Clock,
-    },
-  ].filter(Boolean) as Array<{ label: string; value: string; bg: string; color: string; Icon: typeof TrendingUp }>
-
-  if (items.length < 1) return null
-  return (
-    <div className="card p-5 border-primary/10">
-      <div className="grid grid-cols-2 gap-4">
-        {items.map((item, i) => (
-          <div key={item.label} className={`flex items-start gap-3 ${i > 0 ? 'sm:pl-4 sm:border-l sm:border-theme' : ''}`}>
-            <div className={`h-9 w-9 rounded-xl ${item.bg} flex items-center justify-center shrink-0 mt-0.5`}>
-              <item.Icon className={`h-4 w-4 ${item.color}`} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-theme-tertiary uppercase tracking-wider leading-tight mb-0.5 truncate">{item.label}</p>
-              <p className="text-xl font-bold text-theme-primary font-mono leading-tight">{item.value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /* ── Interest Panel (premium redesign) ─────────────────────────────── */
 
 function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
@@ -368,9 +323,35 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
                 </span>
               )}
             </div>
-            <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-1.5">Minimum Investment</p>
-            <p className="font-mono font-bold text-2xl leading-none" style={{ color: '#D4AF37' }}>
-              {opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'}
+            <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-1.5">Investment</p>
+            <p className="font-mono font-bold text-xl leading-tight" style={{ color: '#D4AF37' }}>
+              {(() => {
+                let display = opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'
+                if (opportunity.property_specs) {
+                  const specs = opportunity.property_specs as Record<string, unknown>
+                  const unitConfigs = specs.unit_configurations as { price_per_sqft?: number; carpet_area_sqft?: number }[] | undefined
+                  const plotConfigs = specs.plot_configurations as { price_per_sqft?: number; area_sqft?: number }[] | undefined
+                  
+                  const prices: number[] = []
+                  if (unitConfigs?.length) {
+                    unitConfigs.forEach(u => {
+                      if (u.price_per_sqft && u.carpet_area_sqft) prices.push(u.price_per_sqft * u.carpet_area_sqft)
+                    })
+                  } else if (plotConfigs?.length) {
+                    plotConfigs.forEach(p => {
+                      if (p.price_per_sqft && p.area_sqft) prices.push(p.price_per_sqft * p.area_sqft)
+                    })
+                  } else if (typeof specs.price_per_sqft === 'number' && typeof specs.total_project_area_sqft === 'number') {
+                    prices.push(specs.price_per_sqft * specs.total_project_area_sqft)
+                  }
+
+                  if (prices.length > 0) {
+                    const uniquePrices = Array.from(new Set(prices)).sort((a, b) => a - b)
+                    display = uniquePrices.map(p => formatINRCompact(p)).join(' / ')
+                  }
+                }
+                return display
+              })()}
             </p>
             {opportunity.investorCount > 0 && (
               <p className="mt-2.5 text-white/40 text-[11px] flex items-center gap-1.5">
@@ -567,7 +548,7 @@ export default function OpportunityDetailPage() {
               )}
               {opp.closingDate && (
                 <div>
-                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Closes In</p>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Deal closes in</p>
                   <p className="font-bold text-xl text-white">
                     {daysRemaining(opp.closingDate)}{' '}
                     <span className="text-sm font-normal text-white/50">days</span>
@@ -594,12 +575,6 @@ export default function OpportunityDetailPage() {
               )}
               <OpportunityGallery images={galleryImages} title={opp.title} videoUrl={opp.videoUrl ?? undefined} propertyVideosEnabled={propertyVideosEnabled} />
             </div>
-
-            {/* Investment Highlights */}
-            <InvestmentHighlights
-              minInvestment={opp.minInvestment}
-              closingDate={opp.closingDate}
-            />
 
             {/* About this Opportunity */}
             {opp.description && (
@@ -779,6 +754,31 @@ export default function OpportunityDetailPage() {
 
             <ProjectUspPanel usps={opp.locationUsps} />
             <BuilderUpdatesPanel opportunityId={opp.id} />
+
+            {/* Developer / Company Info Button */}
+            {opp.company && (
+              <button
+                type="button"
+                onClick={() => setShowCompanyModal(true)}
+                className="card p-5 w-full text-left cursor-pointer hover:border-primary/50 transition-all group shadow-sm"
+              >
+                <h3 className="font-display text-base font-bold text-theme-primary mb-3">About the Developer</h3>
+                <div className="flex items-center gap-3">
+                  {opp.company.logoUrl ? (
+                    <img src={opp.company.logoUrl} alt={opp.company.companyName} className="h-12 w-12 rounded-lg object-contain border border-theme bg-white" />
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-[var(--bg-surface-hover)] flex items-center justify-center shrink-0">
+                      <Building2 className="h-6 w-6 text-theme-tertiary" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-theme-primary group-hover:text-primary transition-colors line-clamp-2">{opp.company.companyName}</p>
+                    {opp.company.brandName && <p className="text-[11px] text-theme-secondary truncate mt-0.5">{opp.company.brandName}</p>}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-theme-tertiary group-hover:text-primary transition-colors shrink-0" />
+                </div>
+              </button>
+            )}
           </div>
         </div>
         </div>

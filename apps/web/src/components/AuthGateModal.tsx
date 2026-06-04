@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react'
-import { SignInButton, SignUpButton } from '@clerk/react'
+import { SignInButton, SignUpButton, useAuth } from '@clerk/react'
 import { Building2, TrendingUp, ShieldCheck, Lock } from 'lucide-react'
 import { useUserStore } from '@/stores/user.store'
 
 const DELAY_MS = 3000
 
 export default function AuthGateModal() {
+  const { isSignedIn } = useAuth()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const [visible, setVisible] = useState(false)
 
+  const signedIn = isSignedIn || isAuthenticated
+
   useEffect(() => {
-    if (isAuthenticated) return
+    if (signedIn) return
     const t = setTimeout(() => setVisible(true), DELAY_MS)
     return () => clearTimeout(t)
-  }, [isAuthenticated])
+  }, [signedIn])
 
-  if (isAuthenticated || !visible) return null
+  if (signedIn || !visible) return null
 
   const returnUrl = window.location.pathname + window.location.search
 

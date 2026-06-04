@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye } from 'lucide-react'
+import { Eye, Loader2 } from 'lucide-react'
 import { useDownloadAssessmentDocument } from '@/hooks/useShield'
 import type { AssessmentDocumentRead } from '@/lib/assessments'
 import { SecureDocViewer } from './SecureDocViewer'
@@ -7,6 +7,7 @@ import { SecureDocViewer } from './SecureDocViewer'
 interface ShieldDocLinkProps {
   opportunityId: string
   doc: AssessmentDocumentRead
+  variant?: 'full' | 'icon'
 }
 
 /**
@@ -16,12 +17,22 @@ interface ShieldDocLinkProps {
  * we show a lock icon + an "Express interest to unlock" hint instead
  * of a working link.
  */
-export function ShieldDocLink({ opportunityId, doc }: ShieldDocLinkProps) {
+export function ShieldDocLink({ opportunityId, doc, variant = 'full' }: ShieldDocLinkProps) {
   const download = useDownloadAssessmentDocument()
   const [open, setOpen] = useState(false)
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(doc.url ?? null)
 
   if (doc.locked) {
+    if (variant === 'icon') {
+      return (
+        <div 
+          className="p-2 rounded-full bg-amber-500/10 text-amber-500 cursor-help"
+          title="EOI required to view this document"
+        >
+          <Eye size={18} className="opacity-50" />
+        </div>
+      )
+    }
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme bg-theme-surface/50 text-[12px] text-theme-tertiary w-full">
         <span className="flex-1 truncate">{doc.filename ?? 'Document'}</span>
@@ -51,20 +62,40 @@ export function ShieldDocLink({ opportunityId, doc }: ShieldDocLinkProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        disabled={download.isPending}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme bg-theme-surface hover:border-primary text-[12px] text-theme-primary transition w-full text-left"
-      >
-        <Eye size={14} className="text-primary shrink-0" />
-        <span className="flex-1 truncate">{doc.filename ?? 'Document'}</span>
-        {doc.sizeBytes ? (
-          <span className="text-[10px] text-theme-tertiary">
-            {(doc.sizeBytes / 1024).toFixed(0)} KB
-          </span>
-        ) : null}
-      </button>
+      {variant === 'icon' ? (
+        <button
+          type="button"
+          onClick={handleOpen}
+          disabled={download.isPending}
+          className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors group relative"
+          title={doc.filename ?? 'View document'}
+        >
+          {download.isPending ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Eye size={18} className="group-hover:scale-110 transition-transform" />
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleOpen}
+          disabled={download.isPending}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme bg-theme-surface hover:border-primary text-[12px] text-theme-primary transition w-full text-left"
+        >
+          {download.isPending ? (
+            <Loader2 size={14} className="text-primary shrink-0 animate-spin" />
+          ) : (
+            <Eye size={14} className="text-primary shrink-0" />
+          )}
+          <span className="flex-1 truncate">{doc.filename ?? 'Document'}</span>
+          {doc.sizeBytes ? (
+            <span className="text-[10px] text-theme-tertiary">
+              {(doc.sizeBytes / 1024).toFixed(0)} KB
+            </span>
+          ) : null}
+        </button>
+      )}
       {resolvedUrl && (
         <SecureDocViewer
           url={resolvedUrl}

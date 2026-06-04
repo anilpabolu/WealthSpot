@@ -216,6 +216,12 @@ _logger = logging.getLogger(__name__)
 @app.exception_handler(APIError)
 async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
     """Application-defined errors with machine-readable codes."""
+    if exc.status_code >= 500:
+        _logger.error("APIError (500+) on %s %s: %s", request.method, request.url.path, exc.detail)
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(exc)
+
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail, "code": exc.code},
@@ -244,7 +250,13 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions — returns 500 with CORS headers preserved."""
     _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
-    # FastApiIntegration captures this automatically; no manual capture needed.
+
+    # Explicitly capture in Sentry to guarantee it's logged,
+    # regardless of FastApiIntegration/LoggingIntegration nuances.
+    import sentry_sdk
+
+    sentry_sdk.capture_exception(exc)
+
     return JSONResponse(
         status_code=500,
         content={
@@ -281,7 +293,12 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
 async def operational_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
     """Handle database connectivity issues with a clear 503."""
     _logger.error("OperationalError on %s %s: %s", request.method, request.url.path, exc.orig)
-    # FastApiIntegration captures this automatically.
+
+    # Explicitly capture DB outages in Sentry
+    import sentry_sdk
+
+    sentry_sdk.capture_exception(exc)
+
     return JSONResponse(
         status_code=503,
         content={
