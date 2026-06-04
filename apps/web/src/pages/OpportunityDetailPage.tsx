@@ -71,26 +71,28 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
   if (sections.length === 0) return null
 
   return (
-    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] shadow-sm transition-all duration-300 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-6 hidden md:block rounded-b-2xl">
-      <div className="flex flex-wrap items-center gap-2 lg:gap-4 py-3 overflow-x-auto no-scrollbar">
-        {sections.map((section) => {
-          const isActive = activeId === section.id
-          return (
-            <button
-              key={section.id}
-              onClick={() => scrollTo(section.id)}
-              className={`relative px-4 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-300 group whitespace-nowrap ${
-                isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
-              }`}
-            >
-              {section.label}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2.5 bg-[#0f172a] text-white text-[11px] leading-relaxed font-medium text-center rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl z-50 pointer-events-none">
-                {section.tooltip}
-                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45" />
-              </div>
-            </button>
-          )
-        })}
+    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 lg:gap-6 py-3">
+          {sections.map((section) => {
+            const isActive = activeId === section.id
+            return (
+              <button
+                key={section.id}
+                onClick={() => scrollTo(section.id)}
+                className={`relative px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 group whitespace-nowrap ${
+                  isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
+                }`}
+              >
+                {section.label}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2.5 bg-[#0f172a] text-white text-[11px] leading-relaxed font-medium text-center rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl z-50 pointer-events-none">
+                  {section.tooltip}
+                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45" />
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -646,24 +648,25 @@ export default function OpportunityDetailPage() {
         </div>
       </section>
 
-      <div className="page-section mt-6 relative z-20">
+      <OpportunityNavigation sections={[
+        { id: 'snapshot', label: 'Snapshot', tooltip: 'Key metrics and overview' },
+        opp.description ? { id: 'about', label: 'About', tooltip: 'Project description' } : null,
+        (opp.propertySpecs || opp.property_specs) ? { id: 'configurations', label: 'Configurations', tooltip: 'Unit or plot configurations' } : null,
+        (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.propertySpecs || opp.property_specs || opp.investment_mode) ? { id: 'specifications', label: 'Specs', tooltip: 'Property details' } : null,
+        opp.projectPhase || opp.investment_mode || opp.price_per_sqft || opp.total_project_area_sqft || opp.stage || opp.industry || opp.communityType || opp.collaborationType || opp.launchDate ? { id: 'project-details', label: 'Details', tooltip: 'Vault-specific details' } : null,
+        (opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) ? { id: 'location', label: 'Location', tooltip: 'Location map' } : null,
+        (opp.propertyAmenities || opp.property_amenities) && (opp.propertyAmenities || opp.property_amenities)!.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') ? { id: 'amenities', label: 'Amenities', tooltip: 'Project features' } : null,
+        { id: 'shield', label: 'Shield', tooltip: 'WealthSpot due diligence' },
+        (opp.whyInvestors || opp.why_investors) ? { id: 'why-investors', label: 'Why Investors', tooltip: 'Why investors are looking at this' } : null,
+        (opp.investmentThesis || opp.investment_thesis) ? { id: 'investment-thesis', label: 'Investment Thesis', tooltip: 'Our thesis on this project' } : null,
+        (opp.projectRoadmap || opp.project_roadmap) ? { id: 'roadmap', label: 'Roadmap', tooltip: 'Project timeline' } : null,
+        (opp.riskFactors || opp.risk_factors) ? { id: 'risk-factors', label: 'Risk Factors', tooltip: 'Key risks' } : null,
+        opp.founderName ? { id: 'founder', label: 'Founder', tooltip: 'Founder details' } : null
+      ].filter(Boolean) as { id: string; label: string; tooltip: string }[]} />
+
+      <div className="page-section mt-8 relative z-20">
         <div className="page-section-container">
           
-          <OpportunityNavigation sections={[
-            { id: 'snapshot', label: 'Snapshot', tooltip: 'Key metrics and overview' },
-            opp.description ? { id: 'about', label: 'About', tooltip: 'Project description' } : null,
-            opp.property_specs ? { id: 'configurations', label: 'Configurations', tooltip: 'Unit or plot configurations' } : null,
-            (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) ? { id: 'specifications', label: 'Specs', tooltip: 'Property details' } : null,
-            opp.projectPhase || opp.investment_mode || opp.price_per_sqft || opp.total_project_area_sqft || opp.stage || opp.industry || opp.communityType || opp.collaborationType || opp.launchDate ? { id: 'project-details', label: 'Details', tooltip: 'Vault-specific details' } : null,
-            (opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) ? { id: 'location', label: 'Location', tooltip: 'Location map' } : null,
-            opp.property_amenities && opp.property_amenities.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') ? { id: 'amenities', label: 'Amenities', tooltip: 'Project features' } : null,
-            { id: 'shield', label: 'Shield', tooltip: 'WealthSpot due diligence' },
-            opp.whyInvestors ? { id: 'why-investors', label: 'Why Investors', tooltip: 'Why investors are looking at this' } : null,
-            opp.investmentThesis ? { id: 'investment-thesis', label: 'Thesis', tooltip: 'Investment thesis' } : null,
-            opp.projectRoadmap && (opp.projectRoadmap as any[]).length > 0 ? { id: 'roadmap', label: 'Roadmap', tooltip: 'Project timeline' } : null,
-            opp.riskFactors ? { id: 'risk-factors', label: 'Risk Factors', tooltip: 'Key risks' } : null,
-            opp.founderName ? { id: 'founder', label: 'Founder', tooltip: 'Founder information' } : null,
-          ].filter(Boolean) as Array<{ id: string, label: string, tooltip: string }>} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left — Content */}
