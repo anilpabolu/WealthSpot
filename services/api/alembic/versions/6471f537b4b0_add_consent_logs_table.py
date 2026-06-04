@@ -1356,7 +1356,7 @@ def downgrade() -> None:
         ["user_id", "vault_type"],
         postgresql_nulls_not_distinct=False,
     )
-    op.drop_constraint(None, "users", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "users", type_="foreignkey")  # type: ignore[arg-type]
     op.create_index(
         op.f("ix_users_referred_by"), "users", ["referred_by"], unique=False, if_not_exists=True
     )
@@ -1573,8 +1573,8 @@ def downgrade() -> None:
         nullable=True,
         existing_server_default=sa.text("now()"),
     )
-    op.drop_constraint(None, "transactions", type_="foreignkey")  # type: ignore[bad-argument-type]
-    op.drop_constraint(None, "transactions", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "transactions", type_="foreignkey")  # type: ignore[arg-type]
+    op.drop_constraint(None, "transactions", type_="foreignkey")  # type: ignore[arg-type]
     op.create_foreign_key(
         op.f("transactions_investment_id_fkey"),
         "transactions",
@@ -1714,7 +1714,7 @@ def downgrade() -> None:
         "properties",
         sa.Column("rera_id", sa.VARCHAR(length=50), autoincrement=False, nullable=True),
     )
-    op.drop_constraint(None, "properties", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "properties", type_="foreignkey")  # type: ignore[arg-type]
     op.create_foreign_key(
         op.f("properties_builder_id_fkey"),
         "properties",
@@ -2212,7 +2212,7 @@ def downgrade() -> None:
         existing_comment=None,
         schema=None,
     )
-    op.drop_constraint(None, "opportunities", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "opportunities", type_="foreignkey")  # type: ignore[arg-type]
     op.create_foreign_key(
         op.f("opportunities_company_id_fkey"),
         "opportunities",
@@ -2429,8 +2429,8 @@ def downgrade() -> None:
         nullable=True,
         existing_server_default=sa.text("'PENDING'::character varying"),
     )
-    op.drop_constraint(None, "investments", type_="foreignkey")  # type: ignore[bad-argument-type]
-    op.drop_constraint(None, "investments", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "investments", type_="foreignkey")  # type: ignore[arg-type]
+    op.drop_constraint(None, "investments", type_="foreignkey")  # type: ignore[arg-type]
     op.create_foreign_key(
         op.f("investments_user_id_fkey"),
         "investments",
@@ -2727,7 +2727,7 @@ def downgrade() -> None:
         "builders",
         sa.Column("rera_number", sa.VARCHAR(length=50), autoincrement=False, nullable=True),
     )
-    op.drop_constraint(None, "builders", type_="foreignkey")  # type: ignore[bad-argument-type]
+    op.drop_constraint(None, "builders", type_="foreignkey")  # type: ignore[arg-type]
     op.create_foreign_key(
         op.f("builders_user_id_fkey"), "builders", "users", ["user_id"], ["id"], ondelete="CASCADE"
     )

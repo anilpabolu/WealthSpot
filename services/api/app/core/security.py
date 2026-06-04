@@ -45,7 +45,7 @@ def create_refresh_token(data: dict[str, Any]) -> tuple[str, str, int]:
     return token, jti, int(delta.total_seconds())
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str) -> Any:
     """Decode and verify a JWT. Raises JWTError on failure."""
     try:
         payload = jwt.decode(

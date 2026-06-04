@@ -102,7 +102,7 @@ async def get_vault_config(db: AsyncSession = Depends(get_db)) -> dict[str, bool
     )
     configs = {c.key: c.value for c in result.scalars().all()}
 
-    def _is_enabled(key: str) -> bool:
+    def _is_enabled(key: str) -> Any:
         val = configs.get(key)
         if val is None:
             return True
@@ -151,7 +151,7 @@ async def get_opportunity_form_flags(db: AsyncSession = Depends(get_db)) -> dict
     )
     configs = {c.key: c for c in result.scalars().all()}
 
-    def _flag(key: str) -> bool:
+    def _flag(key: str) -> Any:
         cfg = configs.get(key)
         if cfg is None:
             return False
@@ -207,7 +207,7 @@ async def get_vault_metrics_config(db: AsyncSession = Depends(get_db)) -> dict[s
     )
     configs = {c.key: c.value for c in result.scalars().all()}
 
-    def _metrics(key: str, vault: str) -> list[str]:
+    def _metrics(key: str, vault: str) -> Any:
         val = configs.get(key)
         if isinstance(val, dict) and "metrics" in val:
             return val["metrics"]

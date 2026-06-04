@@ -21,6 +21,7 @@ capped at 9 999.99 % to keep the UI readable.
 
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 # Starting guesses tried in sequence — wider spread catches high-IRR scenarios
 _GUESSES = [0.1, 0.5, 2.0, 10.0, 50.0, 100.0]
@@ -58,7 +59,7 @@ def _newton_raphson(
 def _simple_annualized_return(
     amounts: list[float],
     dates: list[datetime],
-) -> float:
+) -> float | Any:
     """
     Simple annualised return fallback when Newton–Raphson diverges.
 
@@ -77,6 +78,9 @@ def _simple_annualized_return(
     except (ZeroDivisionError, OverflowError):
         return 0.0
     return round(min(rate, _XIRR_CAP), 2)
+
+
+from typing import Any
 
 
 def calculate_xirr(

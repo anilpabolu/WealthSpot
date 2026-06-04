@@ -35,14 +35,14 @@ def _fernet() -> Fernet:
     return Fernet(settings.encryption_key.encode())
 
 
-def encrypt_provider_config(config: dict[str, Any]) -> dict[str, Any]:
+def encrypt_provider_config(config: dict[str, Any]) -> Any:
     """Encrypt a provider config dict. Returns `{"v": 1, "ct": "<token>"}`."""
     raw = json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
     token = _fernet().encrypt(raw).decode()
     return {"v": 1, "ct": token}
 
 
-def decrypt_provider_config(payload: dict[str, Any]) -> dict[str, Any]:
+def decrypt_provider_config(payload: dict[str, Any]) -> Any:
     """Inverse of `encrypt_provider_config`. Raises on tamper / wrong key."""
     if not isinstance(payload, dict) or payload.get("v") != 1 or "ct" not in payload:
         raise ValueError("Unexpected provider config payload shape")

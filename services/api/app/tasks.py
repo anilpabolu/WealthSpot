@@ -120,7 +120,7 @@ def cleanup_expired_otps():
                 ),
                 {"now": now},
             )
-            cleared_email = result.rowcount or 0
+            cleared_email = result.rowcount or 0  # type: ignore[attr-defined]
 
             result2 = await session.execute(
                 text(
@@ -134,7 +134,7 @@ def cleanup_expired_otps():
                 ),
                 {"now": now},
             )
-            cleared_phone = result2.rowcount or 0
+            cleared_phone = result2.rowcount or 0  # type: ignore[attr-defined]
 
             await session.commit()
             logger.info(

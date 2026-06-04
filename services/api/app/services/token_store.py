@@ -97,7 +97,7 @@ def set_current_refresh(user_id: str, jti: str, ttl_seconds: int) -> None:
     _memory_store[f"{_REFRESH_PREFIX}{user_id}"] = (jti, _now() + ttl_seconds)
 
 
-def get_current_refresh(user_id: str) -> str | None:
+def get_current_refresh(user_id: str) -> Any:
     redis = _get_redis()
     if redis is not None:
         try:

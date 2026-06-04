@@ -1,3 +1,5 @@
+from typing import Any
+
 """
 Opportunities router – create, list, manage multi-vault opportunities.
 """
@@ -214,7 +216,7 @@ async def list_opportunities(
 # ── Vault-level aggregated stats ────────────────────────────────────────────
 
 
-def _compute_irr(investments: list, total_invested: float) -> float | None:
+def _compute_irr(investments: list, total_invested: float) -> Any:
     """Compute a simplified actual IRR from investment returns."""
     if not investments or total_invested <= 0:
         return None

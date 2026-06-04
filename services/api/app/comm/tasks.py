@@ -39,9 +39,9 @@ def dispatch_outbox_batch(self, batch_size: int | None = None):
         from sqlalchemy import select, update
 
         from app.comm.models import CommOutbox
-        from app.core.database import AsyncSessionFactory
+        from app.core.database import async_session_factory
 
-        async with AsyncSessionFactory() as session:
+        async with async_session_factory() as session:
             result = await session.execute(
                 select(CommOutbox.id)
                 .where(CommOutbox.status == "pending")
@@ -82,9 +82,9 @@ def orchestrate_event(self, outbox_id: str):
 
     async def _run():
         from app.comm.orchestrator import orchestrate_outbox_row
-        from app.core.database import AsyncSessionFactory
+        from app.core.database import async_session_factory
 
-        async with AsyncSessionFactory() as session:
+        async with async_session_factory() as session:
             await orchestrate_outbox_row(oid, session)
 
     try:

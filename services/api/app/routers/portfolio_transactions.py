@@ -1,3 +1,5 @@
+from typing import Any
+
 """
 Portfolio transaction records router.
 Allows investors to upload/manage acknowledgement documents for their holdings,
@@ -95,7 +97,7 @@ async def _resolve_holding(
     return None, None
 
 
-async def _ocr_acknowledgement(file_bytes: bytes, content_type: str) -> str | None:
+async def _ocr_acknowledgement(file_bytes: bytes, content_type: str) -> Any:
     """Call GPT-4 Vision to extract transaction metadata from an uploaded document."""
     if not settings.openai_api_key:
         return None

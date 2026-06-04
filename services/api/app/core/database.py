@@ -22,8 +22,8 @@ _orig_getaddrinfo = _socket.getaddrinfo
 
 
 def _ipv4_preferred_getaddrinfo(
-    host: object,
-    port: object,
+    host: str | bytes | None,
+    port: str | int | None,
     family: int = 0,
     type: int = 0,
     proto: int = 0,
@@ -34,7 +34,7 @@ def _ipv4_preferred_getaddrinfo(
     return ipv4 if ipv4 else results  # fall back to IPv6 if no IPv4 available
 
 
-_socket.getaddrinfo = _ipv4_preferred_getaddrinfo
+_socket.getaddrinfo = _ipv4_preferred_getaddrinfo  # type: ignore[assignment]
 # ──────────────────────────────────────────────────────────────────────────────
 
 settings = get_settings()

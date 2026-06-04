@@ -80,7 +80,7 @@ def run_migrations_offline() -> None:
         from sqlalchemy.engine import mock as _sa_mock
 
         if not hasattr(_sa_mock.MockConnection, "exec_driver_sql"):
-            _sa_mock.MockConnection.exec_driver_sql = _sa_mock.MockConnection.execute
+            _sa_mock.MockConnection.exec_driver_sql = _sa_mock.MockConnection.execute  # type: ignore[attr-defined]
     except Exception:
         # If SQLAlchemy internals change, offline generation may still work without this shim.
         pass

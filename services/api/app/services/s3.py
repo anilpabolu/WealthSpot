@@ -66,14 +66,14 @@ def _get_kyc_s3_client() -> Any:
     )
 
 
-def get_public_url(key: str) -> str:
+def get_public_url(key: str) -> Any:
     """Return the public URL for a stored object."""
     if settings.s3_public_url:
         return f"{settings.s3_public_url.rstrip('/')}/{key}"
     return f"https://{settings.aws_s3_bucket}.s3.{settings.aws_region}.amazonaws.com/{key}"
 
 
-def ensure_current_public_url(url: str | None) -> str | None:
+def ensure_current_public_url(url: str | None) -> Any:
     """If the URL is an S3 media URL from an older environment, rewrite it to the current public URL."""
     if not url:
         return url
@@ -90,7 +90,7 @@ async def upload_file(
     file: BinaryIO,
     key: str,
     content_type: str = "application/octet-stream",
-) -> str:
+) -> Any:
     """Upload a file and return its S3 key. Runs blocking boto3 call in a thread."""
     s3: Any = _get_s3_client()
     await anyio.to_thread.run_sync(
@@ -110,7 +110,7 @@ async def upload_opportunity_media(
     opportunity_id: str,
     media_type: str,
     content_type: str = "application/octet-stream",
-) -> str:
+) -> Any:
     """Upload opportunity image/video. Returns the S3 key."""
     safe_name = filename.replace(" ", "_")
     key = f"opportunities/{opportunity_id}/{media_type}/{uuid.uuid4().hex}_{safe_name}"
@@ -122,7 +122,7 @@ async def upload_avatar(
     filename: str,
     user_id: str,
     content_type: str = "image/jpeg",
-) -> str:
+) -> Any:
     """Upload a user profile photo to S3 and return the key."""
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
     key = f"avatars/{user_id}/{uuid.uuid4().hex}.{ext}"
@@ -135,7 +135,7 @@ async def upload_document(
     user_id: str,
     doc_type: str,
     content_type: str = "application/octet-stream",
-) -> str:
+) -> Any:
     """Upload a KYC document to Azure Blob Storage (private) and return the key."""
     key = f"kyc/{user_id}/{doc_type}/{uuid.uuid4().hex}_{filename}"
     s3: Any = _get_kyc_s3_client()
@@ -156,13 +156,13 @@ async def upload_template(
     filename: str,
     user_id: str,
     content_type: str = "application/octet-stream",
-) -> str:
+) -> Any:
     """Upload an opportunity template spreadsheet."""
     key = f"templates/{user_id}/{uuid.uuid4().hex}_{filename}"
     return await upload_file(file, key, content_type)
 
 
-def generate_presigned_url(key: str, expires_in: int = 3600) -> str:
+def generate_presigned_url(key: str, expires_in: int = 3600) -> Any:
     """Generate a short-lived presigned download URL for a private KYC document."""
     s3: Any = _get_kyc_s3_client()
     params: dict[str, Any] = {"Bucket": settings.kyc_aws_s3_bucket, "Key": key}

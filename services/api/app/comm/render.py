@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from jinja2 import BaseLoader, Environment, TemplateError, Undefined
 
@@ -54,7 +55,7 @@ def _render_jinja(template_str: str | None, variables: dict) -> str | None:
         raise TemplateRenderError(f"Jinja2 render failed: {exc}") from exc
 
 
-def _mjml_to_html(mjml_source: str) -> str:
+def _mjml_to_html(mjml_source: str) -> Any:
     fn = _get_mjml()
     if fn is None:
         return mjml_source

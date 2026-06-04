@@ -340,7 +340,7 @@ async def _get_best_provider(channel: str, session: AsyncSession):
     return result.scalar_one_or_none()
 
 
-def _recipient_for_channel(channel: str, user: Any | None, profile: Any | None) -> str | None:
+def _recipient_for_channel(channel: str, user: Any | None, profile: Any | None) -> Any:
     if channel == "email":
         return getattr(user, "email", None)
     elif channel == "sms" or channel == "whatsapp":
