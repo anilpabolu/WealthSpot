@@ -900,10 +900,10 @@ export default function OpportunityDetailPage() {
 
             <ProjectThesisSection
               title={opp.title}
-              projectRoadmap={opp.project_roadmap}
-              riskFactors={opp.risk_factors}
-              whyInvestors={opp.why_investors}
-              investmentThesis={opp.investment_thesis}
+              projectRoadmap={opp.projectRoadmap as any[] | null}
+              riskFactors={opp.riskFactors as string | null}
+              whyInvestors={opp.whyInvestors as string | null}
+              investmentThesis={opp.investmentThesis as string | null}
             />
 
             {/* Founder Info (for Opportunity Vault) */}

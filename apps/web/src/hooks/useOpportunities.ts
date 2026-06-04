@@ -82,7 +82,13 @@ export interface OpportunityItem {
   amenity_cost_estimate: number | null
   projectPhase: string | null
   currentValuation: number | null
-  project_roadmap: Array<Record<string, any>> | null
+  projectRoadmap?: any[] | null
+  riskFactors?: string | null
+  whyInvestors?: string | null
+  investmentThesis?: string | null
+  
+  // Snake_case aliases (legacy)
+  project_roadmap: any[] | null
   risk_factors: string | null
   why_investors: string | null
   investment_thesis: string | null
