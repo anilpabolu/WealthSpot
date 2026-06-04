@@ -223,23 +223,28 @@ export function PropertySpecsSection({
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="bg-theme-surface rounded-t-lg">
-                    {['Config', 'Carpet Area', 'Super BUA', 'Baths', 'Balconies', 'Units', '₹/sqft'].map((h) => (
+                    {['Config', 'Carpet Area', 'Super BUA', 'Baths', 'Balconies', 'Units', '₹/sqft', 'Total Cost'].map((h) => (
                       <th key={h} className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {unitConfigs.map((u, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
-                      <td className="px-3 py-2.5 font-semibold text-primary">{u.bhk_type}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.carpet_area_sqft != null ? `${u.carpet_area_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.super_built_up_sqft != null ? `${u.super_built_up_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.bathrooms ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.balconies ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.total_units ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-theme-primary">{u.price_per_sqft != null ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
-                    </tr>
-                  ))}
+                  {unitConfigs.map((u, i) => {
+                    const uTotal = (u.super_built_up_sqft || u.carpet_area_sqft) && u.price_per_sqft ? ((u.super_built_up_sqft || u.carpet_area_sqft!) * u.price_per_sqft) : null
+                    const displayCost = uTotal ? (uTotal >= 1e7 ? `₹${(uTotal / 1e7).toFixed(2)} Cr` : `₹${(uTotal / 1e5).toFixed(2)} L`) : '—'
+                    return (
+                      <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
+                        <td className="px-3 py-2.5 font-semibold text-primary">{u.bhk_type}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.carpet_area_sqft != null ? `${u.carpet_area_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.super_built_up_sqft != null ? `${u.super_built_up_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.bathrooms ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.balconies ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.total_units ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-theme-primary">{u.price_per_sqft != null ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                        <td className="px-3 py-2.5 font-bold text-theme-primary">{displayCost}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -280,7 +285,7 @@ export function PropertySpecsSection({
               <table className="w-full text-sm min-w-[480px]">
                 <thead>
                   <tr className="bg-theme-surface">
-                    {['Type', 'Area (sqft)', 'sq.yd', 'Guntha', 'Plots', '₹/sqft'].map((h) => (
+                    {['Type', 'Area (sqft)', 'sq.yd', 'Guntha', 'Plots', '₹/sqft', 'Total Cost'].map((h) => (
                       <th key={h} className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">{h}</th>
                     ))}
                   </tr>
@@ -289,6 +294,8 @@ export function PropertySpecsSection({
                   {plotConfigs.map((p, i) => {
                     const sqyd = p.area_sqft ? (p.area_sqft / 9).toFixed(1) : '—'
                     const guntha = p.area_sqft ? (p.area_sqft / 1089).toFixed(3) : '—'
+                    const pTotal = p.area_sqft && p.price_per_sqft ? (p.area_sqft * p.price_per_sqft) : null
+                    const displayPCost = pTotal ? (pTotal >= 1e7 ? `₹${(pTotal / 1e7).toFixed(2)} Cr` : `₹${(pTotal / 1e5).toFixed(2)} L`) : '—'
                     return (
                       <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
                         <td className="px-3 py-2.5 font-semibold text-amber-700 dark:text-amber-300">{p.type}</td>
@@ -297,6 +304,7 @@ export function PropertySpecsSection({
                         <td className="px-3 py-2.5 text-theme-primary">{guntha}</td>
                         <td className="px-3 py-2.5 text-theme-primary">{p.total_plots ?? '—'}</td>
                         <td className="px-3 py-2.5 text-theme-primary">{p.price_per_sqft != null ? `₹${p.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                        <td className="px-3 py-2.5 font-bold text-theme-primary">{displayPCost}</td>
                       </tr>
                     )
                   })}
