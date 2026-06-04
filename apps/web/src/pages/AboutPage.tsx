@@ -52,7 +52,7 @@ function AboutPageNavigation() {
   return (
     <div className="sticky top-[72px] z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
-        <div className="flex items-center justify-center gap-2 sm:gap-6 overflow-x-auto scrollbar-hide py-3">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-6 py-3">
           {ABOUT_SECTIONS.map((section) => {
             const isActive = activeId === section.id
             return (
