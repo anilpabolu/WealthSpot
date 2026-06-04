@@ -683,19 +683,20 @@ export default function OpportunityDetailPage() {
               </div>
             )}
 
-            {/* Offering Configurations — unit or plot table derived from property_specs */}
-            {opp.property_specs && (() => {
-              const specs = opp.property_specs as Record<string, unknown>
-              const isPlot = opp.property_type === 'plot'
+            {/* Offering Configurations — reads camelCase keys (convertKeysToCamel is deep recursive) */}
+            {opp.propertySpecs && (() => {
+              const specs = opp.propertySpecs as Record<string, unknown>
+              const isPlot = opp.propertyType === 'plot'
 
-              type UnitCfg = { type: string; super_built_up_sqft?: number; price_per_sqft?: number }
-              type PlotCfg = { type: string; area_sqft?: number; price_per_sqft?: number; total_plots?: number }
+              // After the deep camelCase transform: super_built_up_sqft → superBuiltUpSqft, etc.
+              type UnitCfg = { type: string; superBuiltUpSqft?: number; pricePerSqft?: number }
+              type PlotCfg = { type: string; areaSqft?: number; pricePerSqft?: number; totalPlots?: number }
 
               const unitConfigs = !isPlot
                 ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
                 : undefined
               const plotConfigs = isPlot
-                ? (specs.plot_configurations as PlotCfg[] | undefined)?.filter(p => p.type)
+                ? (specs.plotConfigurations as PlotCfg[] | undefined)?.filter(p => p.type)
                 : undefined
 
               const rows = isPlot ? plotConfigs : unitConfigs
@@ -728,12 +729,12 @@ export default function OpportunityDetailPage() {
                       <tbody className="divide-y divide-[var(--border-subtle)]">
                         {isPlot
                           ? (plotConfigs as PlotCfg[]).map((p, i) => {
-                              const cost = p.area_sqft && p.price_per_sqft ? p.area_sqft * p.price_per_sqft : null
+                              const cost = p.areaSqft && p.pricePerSqft ? p.areaSqft * p.pricePerSqft : null
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{p.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.area_sqft ? p.area_sqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{p.price_per_sqft ? `₹${p.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.areaSqft ? p.areaSqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{p.pricePerSqft ? `₹${p.pricePerSqft.toLocaleString('en-IN')}` : '—'}</td>
                                   <td className="py-3.5 pl-4">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
@@ -743,12 +744,12 @@ export default function OpportunityDetailPage() {
                               )
                             })
                           : (unitConfigs as UnitCfg[]).map((u, i) => {
-                              const cost = u.super_built_up_sqft && u.price_per_sqft ? u.super_built_up_sqft * u.price_per_sqft : null
+                              const cost = u.superBuiltUpSqft && u.pricePerSqft ? u.superBuiltUpSqft * u.pricePerSqft : null
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{u.type}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.super_built_up_sqft ? u.super_built_up_sqft.toLocaleString('en-IN') : '—'}</td>
-                                  <td className="py-3.5 px-4 text-theme-secondary">{u.price_per_sqft ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.superBuiltUpSqft ? u.superBuiltUpSqft.toLocaleString('en-IN') : '—'}</td>
+                                  <td className="py-3.5 px-4 text-theme-secondary">{u.pricePerSqft ? `₹${u.pricePerSqft.toLocaleString('en-IN')}` : '—'}</td>
                                   <td className="py-3.5 pl-4">
                                     {cost
                                       ? <span className="font-bold text-[#8B6914] bg-[#D4AF37]/8 border border-[#D4AF37]/25 px-3 py-1.5 rounded-lg">{formatINRCompact(cost)}</span>
@@ -891,6 +892,19 @@ export default function OpportunityDetailPage() {
               )
             })()}
 
+            {/* Location Map */}
+            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
+              <LocationMapEmbed
+                latitude={opp.latitude}
+                longitude={opp.longitude}
+                mapsUrl={opp.mapsUrl}
+                address={opp.addressLine1 ?? opp.address}
+                city={opp.city}
+                state={opp.state}
+                pincode={opp.pincode}
+              />
+            )}
+
             {/* Founder Info (for Opportunity Vault) */}
             {opp.founderName && (
               <div className="card p-6 relative overflow-hidden">
@@ -926,19 +940,6 @@ export default function OpportunityDetailPage() {
               property_type: opp.property_type,
               property_specs: opp.property_specs,
             }} />
-
-            {/* Location Map */}
-            {(opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) && (
-              <LocationMapEmbed
-                latitude={opp.latitude}
-                longitude={opp.longitude}
-                mapsUrl={opp.mapsUrl}
-                address={opp.addressLine1 ?? opp.address}
-                city={opp.city}
-                state={opp.state}
-                pincode={opp.pincode}
-              />
-            )}
 
             <ProjectUspPanel usps={opp.locationUsps} />
 

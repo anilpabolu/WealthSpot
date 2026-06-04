@@ -56,7 +56,20 @@ export interface OpportunityItem {
   communitySubtype: string | null
   communityDetails: Record<string, unknown> | null
   safeVaultData: Record<string, unknown> | null
-  // Property Specs
+  // Property Specs — camelCase keys (actual runtime values after convertKeysToCamel)
+  propertyType: string | null
+  developmentType: string | null
+  gstPercentage: number | null
+  projectedMarketValueAtExit: number | null
+  purposeOfFunds: string | null
+  pricePerSqft: number | null
+  totalProjectAreaSqft: number | null
+  propertySpecs: Record<string, unknown> | null
+  propertyAmenities: string[] | null
+  amenityCostEstimate: number | null
+  holdingPeriodMonths: number | null
+  investmentMode: string | null
+  // Snake_case aliases (legacy — resolve to undefined at runtime, kept for gradual migration)
   property_type: string | null
   development_type: string | null
   gst_percentage: number | null
@@ -67,7 +80,6 @@ export interface OpportunityItem {
   property_specs: Record<string, unknown> | null
   property_amenities: string[] | null
   amenity_cost_estimate: number | null
-  holdingPeriodMonths: number | null
   projectPhase: string | null
   currentValuation: number | null
   project_roadmap: Array<Record<string, any>> | null
