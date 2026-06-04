@@ -373,7 +373,7 @@ export function useUpdateOpportunity() {
         ...(data.fundingOpenAt !== undefined && { funding_open_at: data.fundingOpenAt || undefined }),
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),
         ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
-        ...(data.projectPhase !== undefined && { project_phase: data.projectPhase }),
+        ...(data.project_phase !== undefined && { project_phase: data.project_phase }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
