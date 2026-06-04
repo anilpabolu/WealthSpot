@@ -9,7 +9,7 @@ import SEOHead from '@/components/SEOHead'
 import MainLayout from '@/components/layout/MainLayout'
 import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
-import { useVaultConfig } from '@/hooks/useVaultConfig'
+
 import MediaUploadZone from '@/components/MediaUploadZone'
 import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
 import CompanySelector from '@/components/CompanySelector'
@@ -211,7 +211,6 @@ const EMPTY_ADDRESS: AddressFields = {
   city: '', state: '', pincode: '', district: '', country: 'India',
 }
 
-const PAGE_ACCENT = '#D4AF37'
 
 // ─── Shield validation helper ─────────────────────────────────────────────────
 function getShieldValidationErrors(answers: Record<string, BuilderAnswer>, categoryIndex?: number): string[] {
@@ -382,8 +381,6 @@ export default function CreateOpportunityPage() {
   }, [user, navigate])
 
   const [step, setStep] = useState<WizardStep>('details')
-  const [vaultType, setVaultType] = useState(initialVault || 'wealth')
-  const [vaultPreview, setVaultPreview] = useState<VaultOptionValue>(initialVault || 'wealth')
   const [communitySubtype, setCommunitySubtype] = useState<CommunitySubtypeValue | ''>('')
   const [communityDetails, setCommunityDetails] = useState<CommunityDetailsState>({})
   const [form, setForm] = useState<OpportunityCreatePayload>({ vaultType: initialVault || '', title: '' })
@@ -427,7 +424,6 @@ export default function CreateOpportunityPage() {
 
   const createMutation = useCreateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
-  const { isVaultEnabled } = useVaultConfig()
   useOpportunityFormOptions()
 
   const uploadShieldDocs = async (oppId: string, category: string, subcategory: string, fd: FormData) => {
@@ -455,15 +451,7 @@ export default function CreateOpportunityPage() {
 
   const fe = (key: string) => submitAttempted && !!formErrors[key]
 
-  const handleVaultSelect = (vault: string) => {
-    setVaultType(vault)
-    setForm({ ...form, vaultType: vault })
-    if (vault === 'wealth' || vault === 'safe' || vault === 'community') {
-      setVaultPreview(vault)
-    }
-    if (vault === 'community') setStep('community-subtype')
-    else setStep('details')
-  }
+
 
   const handleCommunitySubtypeSelect = (subtype: CommunitySubtypeValue) => {
     setCommunitySubtype(subtype)
@@ -495,10 +483,10 @@ export default function CreateOpportunityPage() {
     if (!address.city?.trim()) errors.city = 'Required'
     if (!address.state?.trim()) errors.state = 'Required'
 
-    if (vaultType === 'wealth' || vaultType === 'safe') {
+    if (form.vaultType === 'wealth' || form.vaultType === 'safe') {
       if (!propertyType) errors.propertyType = 'Required'
       // price_per_sqft and total_project_area_sqft only required for lumpsum mode
-      if (investmentMode === 'lumpsum' || vaultType === 'safe') {
+      if (investmentMode === 'lumpsum' || form.vaultType === 'safe') {
         if (!pricePerSqftField) errors.pricePerSqft = 'Required'
         if (!totalProjectAreaSqft) errors.totalProjectArea = 'Required'
       }
@@ -515,7 +503,7 @@ export default function CreateOpportunityPage() {
           }
           // totalFloors and totalTowers are optional — no required validation
           if (!projectOverview.landParcelSqft) errors.landParcelSqft = 'Required'
-          if (vaultType === 'safe' || investmentMode === 'unit_config') {
+          if (form.vaultType === 'safe' || investmentMode === 'unit_config') {
             if (fc.showUnitConfig) {
               const hasValidUnit = unitConfigs.some((u) => u.bhkType && u.superBuiltUpSqft)
               if (!hasValidUnit) errors.unitConfig = 'At least one unit configuration with SBU and ₹/Sqft is required'
@@ -536,14 +524,14 @@ export default function CreateOpportunityPage() {
         }
       }
       if (!form.fundingOpenAt) errors.fundingOpenAt = 'Required'
-      if (vaultType === 'wealth') {
+      if (form.vaultType === 'wealth') {
         if (!investmentMode) errors.investmentMode = 'Select an investment configuration mode'
         else if (investmentMode === 'lumpsum') {
           if (!form.targetAmount) errors.targetAmount = 'Required'
           if (!form.minInvestment) errors.minInvestment = 'Required'
         }
       }
-      if (vaultType === 'safe') {
+      if (form.vaultType === 'safe') {
         if (!form.targetAmount) errors.targetAmount = 'Required'
         if (!form.minInvestment) errors.minInvestment = 'Required'
         if (!(safeVaultData.interest_rate as number)) errors.interestRate = 'Required'
@@ -551,7 +539,7 @@ export default function CreateOpportunityPage() {
       }
     }
 
-    if (vaultType === 'community') {
+    if (form.vaultType === 'community') {
       if (!form.communityType) errors.communityType = 'Required'
       if (!form.collaborationType) errors.collaborationType = 'Required'
       if (communitySubtype === 'co_investor') {
@@ -622,7 +610,7 @@ export default function CreateOpportunityPage() {
       setSubmitAttempted(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      if (vaultType === 'community') setStep('community-subtype')
+      if (form.vaultType === 'community') setStep('community-subtype')
       else navigate('/vaults')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -702,7 +690,7 @@ export default function CreateOpportunityPage() {
 
     // For unit_config: sum of (sbu × price_per_sqft) per config type × assumed count of 1
     let unitConfigTargetAmount: number | undefined
-    if (vaultType === 'wealth' && investmentMode === 'unit_config' && propertyType) {
+    if (form.vaultType === 'wealth' && investmentMode === 'unit_config' && propertyType) {
       if (propertyType === PropertyType.PLOT) {
         unitConfigTargetAmount = plotConfigs.filter((p) => p.plotType && p.areaSqft && p.totalPlots).reduce((sum, p) => sum + Number(p.totalPlots) * Number(p.areaSqft) * Number(p.pricePerSqft || 0), 0)
       } else {
@@ -719,7 +707,7 @@ export default function CreateOpportunityPage() {
       ...form,
       ...address,
       ...(communitySubtype && { communitySubtype, communityDetails: communityDetails as Record<string, unknown> }),
-      ...(vaultType === 'safe' && { safeVaultData }),
+      ...(form.vaultType === 'safe' && { safeVaultData }),
       ...(propertyType && {
         property_type: propertyType,
         ...(developmentType && { development_type: developmentType }),
@@ -730,7 +718,7 @@ export default function CreateOpportunityPage() {
         ...(totalProjectAreaSqft && { total_project_area_sqft: Number(totalProjectAreaSqft) }),
         property_specs: propertySpecsPayload,
       }),
-      ...(vaultType === 'wealth' && investmentMode && { investmentMode: investmentMode as 'lumpsum' | 'unit_config' }),
+      ...(form.vaultType === 'wealth' && investmentMode && { investmentMode: investmentMode as 'lumpsum' | 'unit_config' }),
       ...(unitConfigTargetAmount !== undefined && { targetAmount: unitConfigTargetAmount, minInvestment: undefined }),
       ...(parsedLat !== undefined && !isNaN(parsedLat) && { latitude: parsedLat }),
       ...(parsedLng !== undefined && !isNaN(parsedLng) && { longitude: parsedLng }),
@@ -776,7 +764,7 @@ export default function CreateOpportunityPage() {
         )
       }
 
-      const vaultLabel = VAULT_OPTIONS.find((v) => v.value === vaultType)?.label ?? 'Vault'
+      const vaultLabel = VAULT_OPTIONS.find((v) => v.value === form.vaultType)?.label ?? 'Vault'
       const communityLabel = communitySubtype === 'co_investor' ? 'Co-Investor' : communitySubtype === 'co_partner' ? 'Co-Partner' : ''
       const displayLabel = communityLabel ? `${vaultLabel} (${communityLabel})` : vaultLabel
       useToastStore.getState().addToast({
@@ -823,8 +811,6 @@ export default function CreateOpportunityPage() {
       }
     }
   }
-
-  const activeVaultPreview = VAULT_OPTIONS.find((v) => v.value === vaultPreview) ?? VAULT_OPTIONS[0]
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -997,7 +983,7 @@ export default function CreateOpportunityPage() {
                 value={form.companyId}
                 onChange={(id) => handleChange('companyId', id ?? '')}
                 onRequestOnboard={() => setShowOnboarding(true)}
-                vaultType={vaultType}
+                vaultType={form.vaultType}
                 variant="light"
               />
             </div>
@@ -1045,7 +1031,7 @@ export default function CreateOpportunityPage() {
                 {detailsStepIndex === 1 && (
                   <>
                     {/* ─── Wealth Vault Fields ─── */}
-            {vaultType === 'wealth' && (
+            {form.vaultType === 'wealth' && (
               <>
                 {/* Property Type */}
                 <div className={CARD_CLS}>
@@ -1361,7 +1347,7 @@ export default function CreateOpportunityPage() {
             )}
 
             {/* ─── Safe Vault Fields ─── */}
-            {vaultType === 'safe' && (
+            {form.vaultType === 'safe' && (
               <>
                 {/* Property type selector */}
                 <div className={CARD_CLS}>
@@ -1454,7 +1440,7 @@ export default function CreateOpportunityPage() {
             )}
 
             {/* ─── Community Vault Fields ─── */}
-            {vaultType === 'community' && (
+            {form.vaultType === 'community' && (
               <div className={CARD_CLS}>
                 <h3 className={SECTION_HEADING}>Community Details</h3>
                 <div className="space-y-4">
@@ -1995,7 +1981,7 @@ export default function CreateOpportunityPage() {
         <CompanyOnboardingModal
           open={showOnboarding}
           onClose={() => setShowOnboarding(false)}
-          vaultType={vaultType}
+          vaultType={form.vaultType}
           onSuccess={(companyId) => {
             handleChange('companyId', companyId)
             setShowOnboarding(false)
