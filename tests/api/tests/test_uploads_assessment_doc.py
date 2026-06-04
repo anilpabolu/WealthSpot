@@ -91,7 +91,7 @@ class TestAssessmentDocumentUploadAuth:
         fake = uuid.uuid4()
         resp = await client.post(
             f"{UPLOADS}/opportunity/{fake}/assessment-document"
-            f"?category=builder&subcategory=cash_flows",
+            f"?category=builder&subcategory=tenure_sqft",
             files={"files": ("doc.pdf", b"%PDF-1.4", "application/pdf")},
         )
         assert resp.status_code == 401
@@ -102,7 +102,7 @@ class TestAssessmentDocumentUploadAuth:
         opp_id = await _make_opportunity(builder_user)
         resp = await client.post(
             f"{UPLOADS}/opportunity/{opp_id}/assessment-document"
-            f"?category=builder&subcategory=cash_flows",
+            f"?category=builder&subcategory=tenure_sqft",
             files={"files": ("doc.pdf", b"%PDF-1.4", "application/pdf")},
             headers=auth_headers(test_user),
         )
@@ -134,7 +134,7 @@ class TestAssessmentDocumentDownloadGating:
         self, client: AsyncClient, builder_user: User
     ):
         opp_id = await _make_opportunity(builder_user)
-        media_id = await _make_evidence_media(opp_id, "builder", "cash_flows")
+        media_id = await _make_evidence_media(opp_id, "legal", "title_deeds")
         resp = await client.get(
             f"{UPLOADS}/opportunity/{opp_id}/assessment-document/{media_id}",
             headers=auth_headers(builder_user),
@@ -157,8 +157,8 @@ class TestAssessmentDocumentDownloadGating:
         self, client: AsyncClient, builder_user: User, test_user: User
     ):
         opp_id = await _make_opportunity(builder_user)
-        # cash_flows is marked sensitive_document=True
-        media_id = await _make_evidence_media(opp_id, "builder", "cash_flows")
+        # title_deeds is marked sensitive_document=True
+        media_id = await _make_evidence_media(opp_id, "legal", "title_deeds")
         resp = await client.get(
             f"{UPLOADS}/opportunity/{opp_id}/assessment-document/{media_id}",
             headers=auth_headers(test_user),
@@ -171,7 +171,7 @@ class TestAssessmentDocumentDownloadGating:
     ):
         """SUBMITTED EOI is NOT yet super-admin-approved."""
         opp_id = await _make_opportunity(builder_user)
-        media_id = await _make_evidence_media(opp_id, "builder", "cash_flows")
+        media_id = await _make_evidence_media(opp_id, "legal", "title_deeds")
         await _create_eoi(test_user.id, opp_id, EOIStatus.SUBMITTED)
 
         resp = await client.get(
@@ -184,7 +184,7 @@ class TestAssessmentDocumentDownloadGating:
         self, client: AsyncClient, builder_user: User, test_user: User
     ):
         opp_id = await _make_opportunity(builder_user)
-        media_id = await _make_evidence_media(opp_id, "builder", "cash_flows")
+        media_id = await _make_evidence_media(opp_id, "legal", "title_deeds")
         await _create_eoi(test_user.id, opp_id, EOIStatus.BUILDER_CONNECTED)
 
         resp = await client.get(
@@ -214,7 +214,7 @@ class TestAssessmentDocumentDownloadGating:
     ):
         opp_a = await _make_opportunity(builder_user)
         opp_b = await _make_opportunity(builder_user)
-        media_id = await _make_evidence_media(opp_a, "builder", "cash_flows")
+        media_id = await _make_evidence_media(opp_a, "legal", "title_deeds")
         resp = await client.get(
             f"{UPLOADS}/opportunity/{opp_b}/assessment-document/{media_id}",
             headers=auth_headers(builder_user),
