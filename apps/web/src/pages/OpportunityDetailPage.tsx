@@ -679,7 +679,7 @@ export default function OpportunityDetailPage() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left — Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 gold-cards">
             {/* Gallery with lifecycle ribbon */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/15 ring-1 ring-primary/10">
               {ribbon && (

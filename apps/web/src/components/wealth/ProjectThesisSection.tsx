@@ -116,7 +116,7 @@ export function ProjectThesisSection({
 
       {/* Investment Thesis — always shown */}
       <div id="investment-thesis" className="card p-6 relative overflow-hidden scroll-mt-32">
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500/70 via-emerald-400/50 to-emerald-500/10" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
         <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
             <Sparkles className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function ProjectThesisSection({
       {/* Project Roadmap — only when data exists */}
       {projectRoadmap && projectRoadmap.length > 0 && (
         <div id="roadmap" className="card p-6 relative overflow-hidden scroll-mt-32">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/70 via-indigo-400/50 to-indigo-500/10" />
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
           <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-500 dark:text-indigo-400 shrink-0">
               <Map className="h-4 w-4" />
@@ -163,7 +163,7 @@ export function ProjectThesisSection({
 
       {/* Risk Factors — always shown, last (advisory) */}
       <div id="risk-factors" className="card p-6 relative overflow-hidden scroll-mt-32">
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-500/70 via-red-400/50 to-red-500/10" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10" />
         <h2 className="font-display text-lg font-bold text-theme-primary mb-4 flex items-center gap-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-500/15 text-red-500 dark:text-red-400 shrink-0">
             <AlertTriangle className="h-4 w-4" />

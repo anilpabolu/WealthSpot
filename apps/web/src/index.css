@@ -130,6 +130,24 @@ html { font-size: 100%; }
     border-color: rgba(212,175,55,0.3);
   }
 
+  /* Property-explorer content cards — uniform golden glowing border.
+     Scope a wrapper with `gold-cards` to give every nested .card the same
+     gold ring + glow in both light and dark themes (no per-card colours). */
+  .gold-cards .card {
+    border-color: rgba(212, 175, 55, 0.45);
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.20),
+      0 0 22px rgba(212, 175, 55, 0.13),
+      var(--bg-card-shadow);
+  }
+  .gold-cards .card:hover {
+    border-color: rgba(212, 175, 55, 0.65);
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.35),
+      0 0 32px rgba(212, 175, 55, 0.22),
+      var(--bg-card-shadow-hover);
+  }
+
   /* Premium card with accent border (vault-style) */
   .card-accent {
     @apply card border-l-4;

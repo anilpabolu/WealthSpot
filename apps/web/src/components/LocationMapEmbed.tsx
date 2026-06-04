@@ -66,7 +66,7 @@ export default function LocationMapEmbed({
     <>
       <div className="card relative overflow-hidden">
         {/* Accent line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500/70 via-emerald-400/50 to-emerald-500/10 z-10" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/60 via-amber-300/40 to-amber-400/10 z-10" />
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-theme">
