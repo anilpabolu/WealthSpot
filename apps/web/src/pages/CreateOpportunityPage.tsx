@@ -432,7 +432,7 @@ export default function CreateOpportunityPage() {
     { id: '6', phase: 'Phase 6', stage: 'Possession / Exit Event', timeline: '' }
   ])
   const [riskFactors, setRiskFactors] = useState('Real estate investments are subject to market risk, approval delays, execution risks, regulatory changes and liquidity constraints. Investors should review all project documentation before investing.')
-  const [whyInvestors, setWhyInvestors] = useState("A rare opportunity to participate at the land-acquisition stage of a future integrated township in Bengaluru's high-growth Sarjapur corridor, with exposure to the value creation journey from acquisition to development and eventual market launch.")
+  const [whyInvestors, setWhyInvestors] = useState("A rare opportunity to participate at the land-acquisition stage of {project_name} in Bengaluru's high-growth Sarjapur corridor, with exposure to the value creation journey from acquisition to development and eventual market launch.")
   const [investmentThesis, setInvestmentThesis] = useState("Why This Opportunity?\n\n✓ Entry at pre-development valuation\n✓ Located in Bengaluru's fastest-growing residential corridor\n✓ Integrated township model with residential, retail, healthcare and education ecosystem\n✓ Strong infrastructure growth expected in the Sarjapur belt\n✓ Potential appreciation from land-stage pricing to launch-stage valuation\n✓ Institutional-style due diligence framework conducted by WealthSpot")
 
   const createMutation = useCreateOpportunity()

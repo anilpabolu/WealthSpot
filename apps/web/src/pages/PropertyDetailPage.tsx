@@ -6,6 +6,7 @@ import StatusBadge, { type StatusType } from '@/components/wealth/StatusBadge'
 import { useProperty } from '@/hooks/useProperties'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
 import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
+import { ProjectThesisSection } from '@/components/wealth/ProjectThesisSection'
 import { useInvestmentStore } from '@/stores/investment.store'
 import { useKycStatus } from '@/hooks/useKycBank'
 import { EmptyState } from '@/components/ui'
@@ -504,6 +505,14 @@ export default function PropertyDetailPage() {
                 emptySectionMode={propertyEmptySectionMode}
               />
             )}
+
+            <ProjectThesisSection
+              title={property.title}
+              projectRoadmap={property.projectRoadmap}
+              riskFactors={property.riskFactors}
+              whyInvestors={property.whyInvestors}
+              investmentThesis={property.investmentThesis}
+            />
 
             {/* Builder Info */}
             <div className="card p-6">

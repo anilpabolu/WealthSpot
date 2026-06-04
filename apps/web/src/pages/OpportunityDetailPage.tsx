@@ -25,6 +25,7 @@ import ProjectUspPanel from '@/components/ProjectUspPanel'
 import { useAppreciationHistory } from '@/hooks/useAppreciation'
 import { ShieldSection } from '@/components/shield/ShieldSection'
 import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
+import { ProjectThesisSection } from '@/components/wealth/ProjectThesisSection'
 import { AMENITIES, AMENITY_CATEGORIES } from '@wealthspot/types'
 import type { AmenityCategory } from '@wealthspot/types'
 
@@ -682,6 +683,14 @@ export default function OpportunityDetailPage() {
                 </div>
               )
             })()}
+
+            <ProjectThesisSection
+              title={opp.title}
+              projectRoadmap={opp.project_roadmap}
+              riskFactors={opp.risk_factors}
+              whyInvestors={opp.why_investors}
+              investmentThesis={opp.investment_thesis}
+            />
 
             {/* WealthSpot Shield — placed high for trust-first UX */}
             <ShieldSection opportunityId={opp.id} />

@@ -63,6 +63,10 @@ interface ApiProperty {
   totalProjectAreaSqft?: number
   propertySpecs?: Record<string, unknown>
   propertyAmenities?: string[]
+  project_roadmap?: Array<Record<string, any>>
+  risk_factors?: string
+  why_investors?: string
+  investment_thesis?: string
 }
 
 /** Frontend-friendly property shape used throughout the app */
@@ -122,6 +126,10 @@ export interface Property {
   totalProjectAreaSqft?: number
   propertySpecs?: Record<string, unknown>
   propertyAmenities?: string[]
+  projectRoadmap?: Array<Record<string, any>> | null
+  riskFactors?: string | null
+  whyInvestors?: string | null
+  investmentThesis?: string | null
 }
 
 /** Map API property to the frontend Property shape */
@@ -179,6 +187,10 @@ function mapProperty(p: ApiProperty): Property {
     totalProjectAreaSqft: p.totalProjectAreaSqft != null ? Number(p.totalProjectAreaSqft) : undefined,
     propertySpecs: p.propertySpecs,
     propertyAmenities: p.propertyAmenities,
+    projectRoadmap: p.project_roadmap ?? null,
+    riskFactors: p.risk_factors ?? null,
+    whyInvestors: p.why_investors ?? null,
+    investmentThesis: p.investment_thesis ?? null,
   }
 }
 
