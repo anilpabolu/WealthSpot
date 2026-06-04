@@ -317,7 +317,7 @@ export function useCreateOpportunity() {
         closing_date: data.closingDate || undefined,
         shield_answers: data.shield_answers,
         target_irr: data.targetIrr,
-        project_phase: data.projectPhase,
+        project_phase: data.project_phase,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
