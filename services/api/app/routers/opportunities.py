@@ -1205,7 +1205,7 @@ async def update_opportunity(
 
     update_data = body.model_dump(exclude_unset=True)
     cancel_investments = update_data.pop("cancel_investments", False)
-    update_data.pop("shield_answers", None)
+    shield_answers = update_data.pop("shield_answers", None)
     new_status_str = update_data.get("status")
 
     if new_status_str and cancel_investments and is_approver:
@@ -1263,9 +1263,42 @@ async def update_opportunity(
                 Decimal("0.01")
             )
 
+    # Upsert builder shield answers (mirrors create flow). Allowed for creator or approver.
+    if shield_answers:
+        existing_result = await db.execute(
+            select(OpportunityAssessment).where(OpportunityAssessment.opportunity_id == opp.id)
+        )
+        existing_by_sub = {a.subcategory_code: a for a in existing_result.scalars().all()}
+        for subcode, ans in shield_answers.items():
+            cat_code = next(
+                (
+                    cat.code
+                    for cat in ASSESSMENT_CATEGORIES
+                    for sub in cat.sub_items
+                    if sub.code == subcode
+                ),
+                None,
+            )
+            if not cat_code:
+                continue
+            existing = existing_by_sub.get(subcode)
+            if existing is not None:
+                existing.builder_answer = ans
+            else:
+                db.add(
+                    OpportunityAssessment(
+                        opportunity_id=opp.id,
+                        category_code=cat_code,
+                        subcategory_code=subcode,
+                        status=AssessmentStatus.IN_PROGRESS.value,
+                        builder_answer=ans,
+                        is_public=True,
+                    )
+                )
+
     await db.flush()
     await db.refresh(opp)
-    return OpportunityRead.model_validate(opp)
+    return await _build_opportunity_read(opp, db)
 
 
 # ── Like toggle ──────────────────────────────────────────────────────────────

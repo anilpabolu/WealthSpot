@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPatch } from '@/lib/api'
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
 
 export interface OpportunityMedia {
   id: string
@@ -111,6 +111,15 @@ export interface OpportunityItem {
   creator?: { id: string; fullName: string; avatarUrl: string | null }
   media: OpportunityMedia[]
   company: CompanySummary | null
+  shieldAssessments?: Array<{
+    id: string
+    categoryCode: string
+    subcategoryCode: string
+    status: string
+    builderAnswer: Record<string, unknown> | null
+    isPublic: boolean
+    documents?: Array<{ id: string; filename: string | null; url: string }>
+  }> | null
 }
 
 interface PaginatedOpportunities {
@@ -391,7 +400,18 @@ export function useUpdateOpportunity() {
         ...(data.why_investors !== undefined && { why_investors: data.why_investors }),
         ...(data.investment_thesis !== undefined && { investment_thesis: data.investment_thesis }),
         ...(data.project_roadmap !== undefined && { project_roadmap: data.project_roadmap }),
+        ...(data.shield_answers !== undefined && { shield_answers: data.shield_answers }),
       }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['opportunities'] })
+    },
+  })
+}
+
+export function useDeleteOpportunityMedia() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (mediaId: string) => apiDelete(`/uploads/opportunity-media/${mediaId}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] })
     },

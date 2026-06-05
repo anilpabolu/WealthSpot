@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import {
   Building2, Users, Loader2, Lock, Wallet, Handshake, ShieldCheck,
   AlertCircle, CheckCircle2, ChevronRight, ArrowLeft,
@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import SEOHead from '@/components/SEOHead'
 import MainLayout from '@/components/layout/MainLayout'
-import { useCreateOpportunity, useOpportunityFormOptions, type OpportunityCreatePayload } from '@/hooks/useOpportunities'
+import { useCreateOpportunity, useUpdateOpportunity, useOpportunity, useDeleteOpportunityMedia, useOpportunityFormOptions, type OpportunityCreatePayload, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
 
 import MediaUploadZone from '@/components/MediaUploadZone'
@@ -384,9 +384,16 @@ export default function CreateOpportunityPage() {
   const initialVault = searchParams.get('vault') as VaultOptionValue | null
   const user = useUserStore((s) => s.user)
 
-  // Block non-admins
+  // ─── Edit mode detection ───────────────────────────────────────────────────
+  const { id: editId } = useParams<{ id: string }>()
+  const isEditMode = Boolean(editId)
+  const { data: editOpp, isLoading: editLoading } = useOpportunity(editId ?? '')
+  const hydratedRef = useRef(false)
+  const skipPropertyResetRef = useRef(false)
+
+  // Block users who cannot create/edit listings
   useEffect(() => {
-    if (user && !['admin', 'super_admin'].includes(user.primaryRole)) {
+    if (user && !['admin', 'super_admin', 'builder'].includes(user.primaryRole)) {
       navigate('/vaults')
     }
   }, [user, navigate])
@@ -449,7 +456,10 @@ export default function CreateOpportunityPage() {
   const [investmentThesis, setInvestmentThesis] = useState("Why This Opportunity?\n\n✓ Entry at pre-development valuation\n✓ Located in Bengaluru's fastest-growing residential corridor\n✓ Integrated township model with residential, retail, healthcare and education ecosystem\n✓ Strong infrastructure growth expected in the Sarjapur belt\n✓ Potential appreciation from land-stage pricing to launch-stage valuation\n✓ Institutional-style due diligence framework conducted by WealthSpot")
 
   const createMutation = useCreateOpportunity()
+  const updateMutation = useUpdateOpportunity()
   const uploadMutation = useUploadOpportunityMedia()
+  const deleteMediaMutation = useDeleteOpportunityMedia()
+  const [deletedMediaIds, setDeletedMediaIds] = useState<string[]>([])
   useOpportunityFormOptions()
 
   const uploadShieldDocs = async (oppId: string, category: string, subcategory: string, fd: FormData) => {
@@ -457,8 +467,12 @@ export default function CreateOpportunityPage() {
     await api.post(`/uploads/opportunity/${oppId}/assessment-document?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`, fd)
   }
 
-  // Reset configs when propertyType changes
+  // Reset configs when propertyType changes (skipped once during edit-mode hydration)
   useEffect(() => {
+    if (skipPropertyResetRef.current) {
+      skipPropertyResetRef.current = false
+      return
+    }
     setUnitConfigs([{ ...DEFAULT_UNIT_CONFIG }])
     setPlotConfigs([{ ...DEFAULT_PLOT_CONFIG }])
     setProjectOverview({ ...DEFAULT_PROJECT_OVERVIEW })
@@ -474,6 +488,137 @@ export default function CreateOpportunityPage() {
       if (computed > 0) setForm((prev) => ({ ...prev, targetAmount: computed }))
     }
   }, [pricePerSqftField, totalProjectAreaSqft, investmentMode])
+
+  // ─── Edit-mode hydration: map an existing opportunity onto wizard state ──────
+  useEffect(() => {
+    if (!isEditMode || !editOpp || hydratedRef.current) return
+    hydratedRef.current = true
+    const o = editOpp as OpportunityItem & Record<string, any>
+    const str = (v: unknown) => (v === null || v === undefined ? '' : String(v))
+
+    setForm((prev) => ({
+      ...prev,
+      vaultType: o.vaultType ?? '',
+      title: o.title ?? '',
+      tagline: o.tagline ?? '',
+      description: o.description ?? '',
+      companyId: o.companyId ?? undefined,
+      targetAmount: o.targetAmount ?? undefined,
+      minInvestment: o.minInvestment ?? undefined,
+      industry: o.industry ?? undefined,
+      stage: o.stage ?? undefined,
+      founderName: o.founderName ?? undefined,
+      pitchDeckUrl: o.pitchDeckUrl ?? undefined,
+      communityType: o.communityType ?? undefined,
+      collaborationType: o.collaborationType ?? undefined,
+      communitySubtype: o.communitySubtype ?? undefined,
+      fundingOpenAt: o.fundingOpenAt ?? undefined,
+      closingDate: o.closingDate ?? undefined,
+    }))
+
+    setAddress({
+      addressLine1: o.addressLine1 ?? '',
+      addressLine2: o.addressLine2 ?? '',
+      landmark: o.landmark ?? '',
+      locality: o.locality ?? '',
+      city: o.city ?? '',
+      state: o.state ?? '',
+      pincode: o.pincode ?? '',
+      district: o.district ?? '',
+      country: o.country ?? 'India',
+    })
+
+    // Community
+    setCommunitySubtype((o.communitySubtype ?? '') as CommunitySubtypeValue | '')
+    if (o.communityDetails) setCommunityDetails(o.communityDetails as CommunityDetailsState)
+
+    // Safe vault — merge over defaults so nested keys survive
+    if (o.safeVaultData) setSafeVaultData((prev) => ({ ...prev, ...(o.safeVaultData as Record<string, unknown>) }))
+
+    // Geo / maps
+    if (o.latitude !== null && o.latitude !== undefined) setMapsLatitude(String(o.latitude))
+    if (o.longitude !== null && o.longitude !== undefined) setMapsLongitude(String(o.longitude))
+    setMapsUrl(o.mapsUrl ?? o.maps_url ?? '')
+
+    // Location USPs
+    if (Array.isArray(o.locationUsps) && o.locationUsps.length > 0) {
+      setLocationUsps(o.locationUsps.map((u: any, i: number) => ({ id: String(i + 1), text: u.text ?? '', category: u.category ?? 'other' })))
+    }
+
+    // Roadmap & thesis
+    if (Array.isArray(o.projectRoadmap) && o.projectRoadmap.length > 0) {
+      setProjectRoadmap(o.projectRoadmap.map((r: any, i: number) => ({ id: String(i + 1), phase: r.phase ?? '', stage: r.stage ?? '', timeline: r.timeline ?? '' })))
+    }
+    if (o.riskFactors) setRiskFactors(o.riskFactors)
+    if (o.whyInvestors) setWhyInvestors(o.whyInvestors)
+    if (o.investmentThesis) setInvestmentThesis(o.investmentThesis)
+
+    // Property specs
+    const pt = o.propertyType ?? o.property_type
+    if (pt) {
+      const specs = (o.propertySpecs ?? o.property_specs ?? {}) as Record<string, any>
+      skipPropertyResetRef.current = true
+      setPropertyType(pt)
+      setDevelopmentType(o.developmentType ?? o.development_type ?? '')
+      setProjectPhaseField(o.projectPhase ?? o.project_phase ?? '')
+      setHoldingPeriodMonthsField(str(o.holdingPeriodMonths ?? o.holding_period_months))
+      setGstPercentage(str(o.gstPercentage ?? o.gst_percentage))
+      setProjectedMarketValueAtExit(str(o.projectedMarketValueAtExit ?? o.projected_market_value_at_exit))
+      setPurposeOfFunds(o.purposeOfFunds ?? o.purpose_of_funds ?? '')
+      setPricePerSqftField(str(o.pricePerSqft ?? o.price_per_sqft))
+      setTotalProjectAreaSqft(str(o.totalProjectAreaSqft ?? o.total_project_area_sqft))
+      setInvestmentMode((o.investmentMode ?? o.investment_mode ?? '') as 'lumpsum' | 'unit_config' | '')
+
+      // possession_year (canonical) with legacy possession_date ("Q4 2026") fallback
+      let possessionYear = specs.possession_year ? String(specs.possession_year) : ''
+      if (!possessionYear && specs.possession_date) {
+        const m = String(specs.possession_date).match(/(\d{4})/)
+        if (m) possessionYear = m[1] ?? ''
+      }
+      setProjectOverview({
+        totalTowers: str(specs.total_towers),
+        totalFloors: str(specs.total_floors),
+        possessionYear,
+        landParcelSqft: str(specs.land_parcel_area_sqft ?? specs.land_parcel_sqft),
+      })
+
+      const rawUnits = (specs.configurations ?? specs.unit_configurations) as any[] | undefined
+      if (Array.isArray(rawUnits) && rawUnits.length > 0) {
+        setUnitConfigs(rawUnits.map((c, i) => ({
+          id: String(i + 1),
+          bhkType: c.type ?? c.bhk_type ?? '',
+          superBuiltUpSqft: str(c.super_built_up_sqft),
+          pricePerSqft: str(c.price_per_sqft),
+        })))
+      }
+      const rawPlots = specs.plot_configurations as any[] | undefined
+      if (Array.isArray(rawPlots) && rawPlots.length > 0) {
+        setPlotConfigs(rawPlots.map((p, i) => ({
+          id: String(i + 1),
+          plotType: p.type ?? '',
+          areaSqft: str(p.area_sqft),
+          totalPlots: str(p.total_plots),
+          pricePerSqft: str(p.price_per_sqft),
+        })))
+      }
+    }
+
+    // Shield answers
+    if (Array.isArray(o.shieldAssessments) && o.shieldAssessments.length > 0) {
+      const sa: Record<string, BuilderAnswer> = {}
+      for (const a of o.shieldAssessments) {
+        const ba = a.builderAnswer as Record<string, any> | null
+        sa[a.subcategoryCode] = {
+          categoryCode: a.categoryCode,
+          subcategoryCode: a.subcategoryCode,
+          value: String(ba?.value ?? ba ?? ''),
+          files: [],
+          isPublic: a.isPublic,
+        }
+      }
+      setShieldAnswers(sa)
+    }
+  }, [isEditMode, editOpp])
 
   const fe = (key: string) => submitAttempted && !!formErrors[key]
 
@@ -636,7 +781,8 @@ export default function CreateOpportunityPage() {
       setSubmitAttempted(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      if (form.vaultType === 'community') setStep('community-subtype')
+      if (isEditMode && editId) navigate(`/portal/builder/listings/${editId}`)
+      else if (form.vaultType === 'community') setStep('community-subtype')
       else navigate('/vaults')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -768,15 +914,25 @@ export default function CreateOpportunityPage() {
 
     try {
       setStep('uploading')
-      setUploadProgress('Creating opportunity...')
-      const opp = await createMutation.mutateAsync(payload)
+      setUploadProgress(isEditMode ? 'Saving changes...' : 'Creating opportunity...')
+      const opp = isEditMode && editId
+        ? await updateMutation.mutateAsync({ id: editId, data: payload })
+        : await createMutation.mutateAsync(payload)
+
+      // Remove any existing media the editor deleted
+      if (isEditMode && deletedMediaIds.length > 0) {
+        setUploadProgress('Removing media...')
+        await Promise.all(deletedMediaIds.map((mid) => deleteMediaMutation.mutateAsync(mid)))
+      }
 
       if (mediaItems.length > 0) {
         const imageFiles = mediaItems.filter((m) => m.type === 'image').map((m) => m.file)
         const videoFiles = mediaItems.filter((m) => m.type === 'video').map((m) => m.file)
+        // Don't force a new cover if the opportunity already has one (edit mode)
+        const existingCover = (editOpp?.media ?? []).some((m) => m.isCover && !deletedMediaIds.includes(m.id))
         if (imageFiles.length > 0) {
           setUploadProgress(`Uploading ${imageFiles.length} images...`)
-          await uploadMutation.mutateAsync({ opportunityId: opp.id, files: imageFiles, isCover: true })
+          await uploadMutation.mutateAsync({ opportunityId: opp.id, files: imageFiles, isCover: !existingCover })
         }
         if (videoFiles.length > 0) {
           setUploadProgress('Uploading video...')
@@ -800,12 +956,21 @@ export default function CreateOpportunityPage() {
       const vaultLabel = VAULT_OPTIONS.find((v) => v.value === form.vaultType)?.label ?? 'Vault'
       const communityLabel = communitySubtype === 'co_investor' ? 'Co-Investor' : communitySubtype === 'co_partner' ? 'Co-Partner' : ''
       const displayLabel = communityLabel ? `${vaultLabel} (${communityLabel})` : vaultLabel
-      useToastStore.getState().addToast({
-        type: 'success',
-        title: 'Submitted for Approval 🚀',
-        message: `Your ${displayLabel} listing is now in our review queue. We'll notify you the moment it gets the green light. ✨`,
-      })
-      navigate('/portal/builder/listings')
+      if (isEditMode && editId) {
+        useToastStore.getState().addToast({
+          type: 'success',
+          title: 'Changes Saved ✅',
+          message: `Your ${displayLabel} listing has been updated.`,
+        })
+        navigate(`/portal/builder/listings/${editId}`)
+      } else {
+        useToastStore.getState().addToast({
+          type: 'success',
+          title: 'Submitted for Approval 🚀',
+          message: `Your ${displayLabel} listing is now in our review queue. We'll notify you the moment it gets the green light. ✨`,
+        })
+        navigate('/portal/builder/listings')
+      }
     } catch (err: any) {
       if (err?.response?.status === 422 && err?.response?.data?.detail) {
         const details = err.response.data.detail
@@ -847,6 +1012,33 @@ export default function CreateOpportunityPage() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
+  // Edit mode: wait for the opportunity to load AND hydrate before showing the pre-filled form
+  if (isEditMode && (editLoading || (editOpp && !hydratedRef.current))) {
+    return (
+      <MainLayout>
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[var(--bg-base)]">
+          <Loader2 className="h-10 w-10 text-[#D4AF37] animate-spin" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (isEditMode && !editLoading && !editOpp) {
+    return (
+      <MainLayout>
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center gap-4 bg-[var(--bg-base)]">
+          <p className="text-[var(--text-secondary)] font-medium">This opportunity could not be found.</p>
+          <button
+            onClick={() => navigate('/portal/builder/listings')}
+            className="flex items-center gap-1.5 text-[#8B6914] hover:underline text-sm font-semibold"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to listings
+          </button>
+        </div>
+      </MainLayout>
+    )
+  }
+
   if (step === 'uploading') {
     return (
       <MainLayout>
@@ -870,12 +1062,23 @@ export default function CreateOpportunityPage() {
           <div className="bg-white/95 backdrop-blur-sm border-b border-[rgba(209,196,157,0.3)] px-4 py-3 sticky top-0 z-50 shadow-[0_1px_8px_rgba(0,0,0,0.06)]">
             <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
               <button
-                onClick={() => navigate('/vaults')}
+                onClick={() => navigate(isEditMode && editId ? `/portal/builder/listings/${editId}` : '/vaults')}
                 className="flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[#8B6914] transition-colors text-sm font-medium shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Exit</span>
               </button>
+
+              <span
+                className={`shrink-0 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                  isEditMode
+                    ? 'bg-amber-50 border-amber-300 text-amber-700'
+                    : 'bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.3)] text-[#8B6914]'
+                }`}
+                title={isEditMode ? editOpp?.title ?? '' : undefined}
+              >
+                {isEditMode ? '✏️ Edit Opportunity' : '✨ Create Opportunity'}
+              </span>
 
               <div className="flex items-center gap-2 sm:gap-6 flex-1 justify-center">
                 {([
@@ -1782,6 +1985,43 @@ export default function CreateOpportunityPage() {
             {/* Media */}
             <div className={CARD_CLS}>
               <h3 className={SECTION_HEADING}>Media</h3>
+
+              {/* Existing media (edit mode) */}
+              {isEditMode && (editOpp?.media ?? []).filter((m) => !deletedMediaIds.includes(m.id)).length > 0 && (
+                <div className="mb-5">
+                  <p className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Current media</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {(editOpp?.media ?? [])
+                      .filter((m) => !deletedMediaIds.includes(m.id))
+                      .map((m) => (
+                        <div key={m.id} className="relative group rounded-xl overflow-hidden border border-[rgba(209,196,157,0.5)] bg-black/5 aspect-square">
+                          {m.mediaType === 'video' ? (
+                            <video src={m.url} className="w-full h-full object-cover" muted />
+                          ) : (
+                            <img src={m.url} alt={m.filename ?? 'media'} className="w-full h-full object-cover" />
+                          )}
+                          {m.isCover && (
+                            <span className="absolute top-1 left-1 text-[9px] font-bold uppercase bg-[#D4AF37] text-white px-1.5 py-0.5 rounded">Cover</span>
+                          )}
+                          {user?.primaryRole === 'super_admin' && (
+                            <button
+                              type="button"
+                              onClick={() => setDeletedMediaIds((prev) => [...prev, m.id])}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove this media"
+                            >
+                              <span className="text-xs leading-none">×</span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  {user?.primaryRole === 'super_admin' && (
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2">Removed media is deleted when you save.</p>
+                  )}
+                </div>
+              )}
+
               <MediaUploadZone images={mediaItems} onChange={setMediaItems} />
             </div>
 

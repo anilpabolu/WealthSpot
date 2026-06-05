@@ -417,13 +417,13 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
                 let display = opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'
                 if (opportunity.property_specs) {
                   const specs = opportunity.property_specs as Record<string, unknown>
-                  const unitConfigs = specs.unit_configurations as { price_per_sqft?: number; carpet_area_sqft?: number }[] | undefined
+                  const unitConfigs = specs.configurations as { price_per_sqft?: number; super_built_up_sqft?: number }[] | undefined
                   const plotConfigs = specs.plot_configurations as { price_per_sqft?: number; area_sqft?: number }[] | undefined
-                  
+
                   const prices: number[] = []
                   if (unitConfigs?.length) {
                     unitConfigs.forEach(u => {
-                      if (u.price_per_sqft && u.carpet_area_sqft) prices.push(u.price_per_sqft * u.carpet_area_sqft)
+                      if (u.price_per_sqft && u.super_built_up_sqft) prices.push(u.price_per_sqft * u.super_built_up_sqft)
                     })
                   } else if (plotConfigs?.length) {
                     plotConfigs.forEach(p => {
@@ -492,7 +492,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           opportunityTitle={opportunity.title}
           minInvestment={opportunity.minInvestment ?? 0}
           propertyType={opportunity.property_type ?? undefined}
-          unitConfigs={(opportunity.property_specs?.unit_configurations as unknown[]) ?? undefined}
+          unitConfigs={(opportunity.property_specs?.configurations as unknown[]) ?? undefined}
           plotConfigs={(opportunity.property_specs?.plot_configurations as unknown[]) ?? undefined}
           onClose={() => setShowEOI(false)}
         />
@@ -773,10 +773,10 @@ export default function OpportunityDetailPage() {
               type PlotCfg = { type: string; area_sqft?: number; areaSqft?: number; price_per_sqft?: number; pricePerSqft?: number; total_plots?: number; totalPlots?: number }
 
               const unitConfigs = !isPlot
-                ? ((specs.configurations || specs.unit_configurations || specs.unitConfigurations) as UnitCfg[] | undefined)?.filter(u => u.type || (u as any).bhkType)
+                ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
                 : undefined
               const plotConfigs = isPlot
-                ? ((specs.plot_configurations || specs.plotConfigurations) as PlotCfg[] | undefined)?.filter(p => p.type || (p as any).plotType)
+                ? (specs.plot_configurations as PlotCfg[] | undefined)?.filter(p => p.type)
                 : undefined
 
               const rows = isPlot ? plotConfigs : unitConfigs

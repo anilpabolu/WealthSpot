@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Toggle, Select, Input, Textarea } from '@/components/ui'
 import {
   X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle,
-  CheckCheck, Bath, LayoutGrid, Info, Phone,
+  CheckCheck, Info, Phone,
 } from 'lucide-react'
 import {
   useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, useEOIFormOptions,
@@ -16,14 +16,8 @@ import { useToastStore } from '@/stores/toastStore'
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export type UnitCfg = {
-  bhk_type?: string
   type?: string
-  carpet_area_sqft?: number
   super_built_up_sqft?: number
-  bathrooms?: number
-  balconies?: number
-  available_units?: number
-  total_units?: number
   price_per_sqft?: number
 }
 
@@ -45,12 +39,12 @@ function formatLakhs(amount: number): string {
 }
 
 function getUnitLabel(cfg: UnitCfg): string {
-  return cfg.bhk_type ?? cfg.type ?? 'Unit'
+  return cfg.type ?? 'Unit'
 }
 
 function computeUnitTotal(cfg: UnitCfg): number | null {
-  if (cfg.carpet_area_sqft != null && cfg.price_per_sqft != null) {
-    return cfg.carpet_area_sqft * cfg.price_per_sqft
+  if (cfg.super_built_up_sqft != null && cfg.price_per_sqft != null) {
+    return cfg.super_built_up_sqft * cfg.price_per_sqft
   }
   return null
 }
@@ -103,11 +97,11 @@ function ChipSelect({
 // ── SelectedConfigBanner ──────────────────────────────────────────────────
 
 function SelectedConfigBanner({ cfg }: { cfg: UnitCfg | PlotCfg }) {
-  const isUnit = 'bhk_type' in cfg || 'carpet_area_sqft' in cfg
+  const isUnit = 'super_built_up_sqft' in cfg && !('total_plots' in cfg)
   const label = isUnit ? getUnitLabel(cfg as UnitCfg) : (cfg as PlotCfg).type
   const areaText = isUnit
-    ? ((cfg as UnitCfg).carpet_area_sqft != null
-        ? `${(cfg as UnitCfg).carpet_area_sqft!.toLocaleString('en-IN')} sqft carpet`
+    ? ((cfg as UnitCfg).super_built_up_sqft != null
+        ? `${(cfg as UnitCfg).super_built_up_sqft!.toLocaleString('en-IN')} sqft super built-up`
         : '')
     : ((cfg as PlotCfg).area_sqft != null
         ? `${(cfg as PlotCfg).area_sqft!.toLocaleString('en-IN')} sqft`
@@ -151,9 +145,9 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   const plotConfigs = (rawPlotConfigs ?? []) as PlotCfg[]
   const hasConfigs = unitConfigs.length > 0 || plotConfigs.length > 0
 
-  // Sort unit configs by carpet area ascending
+  // Sort unit configs by super built-up area ascending
   const sortedUnitConfigs = [...unitConfigs].sort(
-    (a, b) => (a.carpet_area_sqft ?? 0) - (b.carpet_area_sqft ?? 0)
+    (a, b) => (a.super_built_up_sqft ?? 0) - (b.super_built_up_sqft ?? 0)
   )
 
   const [step, setStep] = useState<Step>('consent')
@@ -177,9 +171,9 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
   // Computed investment amount from selected config; fallback to minInvestment
   const computedInvestment: number = (() => {
-    if (selectedConfig && 'carpet_area_sqft' in selectedConfig) {
+    if (selectedConfig && 'super_built_up_sqft' in selectedConfig) {
       const u = selectedConfig as UnitCfg
-      if (u.carpet_area_sqft != null && u.price_per_sqft != null) return u.carpet_area_sqft * u.price_per_sqft
+      if (u.super_built_up_sqft != null && u.price_per_sqft != null) return u.super_built_up_sqft * u.price_per_sqft
     }
     if (selectedConfig && 'area_sqft' in selectedConfig) {
       const p = selectedConfig as PlotCfg
@@ -432,12 +426,6 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                         )}
                         <p className={`text-base font-bold mb-3 ${isSelected ? 'text-primary' : 'text-theme-primary'}`}>🏠 {label}</p>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3">
-                          {u.carpet_area_sqft != null && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Carpet Area</p>
-                              <p className="text-xs font-semibold text-theme-primary">{u.carpet_area_sqft.toLocaleString('en-IN')} sqft</p>
-                            </div>
-                          )}
                           {u.super_built_up_sqft != null && (
                             <div>
                               <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Super BUA</p>
@@ -445,25 +433,6 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
                             </div>
                           )}
                         </div>
-                        {(u.bathrooms != null || u.balconies != null) && (
-                          <div className="flex items-center gap-4 mb-3 text-xs text-theme-secondary">
-                            {u.bathrooms != null && (
-                              <span className="flex items-center gap-1">
-                                <Bath className="h-3.5 w-3.5" />
-                                {u.bathrooms} Bath{u.bathrooms > 1 ? 's' : ''}
-                              </span>
-                            )}
-                            {u.balconies != null && (
-                              <span className="flex items-center gap-1">
-                                <LayoutGrid className="h-3.5 w-3.5" />
-                                {u.balconies} Balcon{u.balconies === 1 ? 'y' : 'ies'}
-                              </span>
-                            )}
-                            {(u.available_units ?? u.total_units) != null && (
-                              <span className="ml-auto text-[11px]">{u.available_units ?? u.total_units} units</span>
-                            )}
-                          </div>
-                        )}
                         <div className="flex items-center justify-between pt-2 border-t border-theme">
                           {u.price_per_sqft != null && (
                             <p className="text-xs text-theme-secondary">₹{u.price_per_sqft.toLocaleString('en-IN')}<span className="text-theme-tertiary">/sqft</span></p>

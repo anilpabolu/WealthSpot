@@ -12,12 +12,8 @@ function AmenityIcon({ name, className }: { name: string; className?: string }) 
 
 /* ── Types ────────────────────────────────────────────────────────── */
 type UnitCfg = {
-  bhk_type: string
-  carpet_area_sqft?: number
+  type: string
   super_built_up_sqft?: number
-  bathrooms?: number
-  balconies?: number
-  total_units?: number
   price_per_sqft?: number
 }
 type PlotCfg = {
@@ -69,16 +65,16 @@ export function PropertySpecsSection({
 }) {
   const showEmpty = emptySectionMode === 'show_placeholder'
   const meta = PROPERTY_TYPE_META[propertyType] ?? { label: propertyType, icon: '🏠' }
-  const rawUnitConfigs = (specs.unit_configurations as UnitCfg[] | undefined) ?? []
-  // Sort BHK configs ascending by carpet area
+  const rawUnitConfigs = (specs.configurations as UnitCfg[] | undefined) ?? []
+  // Sort unit configs ascending by super built-up area
   const unitConfigs = [...rawUnitConfigs].sort(
-    (a, b) => (a.carpet_area_sqft ?? 0) - (b.carpet_area_sqft ?? 0)
+    (a, b) => (a.super_built_up_sqft ?? 0) - (b.super_built_up_sqft ?? 0)
   )
   const plotConfigs = (specs.plot_configurations as PlotCfg[] | undefined) ?? []
-  const landParcelSqft = specs.land_parcel_sqft as number | undefined
+  const landParcelSqft = specs.land_parcel_area_sqft as number | undefined
   const totalTowers = specs.total_towers as number | undefined
   const totalFloors = specs.total_floors as number | undefined
-  const possessionDate = specs.possession_date as string | undefined
+  const possessionYear = specs.possession_year as number | undefined
 
   const resolvedAmenities = AMENITIES.filter((a) => amenities.includes(a.key))
   const byCategory = Object.fromEntries(
@@ -113,7 +109,7 @@ export function PropertySpecsSection({
       </div>
 
       {/* Key stats */}
-      {(pricePerSqft || totalProjectAreaSqft || possessionDate) && (
+      {(pricePerSqft || totalProjectAreaSqft || possessionYear) && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {pricePerSqft != null && (
             <div className="p-3 bg-primary/5 rounded-xl text-center">
@@ -131,10 +127,10 @@ export function PropertySpecsSection({
               </p>
             </div>
           )}
-          {possessionDate && (
+          {possessionYear != null && (
             <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-center">
-              <p className="text-[11px] text-theme-secondary font-medium mb-0.5">Possession</p>
-              <p className="font-semibold text-sm text-amber-700 dark:text-amber-300">{possessionDate}</p>
+              <p className="text-[11px] text-theme-secondary font-medium mb-0.5">Possession Year</p>
+              <p className="font-semibold text-sm text-amber-700 dark:text-amber-300">{possessionYear}</p>
             </div>
           )}
         </div>
@@ -220,26 +216,22 @@ export function PropertySpecsSection({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[560px]">
+              <table className="w-full text-sm min-w-[420px]">
                 <thead>
                   <tr className="bg-theme-surface rounded-t-lg">
-                    {['Config', 'Carpet Area', 'Super BUA', 'Baths', 'Balconies', 'Units', '₹/sqft', 'Total Cost'].map((h) => (
+                    {['Config', 'Super BUA', '₹/sqft', 'Total Cost'].map((h) => (
                       <th key={h} className="text-left text-[11px] font-semibold text-theme-secondary uppercase px-3 py-2">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {unitConfigs.map((u, i) => {
-                    const uTotal = (u.super_built_up_sqft || u.carpet_area_sqft) && u.price_per_sqft ? ((u.super_built_up_sqft || u.carpet_area_sqft!) * u.price_per_sqft) : null
+                    const uTotal = u.super_built_up_sqft && u.price_per_sqft ? (u.super_built_up_sqft * u.price_per_sqft) : null
                     const displayCost = uTotal ? (uTotal >= 1e7 ? `₹${(uTotal / 1e7).toFixed(2)} Cr` : `₹${(uTotal / 1e5).toFixed(2)} L`) : '—'
                     return (
                       <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
-                        <td className="px-3 py-2.5 font-semibold text-primary">{u.bhk_type}</td>
-                        <td className="px-3 py-2.5 text-theme-primary">{u.carpet_area_sqft != null ? `${u.carpet_area_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
+                        <td className="px-3 py-2.5 font-semibold text-primary">{u.type}</td>
                         <td className="px-3 py-2.5 text-theme-primary">{u.super_built_up_sqft != null ? `${u.super_built_up_sqft.toLocaleString('en-IN')} sqft` : '—'}</td>
-                        <td className="px-3 py-2.5 text-theme-primary">{u.bathrooms ?? '—'}</td>
-                        <td className="px-3 py-2.5 text-theme-primary">{u.balconies ?? '—'}</td>
-                        <td className="px-3 py-2.5 text-theme-primary">{u.total_units ?? '—'}</td>
                         <td className="px-3 py-2.5 text-theme-primary">{u.price_per_sqft != null ? `₹${u.price_per_sqft.toLocaleString('en-IN')}` : '—'}</td>
                         <td className="px-3 py-2.5 font-bold text-theme-primary">{displayCost}</td>
                       </tr>
@@ -252,8 +244,8 @@ export function PropertySpecsSection({
           {/* Computed total from unit configs — unit_config mode */}
           {investmentMode === 'unit_config' && unitConfigs.length > 0 && (() => {
             const total = unitConfigs
-              .filter((u) => u.carpet_area_sqft != null && u.total_units != null)
-              .reduce((sum, u) => sum + (u.total_units ?? 0) * (u.carpet_area_sqft ?? 0) * (u.price_per_sqft ?? 0), 0)
+              .filter((u) => u.super_built_up_sqft != null && u.price_per_sqft != null)
+              .reduce((sum, u) => sum + (u.super_built_up_sqft ?? 0) * (u.price_per_sqft ?? 0), 0)
             if (total === 0) return null
             const crore = total / 1e7
             const lakh = total / 1e5
@@ -262,7 +254,7 @@ export function PropertySpecsSection({
               <div className="mt-3 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Total Project Value</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ units × carpet × ₹/sqft across all configurations</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Σ super built-up × ₹/sqft across all configurations</p>
                 </div>
                 <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{display}</div>
               </div>
