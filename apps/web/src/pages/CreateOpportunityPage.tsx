@@ -9,6 +9,7 @@ import SEOHead from '@/components/SEOHead'
 import MainLayout from '@/components/layout/MainLayout'
 import { useCreateOpportunity, useUpdateOpportunity, useOpportunity, useDeleteOpportunityMedia, useOpportunityFormOptions, type OpportunityCreatePayload, type OpportunityItem } from '@/hooks/useOpportunities'
 import { useUploadOpportunityMedia } from '@/hooks/useUpload'
+import { convertKeysToSnake } from '@wealthspot/api-client'
 
 import MediaUploadZone from '@/components/MediaUploadZone'
 import AddressDialog, { type AddressFields } from '@/components/AddressDialog'
@@ -532,8 +533,9 @@ export default function CreateOpportunityPage() {
     setCommunitySubtype((o.communitySubtype ?? '') as CommunitySubtypeValue | '')
     if (o.communityDetails) setCommunityDetails(o.communityDetails as CommunityDetailsState)
 
-    // Safe vault — merge over defaults so nested keys survive
-    if (o.safeVaultData) setSafeVaultData((prev) => ({ ...prev, ...(o.safeVaultData as Record<string, unknown>) }))
+    // Safe vault — the safe form uses snake_case keys, but the api-client camelCases
+    // the response; normalize back to snake before merging over the snake defaults.
+    if (o.safeVaultData) setSafeVaultData((prev) => ({ ...prev, ...(convertKeysToSnake(o.safeVaultData) as Record<string, unknown>) }))
 
     // Geo / maps
     if (o.latitude !== null && o.latitude !== undefined) setMapsLatitude(String(o.latitude))
@@ -553,10 +555,11 @@ export default function CreateOpportunityPage() {
     if (o.whyInvestors) setWhyInvestors(o.whyInvestors)
     if (o.investmentThesis) setInvestmentThesis(o.investmentThesis)
 
-    // Property specs
+    // Property specs — the api-client camelCases nested keys; normalize back to the
+    // canonical snake_case the wizard writes/reads.
     const pt = o.propertyType ?? o.property_type
     if (pt) {
-      const specs = (o.propertySpecs ?? o.property_specs ?? {}) as Record<string, any>
+      const specs = convertKeysToSnake(o.propertySpecs ?? o.property_specs ?? {}) as Record<string, any>
       skipPropertyResetRef.current = true
       setPropertyType(pt)
       setDevelopmentType(o.developmentType ?? o.development_type ?? '')

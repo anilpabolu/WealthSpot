@@ -28,6 +28,7 @@ import { PropertySpecsSection } from '@/components/wealth/PropertySpecsSection'
 import { ProjectThesisSection } from '@/components/wealth/ProjectThesisSection'
 import { AMENITIES, AMENITY_CATEGORIES } from '@wealthspot/types'
 import type { AmenityCategory } from '@wealthspot/types'
+import { convertKeysToSnake } from '@wealthspot/api-client'
 
 function _AmenityIcon({ name, className }: { name: string; className?: string }) {
   const Icon = (LucideAllIcons as unknown as Record<string, React.FC<LucideProps>>)[name]
@@ -383,7 +384,7 @@ function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string
 }
 /* ── Interest Panel (premium redesign) ─────────────────────────────── */
 
-function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null } }) {
+function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null; propertyType?: string | null; propertySpecs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
   const isClosed = opportunity.status === 'closed'
@@ -415,8 +416,9 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
             <p className="font-mono font-bold text-xl leading-tight" style={{ color: '#D4AF37' }}>
               {(() => {
                 let display = opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'
-                if (opportunity.property_specs) {
-                  const specs = opportunity.property_specs as Record<string, unknown>
+                const rawSpecs = opportunity.propertySpecs || opportunity.property_specs
+                if (rawSpecs) {
+                  const specs = convertKeysToSnake(rawSpecs) as Record<string, unknown>
                   const unitConfigs = specs.configurations as { price_per_sqft?: number; super_built_up_sqft?: number }[] | undefined
                   const plotConfigs = specs.plot_configurations as { price_per_sqft?: number; area_sqft?: number }[] | undefined
 
@@ -491,9 +493,9 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           opportunityId={opportunity.id}
           opportunityTitle={opportunity.title}
           minInvestment={opportunity.minInvestment ?? 0}
-          propertyType={opportunity.property_type ?? undefined}
-          unitConfigs={(opportunity.property_specs?.configurations as unknown[]) ?? undefined}
-          plotConfigs={(opportunity.property_specs?.plot_configurations as unknown[]) ?? undefined}
+          propertyType={opportunity.propertyType ?? opportunity.property_type ?? undefined}
+          unitConfigs={((opportunity.propertySpecs ?? opportunity.property_specs)?.configurations as unknown[]) ?? undefined}
+          plotConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.plotConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.plot_configurations) as unknown[]) ?? undefined}
           onClose={() => setShowEOI(false)}
         />
       )}
@@ -662,7 +664,7 @@ export default function OpportunityDetailPage() {
         { id: 'snapshot', label: 'Snapshot', tooltip: 'Key metrics and overview' },
         opp.description ? { id: 'about', label: 'About', tooltip: 'Project description' } : null,
         (opp.propertySpecs || opp.property_specs) ? { id: 'configurations', label: 'Configurations', tooltip: 'Unit or plot configurations' } : null,
-        opp.projectPhase || opp.investment_mode || opp.price_per_sqft || opp.total_project_area_sqft || opp.stage || opp.industry || opp.communityType || opp.collaborationType || opp.launchDate ? { id: 'project-details', label: 'Details', tooltip: 'Vault-specific details' } : null,
+        opp.projectPhase || opp.investmentMode || opp.investment_mode || opp.pricePerSqft || opp.price_per_sqft || opp.totalProjectAreaSqft || opp.total_project_area_sqft || opp.stage || opp.industry || opp.communityType || opp.collaborationType || opp.launchDate ? { id: 'project-details', label: 'Details', tooltip: 'Vault-specific details' } : null,
         (opp.latitude || opp.longitude || opp.mapsUrl || opp.addressLine1 || opp.address || opp.city || opp.state || opp.pincode) ? { id: 'location', label: 'Location', tooltip: 'Location map' } : null,
         (opp.propertyAmenities || opp.property_amenities) && (opp.propertyAmenities || opp.property_amenities)!.length > 0 && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') ? { id: 'amenities', label: 'Amenities', tooltip: 'Project features' } : null,
         { id: 'shield', label: 'Shield', tooltip: 'WealthSpot due diligence' },
@@ -766,11 +768,12 @@ export default function OpportunityDetailPage() {
 
             {/* Offering Configurations — unit or plot table derived from property_specs */}
             {(opp.propertySpecs || opp.property_specs) && (() => {
-              const specs = (opp.propertySpecs || opp.property_specs) as Record<string, unknown>
+              // api-client camelCases nested keys; normalize back to canonical snake_case.
+              const specs = convertKeysToSnake(opp.propertySpecs || opp.property_specs || {}) as Record<string, unknown>
               const isPlot = (opp.propertyType || opp.property_type) === 'plot'
 
-              type UnitCfg = { type: string; super_built_up_sqft?: number; superBuiltUpSqft?: number; price_per_sqft?: number; pricePerSqft?: number }
-              type PlotCfg = { type: string; area_sqft?: number; areaSqft?: number; price_per_sqft?: number; pricePerSqft?: number; total_plots?: number; totalPlots?: number }
+              type UnitCfg = { type: string; super_built_up_sqft?: number; price_per_sqft?: number }
+              type PlotCfg = { type: string; area_sqft?: number; price_per_sqft?: number; total_plots?: number }
 
               const unitConfigs = !isPlot
                 ? (specs.configurations as UnitCfg[] | undefined)?.filter(u => u.type)
@@ -809,10 +812,10 @@ export default function OpportunityDetailPage() {
                       <tbody className="divide-y divide-[var(--border-subtle)]">
                         {isPlot
                           ? (plotConfigs as PlotCfg[]).map((p, i) => {
-                              const area = p.area_sqft || p.areaSqft
-                              const price = p.price_per_sqft || p.pricePerSqft
+                              const area = p.area_sqft
+                              const price = p.price_per_sqft
                               const cost = area && price ? area * price : null
-                              const typeVal = p.type || (p as any).plotType
+                              const typeVal = p.type
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{typeVal}</td>
@@ -827,10 +830,10 @@ export default function OpportunityDetailPage() {
                               )
                             })
                           : (unitConfigs as UnitCfg[]).map((u, i) => {
-                              const area = u.super_built_up_sqft || u.superBuiltUpSqft
-                              const price = u.price_per_sqft || u.pricePerSqft
+                              const area = u.super_built_up_sqft
+                              const price = u.price_per_sqft
                               const cost = area && price ? area * price : null
-                              const typeVal = u.type || (u as any).bhkType
+                              const typeVal = u.type
                               return (
                                 <tr key={i} className="hover:bg-[var(--bg-surface-hover)]/40 transition-colors">
                                   <td className="py-3.5 pr-4 font-semibold text-theme-primary">{typeVal}</td>
@@ -863,13 +866,13 @@ export default function OpportunityDetailPage() {
             {(opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (opp.property_specs || opp.investment_mode) && (
               <div id="specifications" className="scroll-mt-32">
                 <PropertySpecsSection
-                  propertyType={opp.property_type || 'flat'}
-                  pricePerSqft={opp.price_per_sqft}
-                  totalProjectAreaSqft={opp.total_project_area_sqft}
-                  specs={opp.property_specs || {}}
-                  amenities={opp.property_amenities ?? []}
-                  amenityCostEstimate={opp.amenity_cost_estimate}
-                  investmentMode={opp.investment_mode ?? undefined}
+                  propertyType={opp.propertyType || opp.property_type || 'flat'}
+                  pricePerSqft={opp.pricePerSqft ?? opp.price_per_sqft}
+                  totalProjectAreaSqft={opp.totalProjectAreaSqft ?? opp.total_project_area_sqft}
+                  specs={opp.propertySpecs || opp.property_specs || {}}
+                  amenities={opp.propertyAmenities ?? opp.property_amenities ?? []}
+                  amenityCostEstimate={opp.amenityCostEstimate ?? opp.amenity_cost_estimate}
+                  investmentMode={opp.investmentMode ?? opp.investment_mode ?? undefined}
                 />
               </div>
             )}

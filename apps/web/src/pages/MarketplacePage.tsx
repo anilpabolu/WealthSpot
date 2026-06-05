@@ -537,8 +537,8 @@ export default function MarketplacePage() {
                             <h3 className="font-display text-base md:text-lg font-bold text-gray-900 mb-1 truncate">{opp.title}</h3>
 
                             <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] text-gray-500 font-medium">
-                              {opp.property_type && (
-                                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 text-blue-500" /> {opp.property_type.replace(/_/g, ' ')}</span>
+                              {(opp.propertyType || opp.property_type) && (
+                                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 text-blue-500" /> {(opp.propertyType || opp.property_type)!.replace(/_/g, ' ')}</span>
                               )}
                               {opp.city && (
                                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-red-500" /> {opp.city}</span>

@@ -137,13 +137,13 @@ export default function BuilderListingDetailPage() {
         )}
 
         {/* Property Specifications */}
-        {opp.property_type && opp.property_specs && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
+        {(opp.propertyType || opp.property_type) && (opp.propertySpecs || opp.property_specs) && (opp.vaultType === 'wealth' || opp.vaultType === 'safe') && (
           <PropertySpecsSection
-            propertyType={opp.property_type}
-            pricePerSqft={opp.price_per_sqft}
-            totalProjectAreaSqft={opp.total_project_area_sqft}
-            specs={opp.property_specs as Record<string, unknown>}
-            amenities={opp.property_amenities ?? []}
+            propertyType={opp.propertyType || opp.property_type || ''}
+            pricePerSqft={opp.pricePerSqft ?? opp.price_per_sqft}
+            totalProjectAreaSqft={opp.totalProjectAreaSqft ?? opp.total_project_area_sqft}
+            specs={(opp.propertySpecs || opp.property_specs || {}) as Record<string, unknown>}
+            amenities={opp.propertyAmenities ?? opp.property_amenities ?? []}
           />
         )}
 

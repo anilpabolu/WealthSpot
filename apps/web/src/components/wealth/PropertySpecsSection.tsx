@@ -1,5 +1,6 @@
 import { AMENITIES, AMENITY_CATEGORIES } from '@wealthspot/types'
 import type { AmenityCategory } from '@wealthspot/types'
+import { convertKeysToSnake } from '@wealthspot/api-client'
 import * as LucideIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 
@@ -48,7 +49,7 @@ export function PropertySpecsSection({
   propertyType,
   pricePerSqft,
   totalProjectAreaSqft,
-  specs,
+  specs: rawSpecs,
   amenities,
   amenityCostEstimate,
   emptySectionMode = 'hide_empty',
@@ -65,6 +66,9 @@ export function PropertySpecsSection({
 }) {
   const showEmpty = emptySectionMode === 'show_placeholder'
   const meta = PROPERTY_TYPE_META[propertyType] ?? { label: propertyType, icon: '🏠' }
+  // The api-client camelCases nested response keys; normalize back to the canonical
+  // snake_case this component reads (idempotent on already-snake payloads).
+  const specs = (convertKeysToSnake(rawSpecs ?? {}) ?? {}) as Record<string, unknown>
   const rawUnitConfigs = (specs.configurations as UnitCfg[] | undefined) ?? []
   // Sort unit configs ascending by super built-up area
   const unitConfigs = [...rawUnitConfigs].sort(

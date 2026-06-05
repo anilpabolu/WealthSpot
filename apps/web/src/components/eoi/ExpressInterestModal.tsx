@@ -12,6 +12,7 @@ import { useRecordConsent, useConsentStatus } from '@/hooks/useConsent'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
+import { convertKeysToSnake } from '@wealthspot/api-client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -141,8 +142,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
   const hasExistingInvestment = (existingEOIs?.items?.length ?? 0) > 0
 
-  const unitConfigs = (rawUnitConfigs ?? []) as UnitCfg[]
-  const plotConfigs = (rawPlotConfigs ?? []) as PlotCfg[]
+  // The api-client camelCases nested response keys; normalize back to the snake_case
+  // these config readers expect (idempotent on already-snake payloads).
+  const unitConfigs = (convertKeysToSnake(rawUnitConfigs ?? []) ?? []) as UnitCfg[]
+  const plotConfigs = (convertKeysToSnake(rawPlotConfigs ?? []) ?? []) as PlotCfg[]
   const hasConfigs = unitConfigs.length > 0 || plotConfigs.length > 0
 
   // Sort unit configs by super built-up area ascending
