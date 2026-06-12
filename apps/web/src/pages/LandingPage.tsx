@@ -559,7 +559,6 @@ export default function LandingPage() {
   return (
     <MainLayout>
       <SEOHead
-        title="Fractional Real Estate Investment in India"
         description="Invest in premium, curated Indian real estate fractionally. WealthSpot offers Wealth, Safe, and Community Vaults — transparent opportunities built for serious investors."
         path="/"
         jsonLd={HOME_JSON_LD}

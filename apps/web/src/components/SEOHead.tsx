@@ -25,8 +25,6 @@ interface SEOHeadProps {
 const SITE_NAME = 'WealthSpot'
 const BASE_URL = 'https://wealthspot.in'
 /** Used as the <title> on pages that don't pass an explicit title (e.g. the homepage). */
-const DEFAULT_TITLE =
-  'WealthSpot — Fractional Real Estate Investment in India'
 const DEFAULT_DESCRIPTION =
   'Invest in premium, curated Indian real estate fractionally. WealthSpot offers Wealth, Safe, and Community Vaults — transparent, SEBI-conscious, and built for serious investors.'
 const DEFAULT_KEYWORDS =
@@ -44,8 +42,9 @@ export default function SEOHead({
   noIndex = false,
   jsonLd,
 }: SEOHeadProps) {
-  // Per-page title, suffixed with the brand. Homepage (no title) uses the full tagline.
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE
+  // Brand-forward title so every browser tab leads with "WealthSpot".
+  // Homepage (no title) shows the brand name only.
+  const fullTitle = title ? `${SITE_NAME} — ${title}` : SITE_NAME
   const canonical = `${BASE_URL}${path}`
   const structured = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []
 
