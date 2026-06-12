@@ -57,7 +57,6 @@ async def test_create_opportunity(client: AsyncClient, builder_user):
             "vault_type": "wealth",
             "target_amount": 10000000,
             "min_investment": 25000,
-            "target_irr": 14.5,
             "city": "Mumbai",
         },
         headers=auth_headers(builder_user),
@@ -75,7 +74,6 @@ async def test_create_opportunity_persists_all_new_fields(client: AsyncClient, b
         "vault_type": "wealth",
         "target_amount": 10000000,
         "min_investment": 25000,
-        "target_irr": 14.5,
         "city": "Bengaluru",
         "state": "Karnataka",
         # Real-estate spec fields added to the wizard

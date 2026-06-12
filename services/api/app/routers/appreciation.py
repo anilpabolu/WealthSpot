@@ -13,13 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, require_role
 from app.models.appreciation_event import AppreciationEvent
-from app.models.investment import Investment, InvestmentStatus
 from app.models.opportunity import Opportunity
 from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
 from app.models.property import Property
 from app.models.user import User, UserRole
 from app.schemas.appreciation import AppreciationCreateRequest, AppreciationEventRead
-from app.services.cache import cache_delete, make_cache_key
 
 router = APIRouter(prefix="/opportunities", tags=["appreciation"])
 
@@ -132,14 +130,6 @@ async def appreciate_opportunity(
         for inv in result.scalars().all():
             share = (Decimal(str(inv.amount)) / total_invested) * appreciation_amount
             inv.returns_amount = share.quantize(Decimal("0.01"))
-            # Invalidate cached XIRR so next fetch recalculates with new returns
-            await cache_delete(make_cache_key("xirr", str(inv.user_id), "portfolio"))
-
-    # Update actual_irr on opportunity
-    if total_invested > 0:
-        opp.actual_irr = Decimal(
-            str(float((new_val - total_invested) / total_invested * 100))
-        ).quantize(Decimal("0.01"))
 
     await db.flush()
     await db.refresh(event)
@@ -226,18 +216,6 @@ async def appreciate_property(
 
     # Update property current unit price
     prop.current_unit_price = new_price
-
-    # Invalidate XIRR cache for all investors in this property
-    inv_result = await db.execute(
-        select(Investment.user_id)
-        .where(
-            Investment.property_id == prop.id,
-            Investment.status == InvestmentStatus.CONFIRMED,
-        )
-        .distinct()
-    )
-    for (uid,) in inv_result.all():
-        await cache_delete(make_cache_key("xirr", str(uid), "portfolio"))
 
     await db.flush()
     await db.refresh(event)

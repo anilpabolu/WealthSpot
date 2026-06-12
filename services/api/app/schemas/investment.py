@@ -35,7 +35,6 @@ class InvestmentSummary(BaseModel):
     total_invested: Decimal
     current_value: Decimal
     total_returns: Decimal
-    xirr: float
     properties_count: int
     monthly_income: Decimal
 
@@ -93,8 +92,6 @@ class PortfolioSummary(BaseModel):
     current_value: Decimal
     total_returns: Decimal = Decimal("0")
     unrealized_gains: Decimal = Decimal("0")
-    avg_irr: float = 0.0
-    xirr: float
     properties_count: int = 0
     cities_count: int = 0
     monthly_income: Decimal
@@ -124,7 +121,6 @@ class PortfolioProperty(BaseModel):
     asset_type: str
     invested: Decimal
     current_value: Decimal
-    irr: float
     units: int
     investment_count: int = 1
     original_unit_price: Decimal = Decimal("0")
@@ -151,9 +147,6 @@ class HoldingItem(BaseModel):
     current_value: float
     returns: float
     return_pct: float
-    irr: float | None = None
-    expected_irr: float | None = None
-    actual_irr: float | None = None
     units: int = 1
     invested_at: datetime
     status: str

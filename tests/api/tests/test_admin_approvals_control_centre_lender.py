@@ -157,7 +157,6 @@ class TestAdminPropertyApproval:
                 unit_price=Decimal("10000"),
                 total_units=50,
                 sold_units=0,
-                target_irr=Decimal("14"),
                 investor_count=0,
             )
             session.add(prop)
@@ -476,7 +475,6 @@ class TestLender:
                 unit_price=Decimal("50000"),
                 total_units=40,
                 sold_units=0,
-                target_irr=Decimal("13"),
                 investor_count=0,
             )
             session.add(prop)

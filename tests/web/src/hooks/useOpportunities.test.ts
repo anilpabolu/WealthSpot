@@ -95,7 +95,6 @@ describe('useOpportunities – API layer', () => {
         title: 'New Property',
         target_amount: 10000000,
         min_investment: 100000,
-        target_irr: 15,
         city: 'Bengaluru',
       })
       expect(apiPost).toHaveBeenCalledWith('/opportunities', expect.objectContaining({

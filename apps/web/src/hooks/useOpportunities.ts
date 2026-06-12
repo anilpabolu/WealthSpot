@@ -212,7 +212,6 @@ export interface OpportunityCreatePayload {
   closingDate?: string
   // Builder shield assessment
   shield_answers?: Record<string, unknown>
-  targetIrr?: number
   project_phase?: string
   project_roadmap?: Array<Record<string, any>>
   risk_factors?: string
@@ -334,7 +333,6 @@ export function useCreateOpportunity() {
         funding_open_at: data.fundingOpenAt || undefined,
         closing_date: data.closingDate || undefined,
         shield_answers: data.shield_answers,
-        target_irr: data.targetIrr,
         project_phase: data.project_phase,
         risk_factors: data.risk_factors,
         why_investors: data.why_investors,
@@ -394,7 +392,6 @@ export function useUpdateOpportunity() {
         ...(data.closingDate !== undefined && { closing_date: data.closingDate || undefined }),
         ...(data.fundingOpenAt !== undefined && { funding_open_at: data.fundingOpenAt || undefined }),
         ...(data.cancelInvestments !== undefined && { cancel_investments: data.cancelInvestments }),
-        ...(data.targetIrr !== undefined && { target_irr: data.targetIrr }),
         ...(data.project_phase !== undefined && { project_phase: data.project_phase }),
         ...(data.risk_factors !== undefined && { risk_factors: data.risk_factors }),
         ...(data.why_investors !== undefined && { why_investors: data.why_investors }),

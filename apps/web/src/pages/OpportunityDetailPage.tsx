@@ -40,6 +40,8 @@ function _AmenityIcon({ name, className }: { name: string; className?: string })
 
 function OpportunityNavigation({ sections }: { sections: Array<{ id: string, label: string, tooltip: string }> }) {
   const [activeId, setActiveId] = useState<string>('')
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -61,6 +63,14 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
     return () => observer.disconnect()
   }, [sections])
 
+  // Keep the active pill in view when the nav row overflows and scrolls horizontally.
+  useEffect(() => {
+    const btn = btnRefs.current[activeId]
+    if (btn) {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  }, [activeId])
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id)
     if (el) {
@@ -72,27 +82,28 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
   if (sections.length === 0) return null
 
   return (
-    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
+    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 lg:gap-6 py-3">
-          {sections.map((section) => {
-            const isActive = activeId === section.id
-            return (
-              <button
-                key={section.id}
-                onClick={() => scrollTo(section.id)}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 group whitespace-nowrap ${
-                  isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
-                }`}
-              >
-                {section.label}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 p-2.5 bg-[#0f172a] text-white text-[11px] leading-relaxed font-medium text-center rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl z-50 pointer-events-none">
-                  {section.tooltip}
-                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45" />
-                </div>
-              </button>
-            )
-          })}
+        {/* Horizontal scroll container: single row, centered when it fits, scrollable when it overflows */}
+        <div ref={scrollRef} className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max max-w-full mx-auto items-center gap-2 lg:gap-3 py-3">
+            {sections.map((section) => {
+              const isActive = activeId === section.id
+              return (
+                <button
+                  key={section.id}
+                  ref={(el) => { btnRefs.current[section.id] = el }}
+                  onClick={() => scrollTo(section.id)}
+                  title={section.tooltip}
+                  className={`shrink-0 px-4 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 whitespace-nowrap ${
+                    isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
+                  }`}
+                >
+                  {section.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -307,11 +318,11 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
           />
           {images.length > 1 && (
             <>
-              <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow" aria-label="Previous image">
-                <ChevronLeft className="h-5 w-5" />
+              <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/90 hover:text-white hover:bg-white/15 transition-colors" aria-label="Previous image">
+                <ChevronLeft className="h-6 w-6 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" />
               </button>
-              <button onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-[var(--bg-card)] hover:bg-[var(--bg-surface)] rounded-full p-2 shadow" aria-label="Next image">
-                <ChevronRight className="h-5 w-5" />
+              <button onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/90 hover:text-white hover:bg-white/15 transition-colors" aria-label="Next image">
+                <ChevronRight className="h-6 w-6 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" />
               </button>
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {images.map((_, i) => (
@@ -572,13 +583,65 @@ export default function OpportunityDetailPage() {
     targetAmount: opp.targetAmount,
   })
 
+  const seoDescription =
+    opp.tagline ?? opp.description?.slice(0, 160) ?? 'Investment opportunity on WealthSpot'
+  const locationLabel = [opp.locality, opp.city, opp.state].filter(Boolean).join(', ')
+
+  // schema.org Product + Offer + Breadcrumbs — makes the listing eligible for rich snippets.
+  const opportunityJsonLd: Record<string, unknown>[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: opp.title,
+      description: seoDescription,
+      ...(coverUrl ? { image: coverUrl } : {}),
+      ...(locationLabel ? { category: `Real Estate Investment — ${locationLabel}` } : {}),
+      brand: { '@type': 'Brand', name: 'WealthSpot' },
+      ...(opp.minInvestment
+        ? {
+            offers: {
+              '@type': 'Offer',
+              price: opp.minInvestment,
+              priceCurrency: 'INR',
+              availability:
+                opp.status === 'closed'
+                  ? 'https://schema.org/SoldOut'
+                  : 'https://schema.org/InStock',
+              url: `https://wealthspot.in/opportunity/${opp.slug}`,
+            },
+          }
+        : {}),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://wealthspot.in/' },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Marketplace',
+          item: 'https://wealthspot.in/marketplace',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: opp.title,
+          item: `https://wealthspot.in/opportunity/${opp.slug}`,
+        },
+      ],
+    },
+  ]
+
   return (
     <MainLayout>
       <SEOHead
         title={opp.title}
-        description={opp.tagline ?? opp.description?.slice(0, 160) ?? 'Investment opportunity on WealthSpot'}
+        description={seoDescription}
         path={`/opportunity/${opp.slug}`}
+        image={coverUrl}
         type="article"
+        jsonLd={opportunityJsonLd}
       />
       <section className="page-hero-navbar bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mt-16 relative overflow-hidden pt-[9rem] pb-8">
         {/* Geometric blur decorations — matches Vaults page */}

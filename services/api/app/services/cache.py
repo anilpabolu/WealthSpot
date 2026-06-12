@@ -1,5 +1,5 @@
 """
-Simple Redis cache utility for expensive computations (XIRR, analytics).
+Simple Redis cache utility for expensive computations (analytics).
 Falls back gracefully if Redis is unavailable.
 """
 

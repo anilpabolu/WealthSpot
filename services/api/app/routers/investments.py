@@ -4,7 +4,6 @@ Investment router – initiate, confirm payment, list.
 
 import logging
 import uuid
-from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -27,9 +26,7 @@ from app.schemas.investment import (
     PaginatedInvestments,
     TransactionRead,
 )
-from app.services.cache import cache_delete, cache_get, cache_set, make_cache_key
 from app.services.payment import verify_payment_signature
-from app.services.xirr import calculate_xirr
 
 router = APIRouter(prefix="/investments", tags=["investments"])
 settings = get_settings()
@@ -110,30 +107,10 @@ async def investment_summary(
     # data is available per property. Displayed as "Est. Monthly Income" in the UI.
     monthly_income = total_invested * Decimal("0.006")
 
-    # Compute real XIRR from cashflows (with Redis cache)
-    xirr_cache_key = make_cache_key("xirr", str(user.id), "inv_summary")
-    xirr_value = cache_get(xirr_cache_key)
-    if xirr_value is None:
-        cashflows: list[tuple[datetime, float | Decimal]] = []
-        for inv in investments:
-            inv_date = inv.created_at or datetime.now(UTC)
-            cashflows.append((inv_date, -float(inv.amount)))
-        if cashflows:
-            cashflows.append((datetime.now(UTC), float(current_value)))
-        try:
-            xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else None
-        except Exception as e:
-            logger.warning("Failed to calculate XIRR for user %s: %s", user.id, e)
-            xirr_value = None
-
-        if xirr_value is not None:
-            cache_set(xirr_cache_key, xirr_value, ttl_seconds=300)
-
     return InvestmentSummary(
         total_invested=total_invested,
         current_value=current_value,
         total_returns=current_value - total_invested,
-        xirr=xirr_value or 0.0,
         properties_count=len(property_ids),
         monthly_income=monthly_income,
     )
@@ -270,10 +247,6 @@ async def confirm_payment(
         db.add(txn)
 
     await db.flush()
-
-    # Invalidate the user's cached XIRR — without this the dashboard shows
-    # a stale return number for up to 5 minutes after a new investment.
-    await cache_delete(make_cache_key("xirr", str(user.id), "inv_summary"))
 
     await log_audit_event(
         actor_id=user.id,

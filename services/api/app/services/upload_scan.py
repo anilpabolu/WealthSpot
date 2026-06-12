@@ -79,7 +79,7 @@ def validate_upload(content: bytes, claimed_mime: str) -> tuple[bool, str | None
     """
     detected = detect_signature(content)
     if detected is None:
-        return False, "Unrecognised file format"
+        return False, "Unrecognized file format"
     if detected == claimed_mime:
         return True, None
     if claimed_mime in _CONTAINER_ALIASES.get(detected, set()):

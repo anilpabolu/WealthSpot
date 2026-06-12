@@ -18,7 +18,6 @@ const makeProperty = (id: string, city = 'Mumbai') => ({
   city,
   assetType: 'residential',
   coverImage: null,
-  targetIrr: 14,
   minInvestment: 100000,
   unitPrice: 10000,
   totalUnits: 100,
@@ -63,12 +62,6 @@ describe('mobile useProperties – API layer', () => {
 
       await apiGet('/properties', { params: { city: 'Bangalore', page: 1, page_size: 10 } })
       expect(apiGet).toHaveBeenCalledWith('/properties', { params: { city: 'Bangalore', page: 1, page_size: 10 } })
-    })
-
-    it('passes IRR range filter', async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({ properties: [], total: 0, page: 1, pageSize: 10, totalPages: 0 })
-      await apiGet('/properties', { params: { irr_min: 12, irr_max: 18, page: 1, page_size: 10 } })
-      expect(apiGet).toHaveBeenCalledWith('/properties', { params: { irr_min: 12, irr_max: 18, page: 1, page_size: 10 } })
     })
 
     it('passes status filter', async () => {

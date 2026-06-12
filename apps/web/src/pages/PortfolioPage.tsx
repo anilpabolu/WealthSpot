@@ -973,7 +973,7 @@ export default function PortfolioPage() {
               {selectedHolding && (
                 <HoldingDetailModal
                   holding={selectedHolding}
-                  sections={snapshotConfig?.sections ?? ['irr', 'appreciation_history', 'payout_schedule', 'documents', 'co_investors', 'property_details', 'timeline']}
+                  sections={snapshotConfig?.sections ?? ['appreciation_history', 'payout_schedule', 'documents', 'co_investors', 'property_details', 'timeline']}
                   onClose={() => setSelectedHolding(null)}
                 />
               )}

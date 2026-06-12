@@ -17,7 +17,6 @@ interface BuilderProperty {
   targetAmount: number
   raisedAmount: number
   minInvestment: number
-  targetIrr: number
   investorCount: number
   fundingPercentage: number
   createdAt: string

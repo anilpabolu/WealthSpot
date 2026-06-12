@@ -48,7 +48,6 @@ class PropertyBase(BaseModel):
     min_investment: Decimal = Field(gt=0)
     unit_price: Decimal = Field(gt=0)
     total_units: int = Field(gt=0)
-    target_irr: Decimal = Field(ge=0, le=100)
     rental_yield: Decimal | None = None
     area_sqft: int | None = None
     possession_date: str | None = None
@@ -69,7 +68,6 @@ class PropertyUpdate(BaseModel):
     tagline: str | None = None
     description: str | None = None
     status: PropertyStatus | None = None
-    target_irr: Decimal | None = None
     rental_yield: Decimal | None = None
     cover_image: str | None = None
     amenities: list[str] | None = None
@@ -95,7 +93,6 @@ class PropertyListItem(BaseModel):
     target_amount: Decimal
     raised_amount: Decimal
     min_investment: Decimal
-    target_irr: Decimal
     rental_yield: Decimal | None = None
     investor_count: int
     funding_percentage: float
@@ -148,8 +145,6 @@ class PropertyFilters(BaseModel):
     status: PropertyStatus | None = None
     min_investment_min: Decimal | None = None
     min_investment_max: Decimal | None = None
-    irr_min: Decimal | None = None
-    irr_max: Decimal | None = None
     sort_by: str = "newest"
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=12, ge=1, le=50)

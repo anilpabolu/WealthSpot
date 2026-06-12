@@ -45,9 +45,9 @@ vi.mock('@/hooks/useProfiling', () => ({
 vi.mock('@/hooks/useOpportunities', () => ({
   useVaultStats: vi.fn(() => ({
     data: [
-      { vaultType: 'wealth', totalInvested: 5000000, investorCount: 42, opportunityCount: 8, expectedIrr: 14, actualIrr: 12.5, explorerCount: 120, dnaInvestorCount: 15, minInvestment: 10000, avgTicketSize: 50000, citiesCovered: 5, sectorsCovered: 3, coInvestorCount: 0, coPartnerCount: 0, platformUsersCount: 200, listingsCount: 8, avgInterestRate: 9, avgProjectSize: 0, collaborationRate: 0 },
-      { vaultType: 'opportunity', totalInvested: 2000000, investorCount: 18, opportunityCount: 5, expectedIrr: 22, actualIrr: null, explorerCount: 60, dnaInvestorCount: 8, minInvestment: 50000, avgTicketSize: 100000, citiesCovered: 3, sectorsCovered: 6, coInvestorCount: 0, coPartnerCount: 0, platformUsersCount: 200, listingsCount: 5, avgInterestRate: 0, avgProjectSize: 0, collaborationRate: 0 },
-      { vaultType: 'community', totalInvested: 800000, investorCount: 10, opportunityCount: 3, expectedIrr: null, actualIrr: null, explorerCount: 30, dnaInvestorCount: 4, minInvestment: 5000, avgTicketSize: 25000, citiesCovered: 4, sectorsCovered: 2, coInvestorCount: 12, coPartnerCount: 7, platformUsersCount: 200, listingsCount: 3, avgInterestRate: 0, avgProjectSize: 100000, collaborationRate: 0.6 },
+      { vaultType: 'wealth', totalInvested: 5000000, investorCount: 42, opportunityCount: 8, explorerCount: 120, dnaInvestorCount: 15, minInvestment: 10000, avgTicketSize: 50000, citiesCovered: 5, sectorsCovered: 3, coInvestorCount: 0, coPartnerCount: 0, platformUsersCount: 200, listingsCount: 8, avgInterestRate: 9, avgProjectSize: 0, collaborationRate: 0 },
+      { vaultType: 'opportunity', totalInvested: 2000000, investorCount: 18, opportunityCount: 5, explorerCount: 60, dnaInvestorCount: 8, minInvestment: 50000, avgTicketSize: 100000, citiesCovered: 3, sectorsCovered: 6, coInvestorCount: 0, coPartnerCount: 0, platformUsersCount: 200, listingsCount: 5, avgInterestRate: 0, avgProjectSize: 0, collaborationRate: 0 },
+      { vaultType: 'community', totalInvested: 800000, investorCount: 10, opportunityCount: 3, explorerCount: 30, dnaInvestorCount: 4, minInvestment: 5000, avgTicketSize: 25000, citiesCovered: 4, sectorsCovered: 2, coInvestorCount: 12, coPartnerCount: 7, platformUsersCount: 200, listingsCount: 3, avgInterestRate: 0, avgProjectSize: 100000, collaborationRate: 0.6 },
     ],
     isLoading: false,
   })),

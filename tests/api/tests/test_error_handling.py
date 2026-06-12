@@ -74,7 +74,6 @@ class TestForbidden:
                 "min_investment": 10000,
                 "unit_price": 5000,
                 "total_units": 200,
-                "target_irr": 14,
             },
             headers=auth_headers(test_user),
         )
@@ -98,7 +97,6 @@ class TestForbidden:
                 "min_investment": 10000,
                 "unit_price": 5000,
                 "total_units": 200,
-                "target_irr": 14,
             },
             headers=auth_headers(test_user),
         )

@@ -26,7 +26,6 @@ async def _create_opportunity(client: AsyncClient, user: User, title: str) -> st
             "city": "Pune",
             "target_amount": 10_000_000,
             "min_investment": 500_000,
-            "target_irr": 14.0,
         },
         headers=auth_headers(user),
     )

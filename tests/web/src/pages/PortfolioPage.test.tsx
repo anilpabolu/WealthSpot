@@ -65,11 +65,11 @@ describe('PortfolioPage', () => {
       isLoading: false,
     } as never)
     vi.mocked(usePortfolioSummary).mockReturnValue({
-      data: { totalInvested: 500000, currentValue: 600000, totalReturns: 100000, xirr: 15.2, propertiesCount: 3, citiesCount: 2, assetAllocation: [], monthlyReturns: [] },
+      data: { totalInvested: 500000, currentValue: 600000, totalReturns: 100000, propertiesCount: 3, citiesCount: 2, assetAllocation: [], monthlyReturns: [] },
       isLoading: false,
     } as never)
     vi.mocked(usePortfolioProperties).mockReturnValue({
-      data: [{ propertyId: 'p1', propertyTitle: 'Test Property', propertyCity: 'Mumbai', assetType: 'Residential', propertyImage: '', investedAmount: 100000, currentValue: 120000, returnPercentage: 20, units: 10, irr: 14.5, investedAt: '2024-01-01' }],
+      data: [{ propertyId: 'p1', propertyTitle: 'Test Property', propertyCity: 'Mumbai', assetType: 'Residential', propertyImage: '', investedAmount: 100000, currentValue: 120000, returnPercentage: 20, units: 10, investedAt: '2024-01-01' }],
       isLoading: false,
     } as never)
     vi.mocked(useRecentTransactions).mockReturnValue({
@@ -77,7 +77,7 @@ describe('PortfolioPage', () => {
       isLoading: false,
     } as never)
     vi.mocked(useVaultWisePortfolio).mockReturnValue({
-      data: { vaults: [{ vaultType: 'wealth', totalInvested: 500000, currentValue: 600000, returns: 100000, returnPct: 20, expectedIrr: 15, opportunityCount: 3, avgDurationDays: 180 }], grandTotalInvested: 500000, grandCurrentValue: 600000, grandReturns: 100000, grandReturnPct: 20 },
+      data: { vaults: [{ vaultType: 'wealth', totalInvested: 500000, currentValue: 600000, returns: 100000, returnPct: 20, opportunityCount: 3, avgDurationDays: 180 }], grandTotalInvested: 500000, grandCurrentValue: 600000, grandReturns: 100000, grandReturnPct: 20 },
       isLoading: false,
     } as never)
     vi.mocked(usePortfolioHoldings).mockReturnValue({

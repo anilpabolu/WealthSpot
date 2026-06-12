@@ -16,7 +16,6 @@ const makeApiProperty = (overrides = {}) => ({
   title: 'Emerald Heights',
   city: 'Mumbai',
   assetType: 'residential',
-  targetIrr: 14.5,
   minInvestment: 100000,
   unitPrice: 10000,
   totalUnits: 100,
@@ -67,14 +66,6 @@ describe('useProperties – API layer', () => {
       await apiGet('/properties', { params: { asset_type: 'commercial', page: 1, page_size: 12 } })
       expect(apiGet).toHaveBeenCalledWith('/properties', {
         params: expect.objectContaining({ asset_type: 'commercial' }),
-      })
-    })
-
-    it('filters by IRR range', async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({ properties: [], total: 0, page: 1, pageSize: 12, totalPages: 0 })
-      await apiGet('/properties', { params: { irr_min: 12, irr_max: 20, page: 1, page_size: 12 } })
-      expect(apiGet).toHaveBeenCalledWith('/properties', {
-        params: expect.objectContaining({ irr_min: 12, irr_max: 20 }),
       })
     })
 

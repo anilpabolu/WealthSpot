@@ -134,8 +134,6 @@ async def list_properties(
     property_status: str | None = Query(None, alias="status"),
     min_investment_min: Decimal | None = Query(None),
     min_investment_max: Decimal | None = Query(None),
-    irr_min: Decimal | None = Query(None),
-    irr_max: Decimal | None = Query(None),
     sort_by: str = Query("newest"),
     search: str | None = Query(None),
     page: int = Query(1, ge=1),
@@ -172,10 +170,6 @@ async def list_properties(
         query = query.where(Property.min_investment >= min_investment_min)
     if min_investment_max is not None:
         query = query.where(Property.min_investment <= min_investment_max)
-    if irr_min is not None:
-        query = query.where(Property.target_irr >= irr_min)
-    if irr_max is not None:
-        query = query.where(Property.target_irr <= irr_max)
     if search:
         query = query.outerjoin(Builder, Property.builder_id == Builder.id).where(
             Property.title.ilike(f"%{search}%")
@@ -189,11 +183,7 @@ async def list_properties(
     total = (await db.execute(query.with_only_columns(func.count()).order_by(None))).scalar() or 0
 
     # Sort
-    if sort_by == "irr_high":
-        query = query.order_by(Property.target_irr.desc())
-    elif sort_by == "irr_low":
-        query = query.order_by(Property.target_irr.asc())
-    elif sort_by == "price_low":
+    if sort_by == "price_low":
         query = query.order_by(Property.min_investment.asc())
     elif sort_by == "price_high":
         query = query.order_by(Property.min_investment.desc())
@@ -489,7 +479,6 @@ async def create_property(
         min_investment=body.min_investment,
         unit_price=body.unit_price,
         total_units=body.total_units,
-        target_irr=body.target_irr,
         rental_yield=body.rental_yield,
         area_sqft=body.area_sqft,
         possession_date=body.possession_date,

@@ -27,7 +27,6 @@ async def _create_opportunity(client: AsyncClient, headers: dict) -> dict:
             "state": "Maharashtra",
             "target_amount": 5_000_000,
             "min_investment": 50_000,
-            "target_irr": 12.0,
         },
         headers=headers,
     )

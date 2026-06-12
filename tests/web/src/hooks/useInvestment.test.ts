@@ -39,13 +39,11 @@ describe('useInvestment – API layer', () => {
         totalInvested: 300000,
         currentValue: 360000,
         totalReturns: 60000,
-        avgIrr: 13.2,
         activeInvestments: 3,
         propertiesCount: 2,
       }
       vi.mocked(apiGet).mockResolvedValueOnce(mockSummary)
       const result = await apiGet<any>('/investments/summary')
-      expect(result.avgIrr).toBe(13.2)
       expect(result.activeInvestments).toBe(3)
     })
   })

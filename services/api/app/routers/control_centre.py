@@ -174,7 +174,6 @@ _DEFAULT_VAULT_METRICS: dict[str, list[str]] = {
         "investor_count",
         "explorer_count",
         "properties_listed",
-        "expected_irr",
         "cities_covered",
     ],
     "safe": [

@@ -34,7 +34,6 @@ async def _make_opportunity(creator: User) -> uuid.UUID:
             city="Chennai",
             target_amount=10_000_000,
             min_investment=500_000,
-            target_irr=14.0,
             status=OpportunityStatus.DRAFT,
         )
         session.add(opp)

@@ -62,7 +62,6 @@ VAULT_SUMMARY_MV = """
 SELECT vault_type, total_opportunities, active_opportunities,
        funding_opportunities, funded_opportunities, closed_opportunities,
        total_target_amount, total_raised_amount,
-       avg_target_irr, avg_expected_irr, avg_actual_irr,
        unique_creators, total_investors
 FROM mv_vault_summary ORDER BY vault_type
 """
@@ -77,9 +76,6 @@ SELECT
     COUNT(*) FILTER (WHERE o.status = 'closed')::int      AS closed_opportunities,
     COALESCE(SUM(o.target_amount), 0)                     AS total_target_amount,
     COALESCE(SUM(o.raised_amount), 0)                     AS total_raised_amount,
-    COALESCE(AVG(o.target_irr), 0)                        AS avg_target_irr,
-    COALESCE(AVG(o.expected_irr), 0)                      AS avg_expected_irr,
-    COALESCE(AVG(o.actual_irr), 0)                        AS avg_actual_irr,
     COUNT(DISTINCT o.creator_id)::int                     AS unique_creators,
     MAX(COALESCE(inv_agg.total_investors, 0))::int        AS total_investors
 FROM opportunities o
@@ -122,9 +118,6 @@ async def vault_summary(
             closed_opportunities=r["closed_opportunities"],
             total_target_amount=target,
             total_raised_amount=raised,
-            avg_target_irr=Decimal(str(r["avg_target_irr"])),
-            avg_expected_irr=Decimal(str(r["avg_expected_irr"])),
-            avg_actual_irr=Decimal(str(r["avg_actual_irr"])),
             unique_creators=r["unique_creators"],
             total_investors=r["total_investors"] or 0,
             funding_pct=funding_pct,
@@ -417,7 +410,7 @@ async def eoi_funnel(
 
 TOP_OPP_MV = """
 SELECT id, title, slug, vault_type, status, city, state,
-       target_amount, raised_amount, target_irr, expected_irr, actual_irr,
+       target_amount, raised_amount,
        investor_count, funding_pct, company_name, creator_name, created_at
 FROM mv_top_opportunities
 ORDER BY raised_amount DESC LIMIT :lim
@@ -427,7 +420,6 @@ TOP_OPP_DIRECT = """
 SELECT
     o.id::text, o.title, o.slug, o.vault_type, o.status,
     o.city, o.state, o.target_amount, o.raised_amount,
-    o.target_irr, o.expected_irr, o.actual_irr,
     COALESCE(inv_cnt.cnt, 0)::int AS investor_count,
     CASE WHEN o.target_amount > 0
          THEN ROUND((o.raised_amount / o.target_amount)*100, 1)
@@ -471,9 +463,6 @@ async def top_opportunities(
             state=r.get("state"),
             target_amount=Decimal(str(r["target_amount"])) if r["target_amount"] else None,
             raised_amount=Decimal(str(r["raised_amount"])) if r["raised_amount"] else Decimal("0"),
-            target_irr=Decimal(str(r["target_irr"])) if r.get("target_irr") else None,
-            expected_irr=Decimal(str(r["expected_irr"])) if r.get("expected_irr") else None,
-            actual_irr=Decimal(str(r["actual_irr"])) if r.get("actual_irr") else None,
             investor_count=r["investor_count"] or 0,
             funding_pct=Decimal(str(r["funding_pct"])) if r["funding_pct"] else Decimal("0"),
             company_name=r.get("company_name"),

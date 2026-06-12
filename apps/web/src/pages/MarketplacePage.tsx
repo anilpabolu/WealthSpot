@@ -570,7 +570,6 @@ export default function MarketplacePage() {
                                    
                                    shareOpportunityDynamic({
                                      title: opp.title,
-                                     targetIRR: (opp as any).targetIRR ?? '14%',
                                      tenure: (opp as any).tenure ?? '3 yr',
                                      minEntry: opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD',
                                      coverImage: coverUrl,

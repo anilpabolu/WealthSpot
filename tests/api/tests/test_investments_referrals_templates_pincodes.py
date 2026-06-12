@@ -70,7 +70,6 @@ class TestInvestmentsLifecycle:
                 unit_price=Decimal("25000"),
                 total_units=40,
                 sold_units=0,
-                target_irr=Decimal("12.5"),
                 investor_count=0,
             )
             session.add(prop)
@@ -271,8 +270,8 @@ class TestTemplates:
         monkeypatch.setattr(templates_router, "get_public_url", _fake_get_public_url)
 
         csv_content = (
-            "title,tagline,description,vault_type,city,state,address_line1,pincode,target_amount,min_investment,target_irr\n"
-            "Alpha Residency,Tagline,Desc,wealth,Bengaluru,Karnataka,Address,560001,1000000,50000,14.5\n"
+            "title,tagline,description,vault_type,city,state,address_line1,pincode,target_amount,min_investment\n"
+            "Alpha Residency,Tagline,Desc,wealth,Bengaluru,Karnataka,Address,560001,1000000,50000\n"
         )
 
         resp = await client.post(

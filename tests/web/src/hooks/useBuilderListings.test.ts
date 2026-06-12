@@ -47,7 +47,6 @@ const makeBuilderProperty = (overrides = {}) => ({
   targetAmount: 1000000,
   raisedAmount: 300000,
   minInvestment: 25000,
-  targetIrr: 12,
   investorCount: 8,
   fundingPercentage: 30,
   createdAt: '2025-01-01T00:00:00Z',

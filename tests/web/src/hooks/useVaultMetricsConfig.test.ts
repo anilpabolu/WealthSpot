@@ -16,7 +16,7 @@ describe('useVaultMetricsConfig – API layer', () => {
 
   it('fetches vault metrics config', async () => {
     const config = {
-      wealth: ['total_invested', 'total_returns', 'irr'],
+      wealth: ['total_invested', 'total_returns', 'rental_yield'],
       opportunity: ['total_invested', 'equity_value'],
       community: ['total_invested'],
     }

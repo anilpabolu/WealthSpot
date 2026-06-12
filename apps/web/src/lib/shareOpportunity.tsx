@@ -5,7 +5,6 @@ import { SharePostcard } from '@/components/share/SharePostcard';
 
 export interface ShareData {
   title: string;
-  targetIRR?: string;
   tenure?: string;
   minEntry?: string;
   coverImage?: string;
@@ -37,7 +36,6 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
       root.render(
         <SharePostcard
           title={data.title}
-          targetIRR={data.targetIRR}
           tenure={data.tenure}
           minEntry={data.minEntry}
           coverImage={data.coverImage}

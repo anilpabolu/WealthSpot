@@ -39,7 +39,6 @@ const mockProperty = {
   targetAmount: 10_000_000,
   raisedAmount: 4_000_000,
   minInvestment: 25_000,
-  targetIrr: 14.5,
   fundingPercentage: 40,
 }
 

@@ -19,9 +19,6 @@ class VaultSummaryItem(BaseModel):
     closed_opportunities: int
     total_target_amount: Decimal
     total_raised_amount: Decimal
-    avg_target_irr: Decimal
-    avg_expected_irr: Decimal
-    avg_actual_irr: Decimal
     unique_creators: int
     total_investors: int
     funding_pct: Decimal = Decimal("0")
@@ -137,9 +134,6 @@ class TopOpportunityItem(BaseModel):
     state: str | None = None
     target_amount: Decimal | None = None
     raised_amount: Decimal = Decimal("0")
-    target_irr: Decimal | None = None
-    expected_irr: Decimal | None = None
-    actual_irr: Decimal | None = None
     investor_count: int = 0
     funding_pct: Decimal = Decimal("0")
     company_name: str | None = None

@@ -107,7 +107,7 @@ export const Q = {
     byId: (id: string) => ['investment', id] as const,
   },
 
-  // ── Appreciation / IRR history ────────────────────────────────────────
+  // ── Appreciation history ──────────────────────────────────────────────
   appreciationHistory: {
     all: () => ['appreciation-history'] as const,
     byOpportunity: (id: string) => ['appreciation-history', id] as const,

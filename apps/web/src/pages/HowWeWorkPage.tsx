@@ -62,7 +62,7 @@ function IntroSection() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-left mb-12">
           <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]">
              <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
-               Most real-estate decisions go wrong not because the flat or villa is bad, but because the location story was misunderstood or based on half information. Friends, brokers and social media talk about “hot areas”, but rarely show the full picture or the downside.
+               Most real-estate decisions go wrong not because the flat or villa is bad, but because the location story was misunderstood or based on incomplete information. Friends, brokers, and social media talk about “hot areas”, but rarely show the full picture or the downside.
              </p>
           </div>
           <div className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]">
@@ -70,7 +70,7 @@ function IntroSection() {
                WealthSpot takes a different approach. We start with locations and corridors, not inventory.
              </p>
              <p className="font-body text-[16px] text-[#4B5563] leading-relaxed">
-               We use verified sources, on-ground signals and historical patterns to understand how an area is evolving, and only then look for specific opportunities that fit that story.
+               We use verified sources, on-ground signals, and historical patterns to understand how an area is evolving, and only then look for specific opportunities that fit that story.
              </p>
           </div>
         </div>
@@ -130,7 +130,7 @@ const METHODOLOGY = [
     num: '03',
     icon: '📚',
     title: 'Corridor Case Files: Learning from Past Cycles',
-    body: 'To think sensibly about the future, we first study how similar locations behaved in the past. For key corridors, WealthSpot builds Corridor Case Files that track infra, jobs, supply and price/rent behaviour over multiple years.',
+    body: 'To think sensibly about the future, we first study how similar locations behaved in the past. For key corridors, WealthSpot builds Corridor Case Files that track infrastructure, jobs, supply, and price/rent behavior over multiple years.',
     list: [
       'Timeline of major infra and policy events.',
       'Entry of major employers and social infrastructure.',
@@ -148,9 +148,9 @@ const METHODOLOGY = [
     num: '04',
     icon: '🔥',
     title: 'Corridor Scores & Heatmaps: A Simple Visual Summary',
-    body: 'To make this easier to understand, we convert our corridor view into internal scores and heatmaps. These bring together: Infra strength & visibility, Job & demand drivers, Supply depth & quality, and Liquidity & absorption.',
+    body: 'To make this easier to understand, we convert our corridor view into internal scores and heatmaps. These bring together: Infrastructure strength & visibility, Job & demand drivers, Supply depth & quality, and Liquidity & absorption.',
     list: [],
-    highlight: 'Example: A corridor with strong infra under execution, diversified job anchors, balanced supply and good transaction depth may rank high in our internal view. One with promising announcements but weak execution or oversupply may be marked as "emerging, but needs caution".\n\nThese scores are used to decide where we focus our diligence and what type of opportunities we consider suitable there. They are not used as marketing tools or return guarantees.\n\nImportant: Corridor scores are signals to guide work, not predictions. Every live opportunity you see comes with its own assumptions, risk notes and downside thinking.',
+    highlight: 'Example: A corridor with strong infrastructure under execution, diversified job anchors, balanced supply, and good transaction depth may rank high in our internal view. One with promising announcements but weak execution or oversupply may be marked as "emerging, but needs caution".\n\nThese scores are used to decide where we focus our diligence and what type of opportunities we consider suitable there. They are not used as marketing tools or return guarantees.\n\nImportant: Corridor scores are signals to guide work, not predictions. Every live opportunity you see comes with its own assumptions, risk notes and downside thinking.',
     accent: '#D4AF37',
     accentRgb: '212,175,55',
   },
@@ -294,7 +294,7 @@ function CTASection() {
           <div className="mb-12 border-t border-white/10 pt-10 text-center">
             <h4 className="text-xl font-bold text-[#D4AF37] mb-4">We do not claim to predict markets with certainty. We do commit to showing the work.</h4>
             <p className="text-white/60 max-w-2xl mx-auto text-sm leading-relaxed">
-              The sources we watch. The patterns we recognise. The risks we are willing to live with — and the ones we are not. That is the role of WealthSpot's market intelligence: to turn early access into disciplined conviction.
+              The sources we watch. The patterns we recognize. The risks we are willing to live with — and the ones we are not. That is the role of WealthSpot's market intelligence: to turn early access into disciplined conviction.
             </p>
           </div>
 

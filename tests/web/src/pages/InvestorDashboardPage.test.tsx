@@ -54,7 +54,7 @@ describe('InvestorDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useInvestmentSummary).mockReturnValue({
-      data: { totalInvested: 100000, currentValue: 120000, avgIrr: 14.5, propertiesCount: 3 },
+      data: { totalInvested: 100000, currentValue: 120000, propertiesCount: 3 },
       isLoading: false,
     } as never)
     vi.mocked(useRecentTransactions).mockReturnValue({
@@ -67,7 +67,7 @@ describe('InvestorDashboardPage', () => {
     vi.mocked(useFeaturedProperties).mockReturnValue({
       data: {
         properties: [
-          { id: 'p1', title: 'Featured Prop', slug: 'featured-prop', city: 'Mumbai', assetType: 'Residential', coverImage: '', targetIrr: 12, minInvestment: 25000, raised: 50000, target: 100000 },
+          { id: 'p1', title: 'Featured Prop', slug: 'featured-prop', city: 'Mumbai', assetType: 'Residential', coverImage: '', minInvestment: 25000, raised: 50000, target: 100000 },
         ],
       },
       isLoading: false,

@@ -14,7 +14,7 @@ import { mobileDashboardBff } from '@/services/bff/dashboard.bff'
 const mockUser = { id: 'u1', fullName: 'Alice Sharma', email: 'alice@example.com', avatarUrl: null, role: 'investor', kycStatus: 'approved', wealthPassActive: true }
 const mockPortfolio = { totalInvested: 500000, currentValue: 560000, totalReturns: 60000, monthlyRentalIncome: 5000, propertiesCount: 3 }
 const mockTransactions = [{ id: 't1', type: 'investment', amount: 100000, description: null, createdAt: '2025-01-01T00:00:00Z' }]
-const mockProperties = [{ id: 'p1', slug: 'emerald', title: 'Emerald Heights', coverImage: null, city: 'Mumbai', targetIrr: 14, fundingPercentage: 65, status: 'funding' }]
+const mockProperties = [{ id: 'p1', slug: 'emerald', title: 'Emerald Heights', coverImage: null, city: 'Mumbai', fundingPercentage: 65, status: 'funding' }]
 
 describe('mobile dashboardBff functional tests', () => {
   beforeEach(() => vi.clearAllMocks())

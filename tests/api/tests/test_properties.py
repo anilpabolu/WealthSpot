@@ -31,7 +31,6 @@ VALID_PROPERTY_PAYLOAD = {
     "min_investment": 25000,
     "unit_price": 5000,
     "total_units": 2000,
-    "target_irr": 14.5,
 }
 
 

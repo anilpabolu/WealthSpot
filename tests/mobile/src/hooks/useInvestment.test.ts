@@ -37,13 +37,11 @@ describe('mobile useInvestment – API layer', () => {
         totalInvested: 450000,
         currentValue: 490000,
         totalReturns: 40000,
-        avgIrr: 13.5,
         activeInvestments: 3,
         propertiesCount: 3,
       })
       const result = await apiGet<any>('/investments/summary')
       expect(result.totalInvested).toBe(450000)
-      expect(result.avgIrr).toBe(13.5)
     })
   })
 

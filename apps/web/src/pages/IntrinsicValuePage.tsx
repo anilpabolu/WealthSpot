@@ -5,9 +5,10 @@ import { Check } from 'lucide-react'
 export default function IntrinsicValuePage() {
   return (
     <MainLayout>
-      <SEOHead 
-        title="Calculating Intrinsic Value | Wealthspot" 
-        description="A sharp, visual white paper on intrinsic value vs market price, with practical analogies for smart investors."
+      <SEOHead
+        title="Calculating Intrinsic Value"
+        description="A sharp, visual white paper on intrinsic value vs market price, with practical analogies for smart real estate investors."
+        path="/insights/intrinsic-value"
       />
 
       {/* Hero section */}

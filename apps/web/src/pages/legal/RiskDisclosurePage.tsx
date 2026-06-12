@@ -82,7 +82,7 @@ export default function RiskDisclosurePage() {
               Absence of Guaranteed Returns or Income Protection
             </h2>
             <p className="font-body text-[15px] text-[#4B5563] leading-relaxed">
-              WealthSpot explicitly rejects any concept of guaranteed returns, assured rental multiples, fixed IRR targets, or capital protection mechanisms. No communication on our interface, via our advisory channels, or within our analytical intelligence modules shall be interpreted as a performance assurance. You acknowledge that you bear the absolute economic risk of any capital allocation decision executed post-discovery.
+              WealthSpot explicitly rejects any concept of guaranteed returns, assured rental multiples, or capital protection mechanisms. No communication on our interface, via our advisory channels, or within our analytical intelligence modules shall be interpreted as a performance assurance. You acknowledge that you bear the absolute economic risk of any capital allocation decision executed post-discovery.
             </p>
           </div>
 

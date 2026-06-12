@@ -87,7 +87,7 @@ _TEMPLATES: list[dict] = [
         "name": "New Opportunity SMS",
         "channel": "sms",
         "subject": None,
-        "body_text": "New opportunity on WealthSpot: {{ opportunity_name }} | {{ irr }}% IRR | Invest now: https://wealthspot.in",
+        "body_text": "New opportunity on WealthSpot: {{ opportunity_name }} | Invest now: https://wealthspot.in",
         "body_html": None,
     },
 ]

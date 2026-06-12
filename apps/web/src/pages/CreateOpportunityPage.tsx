@@ -983,7 +983,6 @@ export default function CreateOpportunityPage() {
           'min_investment': 'minInvestment',
           'funding_open_at': 'fundingOpenAt',
           'closing_date': 'closingDate',
-          'target_irr': 'targetIrr',
           'project_phase': 'projectPhase',
         }
         

@@ -5,7 +5,6 @@ import WLogo3D from '@/components/ui/WLogo3D';
 
 interface SharePostcardProps {
   title: string;
-  targetIRR?: string;
   tenure?: string;
   minEntry?: string;
   coverImage?: string;
@@ -14,7 +13,7 @@ interface SharePostcardProps {
 }
 
 export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
-  title, targetIRR, tenure, minEntry, coverImage, city, url
+  title, tenure, minEntry, coverImage, city, url
 }, ref) => {
   return (
     // The wrapper must have a fixed size for the postcard (1200x630 is standard Open Graph size)
@@ -83,15 +82,6 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
           <div className="flex items-center gap-12 backdrop-blur-xl bg-slate-900/60 p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden inline-flex">
             {/* Glossy highlight effect */}
             <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-40 pointer-events-none" />
-            
-            {targetIRR && (
-              <div className="relative z-10">
-                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-2 opacity-90">Target IRR</p>
-                <p className="font-display text-5xl font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{targetIRR}</p>
-              </div>
-            )}
-
-            {targetIRR && <div className="w-px h-16 bg-gradient-to-b from-transparent via-[#D4AF37]/30 to-transparent relative z-10"></div>}
 
             <div className="relative z-10">
               <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-2 opacity-90">Tenure</p>

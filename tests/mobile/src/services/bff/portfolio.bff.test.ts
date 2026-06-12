@@ -18,7 +18,6 @@ const mockSummary = {
   monthlyRentalIncome: 5000,
   propertiesCount: 3,
   unrealizedGain: 40000,
-  xirr: 14.2,
 }
 
 const mockHoldings = [
@@ -61,7 +60,6 @@ describe('mobile portfolioBff functional tests', () => {
       const result = await mobilePortfolioBff.getPortfolio()
 
       expect(result.summary.totalReturns).toBe(60000)
-      expect(result.summary.xirr).toBe(14.2)
     })
   })
 

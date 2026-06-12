@@ -1,5 +1,3 @@
-from typing import Any
-
 """
 Opportunities router – create, list, manage multi-vault opportunities.
 """
@@ -7,7 +5,6 @@ Opportunities router – create, list, manage multi-vault opportunities.
 import math
 import re
 import uuid as _uuid
-from datetime import UTC, datetime
 from decimal import Decimal
 
 import sentry_sdk
@@ -216,28 +213,11 @@ async def list_opportunities(
 # ── Vault-level aggregated stats ────────────────────────────────────────────
 
 
-def _compute_irr(investments: list, total_invested: float) -> Any:
-    """Compute a simplified actual IRR from investment returns."""
-    if not investments or total_invested <= 0:
-        return None
-    total_returns = float(sum(inv.returns_amount or 0 for inv in investments))
-    if total_returns <= 0:
-        return None
-    now = datetime.now(UTC)
-    avg_days = sum((now - inv.invested_at).days for inv in investments if inv.invested_at) / len(
-        investments
-    )
-    years = max(avg_days / 365.25, 0.25)
-    return_ratio = total_returns / total_invested
-    irr = ((1 + return_ratio) ** (1 / years) - 1) * 100
-    return round(irr, 2)
-
-
 @router.get("/vault-stats", response_model=list[VaultStatsResponse])
 async def vault_stats(
     db: AsyncSession = Depends(get_db),
 ) -> list[VaultStatsResponse]:
-    """Return aggregated stats per vault (total invested, investor count, IRR, explorer count)."""
+    """Return aggregated stats per vault (total invested, investor count, explorer count)."""
     active_statuses = [
         OpportunityStatus.APPROVED,
         OpportunityStatus.ACTIVE,
@@ -264,37 +244,6 @@ async def vault_stats(
     )
     agg_result = await db.execute(agg_q)
     agg_rows = {row.vault_type: row for row in agg_result.fetchall()}
-
-    # Average expected IRR per vault type
-    irr_q = (
-        select(
-            Opportunity.vault_type,
-            func.avg(Opportunity.expected_irr).label("avg_irr"),
-        )
-        .where(Opportunity.expected_irr.isnot(None))
-        .group_by(Opportunity.vault_type)
-    )
-    irr_result = await db.execute(irr_q)
-    irr_map = {row.vault_type: row.avg_irr for row in irr_result.fetchall()}
-
-    # Compute actual IRR per vault type — single query for ALL vault types
-    actual_irr_map: dict[VaultType, float | None] = {}
-    inv_q = (
-        select(OpportunityInvestment, Opportunity.vault_type)
-        .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
-        .where(
-            Opportunity.status.in_(active_statuses),
-            OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-        )
-    )
-    inv_result = await db.execute(inv_q)
-    inv_by_vault: dict[VaultType, list] = {vt: [] for vt in VaultType}
-    for inv, vault_type in inv_result.all():
-        inv_by_vault[vault_type].append(inv)
-    for vt in VaultType:
-        agg_row = agg_rows.get(vt)
-        total = float(agg_row.total_invested) if agg_row else 0.0
-        actual_irr_map[vt] = _compute_irr(inv_by_vault[vt], total) if total > 0 else None
 
     # ── Explorer count ────────────────────────────────────────────────
     # Explorer = user who completed ALL active DNA profiling questions for
@@ -484,10 +433,6 @@ async def vault_stats(
                 total_invested=float(agg_row.total_invested) if agg_row else 0.0,
                 investor_count=int(agg_row.investor_count) if agg_row else 0,
                 opportunity_count=int(agg_row.opp_count) if agg_row else 0,
-                expected_irr=round(float(irr_map[vt]), 2)
-                if vt in irr_map and irr_map[vt]
-                else None,
-                actual_irr=actual_irr_map.get(vt),
                 explorer_count=explorer_map.get(vt.value, 0),
                 min_investment=float(extra_row.min_inv)
                 if extra_row and extra_row.min_inv
@@ -982,7 +927,6 @@ async def create_opportunity(
                     # Financials
                     target_amount=body.target_amount,
                     min_investment=body.min_investment,
-                    target_irr=body.target_irr,
                     industry=body.industry,
                     stage=body.stage,
                     founder_name=body.founder_name,
@@ -1259,9 +1203,6 @@ async def update_opportunity(
             for oi in inv_result.scalars().all():
                 share = (Decimal(str(oi.amount)) / total_invested) * appreciation_amount
                 oi.returns_amount = share.quantize(Decimal("0.01"))
-            opp.actual_irr = ((new_val - total_invested) / total_invested * 100).quantize(
-                Decimal("0.01")
-            )
 
     # Upsert builder shield answers (mirrors create flow). Allowed for creator or approver.
     if shield_answers:

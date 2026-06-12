@@ -151,7 +151,7 @@ ARCHETYPE_MAP: dict[str, list[dict[str, Any]]] = {
         {
             "label": "The Yield Hunter",
             "emoji": "🎯",
-            "description": "Precision-driven — you know exactly how to optimise fixed income returns.",
+            "description": "Precision-driven — you know exactly how to optimize fixed-income returns.",
             "condition": lambda pd: (
                 float(pd.investment_capacity or 0) > 70 and float(pd.domain_expertise or 0) > 65
             ),

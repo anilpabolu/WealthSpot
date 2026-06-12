@@ -149,7 +149,7 @@ const INVESTOR_PILLARS = [
     category: 'CAPABILITY',
     title: 'Time Investor',
     body: 'Contribute expertise, leadership, execution, or oversight where active involvement creates real value.',
-    italic: 'This path recognises that serious experience can be as meaningful as capital in the right opportunity.',
+    italic: 'This path recognizes that serious experience can be as meaningful as capital in the right opportunity.',
     tag: null,
   },
   {
@@ -197,7 +197,7 @@ function InvestorIdentitiesSection() {
             </h2>
           </div>
           <p className="font-body text-[14px] text-slate-500 leading-relaxed max-w-xs sm:text-right">
-            Capital is one lens. WealthSpot recognises three others — each just as legitimate.
+            Capital is one lens. WealthSpot recognizes three others — each just as legitimate.
           </p>
         </div>
 
@@ -516,6 +516,39 @@ function ClosingSection({ onRequestAccess }: WithRequestAccess) {
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    PAGE EXPORT
 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/** schema.org Organization + WebSite — enables Google knowledge panel and sitelinks search box. */
+const HOME_JSON_LD = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'WealthSpot',
+    url: 'https://wealthspot.in',
+    logo: 'https://wealthspot.in/wealthspot-logo-light.png',
+    description:
+      'WealthSpot is a fractional real estate investment platform in India, offering curated Wealth, Safe, and Community Vaults.',
+    areaServed: 'IN',
+    sameAs: [
+      'https://www.linkedin.com/company/wealthspot',
+      'https://twitter.com/wealthspot',
+      'https://www.instagram.com/wealthspot',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'WealthSpot',
+    url: 'https://wealthspot.in',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://wealthspot.in/marketplace?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+]
+
 export default function LandingPage() {
   const clerk = useClerk()
 
@@ -526,9 +559,10 @@ export default function LandingPage() {
   return (
     <MainLayout>
       <SEOHead
-        title="Democratizing Premium Assets"
-        description="Invest in premium real estate fractionally. Wealth Vault, Safe Vault, and Community Vault on WealthSpot — curated opportunities for serious investors."
+        title="Fractional Real Estate Investment in India"
+        description="Invest in premium, curated Indian real estate fractionally. WealthSpot offers Wealth, Safe, and Community Vaults — transparent opportunities built for serious investors."
         path="/"
+        jsonLd={HOME_JSON_LD}
       />
 
       <HeroSection       onRequestAccess={() => openVideo('signup')} />

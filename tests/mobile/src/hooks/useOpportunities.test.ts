@@ -56,14 +56,11 @@ describe('mobile useOpportunities – API layer', () => {
         },
         media: [{ id: 'm1', url: 'https://cdn/img.jpg', isCover: true }],
         closingDate: '2025-12-31',
-        expectedIrr: 18.5,
-        actualIrr: null,
       })
       const result = await apiGet('/opportunities/opp-1') as { company: Record<string, unknown>; [k: string]: unknown }
       expect(result.company).toHaveProperty('entityType', 'private_limited')
       expect(result.company).toHaveProperty('yearsInBusiness', 15)
       expect(result).toHaveProperty('closingDate')
-      expect(result).toHaveProperty('expectedIrr', 18.5)
     })
   })
 

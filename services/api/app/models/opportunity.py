@@ -107,9 +107,6 @@ class Opportunity(Base):
     target_amount: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
     raised_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0"))
     min_investment: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
-    target_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
-    expected_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
-    actual_irr: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     # Startup-specific (opportunity vault)
     industry: Mapped[str | None] = mapped_column(String(100))
     stage: Mapped[str | None] = mapped_column(String(50))  # pre-seed, seed, series-a, etc.

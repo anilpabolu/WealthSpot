@@ -79,7 +79,6 @@ const makeProperty = () => ({
   coverImage: 'https://example.com/img.jpg',
   gallery: ['https://example.com/img.jpg'],
   videoUrl: null,
-  targetIrr: 14.5,
   minInvestment: 25000,
   unitPrice: 5000,
   totalUnits: 200,

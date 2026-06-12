@@ -89,7 +89,7 @@ describe('MarketplacePage', () => {
         properties: [
           {
             id: 'p1', title: 'Sunrise Heights', slug: 'sunrise', city: 'Mumbai',
-            assetType: 'Residential', coverImage: '', targetIrr: 14.5,
+            assetType: 'Residential', coverImage: '',
             minInvestment: 25000, raised: 5000000, target: 10000000,
             status: 'active', investorCount: 42,
           },

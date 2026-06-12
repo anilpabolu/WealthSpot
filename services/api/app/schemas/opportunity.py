@@ -287,9 +287,6 @@ class OpportunityRead(BaseModel):
     target_amount: float | None = None
     raised_amount: float = 0
     min_investment: float | None = None
-    target_irr: float | None = None
-    expected_irr: float | None = None
-    actual_irr: float | None = None
     industry: str | None = None
     stage: str | None = None
     founder_name: str | None = None
@@ -386,7 +383,6 @@ class OpportunityCreateRequest(BaseModel):
     address: str | None = None
     target_amount: float | None = None
     min_investment: float | None = None
-    target_irr: float | None = None
     # Geo-coordinates (Google Maps)
     latitude: float | None = None
     longitude: float | None = None
@@ -452,7 +448,6 @@ class OpportunityUpdateRequest(BaseModel):
     # Financials
     target_amount: float | None = None
     min_investment: float | None = None
-    target_irr: float | None = None
     # Geo-coordinates (Google Maps)
     latitude: float | None = None
     longitude: float | None = None
@@ -508,8 +503,6 @@ class VaultStatsResponse(BaseModel):
     total_invested: float
     investor_count: int
     opportunity_count: int
-    expected_irr: float | None = None
-    actual_irr: float | None = None
     explorer_count: int = 0
     dna_investor_count: int = 0
     min_investment: float | None = None

@@ -20,8 +20,6 @@ describe('usePortfolio – API layer', () => {
         currentValue: 560000,
         totalReturns: 60000,
         unrealizedGains: 40000,
-        avgIrr: 12.5,
-        xirr: 14.2,
         propertiesCount: 3,
         citiesCount: 2,
         monthlyIncome: 5000,
@@ -35,7 +33,6 @@ describe('usePortfolio – API layer', () => {
 
       expect(apiGet).toHaveBeenCalledWith('/portfolio/summary')
       expect(result.totalInvested).toBe(500000)
-      expect(result.avgIrr).toBe(12.5)
       expect(result.propertiesCount).toBe(3)
     })
   })

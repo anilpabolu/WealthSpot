@@ -116,7 +116,6 @@ class Property(Base):
     current_unit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     total_units: Mapped[int] = mapped_column(Integer, nullable=False)
     sold_units: Mapped[int] = mapped_column(Integer, default=0)
-    target_irr: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
     rental_yield: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
 
     # Details

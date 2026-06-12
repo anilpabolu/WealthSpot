@@ -19,8 +19,6 @@ describe('mobile usePortfolio – API layer', () => {
         currentValue: 560000,
         totalReturns: 60000,
         unrealizedGains: 40000,
-        avgIrr: 14.2,
-        xirr: 13.8,
         propertiesCount: 3,
         citiesCount: 2,
         monthlyIncome: 5000,
@@ -31,7 +29,6 @@ describe('mobile usePortfolio – API layer', () => {
 
       const result = await apiGet<any>('/portfolio/summary')
       expect(result.totalInvested).toBe(500000)
-      expect(result.xirr).toBe(13.8)
       expect(result.assetAllocation).toHaveLength(1)
     })
   })

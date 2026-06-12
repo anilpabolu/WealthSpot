@@ -27,7 +27,6 @@ class TestOpportunityCreate:
                 "state": "Karnataka",
                 "target_amount": 50_000_000,
                 "min_investment": 500_000,
-                "target_irr": 18.5,
                 "maps_url": "https://goo.gl/maps/example",
                 "location_usps": [
                     {

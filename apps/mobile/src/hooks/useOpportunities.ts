@@ -71,8 +71,6 @@ export interface OpportunityItem {
   propertySpecs?: Record<string, unknown>
   propertyAmenities?: string[]
   safeVaultData?: Record<string, unknown>
-  targetIrr?: number
-  expectedIrr?: number
   investment_mode?: string
 }
 

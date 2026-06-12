@@ -293,7 +293,7 @@ export const VAULT_METRICS_REGISTRY: Record<string, MetricDef> = {
 /* All available metric keys per vault (for admin UI) */
 // eslint-disable-next-line react-refresh/only-export-components
 export const ALL_VAULT_METRICS: Record<string, string[]> = {
-  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'properties_listed', 'min_investment', 'cities_covered', 'expected_irr', 'actual_irr', 'avg_ticket_size'],
+  wealth: ['total_invested', 'investor_count', 'explorer_count', 'dna_investor_count', 'platform_users', 'properties_listed', 'min_investment', 'cities_covered', 'avg_ticket_size'],
   safe: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'listings_count', 'avg_interest_rate', 'avg_tenure_months', 'cities_covered', 'min_investment', 'mortgage_coverage_pct'],
   community: ['total_invested', 'investor_count', 'explorer_count', 'platform_users', 'projects_launched', 'co_investors', 'co_partners', 'avg_project_size', 'cities_covered', 'collaboration_rate'],
 }
@@ -511,10 +511,9 @@ export default function VaultsPage() {
   return (
     <>
       <SEOHead
-        title="Investment Vaults"
-        description="Explore WealthSpot's three investment vaults: Wealth Vault for real estate, Safe Vault for fixed-return mortgage-backed opportunities, and Community Vault for collaborative investing."
+        title="Investment Vaults — Wealth, Safe & Community"
+        description="Explore WealthSpot's three investment vaults: Wealth Vault for premium real estate, Safe Vault for fixed-return mortgage-backed opportunities, and Community Vault for collaborative investing."
         path="/vaults"
-        noIndex={true}
       />
       <MainLayout>
 

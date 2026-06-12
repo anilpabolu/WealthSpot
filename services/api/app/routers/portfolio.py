@@ -30,8 +30,6 @@ from app.schemas.investment import (
     PortfolioSummary,
     PortfolioTransactionItem,
 )
-from app.services.cache import cache_get, cache_set, make_cache_key
-from app.services.xirr import calculate_xirr
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 logger = logging.getLogger(__name__)
@@ -69,8 +67,6 @@ async def portfolio_summary(
             current_value=Decimal("0"),
             total_returns=Decimal("0"),
             unrealized_gains=Decimal("0"),
-            avg_irr=0.0,
-            xirr=0.0,
             properties_count=0,
             cities_count=0,
             monthly_income=Decimal("0"),
@@ -131,23 +127,6 @@ async def portfolio_summary(
             by_city[opp.city] = (count + 1, amt + oi.amount)
 
     monthly_income = total_invested * Decimal("0.006")
-
-    # Compute XIRR (with Redis cache)
-    xirr_cache_key = make_cache_key("xirr", str(user.id), "portfolio")
-    xirr_value = cache_get(xirr_cache_key)
-    if xirr_value is None:
-        cashflows: list[tuple[datetime, float | Decimal]] = []
-        for inv in investments:
-            inv_date = inv.created_at or datetime.now(UTC)
-            cashflows.append((inv_date, -float(inv.amount)))
-        for oi, _opp in opp_investments:
-            inv_date = oi.invested_at or oi.created_at or datetime.now(UTC)
-            cashflows.append((inv_date, -float(oi.amount)))
-        if cashflows:
-            cashflows.append((datetime.now(UTC), float(current_value)))
-        xirr_value = calculate_xirr(cashflows) if len(cashflows) >= 2 else 0.0
-        if xirr_value is not None:
-            cache_set(xirr_cache_key, xirr_value, ttl_seconds=60)
 
     # Asset allocation (property investments already populated by_asset; opp investments added above)
     asset_alloc = []
@@ -215,8 +194,6 @@ async def portfolio_summary(
         current_value=current_value,
         total_returns=total_returns,
         unrealized_gains=unrealized_gains,
-        avg_irr=round(xirr_value or 0.0, 2),
-        xirr=xirr_value or 0.0,
         properties_count=properties_count,
         cities_count=cities_count,
         monthly_income=monthly_income,
@@ -263,7 +240,6 @@ async def portfolio_properties(
         cur_price = prop.current_unit_price or orig_price
         current_val = agg["units"] * cur_price
         invested = agg["invested"]
-        irr = float((current_val - invested) / invested * 100) if invested else 0.0
         appreciation_amt = cur_price - orig_price
         appreciation_pct = float(appreciation_amt / orig_price * 100) if orig_price else 0.0
 
@@ -275,7 +251,6 @@ async def portfolio_properties(
                 asset_type=prop.asset_type.value if prop.asset_type else "Other",
                 invested=invested,
                 current_value=current_val,
-                irr=round(irr, 2),
                 units=agg["units"],
                 investment_count=agg["inv_count"],
                 original_unit_price=orig_price,
@@ -490,8 +465,6 @@ class VaultPortfolioItem(BaseModel):
     return_pct: float
     opportunity_count: int
     investor_count: int
-    expected_irr: float | None = None
-    actual_irr: float | None = None
     avg_duration_days: float
 
 
@@ -508,7 +481,7 @@ async def vault_wise_portfolio(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> VaultPortfolioResponse:
-    """Vault-wise portfolio breakdown: per-vault invested, returns, IRR, count."""
+    """Vault-wise portfolio breakdown: per-vault invested, returns, count."""
 
     # 1. Property-based investments (wealth vault — real estate)
     prop_inv_result = await db.execute(
@@ -572,40 +545,6 @@ async def vault_wise_portfolio(
         agg["days_total"] += days
         agg["inv_count"] += 1
 
-    # 3. Per-user, per-vault weighted-average expected IRR (from opportunity metadata)
-    irr_weighted: dict[str, float] = {}
-    irr_invested: dict[str, float] = {}
-    for inv, opp in opp_rows:
-        vt_val = (
-            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
-        )
-        amt = float(inv.amount)
-        if opp.expected_irr is not None:
-            irr_weighted[vt_val] = irr_weighted.get(vt_val, 0.0) + amt * float(opp.expected_irr)
-            irr_invested[vt_val] = irr_invested.get(vt_val, 0.0) + amt
-
-    irr_map = {
-        vt: round(irr_weighted[vt] / irr_invested[vt], 2)
-        for vt in irr_invested
-        if irr_invested[vt] > 0
-    }
-
-    # 3b. Build per-vault cashflows for live XIRR computation
-    #     Outflow at invested_at; terminal inflow = current_value at now
-    vault_cashflows: dict[str, list[tuple[datetime, float]]] = {vt.value: [] for vt in VaultType}
-    # Property investments belong to wealth vault
-    for inv in prop_investments:
-        inv_date = inv.created_at or now
-        vault_cashflows["wealth"].append((inv_date, -float(inv.amount)))
-    # Opportunity investments per vault
-    for inv, opp in opp_rows:
-        vt_val = (
-            opp.vault_type.value if isinstance(opp.vault_type, VaultType) else str(opp.vault_type)
-        )
-        inv_date = inv.invested_at or inv.created_at or now
-        if vt_val in vault_cashflows:
-            vault_cashflows[vt_val].append((inv_date, -float(inv.amount)))
-
     # Build vault items
     vaults = []
     grand_invested = 0.0
@@ -620,20 +559,6 @@ async def vault_wise_portfolio(
     all_inv_count = len(prop_investments) + w["inv_count"]
     w_avg_days = (wealth_days_total + w["days_total"]) / all_inv_count if all_inv_count else 0
 
-    # Compute live XIRR per vault (outflows at invested_at, terminal inflow = current_value now)
-    live_xirr: dict[str, float | None] = {}
-    if vault_cashflows["wealth"]:
-        w_cf = vault_cashflows["wealth"] + [(now, w_current)]
-        if len(w_cf) >= 2:
-            live_xirr["wealth"] = calculate_xirr(w_cf)
-    for vt_name in ["safe", "community"]:
-        a_vt = vault_agg[vt_name]
-        cur_vt = a_vt["invested"] + a_vt["returns"]
-        if vault_cashflows[vt_name]:
-            cf = vault_cashflows[vt_name] + [(now, cur_vt)]
-            if len(cf) >= 2:
-                live_xirr[vt_name] = calculate_xirr(cf)
-
     vaults.append(
         VaultPortfolioItem(
             vault_type="wealth",
@@ -643,10 +568,6 @@ async def vault_wise_portfolio(
             return_pct=round(w_returns / w_invested * 100, 2) if w_invested else 0,
             opportunity_count=w_count,
             investor_count=all_inv_count,
-            expected_irr=round(irr_map.get("wealth", 0), 2) if "wealth" in irr_map else None,
-            actual_irr=round(live_xirr.get("wealth") or 0.0, 2)
-            if live_xirr.get("wealth") is not None
-            else None,
             avg_duration_days=round(w_avg_days, 0),
         )
     )
@@ -670,10 +591,6 @@ async def vault_wise_portfolio(
                 return_pct=round(returns / invested * 100, 2) if invested else 0,
                 opportunity_count=len(a["count"]),
                 investor_count=a["inv_count"],
-                expected_irr=round(irr_map.get(vt_str, 0), 2) if vt_str in irr_map else None,
-                actual_irr=round(live_xirr.get(vt_str) or 0.0, 2)
-                if live_xirr.get(vt_str) is not None
-                else None,
                 avg_duration_days=round(avg_d, 0),
             )
         )
@@ -694,7 +611,6 @@ async def vault_wise_portfolio(
 # ── Unified Holdings endpoint ───────────────────────────────────────────────
 
 _SNAPSHOT_DEFAULT_SECTIONS = [
-    "irr",
     "appreciation_history",
     "payout_schedule",
     "documents",
@@ -788,9 +704,6 @@ async def portfolio_holdings(
                     current_value=current_val,
                     returns=returns,
                     return_pct=return_pct,
-                    irr=return_pct,
-                    expected_irr=None,
-                    actual_irr=None,
                     units=agg["units"],
                     invested_at=first_inv.created_at or datetime.now(UTC),
                     status=prop.status.value,
@@ -876,9 +789,6 @@ async def portfolio_holdings(
                 current_value=current_val,
                 returns=returns_amt,
                 return_pct=return_pct,
-                irr=float(opp.actual_irr) if opp.actual_irr else return_pct,
-                expected_irr=float(opp.expected_irr) if opp.expected_irr else None,
-                actual_irr=float(opp.actual_irr) if opp.actual_irr else None,
                 units=1,
                 invested_at=inv.invested_at,
                 status=opp.status.value,

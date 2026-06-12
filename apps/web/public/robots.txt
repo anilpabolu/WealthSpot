@@ -5,7 +5,9 @@ Allow: /marketplace/
 Allow: /opportunity/
 Allow: /builder/
 Allow: /vaults
-Allow: /referral
+Allow: /about
+Allow: /how-we-work
+Allow: /insights/
 
 # Block authenticated / admin portals
 Disallow: /portal/
@@ -13,5 +15,6 @@ Disallow: /control-centre
 Disallow: /approvals
 Disallow: /auth/
 Disallow: /onboarding
+Disallow: /referral
 
 Sitemap: https://wealthspot.in/sitemap.xml
