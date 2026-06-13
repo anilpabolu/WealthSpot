@@ -1,7 +1,39 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Loader2, FileText } from 'lucide-react'
+import ReactMarkdown, { type Components } from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useKnowledgeArticle } from '@/hooks/useKnowledgeHub'
+
+/** Themed renderers so admin-authored Markdown looks like a real article page. */
+const mdComponents: Components = {
+  h1: ({ children }) => <h2 className="font-display text-xl font-bold text-theme-primary mt-6 mb-3 first:mt-0">{children}</h2>,
+  h2: ({ children }) => <h2 className="font-display text-lg font-bold text-theme-primary mt-6 mb-3 first:mt-0 pb-1.5 border-b border-theme">{children}</h2>,
+  h3: ({ children }) => <h3 className="font-display text-base font-bold text-theme-primary mt-5 mb-2">{children}</h3>,
+  p: ({ children }) => <p className="text-[15px] text-theme-secondary leading-relaxed my-3">{children}</p>,
+  strong: ({ children }) => <strong className="font-bold text-theme-primary">{children}</strong>,
+  em: ({ children }) => <em className="italic text-theme-secondary">{children}</em>,
+  ul: ({ children }) => <ul className="list-disc list-outside ml-5 space-y-1.5 my-3 text-[15px] text-theme-secondary marker:text-primary">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal list-outside ml-5 space-y-1.5 my-3 text-[15px] text-theme-secondary marker:text-theme-tertiary">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">{children}</a>,
+  blockquote: ({ children }) => (
+    <blockquote className="my-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-700 dark:text-amber-400 italic [&>p]:my-0 [&>p]:text-amber-700 dark:[&>p]:text-amber-400">
+      {children}
+    </blockquote>
+  ),
+  hr: () => <hr className="my-6 border-theme" />,
+  code: ({ children }) => <code className="bg-[var(--bg-surface-hover)] border border-theme px-1.5 py-0.5 rounded text-[13px] font-mono text-theme-primary">{children}</code>,
+  table: ({ children }) => (
+    <div className="my-4 overflow-x-auto rounded-xl border border-theme">
+      <table className="w-full text-sm border-collapse">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-[var(--bg-surface-hover)]">{children}</thead>,
+  th: ({ children }) => <th className="text-left font-semibold text-theme-primary px-3 py-2 border-b border-theme">{children}</th>,
+  td: ({ children }) => <td className="text-theme-secondary px-3 py-2 border-b border-theme align-top">{children}</td>,
+  tr: ({ children }) => <tr className="even:bg-[var(--bg-surface-hover)]/40">{children}</tr>,
+}
 
 /**
  * Knowledge article popup.
@@ -43,7 +75,6 @@ export default function KnowledgeArticleModal({
 
   const images = (article?.assets ?? []).filter((a) => a.assetType === 'image')
   const pdfs = (article?.assets ?? []).filter((a) => a.assetType === 'pdf')
-  const paragraphs = (article?.body ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
 
   return createPortal(
     <div
@@ -84,17 +115,12 @@ export default function KnowledgeArticleModal({
                 </p>
               )}
 
-              {/* Body */}
-              {paragraphs.length > 0 && (
-                <div className="space-y-4">
-                  {paragraphs.map((p, i) => (
-                    <p
-                      key={i}
-                      className="text-[15px] text-theme-primary leading-relaxed whitespace-pre-line"
-                    >
-                      {p}
-                    </p>
-                  ))}
+              {/* Body — Markdown rendered as a styled article */}
+              {article.body && (
+                <div className="knowledge-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                    {article.body}
+                  </ReactMarkdown>
                 </div>
               )}
 

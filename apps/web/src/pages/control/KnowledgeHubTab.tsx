@@ -54,7 +54,7 @@ function ArticleEditor({ article }: { article: KnowledgeArticleDetail }) {
 
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="input text-sm font-semibold" />
       <textarea value={synopsis} onChange={(e) => setSynopsis(e.target.value)} placeholder="Synopsis (shown on the tile)" className="input text-sm min-h-[56px]" />
-      <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body — full text shown in the popup. Separate paragraphs with a blank line." className="input text-sm min-h-[120px]" />
+      <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body — shown in the popup. Supports Markdown: ## Heading, **bold**, - lists, | tables |, > callouts. Blank line = new paragraph." className="input text-sm min-h-[120px] font-mono" />
 
       {dirty && (
         <button
@@ -169,7 +169,7 @@ export default function KnowledgeHubTab() {
           <h3 className="text-sm font-semibold text-theme-primary">New Knowledge Tile</h3>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="input text-sm" />
           <textarea value={synopsis} onChange={(e) => setSynopsis(e.target.value)} placeholder="Synopsis (shown on the tile)" className="input text-sm min-h-[56px]" />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body (optional) — separate paragraphs with a blank line. You can add images / PDFs after creating." className="input text-sm min-h-[100px]" />
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body (optional) — supports Markdown (## headings, **bold**, - lists, tables, > callouts). Add images / PDFs after creating." className="input text-sm min-h-[100px] font-mono" />
           <div className="flex gap-2">
             <button onClick={submit} disabled={!title.trim() || !synopsis.trim() || create.isPending} className="btn-primary text-sm">
               {create.isPending ? 'Creating…' : 'Create tile'}
