@@ -3,7 +3,8 @@
  *
  * Add flow:  step 1 pick a listed asset (Opportunity / Property), step 2 fill the form.
  * Edit flow: form pre-filled; derived rows persist via the overlay endpoint, manual rows via PUT.
- * Documents can be attached once the row exists in the DB (after the first save).
+ * Documents can be staged in the same form and are uploaded right after the row is saved;
+ * the popup closes automatically once everything succeeds.
  */
 
 import { useMemo, useRef, useState } from 'react'
@@ -19,6 +20,7 @@ import {
   Eye,
   FileText,
   Building2,
+  AlertCircle,
 } from 'lucide-react'
 import {
   useLedgerAssetOptions,
@@ -29,6 +31,7 @@ import {
   useDeleteLedgerDocument,
   useLedgerDocumentUrl,
   type LedgerEntry,
+  type LedgerDocument,
   type LedgerCollateral,
   type AssetOption,
 } from '@/hooks/usePortfolio'
@@ -128,9 +131,49 @@ function fieldsPayload(f: FormState) {
   }
 }
 
-const inputCls =
-  'w-full text-sm rounded-lg border border-[#D4AF37]/30 bg-[#160C34] px-3 py-2 text-[#F8F5FF] placeholder-[#CDBFF4]/40 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40'
+/**
+ * Minimal, non-blocking-on-required validation: nothing is mandatory, we only
+ * flag amount fields that were typed but aren't a valid non-negative number.
+ */
+function validate(f: FormState): Record<string, string> {
+  const errs: Record<string, string> = {}
+  const numFields: [keyof FormState, string][] = [
+    ['baseValue', 'Base Value'],
+    ['gst', 'GST'],
+    ['totalValue', 'Total Value'],
+    ['extraSqft', 'Extra Sq. Ft'],
+    ['sweepOnOcLoan', 'Sweep On OC (Loan)'],
+  ]
+  for (const [key, label] of numFields) {
+    const raw = String(f[key]).trim()
+    if (raw !== '' && (!Number.isFinite(Number(raw)) || Number(raw) < 0)) {
+      errs[key] = `${label} must be a non-negative number`
+    }
+  }
+  f.collateral.forEach((c, i) => {
+    if (c.sbua != null && (!Number.isFinite(Number(c.sbua)) || Number(c.sbua) < 0))
+      errs[`collateral.${i}.sbua`] = 'SBUA must be ≥ 0'
+    if (c.unitCost != null && (!Number.isFinite(Number(c.unitCost)) || Number(c.unitCost) < 0))
+      errs[`collateral.${i}.unitCost`] = 'Unit Cost must be ≥ 0'
+  })
+  return errs
+}
+
+const inputBase =
+  'w-full text-sm rounded-lg border bg-[#160C34] px-3 py-2 text-[#F8F5FF] placeholder-[#CDBFF4]/40 focus:outline-none focus:ring-2'
+const inputOk = 'border-[#D4AF37]/30 focus:ring-[#D4AF37]/40'
+const inputErr = 'border-red-500/70 focus:ring-red-500/40'
 const labelCls = 'text-[11px] text-[#CDBFF4] mb-1 block uppercase tracking-wide'
+const COLLATERAL_GRID = 'grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1fr_auto] gap-2 items-center'
+
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null
+  return (
+    <p className="mt-1 flex items-center gap-1 text-[11px] text-red-400">
+      <AlertCircle className="h-3 w-3 shrink-0" /> {msg}
+    </p>
+  )
+}
 
 /* ── Asset picker (step 1 of add) ────────────────────────────────── */
 
@@ -158,7 +201,7 @@ function AssetPicker({ onPick }: { onPick: (p: AssetPick) => void }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search by name or code…"
-          className={`${inputCls} pl-9`}
+          className={`${inputBase} ${inputOk} pl-9`}
         />
       </div>
       {isLoading ? (
@@ -203,23 +246,39 @@ function AssetPicker({ onPick }: { onPick: (p: AssetPick) => void }) {
   )
 }
 
-/* ── Documents section ───────────────────────────────────────────── */
+/* ── Documents (existing uploaded + newly staged) ─────────────────── */
 
-function DocumentsSection({ entry }: { entry: LedgerEntry }) {
+function DocumentsField({
+  entryId,
+  existing,
+  setExisting,
+  pending,
+  setPending,
+}: {
+  entryId: string | null
+  existing: LedgerDocument[]
+  setExisting: (docs: LedgerDocument[]) => void
+  pending: File[]
+  setPending: (files: File[]) => void
+}) {
   const fileRef = useRef<HTMLInputElement>(null)
-  const upload = useUploadLedgerDocument()
   const del = useDeleteLedgerDocument()
   const getUrl = useLedgerDocumentUrl()
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && entry.entryId) upload.mutate({ entryId: entry.entryId, file })
+  const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length) setPending([...pending, ...files])
     e.target.value = ''
   }
   const view = async (docId: string) => {
-    if (!entry.entryId) return
-    const res = await getUrl.mutateAsync({ entryId: entry.entryId, docId })
+    if (!entryId) return
+    const res = await getUrl.mutateAsync({ entryId, docId })
     window.open(res.url, '_blank', 'noopener')
+  }
+  const removeExisting = (docId: string) => {
+    if (!entryId) return
+    del.mutate({ entryId, docId })
+    setExisting(existing.filter((d) => d.id !== docId))
   }
 
   return (
@@ -228,25 +287,24 @@ function DocumentsSection({ entry }: { entry: LedgerEntry }) {
         <p className={labelCls}>Documents</p>
         <button
           onClick={() => fileRef.current?.click()}
-          disabled={upload.isPending}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors"
         >
-          {upload.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-          Upload
+          <Upload className="h-3.5 w-3.5" /> Attach
         </button>
         <input
           ref={fileRef}
           type="file"
+          multiple
           accept=".pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif"
           className="hidden"
-          onChange={onFile}
+          onChange={onFiles}
         />
       </div>
-      {entry.documents.length === 0 ? (
+      {existing.length === 0 && pending.length === 0 ? (
         <p className="text-xs text-[#CDBFF4]/60">No documents attached.</p>
       ) : (
         <div className="space-y-1.5">
-          {entry.documents.map((d) => (
+          {existing.map((d) => (
             <div
               key={d.id}
               className="flex items-center justify-between gap-2 text-sm bg-[#160C34] border border-[#D4AF37]/20 rounded-lg px-3 py-2"
@@ -259,14 +317,29 @@ function DocumentsSection({ entry }: { entry: LedgerEntry }) {
                 <button onClick={() => view(d.id)} className="text-[#D4AF37] hover:underline text-xs inline-flex items-center gap-1">
                   <Eye className="h-3.5 w-3.5" /> View
                 </button>
-                <button
-                  onClick={() => entry.entryId && del.mutate({ entryId: entry.entryId, docId: d.id })}
-                  className="text-red-400 hover:text-red-300"
-                  aria-label="Delete document"
-                >
+                <button onClick={() => removeExisting(d.id)} className="text-red-400 hover:text-red-300" aria-label="Delete document">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </span>
+            </div>
+          ))}
+          {pending.map((f, i) => (
+            <div
+              key={`pending-${i}`}
+              className="flex items-center justify-between gap-2 text-sm bg-[#160C34] border border-dashed border-[#D4AF37]/30 rounded-lg px-3 py-2"
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                <FileText className="h-4 w-4 text-[#CDBFF4] shrink-0" />
+                <span className="truncate text-[#F8F5FF] text-xs">{f.name}</span>
+                <span className="text-[10px] text-[#CDBFF4]/60 shrink-0">pending</span>
+              </span>
+              <button
+                onClick={() => setPending(pending.filter((_, idx) => idx !== i))}
+                className="text-red-400 hover:text-red-300 shrink-0"
+                aria-label="Remove pending file"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
           ))}
         </div>
@@ -288,18 +361,25 @@ export function LedgerEntryModal({
 }) {
   const [pick, setPick] = useState<AssetPick | null>(null)
   const [form, setForm] = useState<FormState>(() => (entry ? fromEntry(entry) : emptyForm()))
-  // After a save, hold the persisted entry so documents can be managed inline.
-  const [savedEntry, setSavedEntry] = useState<LedgerEntry | null>(
-    mode === 'edit' && entry?.entryId ? entry : null
-  )
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [existingDocs, setExistingDocs] = useState<LedgerDocument[]>(entry?.documents ?? [])
+  const [busy, setBusy] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   const create = useCreateLedgerEntry()
   const update = useUpdateLedgerEntry()
   const overlay = useSaveLedgerOverlay()
-  const saving = create.isPending || update.isPending || overlay.isPending
+  const upload = useUploadLedgerDocument()
 
-  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => {
     setForm((f) => ({ ...f, [k]: v }))
+    setErrors((e) => {
+      if (!e[k as string]) return e
+      const { [k as string]: _drop, ...rest } = e
+      return rest
+    })
+  }
 
   const addCollateral = () =>
     setForm((f) => ({
@@ -314,30 +394,46 @@ export function LedgerEntryModal({
   const removeCollateral = (i: number) =>
     setForm((f) => ({ ...f, collateral: f.collateral.filter((_, idx) => idx !== i) }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const errs = validate(form)
+    setErrors(errs)
+    if (Object.keys(errs).length > 0) return
+
+    setSaveError(false)
+    setBusy(true)
     const payload = fieldsPayload(form)
-    if (mode === 'add') {
-      if (!pick) return
-      create.mutate(
-        {
+    try {
+      let saved: LedgerEntry | null = null
+      if (mode === 'add') {
+        if (!pick) return
+        saved = await create.mutateAsync({
           ...payload,
           opportunityId: pick.kind === 'opportunity' ? pick.option.id : undefined,
           propertyId: pick.kind === 'property' ? pick.option.id : undefined,
-        },
-        { onSuccess: (data) => setSavedEntry(data) }
-      )
-    } else if (entry) {
-      if (entry.kind === 'manual' && entry.entryId) {
-        update.mutate(
-          { entryId: entry.entryId, body: payload },
-          { onSuccess: (data) => setSavedEntry(data) }
-        )
-      } else if (entry.kind === 'derived' && entry.sourceType && entry.sourceId) {
-        overlay.mutate(
-          { ...payload, sourceType: entry.sourceType, sourceId: entry.sourceId },
-          { onSuccess: (data) => setSavedEntry(data) }
-        )
+        })
+      } else if (entry) {
+        if (entry.kind === 'manual' && entry.entryId) {
+          saved = await update.mutateAsync({ entryId: entry.entryId, body: payload })
+        } else if (entry.kind === 'derived' && entry.sourceType && entry.sourceId) {
+          saved = await overlay.mutateAsync({
+            ...payload,
+            sourceType: entry.sourceType,
+            sourceId: entry.sourceId,
+          })
+        }
       }
+
+      // Upload any staged documents against the now-persisted row, then close.
+      if (saved?.entryId && pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          await upload.mutateAsync({ entryId: saved.entryId, file })
+        }
+      }
+      onClose()
+    } catch {
+      setSaveError(true)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -373,31 +469,34 @@ export function LedgerEntryModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <label className={labelCls}>Registered Name</label>
-                  <input className={inputCls} value={form.registeredName} onChange={(e) => set('registeredName', e.target.value)} />
+                  <input className={`${inputBase} ${inputOk}`} value={form.registeredName} onChange={(e) => set('registeredName', e.target.value)} />
                 </div>
                 <div>
                   <label className={labelCls}>Opportunity Code</label>
-                  <input className={inputCls} value={form.opportunityCode} onChange={(e) => set('opportunityCode', e.target.value)} />
+                  <input className={`${inputBase} ${inputOk}`} value={form.opportunityCode} onChange={(e) => set('opportunityCode', e.target.value)} />
                 </div>
                 <div>
                   <label className={labelCls}>Status</label>
-                  <input className={inputCls} value={form.status} onChange={(e) => set('status', e.target.value)} />
+                  <input className={`${inputBase} ${inputOk}`} value={form.status} onChange={(e) => set('status', e.target.value)} />
                 </div>
                 <div className="col-span-2">
                   <label className={labelCls}>Configuration</label>
-                  <input className={inputCls} value={form.configuration} onChange={(e) => set('configuration', e.target.value)} placeholder="e.g. 3 BHK, 2.5 BHK" />
+                  <input className={`${inputBase} ${inputOk}`} value={form.configuration} onChange={(e) => set('configuration', e.target.value)} placeholder="e.g. 3 BHK, 2.5 BHK" />
                 </div>
                 <div>
                   <label className={labelCls}>Base Value (₹)</label>
-                  <input type="number" min={0} className={inputCls} value={form.baseValue} onChange={(e) => set('baseValue', e.target.value)} />
+                  <input type="number" min={0} className={`${inputBase} ${errors.baseValue ? inputErr : inputOk}`} value={form.baseValue} onChange={(e) => set('baseValue', e.target.value)} />
+                  <FieldError msg={errors.baseValue} />
                 </div>
                 <div>
                   <label className={labelCls}>GST (₹)</label>
-                  <input type="number" min={0} className={inputCls} value={form.gst} onChange={(e) => set('gst', e.target.value)} />
+                  <input type="number" min={0} className={`${inputBase} ${errors.gst ? inputErr : inputOk}`} value={form.gst} onChange={(e) => set('gst', e.target.value)} />
+                  <FieldError msg={errors.gst} />
                 </div>
                 <div>
                   <label className={labelCls}>Total Value (₹)</label>
-                  <input type="number" min={0} className={inputCls} value={form.totalValue} onChange={(e) => set('totalValue', e.target.value)} />
+                  <input type="number" min={0} className={`${inputBase} ${errors.totalValue ? inputErr : inputOk}`} value={form.totalValue} onChange={(e) => set('totalValue', e.target.value)} />
+                  <FieldError msg={errors.totalValue} />
                 </div>
                 <div className="flex items-end pb-1">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -407,23 +506,25 @@ export function LedgerEntryModal({
                 </div>
                 <div>
                   <label className={labelCls}>Type of Investment</label>
-                  <input className={inputCls} value={form.typeOfInvestment} onChange={(e) => set('typeOfInvestment', e.target.value)} />
+                  <input className={`${inputBase} ${inputOk}`} value={form.typeOfInvestment} onChange={(e) => set('typeOfInvestment', e.target.value)} />
                 </div>
                 <div>
                   <label className={labelCls}>Referred By</label>
-                  <input className={inputCls} value={form.referredBy} onChange={(e) => set('referredBy', e.target.value)} />
+                  <input className={`${inputBase} ${inputOk}`} value={form.referredBy} onChange={(e) => set('referredBy', e.target.value)} />
                 </div>
                 <div>
                   <label className={labelCls}>Extra Sq. Ft</label>
-                  <input type="number" min={0} className={inputCls} value={form.extraSqft} onChange={(e) => set('extraSqft', e.target.value)} />
+                  <input type="number" min={0} className={`${inputBase} ${errors.extraSqft ? inputErr : inputOk}`} value={form.extraSqft} onChange={(e) => set('extraSqft', e.target.value)} />
+                  <FieldError msg={errors.extraSqft} />
                 </div>
                 <div>
                   <label className={labelCls}>Sweep On OC (Loan) (₹)</label>
-                  <input type="number" min={0} className={inputCls} value={form.sweepOnOcLoan} onChange={(e) => set('sweepOnOcLoan', e.target.value)} />
+                  <input type="number" min={0} className={`${inputBase} ${errors.sweepOnOcLoan ? inputErr : inputOk}`} value={form.sweepOnOcLoan} onChange={(e) => set('sweepOnOcLoan', e.target.value)} />
+                  <FieldError msg={errors.sweepOnOcLoan} />
                 </div>
                 <div className="col-span-2">
                   <label className={labelCls}>Latest Updates</label>
-                  <textarea rows={2} className={inputCls} value={form.latestUpdates} onChange={(e) => set('latestUpdates', e.target.value)} />
+                  <textarea rows={2} className={`${inputBase} ${inputOk}`} value={form.latestUpdates} onChange={(e) => set('latestUpdates', e.target.value)} />
                 </div>
               </div>
 
@@ -439,14 +540,22 @@ export function LedgerEntryModal({
                   <p className="text-xs text-[#CDBFF4]/60">No collateral units added.</p>
                 ) : (
                   <div className="space-y-2">
+                    <div className={`${COLLATERAL_GRID} px-0.5`}>
+                      <span className="text-[10px] uppercase tracking-wider text-[#CDBFF4]/70">Project</span>
+                      <span className="text-[10px] uppercase tracking-wider text-[#CDBFF4]/70">Unit No</span>
+                      <span className="text-[10px] uppercase tracking-wider text-[#CDBFF4]/70">Configuration</span>
+                      <span className="text-[10px] uppercase tracking-wider text-[#CDBFF4]/70 text-right">SBUA</span>
+                      <span className="text-[10px] uppercase tracking-wider text-[#CDBFF4]/70 text-right">Unit Cost</span>
+                      <span className="w-7" />
+                    </div>
                     {form.collateral.map((c, i) => (
-                      <div key={i} className="grid grid-cols-12 gap-1.5 items-center">
-                        <input className={`${inputCls} col-span-3`} placeholder="Project" value={c.project ?? ''} onChange={(e) => updateCollateral(i, { project: e.target.value })} />
-                        <input className={`${inputCls} col-span-2`} placeholder="Unit No" value={c.unitNo ?? ''} onChange={(e) => updateCollateral(i, { unitNo: e.target.value })} />
-                        <input className={`${inputCls} col-span-2`} placeholder="Config" value={c.configuration ?? ''} onChange={(e) => updateCollateral(i, { configuration: e.target.value })} />
-                        <input className={`${inputCls} col-span-2`} type="number" placeholder="SBUA" value={c.sbua ?? ''} onChange={(e) => updateCollateral(i, { sbua: e.target.value === '' ? null : Number(e.target.value) })} />
-                        <input className={`${inputCls} col-span-2`} type="number" placeholder="Unit Cost" value={c.unitCost ?? ''} onChange={(e) => updateCollateral(i, { unitCost: e.target.value === '' ? null : Number(e.target.value) })} />
-                        <button onClick={() => removeCollateral(i)} className="col-span-1 flex justify-center text-red-400 hover:text-red-300" aria-label="Remove unit">
+                      <div key={i} className={COLLATERAL_GRID}>
+                        <input className={`${inputBase} ${inputOk}`} placeholder="Project" value={c.project ?? ''} onChange={(e) => updateCollateral(i, { project: e.target.value })} />
+                        <input className={`${inputBase} ${inputOk}`} placeholder="Unit No" value={c.unitNo ?? ''} onChange={(e) => updateCollateral(i, { unitNo: e.target.value })} />
+                        <input className={`${inputBase} ${inputOk}`} placeholder="Config" value={c.configuration ?? ''} onChange={(e) => updateCollateral(i, { configuration: e.target.value })} />
+                        <input className={`${inputBase} ${errors[`collateral.${i}.sbua`] ? inputErr : inputOk} text-right`} type="number" min={0} placeholder="SBUA" value={c.sbua ?? ''} onChange={(e) => updateCollateral(i, { sbua: e.target.value === '' ? null : Number(e.target.value) })} />
+                        <input className={`${inputBase} ${errors[`collateral.${i}.unitCost`] ? inputErr : inputOk} text-right`} type="number" min={0} placeholder="Unit Cost" value={c.unitCost ?? ''} onChange={(e) => updateCollateral(i, { unitCost: e.target.value === '' ? null : Number(e.target.value) })} />
+                        <button onClick={() => removeCollateral(i)} className="flex justify-center text-red-400 hover:text-red-300" aria-label="Remove unit">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -455,14 +564,20 @@ export function LedgerEntryModal({
                 )}
               </div>
 
-              {/* Documents (after the row exists) */}
-              {savedEntry?.entryId ? (
-                <div className="pt-2 border-t border-[#D4AF37]/20">
-                  <DocumentsSection entry={savedEntry} />
-                </div>
-              ) : (
-                <p className="text-[11px] text-[#CDBFF4]/60 pt-2 border-t border-[#D4AF37]/20">
-                  Save this investment to attach documents.
+              {/* Documents */}
+              <div className="pt-2 border-t border-[#D4AF37]/20">
+                <DocumentsField
+                  entryId={entry?.entryId ?? null}
+                  existing={existingDocs}
+                  setExisting={setExistingDocs}
+                  pending={pendingFiles}
+                  setPending={setPendingFiles}
+                />
+              </div>
+
+              {saveError && (
+                <p className="flex items-center gap-1.5 text-xs text-red-400">
+                  <AlertCircle className="h-3.5 w-3.5" /> Something went wrong while saving. Please try again.
                 </p>
               )}
             </>
@@ -473,15 +588,15 @@ export function LedgerEntryModal({
         {showForm && (
           <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#D4AF37]/30 shrink-0">
             <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg text-[#CDBFF4] hover:bg-[#CDBFF4]/10 transition-colors">
-              Close
+              Cancel
             </button>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={busy}
               className="text-sm px-5 py-2 rounded-lg font-semibold bg-[#D4AF37] text-[#160C34] hover:bg-[#e3c14e] transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {savedEntry ? 'Save changes' : 'Save'}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              Save
             </button>
           </div>
         )}
