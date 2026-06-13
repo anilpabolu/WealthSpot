@@ -18,6 +18,7 @@ import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import WLogo3D from '@/components/ui/WLogo3D'
+import { useHideOnScroll } from '@/hooks/useHideOnScroll'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -42,6 +43,7 @@ function _AmenityIcon({ name, className }: { name: string; className?: string })
 
 function OpportunityNavigation({ sections }: { sections: Array<{ id: string, label: string, tooltip: string }> }) {
   const [activeId, setActiveId] = useState<string>('')
+  const visible = useHideOnScroll()
   const scrollRef = useRef<HTMLDivElement>(null)
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
@@ -84,7 +86,10 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
   if (sections.length === 0) return null
 
   return (
-    <div className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
+    <div
+      className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block"
+      style={{ transform: visible ? 'translateY(0)' : 'translateY(calc(-100% - var(--nav-height)))' }}
+    >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         {/* Horizontal scroll container: single row, centered when it fits, scrollable when it overflows */}
         <div ref={scrollRef} className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">

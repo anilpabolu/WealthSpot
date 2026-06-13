@@ -5,6 +5,7 @@ import { ArrowRight, Users, Shield, CheckCircle2, Search, ChevronLeft, ChevronRi
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useState, useRef, useEffect } from 'react'
+import { useHideOnScroll } from '@/hooks/useHideOnScroll'
 
 /* ─────────────────────────────────────────────────
    SECTION JUMPER NAVIGATION
@@ -19,6 +20,7 @@ const ABOUT_SECTIONS = [
 
 function AboutPageNavigation() {
   const [activeId, setActiveId] = useState<string>('')
+  const visible = useHideOnScroll()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -50,7 +52,10 @@ function AboutPageNavigation() {
   }
 
   return (
-    <div className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300">
+    <div
+      className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300"
+      style={{ transform: visible ? 'translateY(0)' : 'translateY(calc(-100% - var(--nav-height)))' }}
+    >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-6 py-3">
           {ABOUT_SECTIONS.map((section) => {
