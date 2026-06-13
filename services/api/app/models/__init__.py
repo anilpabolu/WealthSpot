@@ -43,6 +43,7 @@ from app.models.investment import (  # noqa: F401
     TransactionType,
 )
 from app.models.investment_transaction_record import InvestmentTransactionRecord  # noqa: F401
+from app.models.knowledge_article import KnowledgeArticle, KnowledgeAsset  # noqa: F401
 from app.models.notification import (  # noqa: F401
     Notification,
     NotificationChannel,

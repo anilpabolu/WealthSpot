@@ -42,6 +42,7 @@ from app.routers import (
     eoi,
     founding_team,
     investments,
+    knowledge,
     kyc,
     lender,
     notifications,
@@ -199,6 +200,7 @@ app.include_router(app_videos.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(profiling.router, prefix=API_PREFIX)
 app.include_router(site_content.router, prefix=API_PREFIX)
+app.include_router(knowledge.router, prefix=API_PREFIX)
 app.include_router(vault_features.router, prefix=API_PREFIX)
 app.include_router(builder_updates.router, prefix=API_PREFIX)
 app.include_router(appreciation.router, prefix=API_PREFIX)

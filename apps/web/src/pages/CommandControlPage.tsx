@@ -21,6 +21,7 @@ import {
   Shield,
   Eye,
   Mail,
+  BookOpen,
 } from 'lucide-react'
 import MainLayout from '@/components/layout/MainLayout'
 import SectionErrorBoundary from '@/components/SectionErrorBoundary'
@@ -40,6 +41,7 @@ const ImageManagementTab = lazy(() => import('./control/ImageManagementTab'))
 const VideoManagementTab = lazy(() => import('./control/VideoManagementTab'))
 const MediaManagementTab = lazy(() => import('./control/MediaManagementTab'))
 const SiteContentTab = lazy(() => import('./control/SiteContentTab'))
+const KnowledgeHubTab = lazy(() => import('./control/KnowledgeHubTab'))
 const VaultFeatureMatrixTab = lazy(() => import('./control/VaultFeatureMatrixTab'))
 const AdminInvitesTab = lazy(() => import('./control/AdminInvitesTab'))
 const VaultMetricsTab = lazy(() => import('./control/VaultMetricsTab'))
@@ -65,6 +67,7 @@ type Section =
   | 'media-management'
   | 'app-images'
   | 'site-content'
+  | 'knowledge-hub'
   | 'vault-features'
   | 'admin-invites'
   | 'vault-metrics'
@@ -94,6 +97,7 @@ const SECTIONS: SideNavItem[] = [
   { id: 'app-images', label: 'Home Images', icon: Image, group: 'Content' },
   { id: 'content', label: 'Content & Videos', icon: FileVideo, group: 'Content' },
   { id: 'site-content', label: 'Site Content (CMS)', icon: FileText, group: 'Content' },
+  { id: 'knowledge-hub', label: 'Knowledge Hub', icon: BookOpen, group: 'Content' },
   { id: 'vault-features', label: 'Feature Matrix', icon: Shield, group: 'Settings' },
   { id: 'vault-metrics', label: 'Vault Metrics', icon: BarChart3, group: 'Settings' },
   { id: 'snapshot-config', label: 'Snapshot Sections', icon: Eye, group: 'Settings' },
@@ -263,6 +267,9 @@ export default function CommandControlPage() {
             )}
             {activeSection === 'site-content' && (
               <Suspense fallback={<TabFallback />}><SiteContentTab /></Suspense>
+            )}
+            {activeSection === 'knowledge-hub' && (
+              <Suspense fallback={<TabFallback />}><KnowledgeHubTab /></Suspense>
             )}
             {activeSection === 'vault-features' && (
               <Suspense fallback={<TabFallback />}><VaultFeatureMatrixTab /></Suspense>
