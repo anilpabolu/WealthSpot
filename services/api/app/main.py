@@ -50,6 +50,7 @@ from app.routers import (
     pincodes,
     points,
     portfolio,
+    portfolio_ledger,
     portfolio_transactions,
     profile,
     profiling,
@@ -193,6 +194,7 @@ app.include_router(bank_details.router, prefix=API_PREFIX)
 app.include_router(eoi.router, prefix=API_PREFIX)
 app.include_router(founding_team.router, prefix=API_PREFIX)
 app.include_router(portfolio.router, prefix=API_PREFIX)
+app.include_router(portfolio_ledger.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.router, prefix=API_PREFIX)
 app.include_router(portfolio_transactions.builder_router, prefix=API_PREFIX)
 app.include_router(app_images.router, prefix=API_PREFIX)

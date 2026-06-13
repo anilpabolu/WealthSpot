@@ -9,6 +9,7 @@ import { VaultComingSoonPortfolioCard } from '@/components/VaultComingSoonOverla
 import VaultPickerModal from '@/components/VaultPickerModal'
 import { TransactionDetailsPopup } from '@/components/portfolio/TransactionDetailsPopup'
 import { ProjectUpdatesPopup } from '@/components/portfolio/ProjectUpdatesPopup'
+import { InvestmentLedgerTable } from '@/components/portfolio/InvestmentLedgerTable'
 import { useBuilderUpdateUnreadCounts } from '@/hooks/useBuilderUpdates'
 import {
   usePortfolioSummary,
@@ -969,6 +970,9 @@ export default function PortfolioPage() {
                   />
                 )}
               </section>
+
+              {/* ── Investment Ledger ─────────────────────────────── */}
+              <InvestmentLedgerTable />
 
               {selectedHolding && (
                 <HoldingDetailModal

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut } from '@/lib/api'
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api'
 
 export interface PortfolioProperty {
   propertyId: string
@@ -340,5 +340,174 @@ export function useBuilderAcknowledgementUrl(
       ),
     enabled: !!opportunityId && !!investorUserId && !!recordId,
     staleTime: 4 * 60_000,
+  })
+}
+
+/* ── Investment Ledger ───────────────────────────────────────────── */
+
+export interface LedgerCollateral {
+  id?: string
+  project: string | null
+  unitNo: string | null
+  configuration: string | null
+  sbua: number | null
+  unitCost: number | null
+}
+
+export interface LedgerDocument {
+  id: string
+  filename: string | null
+  contentType: string | null
+  sizeBytes: number | null
+  createdAt: string
+}
+
+export interface LedgerEntry {
+  rowKey: string
+  kind: 'derived' | 'manual'
+  entryId: string | null
+  sourceType: 'opportunity' | 'property' | null
+  sourceId: string | null
+  opportunityId: string | null
+  propertyId: string | null
+  projectName: string | null
+  registeredName: string | null
+  opportunityCode: string | null
+  status: string | null
+  configuration: string | null
+  baseValue: number | null
+  gst: number | null
+  gstPaid: boolean
+  totalValue: number | null
+  referredBy: string | null
+  typeOfInvestment: string | null
+  extraSqft: number | null
+  sweepOnOcLoan: number | null
+  latestUpdates: string | null
+  canDelete: boolean
+  investedAt: string | null
+  documents: LedgerDocument[]
+  collateral: LedgerCollateral[]
+}
+
+/** Editable fields shared by create/update/overlay payloads. */
+export interface LedgerEntryFields {
+  registeredName?: string | null
+  opportunityCode?: string | null
+  status?: string | null
+  configuration?: string | null
+  baseValue?: number | null
+  gst?: number | null
+  gstPaid?: boolean
+  totalValue?: number | null
+  referredBy?: string | null
+  typeOfInvestment?: string | null
+  extraSqft?: number | null
+  sweepOnOcLoan?: number | null
+  latestUpdates?: string | null
+  collateral?: LedgerCollateral[]
+}
+
+export interface AssetOption {
+  id: string
+  title: string
+  code: string
+}
+
+export interface LedgerAssetOptions {
+  opportunities: AssetOption[]
+  properties: AssetOption[]
+}
+
+export function useInvestmentLedger() {
+  return useQuery({
+    queryKey: ['portfolio', 'ledger'],
+    queryFn: () => apiGet<LedgerEntry[]>('/portfolio/ledger'),
+    staleTime: 30_000,
+  })
+}
+
+export function useLedgerAssetOptions(enabled: boolean) {
+  return useQuery({
+    queryKey: ['portfolio', 'ledger', 'asset-options'],
+    queryFn: () => apiGet<LedgerAssetOptions>('/portfolio/ledger/asset-options'),
+    enabled,
+    staleTime: 5 * 60_000,
+  })
+}
+
+export function useCreateLedgerEntry() {
+  const qc = useQueryClient()
+  return useMutation({
+    meta: { successMessage: 'Investment added' },
+    mutationFn: (body: LedgerEntryFields & { opportunityId?: string; propertyId?: string }) =>
+      apiPost<LedgerEntry>('/portfolio/ledger', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useUpdateLedgerEntry() {
+  const qc = useQueryClient()
+  return useMutation({
+    meta: { successMessage: 'Investment updated' },
+    mutationFn: ({ entryId, body }: { entryId: string; body: LedgerEntryFields }) =>
+      apiPut<LedgerEntry>(`/portfolio/ledger/${entryId}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useSaveLedgerOverlay() {
+  const qc = useQueryClient()
+  return useMutation({
+    meta: { successMessage: 'Investment updated' },
+    mutationFn: (
+      body: LedgerEntryFields & { sourceType: 'opportunity' | 'property'; sourceId: string }
+    ) => apiPost<LedgerEntry>('/portfolio/ledger/overlay', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useDeleteLedgerEntry() {
+  const qc = useQueryClient()
+  return useMutation({
+    meta: { successMessage: 'Investment removed' },
+    mutationFn: (entryId: string) => apiDelete<void>(`/portfolio/ledger/${entryId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useUploadLedgerDocument() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ entryId, file }: { entryId: string; file: File }) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      const { api } = await import('@/lib/api')
+      const resp = await api.post<LedgerDocument>(
+        `/portfolio/ledger/${entryId}/documents`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+      return resp.data
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useDeleteLedgerDocument() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ entryId, docId }: { entryId: string; docId: string }) =>
+      apiDelete<void>(`/portfolio/ledger/${entryId}/documents/${docId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolio', 'ledger'] }),
+  })
+}
+
+export function useLedgerDocumentUrl() {
+  return useMutation({
+    mutationFn: ({ entryId, docId }: { entryId: string; docId: string }) =>
+      apiGet<{ url: string; expiresIn: number }>(
+        `/portfolio/ledger/${entryId}/documents/${docId}`
+      ),
   })
 }

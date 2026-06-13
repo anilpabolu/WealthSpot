@@ -42,6 +42,11 @@ from app.models.investment import (  # noqa: F401
     Transaction,
     TransactionType,
 )
+from app.models.investment_ledger import (  # noqa: F401
+    InvestmentLedgerCollateral,
+    InvestmentLedgerDocument,
+    InvestmentLedgerEntry,
+)
 from app.models.investment_transaction_record import InvestmentTransactionRecord  # noqa: F401
 from app.models.knowledge_article import KnowledgeArticle, KnowledgeAsset  # noqa: F401
 from app.models.notification import (  # noqa: F401
