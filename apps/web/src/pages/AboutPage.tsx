@@ -50,7 +50,7 @@ function AboutPageNavigation() {
   }
 
   return (
-    <div className="sticky top-[72px] z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300">
+    <div className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-6 py-3">
           {ABOUT_SECTIONS.map((section) => {
@@ -60,7 +60,7 @@ function AboutPageNavigation() {
                 key={section.id}
                 onClick={() => scrollTo(section.id)}
                 className={`relative px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 group ${
-                  isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-transparent'
+                  isActive ? 'bg-[#D4AF37]/15 text-[#8B6914] border border-[#D4AF37]/40 shadow-sm' : 'text-theme-secondary hover:bg-[var(--bg-surface-hover)] hover:text-theme-primary border border-transparent'
                 }`}
               >
                 {section.label}

@@ -42,6 +42,9 @@ html { font-size: 100%; }
     --frame-border: rgba(0, 0, 0, 0.08);
     --frame-border-hover: rgba(0, 0, 0, 0.16);
     --card-glow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+    /* Fixed navbar height — keep in sync with Navbar.tsx (h-[72px] md:h-20).
+       Used by sticky in-page section navs so they sit flush under the navbar. */
+    --nav-height: 72px;
     color-scheme: light;
   }
 
@@ -78,6 +81,14 @@ html { font-size: 100%; }
     --frame-border-hover: rgba(212, 175, 55, 0.4);
     --card-glow: 0 0 10px rgba(212, 175, 55, 0.12), 0 0 3px rgba(212, 175, 55, 0.08);
     color-scheme: dark;
+  }
+
+  /* md+: navbar grows to h-20 (80px). Applies in both light and dark themes. */
+  @media (min-width: 768px) {
+    :root,
+    .dark {
+      --nav-height: 80px;
+    }
   }
 
   html {

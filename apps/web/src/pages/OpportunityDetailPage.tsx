@@ -9,13 +9,15 @@ import { formatINRCompact, daysRemaining } from '@/lib/formatters'
 import {
   MapPin, Calendar, Users, Building2,
   ChevronRight, Play, Heart, Share2,
-  Clock, ChevronLeft, Sparkles, HandCoins,
+  Clock, Sparkles, HandCoins,
   X, Globe, Ruler, FolderKanban, BadgeCheck, FileText,
   ShieldCheck, Lock, EyeOff, Camera, Home
 } from 'lucide-react'
 import * as LucideAllIcons from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import WLogo3D from '@/components/ui/WLogo3D'
 import ExpressInterestModal from '@/components/eoi/ExpressInterestModal'
 import { EmptyState } from '@/components/ui'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
@@ -82,7 +84,7 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
   if (sections.length === 0) return null
 
   return (
-    <div className="sticky top-[72px] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
+    <div className="sticky top-[var(--nav-height)] z-40 bg-[var(--bg-default)] border-b border-[var(--border-subtle)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hidden md:block">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         {/* Horizontal scroll container: single row, centered when it fits, scrollable when it overflows */}
         <div ref={scrollRef} className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -253,6 +255,7 @@ function getLifecycleRibbon(opp: { status: string; closingDate: string | null; r
 function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: { images: string[]; title: string; videoUrl?: string; propertyVideosEnabled: boolean }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [showVideoPlayer, setShowVideoPlayer] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const touchStartRef = useRef(0)
 
@@ -264,15 +267,43 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
     }, 5000)
   }, [images.length])
 
+  // Circular navigation (wraps both directions — no blank slide).
+  const goNext = useCallback(() => setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)), [images.length])
+  const goPrev = useCallback(() => setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)), [images.length])
+
   useEffect(() => {
     startAutoPlay()
     return () => clearInterval(intervalRef.current)
   }, [startAutoPlay])
 
+  // Lightbox: pause auto-play, lock body scroll, wire keyboard (Esc / arrows)
+  // and block common save shortcuts (Ctrl/Cmd + S/P/C) while open.
+  useEffect(() => {
+    if (!lightboxOpen) return
+    clearInterval(intervalRef.current)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+      else if (e.key === 'ArrowRight') goNext()
+      else if (e.key === 'ArrowLeft') goPrev()
+      else if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'c'].includes(e.key.toLowerCase())) e.preventDefault()
+    }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+      startAutoPlay()
+    }
+  }, [lightboxOpen, goNext, goPrev, startAutoPlay])
+
+  // No images uploaded for this opportunity → show the WealthSpot brand logo
+  // centered (no carousel / auto-play). Theme-aware: dark mark on light bg, light mark on dark bg.
   if (!images.length) {
     return (
       <div className="aspect-video bg-theme-surface-hover rounded-xl flex items-center justify-center">
-        <Building2 className="h-16 w-16 text-theme-tertiary" />
+        <WLogo3D size={120} light={false} className="opacity-90 block dark:hidden" />
+        <WLogo3D size={120} light={true} className="opacity-90 hidden dark:block" />
       </div>
     )
   }
@@ -292,11 +323,14 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
             }
           }}
         >
-          <img 
-            src={images[activeIdx]} 
-            alt={`${title} - ${activeIdx + 1}`} 
-            className="w-full h-full block object-contain" 
-            onError={(e) => { 
+          <img
+            src={images[activeIdx]}
+            alt={`${title} - ${activeIdx + 1}`}
+            onClick={() => setLightboxOpen(true)}
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            className="w-full h-full block object-cover cursor-zoom-in select-none"
+            onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none'; 
               target.parentElement?.classList.add('bg-theme-surface-hover');
@@ -318,12 +352,6 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
           />
           {images.length > 1 && (
             <>
-              <button onClick={() => { setActiveIdx((i) => (i > 0 ? i - 1 : images.length - 1)); startAutoPlay() }} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/90 hover:text-white hover:bg-white/15 transition-colors" aria-label="Previous image">
-                <ChevronLeft className="h-6 w-6 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" />
-              </button>
-              <button onClick={() => { setActiveIdx((i) => (i < images.length - 1 ? i + 1 : 0)); startAutoPlay() }} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/90 hover:text-white hover:bg-white/15 transition-colors" aria-label="Next image">
-                <ChevronRight className="h-6 w-6 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" />
-              </button>
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {images.map((_, i) => (
                   <button key={i} onClick={() => { setActiveIdx(i); startAutoPlay() }} className={`h-2 rounded-full transition-all ${i === activeIdx ? 'w-5 bg-[var(--bg-surface)]' : 'w-2 bg-[var(--bg-card)]'}`} aria-label={`Go to image ${i + 1}`} />
@@ -376,6 +404,59 @@ function OpportunityGallery({ images, title, videoUrl, propertyVideosEnabled }: 
             </video>
           </div>
         </div>
+      )}
+
+      {/* Image lightbox — click to enlarge. Portaled to body so it sits above all
+          page chrome. Save deterrents: no right-click, no drag, no selection,
+          pointer-events off the image (taps fall through to the overlay), and the
+          element is hidden from print. (True screenshot blocking isn't possible in a browser.) */}
+      {lightboxOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 secure-image-viewer select-none p-4"
+          style={{ userSelect: 'none' }}
+          onClick={() => setLightboxOpen(false)}
+          onContextMenu={(e) => e.preventDefault()}
+          onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? 0 }}
+          onTouchEnd={(e) => {
+            const diff = touchStartRef.current - (e.changedTouches[0]?.clientX ?? 0)
+            if (Math.abs(diff) > 50) { if (diff > 0) goNext(); else goPrev() }
+          }}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          <img
+            src={images[activeIdx]}
+            alt={`${title} - ${activeIdx + 1}`}
+            draggable={false}
+            className="max-w-[92vw] max-h-[88vh] object-contain rounded-lg shadow-2xl select-none pointer-events-none"
+            style={{ userSelect: 'none' }}
+          />
+
+          {images.length > 1 && (
+            <>
+              <span className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/10 text-white text-sm px-3 py-1 rounded-full">{activeIdx + 1} / {images.length}</span>
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setActiveIdx(i) }}
+                    className={`h-2.5 rounded-full transition-all ${i === activeIdx ? 'w-6 bg-white' : 'w-2.5 bg-white/40 hover:bg-white/70'}`}
+                    aria-label={`Go to image ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          <style>{`@media print { .secure-image-viewer { display: none !important; } }`}</style>
+        </div>,
+        document.body,
       )}
     </>
   )

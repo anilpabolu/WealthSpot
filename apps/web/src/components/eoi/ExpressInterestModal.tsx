@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Toggle, Select, Input, Textarea } from '@/components/ui'
 import {
   X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle,
@@ -276,7 +277,10 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     onClose()
   }
 
-  return (
+  // Portal to document.body so the overlay escapes any sticky/transformed ancestor
+  // (e.g. the sticky sidebar on OpportunityDetailPage) and its z-50 layers correctly
+  // above the in-page section nav (z-40).
+  return createPortal(
     <div className="modal-overlay p-4">
       <div className="absolute inset-0 bg-black/10" />
       <div className="modal-panel max-w-lg relative overflow-hidden flex flex-col max-h-[90dvh]">
@@ -692,6 +696,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
         )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
