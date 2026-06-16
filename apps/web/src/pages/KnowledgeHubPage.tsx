@@ -1,26 +1,90 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '@/components/layout'
 import SEOHead from '@/components/SEOHead'
 import WLogo3D from '@/components/ui/WLogo3D'
 import KnowledgeArticleModal from '@/components/knowledge/KnowledgeArticleModal'
 import { useKnowledgeArticles, type KnowledgeArticleSummary } from '@/hooks/useKnowledgeHub'
-import { BookOpen, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { BookOpen, FileText, Image as ImageIcon, Loader2, ZoomIn, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 
-function KnowledgeTile({ article, onOpen }: { article: KnowledgeArticleSummary; onOpen: () => void }) {
+function ImageZoomModal({ url, onClose }: { url: string; onClose: () => void }) {
+  const [isHidden, setIsHidden] = useState(false)
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'c'].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+      }
+    }
+    const onVisibility = () => setIsHidden(document.hidden)
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('visibilitychange', onVisibility)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('visibilitychange', onVisibility)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [])
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 secure-knowledge-viewer"
+      onContextMenu={(e) => e.preventDefault()}
+      style={{ userSelect: 'none' }}
+    >
+      <div
+        className={`relative w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col transition-all items-center justify-center ${isHidden ? 'blur-xl' : ''}`}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <img
+          src={url}
+          alt="Zoomed"
+          draggable={false}
+          className="max-w-full max-h-[90vh] object-contain pointer-events-none select-none"
+        />
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+function KnowledgeTile({ article, onOpen, onZoom }: { article: KnowledgeArticleSummary; onOpen: () => void; onZoom: (url: string) => void }) {
   return (
     <button
       onClick={onOpen}
       className="group text-left card overflow-hidden p-0 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-300"
     >
       {/* Cover */}
-      <div className="aspect-video bg-[var(--bg-surface-hover)] overflow-hidden flex items-center justify-center">
+      <div className="relative aspect-video bg-[var(--bg-surface-hover)] overflow-hidden flex items-center justify-center">
         {article.coverImageUrl ? (
-          <img
-            src={article.coverImageUrl}
-            alt={article.title}
-            draggable={false}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-          />
+          <>
+            <img
+              src={article.coverImageUrl}
+              alt={article.title}
+              draggable={false}
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+            />
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onZoom(article.coverImageUrl!)
+              }}
+              className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+              title="Zoom Image"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+          </>
         ) : (
           <>
             <WLogo3D size={72} light={false} className="opacity-80 block dark:hidden" />
@@ -58,6 +122,7 @@ function KnowledgeTile({ article, onOpen }: { article: KnowledgeArticleSummary; 
 export default function KnowledgeHubPage() {
   const { data: articles, isLoading } = useKnowledgeArticles()
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null)
 
   return (
     <MainLayout>
@@ -103,13 +168,14 @@ export default function KnowledgeHubPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.map((article) => (
-              <KnowledgeTile key={article.id} article={article} onOpen={() => setActiveSlug(article.slug)} />
+              <KnowledgeTile key={article.id} article={article} onOpen={() => setActiveSlug(article.slug)} onZoom={(url) => setZoomImageUrl(url)} />
             ))}
           </div>
         )}
       </div>
 
       {activeSlug && <KnowledgeArticleModal slug={activeSlug} onClose={() => setActiveSlug(null)} />}
+      {zoomImageUrl && <ImageZoomModal url={zoomImageUrl} onClose={() => setZoomImageUrl(null)} />}
     </MainLayout>
   )
 }

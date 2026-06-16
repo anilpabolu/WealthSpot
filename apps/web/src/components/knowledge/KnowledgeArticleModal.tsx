@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom'
 import { X, Loader2, FileText } from 'lucide-react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import { useKnowledgeArticle } from '@/hooks/useKnowledgeHub'
+import IntrinsicValueArticleContent from './IntrinsicValueArticleContent'
 
 /** Themed renderers so admin-authored Markdown looks like a real article page. */
 const mdComponents: Components = {
@@ -75,6 +77,7 @@ export default function KnowledgeArticleModal({
 
   const images = (article?.assets ?? []).filter((a) => a.assetType === 'image')
   const pdfs = (article?.assets ?? []).filter((a) => a.assetType === 'pdf')
+  const videos = (article?.assets ?? []).filter((a) => a.assetType === 'video')
 
   return createPortal(
     <div
@@ -116,13 +119,17 @@ export default function KnowledgeArticleModal({
               )}
 
               {/* Body — Markdown rendered as a styled article */}
-              {article.body && (
+              {article.slug && ['intrinsic-value', 'calculating-intrinsic-value'].includes(article.slug) ? (
+                <div className="knowledge-body mt-4">
+                  <IntrinsicValueArticleContent />
+                </div>
+              ) : article.body ? (
                 <div className="knowledge-body">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
                     {article.body}
                   </ReactMarkdown>
                 </div>
-              )}
+              ) : null}
 
               {/* Images */}
               {images.length > 0 && (
@@ -149,19 +156,39 @@ export default function KnowledgeArticleModal({
                   <h3 className="text-xs font-bold uppercase tracking-wider text-theme-tertiary">Documents</h3>
                   {pdfs.map((pdf) => (
                     <div key={pdf.id} className="rounded-xl border border-theme overflow-hidden bg-[var(--bg-surface-hover)]">
-                      <div className="flex items-center gap-2 px-3 py-2 border-b border-theme text-sm text-theme-secondary">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span className="truncate">{pdf.filename ?? 'Document'}</span>
+                      <div className="flex items-center gap-3 p-3 border-b border-theme/50">
+                        <FileText className="h-5 w-5 text-primary shrink-0" />
+                        <span className="text-sm font-semibold text-theme-primary truncate">
+                          {pdf.filename ?? 'Document'}
+                        </span>
                       </div>
                       <iframe
                         src={`${pdf.url}#toolbar=0&navpanes=0&scrollbar=0`}
-                        title={pdf.filename ?? 'Document'}
-                        className="w-full border-0"
-                        style={{ height: '70vh' }}
-                        sandbox="allow-same-origin allow-scripts"
+                        title={pdf.filename ?? 'PDF'}
+                        className="w-full h-[500px]"
                       />
                     </div>
                   ))}
+                </section>
+              )}
+
+              {/* Videos */}
+              {videos.length > 0 && (
+                <section className="space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-theme-tertiary">Videos</h3>
+                  <div className="flex flex-col gap-4">
+                    {videos.map((vid) => (
+                      <div key={vid.id} className="rounded-xl overflow-hidden border border-theme bg-black relative">
+                        <video 
+                          src={vid.url} 
+                          controls 
+                          controlsList="nodownload" 
+                          disablePictureInPicture
+                          className="w-full h-auto max-h-[600px] object-contain"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </section>
               )}
             </>

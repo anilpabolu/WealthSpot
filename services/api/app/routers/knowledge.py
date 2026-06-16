@@ -26,8 +26,10 @@ router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 ALLOWED_PDF_TYPES = {"application/pdf"}
+ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/ogg", "video/quicktime"}
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 MAX_PDF_SIZE = 25 * 1024 * 1024  # 25 MB
+MAX_VIDEO_SIZE = 150 * 1024 * 1024  # 150 MB
 
 
 def _slugify(text: str) -> str:
@@ -63,6 +65,7 @@ class ArticleSummary(BaseModel):
     sort_order: int = 0
     image_count: int = 0
     pdf_count: int = 0
+    video_count: int = 0
 
 
 class ArticleDetail(ArticleSummary):
@@ -114,6 +117,7 @@ def _summary(art: KnowledgeArticle) -> ArticleSummary:
         sort_order=art.sort_order,
         image_count=sum(1 for a in assets if a.asset_type == "image"),
         pdf_count=sum(1 for a in assets if a.asset_type == "pdf"),
+        video_count=sum(1 for a in assets if a.asset_type == "video"),
     )
 
 
@@ -266,6 +270,8 @@ async def upload_assets(
             asset_type, max_size = "image", MAX_IMAGE_SIZE
         elif content_type in ALLOWED_PDF_TYPES:
             asset_type, max_size = "pdf", MAX_PDF_SIZE
+        elif content_type in ALLOWED_VIDEO_TYPES:
+            asset_type, max_size = "video", MAX_VIDEO_SIZE
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported file type: {content_type}")
 

@@ -24,6 +24,7 @@ function ArticleEditor({ article }: { article: KnowledgeArticleDetail }) {
   const dirty = title !== article.title || synopsis !== article.synopsis || body !== (article.body ?? '')
   const images = article.assets.filter((a) => a.assetType === 'image')
   const pdfs = article.assets.filter((a) => a.assetType === 'pdf')
+  const videos = article.assets.filter((a) => a.assetType === 'video')
 
   return (
     <div className="card p-4 space-y-3">
@@ -76,7 +77,7 @@ function ArticleEditor({ article }: { article: KnowledgeArticleDetail }) {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,application/pdf"
+              accept="image/*,application/pdf,video/*"
               multiple
               className="sr-only"
               onChange={(e) => {
@@ -129,6 +130,21 @@ function ArticleEditor({ article }: { article: KnowledgeArticleDetail }) {
             >
               <Trash2 className="h-4 w-4 text-red-400" />
             </button>
+          </div>
+        ))}
+        {videos.map((vid) => (
+          <div key={vid.id} className="relative group rounded-lg overflow-hidden border border-theme mb-3">
+            <video src={vid.url} className="w-full max-h-40 bg-black" controls controlsList="nodownload" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
+              <button
+                onClick={() => deleteAsset.mutate({ articleId: article.id, assetId: vid.id })}
+                title="Remove video"
+                className="p-1.5 rounded-full bg-white/90 text-red-500 pointer-events-auto"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <span className="absolute top-1 left-1 text-[9px] font-bold bg-theme-surface/80 px-1.5 py-0.5 rounded-full">VIDEO</span>
           </div>
         ))}
       </div>

@@ -5,7 +5,7 @@ import { api, apiDelete, apiGet, apiPatch, apiPost } from '@/lib/api'
 
 export interface KnowledgeAsset {
   id: string
-  assetType: 'image' | 'pdf'
+  assetType: 'image' | 'pdf' | 'video'
   url: string
   filename: string | null
   contentType: string | null
@@ -22,6 +22,7 @@ export interface KnowledgeArticleSummary {
   sortOrder: number
   imageCount: number
   pdfCount: number
+  videoCount: number
 }
 
 export interface KnowledgeArticleDetail extends KnowledgeArticleSummary {
