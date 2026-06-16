@@ -2,7 +2,7 @@ import { useControlDashboard } from '@/hooks/useControlCentre'
 import { useApprovalStats } from '@/hooks/useApprovals'
 import { ROLE_LABELS, type UserRole } from '@/lib/constants'
 import { ShieldMetricsCard } from '@/components/shield/ShieldMetricsCard'
-import { CenteredLoader, StatCard, SectionHeading } from './shared'
+import { CenteredLoader, StatCard, SectionHeading } from '../control/shared'
 
 export default function DashboardTab() {
   const { data, isLoading } = useControlDashboard()

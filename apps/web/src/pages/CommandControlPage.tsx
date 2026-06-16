@@ -11,7 +11,6 @@ import {
   Loader2,
   HelpCircle,
   Link2,
-  Gift,
   Kanban,
   ShieldCheck,
   Briefcase,
@@ -26,16 +25,13 @@ import {
 import MainLayout from '@/components/layout/MainLayout'
 import SectionErrorBoundary from '@/components/SectionErrorBoundary'
 import { useVaultConfig } from '@/hooks/useVaultConfig'
-import VaultAnalyticsDashboard from '@/pages/VaultAnalyticsDashboard'
 import ApprovalsPage from '@/pages/ApprovalsPage'
 import { AdminShieldReviewTab } from '@/components/shield/AdminShieldReviewTab'
 
-const DashboardTab = lazy(() => import('./control/DashboardTab'))
 const UsersTab = lazy(() => import('./control/UsersTab'))
 const AdminSettingsTab = lazy(() => import('./control/AdminSettingsTab'))
 const BuilderQuestionsTab = lazy(() => import('./control/BuilderQuestionsTab'))
 const CommMappingTab = lazy(() => import('./control/CommMappingTab'))
-const ReferralTrackingTab = lazy(() => import('./control/ReferralTrackingTab'))
 const EOIPipelineTab = lazy(() => import('./control/EOIPipelineTab'))
 const ImageManagementTab = lazy(() => import('./control/ImageManagementTab'))
 const VideoManagementTab = lazy(() => import('./control/VideoManagementTab'))
@@ -55,14 +51,11 @@ const CommPlatformTab = lazy(() => import('./control/CommPlatformTab'))
 /* ------------------------------------------------------------------ */
 
 type Section =
-  | 'dashboard'
-  | 'vault-analytics'
   | 'users'
   | 'admin-settings'
   | 'content'
   | 'builder-questions'
   | 'comm-mapping'
-  | 'referral-tracking'
   | 'eoi-pipeline'
   | 'media-management'
   | 'app-images'
@@ -81,10 +74,7 @@ type Section =
 type SideNavItem = { id: Section; label: string; icon: typeof LayoutDashboard; group?: string }
 
 const SECTIONS: SideNavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'Overview' },
-  { id: 'vault-analytics', label: 'Vault Analytics', icon: BarChart3, group: 'Overview' },
   { id: 'users', label: 'Users & Roles', icon: Users, group: 'Users' },
-  { id: 'referral-tracking', label: 'Referral Tracking', icon: Gift, group: 'Users' },
   { id: 'eoi-pipeline', label: 'EOI Pipeline', icon: Kanban, group: 'Operations' },
   { id: 'deal-lifecycle', label: 'Deal Lifecycle', icon: Briefcase, group: 'Operations' },
   { id: 'approvals', label: 'Approvals', icon: ClipboardCheck, group: 'Operations' },
@@ -131,7 +121,7 @@ const pillCls = (isActive: boolean) =>
 
 export default function CommandControlPage() {
   const [searchParams] = useSearchParams()
-  const initialSection = (searchParams.get('section') as Section) || 'dashboard'
+  const initialSection = (searchParams.get('section') as Section) || 'users'
   const [activeSection, setActiveSection] = useState<Section>(initialSection)
   const { videoManagementEnabled } = useVaultConfig()
   const visibleSections = useMemo(
@@ -217,14 +207,6 @@ export default function CommandControlPage() {
 
         {/* Content */}
         <main className="flex-1 p-4 sm:p-6 bg-[var(--bg-base)] min-w-0">
-          <SectionErrorBoundary fallbackTitle="Dashboard failed to load">
-            {activeSection === 'dashboard' && (
-              <Suspense fallback={<TabFallback />}><DashboardTab /></Suspense>
-            )}
-          </SectionErrorBoundary>
-          <SectionErrorBoundary fallbackTitle="Analytics failed to load">
-            {activeSection === 'vault-analytics' && <VaultAnalyticsDashboard />}
-          </SectionErrorBoundary>
           <SectionErrorBoundary fallbackTitle="Users section failed to load">
             {activeSection === 'users' && (
               <Suspense fallback={<TabFallback />}><UsersTab /></Suspense>
@@ -246,9 +228,7 @@ export default function CommandControlPage() {
             {activeSection === 'comm-mapping' && (
               <Suspense fallback={<TabFallback />}><CommMappingTab /></Suspense>
             )}
-            {activeSection === 'referral-tracking' && (
-              <Suspense fallback={<TabFallback />}><ReferralTrackingTab /></Suspense>
-            )}
+
             {activeSection === 'eoi-pipeline' && (
               <Suspense fallback={<TabFallback />}><EOIPipelineTab /></Suspense>
             )}

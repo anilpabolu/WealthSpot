@@ -8,6 +8,7 @@ GET  /{source_type}/{source_id}  — single source click count
 """
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -15,7 +16,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.middleware.auth import get_optional_user
 from app.models.source_click import SourceClick
+from app.models.user import User
+from app.models.user_visit_log import UserVisitLog
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +100,7 @@ async def increment_source_click(
     source_type: str,
     source_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
 ):
     """Atomically increment click_count for the given source.
 
@@ -118,6 +123,27 @@ async def increment_source_click(
     )
     result = await db.execute(stmt)
     new_count = result.scalar_one()
+
+    if user:
+        user_stmt = (
+            pg_insert(UserVisitLog)
+            .values(
+                user_id=user.id,
+                source_type=source_type,
+                source_id=source_id,
+                action="view",
+                visit_count=1,
+            )
+            .on_conflict_do_update(
+                constraint="uq_user_source_visit",
+                set_={
+                    "visit_count": UserVisitLog.visit_count + 1,
+                    "last_visited_at": datetime.now(UTC),
+                },
+            )
+        )
+        await db.execute(user_stmt)
+
     await db.flush()
 
     logger.info("source_click incremented: %s/%s → %d", source_type, source_id, new_count)

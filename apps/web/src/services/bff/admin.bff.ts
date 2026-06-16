@@ -58,4 +58,13 @@ export const adminBff = {
   async rejectProperty(propertyId: string, reason: string) {
     return apiPut<{ success: boolean }>(`/admin/properties/${propertyId}/reject`, { reason });
   },
+
+  /**
+   * Get user visit logs for dashboards.
+   */
+  async getUserVisits(page = 1, pageSize = 20) {
+    return apiGet<{ items: any[]; total: number }>("/admin/user-visits", {
+      params: { page, page_size: pageSize },
+    });
+  },
 };

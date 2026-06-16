@@ -59,12 +59,13 @@ const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetailPage'))
 const AdminReferrals = lazy(() => import('@/pages/AdminReferralsPage'))
 const VaultProfiling = lazy(() => import('@/pages/VaultProfilingPage'))
 const CreateOpportunity = lazy(() => import('@/pages/CreateOpportunityPage'))
-const VaultAnalytics = lazy(() => import('@/pages/VaultAnalyticsDashboard'))
+const VaultAnalytics = lazy(() => import('@/pages/reports/VaultAnalyticsDashboard'))
 const InviteAccept = lazy(() => import('@/pages/InviteAcceptPage'))
 const About = lazy(() => import('@/pages/AboutPage'))
 const HowWeWork = lazy(() => import('@/pages/HowWeWorkPage'))
 const IntrinsicValuePage = lazy(() => import('@/pages/IntrinsicValuePage'))
 const KnowledgeHubPage = lazy(() => import('@/pages/KnowledgeHubPage'))
+const DashboardsReports = lazy(() => import('@/pages/DashboardsReportsPage'))
 
 function PageLoader() {
   return (
@@ -238,6 +239,7 @@ export default function App() {
           {/* Approvals & Command Control */}
           <Route path="/approvals" element={<Navigate to="/control-centre?section=approvals" replace />} />
           <Route path="/control-centre" element={<ProtectedRoute><CommandControl /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><DashboardsReports /></ProtectedRoute>} />
 
           {/* Settings */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

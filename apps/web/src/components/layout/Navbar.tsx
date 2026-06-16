@@ -81,7 +81,9 @@ export default function Navbar(_props?: NavbarProps) {
     }
   }, [location.pathname])
 
+  const isAdminOrSuper = userRoles.includes('admin') || userRoles.includes('super_admin')
   const extraLinks = [
+    ...(isAdminOrSuper ? [{ label: 'Dashboards & Reports', href: '/reports' }] : []),
     ...(userRoles.includes('super_admin') ? [{ label: 'Control Centre', href: '/control-centre' }] : []),
   ]
   const filteredAuthLinks = AUTH_NAV_LINKS.filter((link) => {

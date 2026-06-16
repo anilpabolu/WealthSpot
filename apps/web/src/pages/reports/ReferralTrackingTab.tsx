@@ -6,7 +6,7 @@ import {
   type AdminReferralSummary as RefSummary,
 } from '@/hooks/useAdminReferrals'
 import { formatINR } from '@/lib/formatters'
-import { CenteredLoader } from './shared'
+import { CenteredLoader } from '../control/shared'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */

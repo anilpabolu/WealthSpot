@@ -389,7 +389,7 @@ export default function CreateOpportunityPage() {
   const { id: editId } = useParams<{ id: string }>()
   const isEditMode = Boolean(editId)
   const { data: editOpp, isLoading: editLoading } = useOpportunity(editId ?? '')
-  const hydratedRef = useRef(false)
+  const [isHydrated, setIsHydrated] = useState(false)
   const skipPropertyResetRef = useRef(false)
 
   // Block users who cannot create/edit listings
@@ -492,8 +492,8 @@ export default function CreateOpportunityPage() {
 
   // ─── Edit-mode hydration: map an existing opportunity onto wizard state ──────
   useEffect(() => {
-    if (!isEditMode || !editOpp || hydratedRef.current) return
-    hydratedRef.current = true
+    if (!isEditMode || !editOpp || isHydrated) return
+    setIsHydrated(true)
     const o = editOpp as OpportunityItem & Record<string, any>
     const str = (v: unknown) => (v === null || v === undefined ? '' : String(v))
 
@@ -621,7 +621,7 @@ export default function CreateOpportunityPage() {
       }
       setShieldAnswers(sa)
     }
-  }, [isEditMode, editOpp])
+  }, [isEditMode, editOpp, isHydrated])
 
   const fe = (key: string) => submitAttempted && !!formErrors[key]
 
@@ -1015,7 +1015,7 @@ export default function CreateOpportunityPage() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   // Edit mode: wait for the opportunity to load AND hydrate before showing the pre-filled form
-  if (isEditMode && (editLoading || (editOpp && !hydratedRef.current))) {
+  if (isEditMode && (editLoading || (editOpp && !isHydrated))) {
     return (
       <MainLayout>
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[var(--bg-base)]">

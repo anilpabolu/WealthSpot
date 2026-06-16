@@ -84,5 +84,6 @@ from app.models.site_content import SiteContent  # noqa: F401
 from app.models.source_click import SourceClick  # noqa: F401
 from app.models.user import BankDetail, KycDocument, KycStatus, User, UserRole  # noqa: F401
 from app.models.user_point import UserPoint  # noqa: F401
+from app.models.user_visit_log import UserVisitLog  # noqa: F401
 from app.models.vault_explorer import VaultExplorer  # noqa: F401
 from app.models.vault_feature_flag import VaultFeatureFlag  # noqa: F401
