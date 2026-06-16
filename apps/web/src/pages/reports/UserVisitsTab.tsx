@@ -6,15 +6,15 @@ import { Loader2 } from 'lucide-react'
 
 type UserVisitLog = {
   id: string
-  user_name: string | null
+  userName: string | null
   email: string | null
-  source_type: string
-  source_id: string
-  vault_name: string | null
-  property_name: string | null
+  sourceType: string
+  sourceId: string
+  vaultName: string | null
+  propertyName: string | null
   action: string
-  visit_count: number
-  last_visited_at: string | null
+  visitCount: number
+  lastVisitedAt: string | null
 }
 
 export default function UserVisitsTab() {
@@ -70,23 +70,23 @@ export default function UserVisitsTab() {
                   <tr key={row.id} className="hover:bg-[var(--bg-surface)] transition-colors">
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
                       <div>
-                        <p className="font-medium text-sm text-[var(--text-primary)]">{row.user_name || 'Anonymous'}</p>
+                        <p className="font-medium text-sm text-[var(--text-primary)]">{row.userName || 'Anonymous'}</p>
                         <p className="text-xs text-[var(--text-tertiary)]">{row.email}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
-                      <span className="font-semibold">{row.visit_count}</span>
+                      <span className="font-semibold">{row.visitCount}</span>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
                       <span className="text-sm whitespace-nowrap">
-                        {row.last_visited_at ? new Date(row.last_visited_at).toLocaleString() : 'N/A'}
+                        {row.lastVisitedAt ? new Date(row.lastVisitedAt).toLocaleString() : 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
-                      {row.vault_name || '-'}
+                      {row.vaultName || '-'}
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
-                      {row.property_name || '-'}
+                      {row.propertyName || '-'}
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10 capitalize">
