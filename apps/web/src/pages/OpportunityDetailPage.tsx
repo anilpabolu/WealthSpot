@@ -238,6 +238,52 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
   )
 }
 
+function getOpportunityInvestmentDisplay(
+  minInvestment: number | null | undefined,
+  propertySpecs: Record<string, unknown> | null | undefined
+): string {
+  const prices: number[] = []
+  if (minInvestment != null && minInvestment > 0) {
+    prices.push(minInvestment)
+  }
+
+  if (propertySpecs) {
+    const specs = convertKeysToSnake(propertySpecs) as Record<string, unknown>
+    const unitConfigs = specs.configurations as { price?: number; investment_amount?: number; price_per_sqft?: number; super_built_up_sqft?: number; carpet_area_sqft?: number }[] | undefined
+    const plotConfigs = specs.plot_configurations as { price?: number; investment_amount?: number; price_per_sqft?: number; area_sqft?: number }[] | undefined
+
+    if (unitConfigs?.length) {
+      unitConfigs.forEach(u => {
+        if (u.price != null && u.price > 0) prices.push(u.price)
+        else if (u.investment_amount != null && u.investment_amount > 0) prices.push(u.investment_amount)
+        else if (u.price_per_sqft && u.super_built_up_sqft) prices.push(u.price_per_sqft * u.super_built_up_sqft)
+        else if (u.price_per_sqft && u.carpet_area_sqft) prices.push(u.price_per_sqft * u.carpet_area_sqft)
+      })
+    } else if (plotConfigs?.length) {
+      plotConfigs.forEach(p => {
+        if (p.price != null && p.price > 0) prices.push(p.price)
+        else if (p.investment_amount != null && p.investment_amount > 0) prices.push(p.investment_amount)
+        else if (p.price_per_sqft && p.area_sqft) prices.push(p.price_per_sqft * p.area_sqft)
+      })
+    } else if (typeof specs.price_per_sqft === 'number' && typeof specs.total_project_area_sqft === 'number') {
+      prices.push(specs.price_per_sqft * specs.total_project_area_sqft)
+    }
+  }
+
+  if (prices.length > 0) {
+    const uniquePrices = Array.from(new Set(prices)).sort((a, b) => a - b)
+    const minPrice = uniquePrices[0]
+    if (minPrice !== undefined) {
+      if (uniquePrices.length > 1) {
+        return `Starting from ${formatINRCompact(minPrice)}`
+      } else {
+        return formatINRCompact(minPrice)
+      }
+    }
+  }
+  return '—'
+}
+
 /** Derive lifecycle ribbon from status + dates + funding */
 function getLifecycleRibbon(opp: { status: string; closingDate: string | null; raisedAmount: number; targetAmount: number | null }) {  if (opp.status === 'closed') return { label: 'CLOSED', color: 'bg-red-600' }
 
@@ -245,10 +291,13 @@ function getLifecycleRibbon(opp: { status: string; closingDate: string | null; r
   const daysLeft = closingDate ? Math.ceil((closingDate.getTime() - Date.now()) / 86400000) : null
   const fundedPct = opp.targetAmount ? (opp.raisedAmount / opp.targetAmount) * 100 : 0
 
+  if (opp.status === 'closed' || (daysLeft !== null && daysLeft <= 0))
+    return { label: 'CLOSED', color: 'bg-red-600' }
+
   if ((daysLeft !== null && daysLeft <= 7 && daysLeft > 0) || fundedPct >= 90)
     return { label: 'CLOSING SOON', color: 'bg-orange-500' }
 
-  if (['active', 'funding', 'live'].includes(opp.status))
+  if (['active', 'funding', 'live'].includes(opp.status) && (daysLeft === null || daysLeft > 0))
     return { label: 'LIVE', color: 'bg-green-600' }
 
   if (['approved', 'pending_approval', 'upcoming'].includes(opp.status))
@@ -484,7 +533,7 @@ function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string
 function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null; propertyType?: string | null; propertySpecs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
-  const isClosed = opportunity.status === 'closed'
+  const isClosed = opportunity.status === 'closed' || (opportunity.closingDate && daysLeft <= 0)
   const isUrgent = daysLeft > 0 && daysLeft <= 10
 
   return (
@@ -499,7 +548,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
             style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)' }} />
           <div className="relative z-10">
             <div className="flex items-center justify-end mb-4">
-              {daysLeft > 0 && (
+              {daysLeft > 0 && !isClosed ? (
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
                   isUrgent
                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
@@ -507,38 +556,15 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
                 }`}>
                   <Clock className="h-3.5 w-3.5" /> {daysLeft} days left
                 </span>
-              )}
+              ) : isClosed ? (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 bg-red-500/20 text-red-300 border border-red-500/30">
+                  Closed
+                </span>
+              ) : null}
             </div>
             <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-1.5">Investment</p>
             <p className="font-mono font-bold text-xl leading-tight" style={{ color: '#D4AF37' }}>
-              {(() => {
-                let display = opportunity.minInvestment != null ? formatINRCompact(opportunity.minInvestment) : '—'
-                const rawSpecs = opportunity.propertySpecs || opportunity.property_specs
-                if (rawSpecs) {
-                  const specs = convertKeysToSnake(rawSpecs) as Record<string, unknown>
-                  const unitConfigs = specs.configurations as { price_per_sqft?: number; super_built_up_sqft?: number }[] | undefined
-                  const plotConfigs = specs.plot_configurations as { price_per_sqft?: number; area_sqft?: number }[] | undefined
-
-                  const prices: number[] = []
-                  if (unitConfigs?.length) {
-                    unitConfigs.forEach(u => {
-                      if (u.price_per_sqft && u.super_built_up_sqft) prices.push(u.price_per_sqft * u.super_built_up_sqft)
-                    })
-                  } else if (plotConfigs?.length) {
-                    plotConfigs.forEach(p => {
-                      if (p.price_per_sqft && p.area_sqft) prices.push(p.price_per_sqft * p.area_sqft)
-                    })
-                  } else if (typeof specs.price_per_sqft === 'number' && typeof specs.total_project_area_sqft === 'number') {
-                    prices.push(specs.price_per_sqft * specs.total_project_area_sqft)
-                  }
-
-                  if (prices.length > 0) {
-                    const uniquePrices = Array.from(new Set(prices)).sort((a, b) => a - b)
-                    display = uniquePrices.map(p => formatINRCompact(p)).join(' / ')
-                  }
-                }
-                return display
-              })()}
+              {getOpportunityInvestmentDisplay(opportunity.minInvestment, opportunity.propertySpecs || opportunity.property_specs)}
             </p>
             {opportunity.investorCount > 0 && (
               <p className="mt-2.5 text-white/40 text-[11px] flex items-center gap-1.5">
@@ -787,15 +813,17 @@ export default function OpportunityDetailPage() {
           </div>
 
           {/* Quick-stats strip at the bottom of hero */}
-          {(opp.minInvestment || opp.closingDate) && (
+          {((opp.minInvestment != null || opp.propertySpecs || opp.property_specs) || opp.closingDate) && (
             <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-10">
-              {opp.minInvestment && (
+              {(opp.minInvestment != null || opp.propertySpecs || opp.property_specs) && (
                 <div>
-                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Min. Investment</p>
-                  <p className="font-mono font-bold text-xl text-white">{formatINRCompact(opp.minInvestment)}</p>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Investment</p>
+                  <p className="font-mono font-bold text-xl text-white">
+                    {getOpportunityInvestmentDisplay(opp.minInvestment, opp.propertySpecs || opp.property_specs)}
+                  </p>
                 </div>
               )}
-              {opp.closingDate && (
+              {opp.closingDate && daysRemaining(opp.closingDate) > 0 ? (
                 <div>
                   <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Deal closes in</p>
                   <p className="font-bold text-xl text-white">
@@ -803,7 +831,12 @@ export default function OpportunityDetailPage() {
                     <span className="text-sm font-normal text-white/50">days</span>
                   </p>
                 </div>
-              )}
+              ) : opp.closingDate && daysRemaining(opp.closingDate) <= 0 ? (
+                <div>
+                  <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Status</p>
+                  <p className="font-bold text-xl text-red-400">Closed</p>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

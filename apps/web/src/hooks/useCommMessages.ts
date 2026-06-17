@@ -70,7 +70,7 @@ export function useCommDashboard(periodDays = 7) {
   return useQuery({
     queryKey: ['comm', 'dashboard', periodDays],
     queryFn: () =>
-      apiGet<CommDashboardKpis>('/comm/dashboard', { params: { period_days: periodDays } }),
+      apiGet<CommDashboardKpis>('/comm/dashboard/kpis', { params: { days: periodDays } }),
     staleTime: 30_000,
     refetchInterval: 60_000,
   })

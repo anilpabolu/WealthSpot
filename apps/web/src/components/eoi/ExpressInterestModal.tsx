@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Toggle, Select, Input, Textarea } from '@/components/ui'
 import {
-  X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle,
-  CheckCheck, Info, Phone,
+  X, CheckCircle2, Loader2, HandCoins, MessageSquare, AlertTriangle, Info,
 } from 'lucide-react'
 import {
   useBuilderQuestions, useSubmitEOI, useConnectWithBuilder, useEOIs, useEOIFormOptions,
@@ -98,34 +97,7 @@ function ChipSelect({
 
 // ── SelectedConfigBanner ──────────────────────────────────────────────────
 
-function SelectedConfigBanner({ cfg }: { cfg: UnitCfg | PlotCfg }) {
-  const isUnit = 'super_built_up_sqft' in cfg && !('total_plots' in cfg)
-  const label = isUnit ? getUnitLabel(cfg as UnitCfg) : (cfg as PlotCfg).type
-  const areaText = isUnit
-    ? ((cfg as UnitCfg).super_built_up_sqft != null
-        ? `${(cfg as UnitCfg).super_built_up_sqft!.toLocaleString('en-IN')} sqft super built-up`
-        : '')
-    : ((cfg as PlotCfg).area_sqft != null
-        ? `${(cfg as PlotCfg).area_sqft!.toLocaleString('en-IN')} sqft`
-        : '')
-  const total = isUnit
-    ? computeUnitTotal(cfg as UnitCfg)
-    : ((cfg as PlotCfg).area_sqft != null && (cfg as PlotCfg).price_per_sqft != null
-        ? (cfg as PlotCfg).area_sqft! * (cfg as PlotCfg).price_per_sqft!
-        : null)
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
-      <CheckCheck className="h-4 w-4 text-primary shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-primary truncate">{label}</p>
-        {areaText && <p className="text-xs text-theme-secondary truncate">{areaText}</p>}
-      </div>
-      {total != null && (
-        <p className="text-sm font-bold text-primary shrink-0">{formatLakhs(total)}</p>
-      )}
-    </div>
-  )
-}
+
 
 interface Props {
   opportunityId: string
@@ -137,7 +109,7 @@ interface Props {
   onClose: () => void
 }
 
-type Step = 'confirm' | 'consent' | 'config' | 'form' | 'success'
+type Step = 'confirm' | 'consent' | 'form' | 'success'
 
 export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, propertyType: _propertyType, unitConfigs: rawUnitConfigs, plotConfigs: rawPlotConfigs, onClose }: Props) {
   const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
@@ -145,23 +117,55 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
   // The api-client camelCases nested response keys; normalize back to the snake_case
   // these config readers expect (idempotent on already-snake payloads).
-  const unitConfigs = (convertKeysToSnake(rawUnitConfigs ?? []) ?? []) as UnitCfg[]
-  const plotConfigs = (convertKeysToSnake(rawPlotConfigs ?? []) ?? []) as PlotCfg[]
-  const hasConfigs = unitConfigs.length > 0 || plotConfigs.length > 0
+  const unitConfigs = useMemo(() => (convertKeysToSnake(rawUnitConfigs ?? []) ?? []) as UnitCfg[], [rawUnitConfigs])
+  const plotConfigs = useMemo(() => (convertKeysToSnake(rawPlotConfigs ?? []) ?? []) as PlotCfg[], [rawPlotConfigs])
 
   // Sort unit configs by super built-up area ascending
-  const sortedUnitConfigs = [...unitConfigs].sort(
+  const sortedUnitConfigs = useMemo(() => [...unitConfigs].sort(
     (a, b) => (a.super_built_up_sqft ?? 0) - (b.super_built_up_sqft ?? 0)
-  )
+  ), [unitConfigs])
 
   const [step, setStep] = useState<Step>('consent')
   const [eoiId, setEoiId] = useState<string | null>(null)
-  const [selectedConfig, setSelectedConfig] = useState<UnitCfg | PlotCfg | null>(null)
-  const [configError, setConfigError] = useState(false)
+
+  const configOptions = useMemo(() => {
+    const opts: { value: string; label: string; amount: number; cfg: UnitCfg | PlotCfg; detailLabel: string }[] = []
+    
+    sortedUnitConfigs.forEach((u, i) => {
+      const total = computeUnitTotal(u)
+      const amt = total ?? minInvestment
+      const uLabel = getUnitLabel(u)
+      opts.push({
+        value: `unit-${i}`,
+        label: `${uLabel} — ${formatLakhs(amt)}`,
+        detailLabel: uLabel,
+        amount: amt,
+        cfg: u
+      })
+    })
+    
+    plotConfigs.forEach((p, i) => {
+      const total = p.area_sqft != null && p.price_per_sqft != null ? p.area_sqft * p.price_per_sqft : null
+      const amt = total ?? minInvestment
+      opts.push({
+        value: `plot-${i}`,
+        label: `${p.type} — ${formatLakhs(amt)}`,
+        detailLabel: p.type,
+        amount: amt,
+        cfg: p
+      })
+    })
+    return opts
+  }, [sortedUnitConfigs, plotConfigs, minInvestment])
+
+  const [selectedConfigValue, setSelectedConfigValue] = useState<string>('')
+  
+  const activeConfigOption = configOptions.find(o => o.value === selectedConfigValue)
+  const selectedConfig = activeConfigOption ? activeConfigOption.cfg : null
 
   // Show confirmation step if user already has EOIs for this property
   useEffect(() => {
-    if (!eoisLoading && hasExistingInvestment && (step === 'consent' || step === 'form' || step === 'config')) {
+    if (!eoisLoading && hasExistingInvestment && (step === 'consent' || step === 'form')) {
       setStep('confirm')
     }
   }, [eoisLoading, hasExistingInvestment]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -174,17 +178,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
   const contactOptions = (formOptions?.preferredContact ?? []).map(o => ({ value: o.value, label: o.label }))
 
   // Computed investment amount from selected config; fallback to minInvestment
-  const computedInvestment: number = (() => {
-    if (selectedConfig && 'super_built_up_sqft' in selectedConfig) {
-      const u = selectedConfig as UnitCfg
-      if (u.super_built_up_sqft != null && u.price_per_sqft != null) return u.super_built_up_sqft * u.price_per_sqft
-    }
-    if (selectedConfig && 'area_sqft' in selectedConfig) {
-      const p = selectedConfig as PlotCfg
-      if (p.area_sqft != null && p.price_per_sqft != null) return p.area_sqft * p.price_per_sqft
-    }
-    return minInvestment
-  })()
+  const computedInvestment: number = activeConfigOption ? activeConfigOption.amount : (configOptions.length === 1 ? (configOptions[0]?.amount ?? minInvestment) : minInvestment)
 
   // Platform questions state
   const [timeline, setTimeline] = useState('')
@@ -263,13 +257,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     }
   }
 
-  const proceedToForm = () => {
-    if (hasConfigs && !selectedConfig) {
-      setConfigError(true)
-      return
-    }
-    setStep('form')
-  }
+
 
   const handleConnect = async () => {
     if (!eoiId) return
@@ -291,7 +279,6 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
           <h2 className="font-display text-lg font-bold text-theme-primary">
             {step === 'confirm' ? 'Already Expressed Interest'
               : step === 'consent' ? 'Platform Agreements'
-              : step === 'config' ? 'Choose Your Configuration'
               : step === 'form' ? 'Express Your Interest'
               : 'Thank You!'}
           </h2>
@@ -394,141 +381,11 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             <Toggle checked={communicationConsent} onChange={setCommunicationConsent} label="I consent to receive communication regarding this opportunity." size="sm" />
             
             <button
-              onClick={() => setStep(hasConfigs ? 'config' : 'form')}
+              onClick={() => setStep('form')}
               disabled={!regulatoryAccepted || !privacyAccepted}
               className="btn-primary w-full py-3 text-base flex justify-center items-center"
             >
               Accept & Continue
-            </button>
-          </div>
-        )}
-
-        {step === 'config' && (
-          <div className="p-6 space-y-5">
-            <p className="text-sm text-theme-secondary">
-              Select the BHK / unit configuration you are interested in for <span className="font-semibold text-theme-primary">{opportunityTitle}</span>.
-            </p>
-
-            {sortedUnitConfigs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">BHK / Unit Configurations</p>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {sortedUnitConfigs.map((u, i) => {
-                    const isSelected = selectedConfig === u
-                    const total = computeUnitTotal(u)
-                    const label = getUnitLabel(u)
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => { setSelectedConfig(u); setConfigError(false) }}
-                        className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
-                          isSelected ? 'border-primary bg-primary/5 shadow-md' : 'border-theme hover:border-primary/50'
-                        }`}
-                      >
-                        {isSelected && (
-                          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                            <CheckCheck className="h-3 w-3" /> Selected
-                          </span>
-                        )}
-                        <p className={`text-base font-bold mb-3 ${isSelected ? 'text-primary' : 'text-theme-primary'}`}>🏠 {label}</p>
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3">
-                          {u.super_built_up_sqft != null && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Super BUA</p>
-                              <p className="text-xs font-semibold text-theme-primary">{u.super_built_up_sqft.toLocaleString('en-IN')} sqft</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-theme">
-                          {u.price_per_sqft != null && (
-                            <p className="text-xs text-theme-secondary">₹{u.price_per_sqft.toLocaleString('en-IN')}<span className="text-theme-tertiary">/sqft</span></p>
-                          )}
-                          {total != null && (
-                            <p className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                              {formatLakhs(total)}
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {plotConfigs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-theme-tertiary uppercase tracking-wider">Plot Configurations</p>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {plotConfigs.map((p, i) => {
-                    const isSelected = selectedConfig === p
-                    const total = p.area_sqft != null && p.price_per_sqft != null
-                      ? p.area_sqft * p.price_per_sqft : null
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => { setSelectedConfig(p); setConfigError(false) }}
-                        className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
-                          isSelected ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20 shadow-md' : 'border-theme hover:border-amber-400/50'
-                        }`}
-                      >
-                        {isSelected && (
-                          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
-                            <CheckCheck className="h-3 w-3" /> Selected
-                          </span>
-                        )}
-                        <p className={`text-base font-bold mb-3 ${isSelected ? 'text-amber-700 dark:text-amber-400' : 'text-theme-primary'}`}>🌿 {p.type}</p>
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3">
-                          {p.area_sqft != null && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Area (sqft)</p>
-                              <p className="text-xs font-semibold text-theme-primary">{p.area_sqft.toLocaleString('en-IN')}</p>
-                            </div>
-                          )}
-                          {p.area_sqyd != null && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Area (sq.yd)</p>
-                              <p className="text-xs font-semibold text-theme-primary">{p.area_sqyd.toLocaleString('en-IN')}</p>
-                            </div>
-                          )}
-                          {(p.available_plots ?? p.total_plots) != null && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-theme-tertiary uppercase">Plots</p>
-                              <p className="text-xs font-semibold text-theme-primary">{p.available_plots ?? p.total_plots}</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-theme">
-                          {p.price_per_sqft != null && (
-                            <p className="text-xs text-theme-secondary">₹{p.price_per_sqft.toLocaleString('en-IN')}<span className="text-theme-tertiary">/sqft</span></p>
-                          )}
-                          {total != null && (
-                            <p className={`text-sm font-bold ${isSelected ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                              {formatLakhs(total)}
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {configError && (
-              <p className="text-xs text-red-500 font-medium flex items-center gap-1">
-                <Info className="h-3.5 w-3.5" /> Please select a configuration to continue.
-              </p>
-            )}
-
-            <button
-              onClick={proceedToForm}
-              className="btn-primary w-full py-3 flex items-center justify-center gap-2"
-            >
-              <Phone className="h-4 w-4" />
-              Continue with Selected Configuration
             </button>
           </div>
         )}
@@ -539,20 +396,46 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
               Interested in <span className="font-semibold text-theme-primary">{opportunityTitle}</span>? Fill in the details below to express your interest. Your contact details will not be shared.
             </p>
 
-            {/* Selected config summary banner */}
-            {selectedConfig && <SelectedConfigBanner cfg={selectedConfig} />}
-
-            {/* Investment Amount – computed from selection or min investment */}
-            <div>
-              <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">Investment Amount (₹)</label>
-              <div className="w-full px-3 py-2.5 text-sm border border-theme rounded-lg font-mono bg-[var(--bg-surface-hover)] text-theme-primary flex items-center justify-between">
-                <span>{computedInvestment.toLocaleString('en-IN')}</span>
-                <span className="text-[11px] text-primary font-semibold">{formatLakhs(computedInvestment)}</span>
+            {/* Investment Amount Selection */}
+            {configOptions.length > 1 ? (
+              <div className="space-y-4 rounded-xl border border-theme bg-theme-surface-hover/30 p-4">
+                <div>
+                  <label className="text-xs font-semibold text-theme-secondary uppercase mb-1.5 block">Select Configuration</label>
+                  <Select
+                    value={selectedConfigValue}
+                    onChange={setSelectedConfigValue}
+                    options={configOptions.map(o => ({ value: o.value, label: o.label }))}
+                    placeholder="Choose BHK / Unit Type..."
+                  />
+                </div>
+                {activeConfigOption && (
+                  <div className="flex items-center justify-between pt-3 border-t border-theme border-dashed">
+                    <div>
+                      <p className="text-[10px] font-semibold text-theme-tertiary uppercase mb-0.5">Configuration</p>
+                      <p className="text-sm font-bold text-theme-primary">{activeConfigOption.detailLabel}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-semibold text-theme-tertiary uppercase mb-0.5">Investment</p>
+                      <p className="text-sm font-bold text-primary">{formatLakhs(computedInvestment)}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-[11px] text-theme-tertiary mt-1">
-                {selectedConfig ? 'Computed from your selected configuration' : 'Minimum investment for this property'}
-              </p>
-            </div>
+            ) : (
+              <div>
+                <label className="text-xs font-semibold text-theme-secondary uppercase mb-1 block">
+                  {configOptions.length === 1 ? 'Investment Amount (₹) - ' + (configOptions[0]?.detailLabel ?? '') : 'Investment Amount (₹)'}
+                </label>
+                <div className="w-full px-4 py-3 text-sm border border-theme rounded-xl font-mono bg-[var(--bg-surface-hover)] text-theme-primary flex items-center justify-between shadow-inner">
+                  <span className="font-semibold text-lg">{computedInvestment.toLocaleString('en-IN')}</span>
+                  <span className="text-xs text-primary font-bold px-2 py-1 bg-primary/10 rounded-md">{formatLakhs(computedInvestment)}</span>
+                </div>
+                <p className="text-[11px] text-theme-tertiary mt-1.5 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  {configOptions.length === 1 ? 'Fixed amount for this configuration' : 'Minimum investment required for this property'}
+                </p>
+              </div>
+            )}
 
             {/* DB-driven form options */}
             {(optionsLoading || (optionsFetching && !timelineOptions.length)) ? (
@@ -651,7 +534,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
             {/* Submit */}
             <button
               onClick={handleSubmit}
-              disabled={submitEOI.isPending || recordConsent.isPending}
+              disabled={submitEOI.isPending || recordConsent.isPending || (configOptions.length > 1 && !selectedConfigValue)}
               className="btn-primary w-full py-3 text-base inline-flex items-center justify-center gap-2"
             >
               {(submitEOI.isPending || recordConsent.isPending) ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCoins className="h-5 w-5" />}
