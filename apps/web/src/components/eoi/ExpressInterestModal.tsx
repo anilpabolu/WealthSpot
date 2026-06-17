@@ -151,15 +151,17 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     })
     
     plotConfigs.forEach((p, i) => {
-      const total = p.area_sqft != null && p.price_per_sqft != null ? p.area_sqft * p.price_per_sqft : null
+      const total = computePlotTotal(p)
       const amt = total ?? minInvestment
-      opts.push({
-        value: `plot-${i}`,
-        label: `${p.type} — ${formatLakhs(amt)}`,
-        detailLabel: p.type,
-        amount: amt,
-        cfg: p
-      })
+      if (amt && amt > 0) {
+        opts.push({
+          value: `plot-${i}`,
+          label: `${p.type || 'Plot Configuration'} — ${formatLakhs(amt)}`,
+          detailLabel: p.type || 'Plot Configuration',
+          amount: amt,
+          cfg: p
+        })
+      }
     })
     return opts
   }, [sortedUnitConfigs, plotConfigs, minInvestment])
