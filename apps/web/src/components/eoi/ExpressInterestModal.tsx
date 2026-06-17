@@ -56,6 +56,15 @@ function computeUnitTotal(cfg: UnitCfg): number | null {
   return null
 }
 
+function computePlotTotal(cfg: PlotCfg): number | null {
+  if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
+  if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
+  if (cfg.area_sqft != null && cfg.price_per_sqft != null) {
+    return Number(cfg.area_sqft) * Number(cfg.price_per_sqft)
+  }
+  return null
+}
+
 // ── ChipSelect ────────────────────────────────────────────────────────────
 
 function ChipSelect({
