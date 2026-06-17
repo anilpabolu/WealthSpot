@@ -20,16 +20,20 @@ export type UnitCfg = {
   type?: string
   super_built_up_sqft?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 
 export type PlotCfg = {
-  type: string
+  type?: string
   area_sqft?: number
   area_sqyd?: number
   area_guntha?: number
   total_plots?: number
   available_plots?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -44,8 +48,10 @@ function getUnitLabel(cfg: UnitCfg): string {
 }
 
 function computeUnitTotal(cfg: UnitCfg): number | null {
+  if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
+  if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
   if (cfg.super_built_up_sqft != null && cfg.price_per_sqft != null) {
-    return cfg.super_built_up_sqft * cfg.price_per_sqft
+    return Number(cfg.super_built_up_sqft) * Number(cfg.price_per_sqft)
   }
   return null
 }

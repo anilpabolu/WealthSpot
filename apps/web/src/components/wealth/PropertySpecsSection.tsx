@@ -16,12 +16,16 @@ type UnitCfg = {
   type: string
   super_built_up_sqft?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 type PlotCfg = {
   type: string
   area_sqft?: number
   total_plots?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 
 /* ── Constants ────────────────────────────────────────────────────── */
@@ -230,7 +234,9 @@ export function PropertySpecsSection({
                 </thead>
                 <tbody>
                   {unitConfigs.map((u, i) => {
-                    const uTotal = u.super_built_up_sqft && u.price_per_sqft ? (u.super_built_up_sqft * u.price_per_sqft) : null
+                    const uTotal = (u.price != null && Number(u.price) > 0) ? Number(u.price) :
+                      (u.investment_amount != null && Number(u.investment_amount) > 0) ? Number(u.investment_amount) :
+                      (u.super_built_up_sqft && u.price_per_sqft) ? (Number(u.super_built_up_sqft) * Number(u.price_per_sqft)) : null
                     const displayCost = uTotal ? (uTotal >= 1e7 ? `₹${(uTotal / 1e7).toFixed(2)} Cr` : `₹${(uTotal / 1e5).toFixed(2)} L`) : '—'
                     return (
                       <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
@@ -288,9 +294,11 @@ export function PropertySpecsSection({
                 </thead>
                 <tbody>
                   {plotConfigs.map((p, i) => {
-                    const sqyd = p.area_sqft ? (p.area_sqft / 9).toFixed(1) : '—'
-                    const guntha = p.area_sqft ? (p.area_sqft / 1089).toFixed(3) : '—'
-                    const pTotal = p.area_sqft && p.price_per_sqft ? (p.area_sqft * p.price_per_sqft) : null
+                    const sqyd = p.area_sqft ? (Number(p.area_sqft) / 9).toFixed(1) : '—'
+                    const guntha = p.area_sqft ? (Number(p.area_sqft) / 1089).toFixed(3) : '—'
+                    const pTotal = (p.price != null && Number(p.price) > 0) ? Number(p.price) :
+                      (p.investment_amount != null && Number(p.investment_amount) > 0) ? Number(p.investment_amount) :
+                      (p.area_sqft && p.price_per_sqft) ? (Number(p.area_sqft) * Number(p.price_per_sqft)) : null
                     const displayPCost = pTotal ? (pTotal >= 1e7 ? `₹${(pTotal / 1e7).toFixed(2)} Cr` : `₹${(pTotal / 1e5).toFixed(2)} L`) : '—'
                     return (
                       <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-theme-surface/50'}>
