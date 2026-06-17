@@ -23,6 +23,15 @@ vi.mock('@/hooks/usePortfolio', () => ({
   useRecentTransactions: vi.fn(),
   useVaultWisePortfolio: vi.fn(),
   usePortfolioHoldings: vi.fn(),
+  useInvestmentLedger: vi.fn(),
+  useCreateLedgerEntry: vi.fn(),
+  useUpdateLedgerEntry: vi.fn(),
+  useDeleteLedgerEntry: vi.fn(),
+  useLedgerAssetOptions: vi.fn(),
+  useUploadLedgerDocument: vi.fn(),
+  useDeleteLedgerDocument: vi.fn(),
+  useLedgerDocumentUrl: vi.fn(),
+  useSaveLedgerOverlay: vi.fn(),
   useSnapshotConfig: vi.fn(),
   useOpportunityAppreciationHistory: vi.fn(),
   type: {} as never,
@@ -54,12 +63,16 @@ vi.mock('@/stores/user.store', () => ({
 }))
 
 import PortfolioPage from '@/pages/PortfolioPage'
-import { usePortfolioSummary, usePortfolioProperties, useRecentTransactions, useVaultWisePortfolio, usePortfolioHoldings, useSnapshotConfig, useOpportunityAppreciationHistory } from '@/hooks/usePortfolio'
+import { usePortfolioSummary, usePortfolioProperties, useRecentTransactions, useVaultWisePortfolio, usePortfolioHoldings, useSnapshotConfig, useOpportunityAppreciationHistory, useInvestmentLedger } from '@/hooks/usePortfolio'
 import { useOverallProgress } from '@/hooks/useProfiling'
 
 describe('PortfolioPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useInvestmentLedger).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as never)
     vi.mocked(useOverallProgress).mockReturnValue({
       data: { vaults: { wealth: { isComplete: true } } },
       isLoading: false,
