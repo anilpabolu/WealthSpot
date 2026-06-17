@@ -11,7 +11,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "strict": true,
-    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["../../apps/mobile/src/*"]

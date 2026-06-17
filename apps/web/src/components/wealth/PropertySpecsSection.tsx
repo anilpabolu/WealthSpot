@@ -73,7 +73,7 @@ export function PropertySpecsSection({
   // The api-client camelCases nested response keys; normalize back to the canonical
   // snake_case this component reads (idempotent on already-snake payloads).
   const specs = (convertKeysToSnake(rawSpecs ?? {}) ?? {}) as Record<string, unknown>
-  const rawUnitConfigs = (specs.configurations as UnitCfg[] | undefined) ?? []
+  const rawUnitConfigs = ((specs.configurations ?? specs.unit_configurations) as UnitCfg[] | undefined) ?? []
   // Sort unit configs ascending by super built-up area
   const unitConfigs = [...rawUnitConfigs].sort(
     (a, b) => (a.super_built_up_sqft ?? 0) - (b.super_built_up_sqft ?? 0)

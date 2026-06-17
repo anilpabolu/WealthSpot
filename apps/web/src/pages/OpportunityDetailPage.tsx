@@ -617,7 +617,7 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
           opportunityTitle={opportunity.title}
           minInvestment={opportunity.minInvestment ?? 0}
           propertyType={opportunity.propertyType ?? opportunity.property_type ?? undefined}
-          unitConfigs={((opportunity.propertySpecs ?? opportunity.property_specs)?.configurations as unknown[]) ?? undefined}
+          unitConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.configurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unitConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unit_configurations) as unknown[]) ?? undefined}
           plotConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.plotConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.plot_configurations) as unknown[]) ?? undefined}
           onClose={() => setShowEOI(false)}
         />

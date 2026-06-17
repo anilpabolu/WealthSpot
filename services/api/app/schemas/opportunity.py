@@ -27,6 +27,8 @@ class UnitConfiguration(BaseModel):
     floors: int | None = None  # for villas / duplex
     available_units: int | None = None
     price_per_sqft: float | None = None
+    price: float | None = None
+    investment_amount: float | None = None
 
 
 class PlotConfiguration(BaseModel):
@@ -43,6 +45,8 @@ class PlotConfiguration(BaseModel):
     total_plots: int | None = None
     price_per_sqft: float | None = None
     price_per_sqyd: float | None = None
+    price: float | None = None
+    investment_amount: float | None = None
 
 
 class AreaConversions(BaseModel):
