@@ -64,6 +64,9 @@ export interface OpportunityItem {
   pitchDeckUrl: string | null
   communityType: string | null
   collaborationType: string | null
+  whyInvestors?: string | null
+  investmentThesis?: string | null
+  riskFactors?: string | null
   // Property specification fields
   propertyType?: string
   pricePerSqft?: number

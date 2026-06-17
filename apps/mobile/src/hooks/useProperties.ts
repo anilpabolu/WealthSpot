@@ -56,6 +56,9 @@ interface ApiProperty {
   launchDate?: string
   createdAt: string
   updatedAt?: string
+  whyInvestors?: string | null
+  investmentThesis?: string | null
+  riskFactors?: string | null
   // Property specification fields
   propertyType?: string
   pricePerSqft?: number
@@ -119,6 +122,9 @@ export interface Property {
   referrerUserId: string
   documents: { name: string; url: string; type: string }[]
   createdAt: string
+  whyInvestors?: string | null
+  investmentThesis?: string | null
+  riskFactors?: string | null
   // Property specification fields
   propertyType?: string
   pricePerSqft?: number
@@ -180,6 +186,9 @@ function mapProperty(p: ApiProperty): Property {
     referrerUserId: p.referrerUserId ?? '',
     documents: [],
     createdAt: p.createdAt,
+    whyInvestors: p.whyInvestors,
+    investmentThesis: p.investmentThesis,
+    riskFactors: p.riskFactors,
     propertyType: p.propertyType,
     pricePerSqft: p.pricePerSqft != null ? Number(p.pricePerSqft) : undefined,
     totalProjectAreaSqft: p.totalProjectAreaSqft != null ? Number(p.totalProjectAreaSqft) : undefined,

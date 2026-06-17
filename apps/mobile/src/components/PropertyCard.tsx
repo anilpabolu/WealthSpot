@@ -38,13 +38,13 @@ export default function PropertyCard({
       className="rounded-3xl overflow-hidden mb-3"
       style={{
         backgroundColor: isDark ? colors.bgSurface : '#FFFFFF',
-        borderWidth: isDark ? 1 : 2,
-        borderColor: isDark ? colors.cardBorder : '#E5E7EB',
-        shadowColor: isDark ? '#D4AF37' : '#000',
-        shadowOpacity: isDark ? 0.06 : 0.06,
-        shadowRadius: isDark ? 12 : 4,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.45)',
+        shadowColor: 'rgba(212, 175, 55, 1)',
+        shadowOpacity: isDark ? 0.22 : 0.13,
+        shadowRadius: isDark ? 16 : 8,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: isDark ? 8 : 4,
       }}
       activeOpacity={0.8}
       onPress={() => router.push(`/property/${slug}`)}

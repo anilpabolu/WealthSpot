@@ -8,6 +8,7 @@ import { Link, useLocalSearchParams } from 'expo-router'
 import { useState, useMemo } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+const StyledLinearGradient = LinearGradient as any
 import { formatINR } from '@/lib/formatters'
 import { useProperties, type Property } from '@/hooks/useProperties'
 import { useMarketplaceStore } from '@/stores/marketplace.store'
@@ -221,7 +222,7 @@ export default function MarketplaceScreen() {
           <View>
             {/* Vault-aware hero with gradient + carousel */}
             <FadeInView delay={180}>
-              <LinearGradient
+              <StyledLinearGradient
                 colors={hero.gradientColors}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -256,7 +257,7 @@ export default function MarketplaceScreen() {
 
               {/* Carousel */}
                 <ShieldHeroCarousel />
-              </LinearGradient>
+              </StyledLinearGradient>
             </FadeInView>
 
             {isLoading ? (

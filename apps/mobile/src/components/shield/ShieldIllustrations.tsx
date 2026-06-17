@@ -14,10 +14,10 @@ import Svg, {
   Rect,
   Text as SvgText,
 } from 'react-native-svg'
-import type { ViewStyle } from 'react-native'
+import type { StyleProp, ViewStyle } from 'react-native'
 
 interface IllustrationProps {
-  style?: ViewStyle
+  style?: any
   size?: number
 }
 

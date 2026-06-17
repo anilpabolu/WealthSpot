@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
+const StyledAnimatedView = Animated.View as any
 import type { ViewStyle } from 'react-native'
 
 interface FadeInViewProps {
@@ -18,7 +19,7 @@ interface FadeInViewProps {
   delay?: number
   duration?: number
   translateY?: number
-  style?: ViewStyle
+  style?: any
   className?: string
 }
 
@@ -45,8 +46,8 @@ export function FadeInView({
   }))
 
   return (
-    <Animated.View style={[animatedStyle, style]} className={className}>
+    <StyledAnimatedView style={[animatedStyle, style]} className={className}>
       {children}
-    </Animated.View>
+    </StyledAnimatedView>
   )
 }

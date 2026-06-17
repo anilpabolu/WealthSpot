@@ -84,6 +84,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="knowledge"
+        options={{
+          title: 'Knowledge',
+          tabBarIcon: ({ color, size }: TabIconProps) => (
+            <Ionicons name="book-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',

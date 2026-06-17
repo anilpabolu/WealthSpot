@@ -208,6 +208,33 @@ export default function PropertyDetailScreen() {
             <Text className="text-gray-600 text-sm leading-5">{property.description}</Text>
           </View>
 
+          {/* Why Investors */}
+          {(property.whyInvestors || oppData?.whyInvestors) && (
+            <View className="bg-white rounded-2xl p-4 mt-3 shadow-sm">
+              <Text className="text-gray-900 font-bold text-base mb-2">Why Investors Are Choosing This</Text>
+              <Text className="text-gray-600 text-sm leading-5">{property.whyInvestors || oppData?.whyInvestors}</Text>
+            </View>
+          )}
+
+          {/* Investment Thesis */}
+          {(property.investmentThesis || oppData?.investmentThesis) && (
+            <View className="bg-white rounded-2xl p-4 mt-3 shadow-sm">
+              <Text className="text-gray-900 font-bold text-base mb-2">Investment Thesis</Text>
+              <Text className="text-gray-600 text-sm leading-5">{property.investmentThesis || oppData?.investmentThesis}</Text>
+            </View>
+          )}
+
+          {/* Risk Factors */}
+          {(property.riskFactors || oppData?.riskFactors) && (
+            <View className="bg-white rounded-2xl p-4 mt-3 shadow-sm border border-orange-100">
+              <View className="flex-row items-center gap-2 mb-2">
+                <Ionicons name="warning-outline" size={18} color="#F59E0B" />
+                <Text className="text-gray-900 font-bold text-base">Key Risk Factors</Text>
+              </View>
+              <Text className="text-gray-600 text-sm leading-5">{property.riskFactors || oppData?.riskFactors}</Text>
+            </View>
+          )}
+
           {/* ── Property Details (type-discriminated) ── */}
           {(() => {
             const specs = effectivePropertySpecs
@@ -289,21 +316,24 @@ export default function PropertyDetailScreen() {
                   <ScrollView horizontal showsHorizontalScrollIndicator>
                     <View>
                       <View className="flex-row bg-gray-50 rounded-t-xl px-1 py-2">
-                        {[['Config', 80], ['Carpet', 70], ['Super BUA', 80], ['Baths', 56], ['Balconies', 68], ['Units', 56], ['₹/sqft', 72]] .map(([h, w]) => (
+                        {[['Config', 80], ['Super BUA', 80], ['₹/sqft', 72], ['Total Cost', 80]] .map(([h, w]) => (
                           <Text key={h} className="text-[10px] font-semibold text-gray-500 uppercase text-center" style={{ width: w as number }}>{h as string}</Text>
                         ))}
                       </View>
-                      {rawUnits.map((u, i) => (
-                        <View key={i} className={`flex-row px-1 py-2.5 ${i < rawUnits.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                          <Text className="text-primary font-bold text-xs text-center" style={{ width: 80 }}>{String(u.bhk_type ?? '—')}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 70 }}>{u.carpet_area_sqft ? `${u.carpet_area_sqft}` : '—'}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 80 }}>{u.super_built_up_sqft ? `${u.super_built_up_sqft}` : '—'}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 56 }}>{u.bathrooms != null ? String(u.bathrooms) : '—'}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 68 }}>{u.balconies != null ? String(u.balconies) : '—'}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 56 }}>{u.total_units != null ? String(u.total_units) : '—'}</Text>
-                          <Text className="text-gray-700 text-xs text-center" style={{ width: 72 }}>{u.price_per_sqft ? `₹${Number(u.price_per_sqft).toLocaleString('en-IN')}` : '—'}</Text>
-                        </View>
-                      ))}
+                      {rawUnits.map((u, i) => {
+                        const uTotal = (u.price != null && Number(u.price) > 0) ? Number(u.price) :
+                          (u.investment_amount != null && Number(u.investment_amount) > 0) ? Number(u.investment_amount) :
+                          (u.super_built_up_sqft && u.price_per_sqft) ? (Number(u.super_built_up_sqft) * Number(u.price_per_sqft)) : null
+                        const displayCost = uTotal ? (uTotal >= 1e7 ? `₹${(uTotal / 1e7).toFixed(2)} Cr` : `₹${(uTotal / 1e5).toFixed(2)} L`) : '—'
+                        return (
+                          <View key={i} className={`flex-row px-1 py-2.5 ${i < rawUnits.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                            <Text className="text-primary font-bold text-xs text-center" style={{ width: 80 }}>{String(u.bhk_type ?? u.type ?? '—')}</Text>
+                            <Text className="text-gray-700 text-xs text-center" style={{ width: 80 }}>{u.super_built_up_sqft ? `${u.super_built_up_sqft}` : '—'}</Text>
+                            <Text className="text-gray-700 text-xs text-center" style={{ width: 72 }}>{u.price_per_sqft ? `₹${Number(u.price_per_sqft).toLocaleString('en-IN')}` : '—'}</Text>
+                            <Text className="text-primary font-bold text-xs text-center" style={{ width: 80 }}>{displayCost}</Text>
+                          </View>
+                        )
+                      })}
                     </View>
                   </ScrollView>
                 )}
@@ -329,22 +359,24 @@ export default function PropertyDetailScreen() {
                   <ScrollView horizontal showsHorizontalScrollIndicator>
                     <View>
                       <View className="flex-row bg-gray-50 rounded-t-xl px-1 py-2">
-                        {[['Type', 80], ['Area (sqft)', 80], ['sq.yd', 68], ['Guntha', 68], ['Plots', 56], ['₹/sqft', 72]].map(([h, w]) => (
+                        {[['Type', 80], ['Area (sqft)', 80], ['Plots', 56], ['₹/sqft', 72], ['Total Cost', 80]].map(([h, w]) => (
                           <Text key={h} className="text-[10px] font-semibold text-gray-500 uppercase text-center" style={{ width: w as number }}>{h as string}</Text>
                         ))}
                       </View>
                       {rawPlots.map((p, i) => {
                         const area = Number(p.area_sqft ?? 0)
-                        const sqyd = area > 0 ? (area / 9).toFixed(0) : '—'
-                        const guntha = area > 0 ? (area / 1089).toFixed(2) : '—'
+                        const pTotal = (p.price != null && Number(p.price) > 0) ? Number(p.price) :
+                          (p.investment_amount != null && Number(p.investment_amount) > 0) ? Number(p.investment_amount) :
+                          (area > 0 && p.price_per_sqft) ? (area * Number(p.price_per_sqft)) : null
+                        const displayCost = pTotal ? (pTotal >= 1e7 ? `₹${(pTotal / 1e7).toFixed(2)} Cr` : `₹${(pTotal / 1e5).toFixed(2)} L`) : '—'
+                        
                         return (
                           <View key={i} className={`flex-row px-1 py-2.5 ${i < rawPlots.length - 1 ? 'border-b border-gray-50' : ''}`}>
                             <Text className="text-amber-700 font-bold text-xs text-center" style={{ width: 80 }}>{String(p.type ?? p.plot_type ?? '—')}</Text>
                             <Text className="text-gray-700 text-xs text-center" style={{ width: 80 }}>{area > 0 ? area.toLocaleString('en-IN') : '—'}</Text>
-                            <Text className="text-gray-700 text-xs text-center" style={{ width: 68 }}>{sqyd}</Text>
-                            <Text className="text-gray-700 text-xs text-center" style={{ width: 68 }}>{guntha}</Text>
                             <Text className="text-gray-700 text-xs text-center" style={{ width: 56 }}>{p.total_plots != null ? String(p.total_plots) : '—'}</Text>
                             <Text className="text-gray-700 text-xs text-center" style={{ width: 72 }}>{p.price_per_sqft ? `₹${Number(p.price_per_sqft).toLocaleString('en-IN')}` : '—'}</Text>
+                            <Text className="text-amber-700 font-bold text-xs text-center" style={{ width: 80 }}>{displayCost}</Text>
                           </View>
                         )
                       })}

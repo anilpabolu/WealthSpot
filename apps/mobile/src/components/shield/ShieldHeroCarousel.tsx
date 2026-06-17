@@ -14,6 +14,8 @@ import Animated, {
   SlideOutLeft,
   Layout,
 } from 'react-native-reanimated'
+const StyledAnimatedText = Animated.Text as any
+const StyledAnimatedView = Animated.View as any
 import { CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react-native'
 import {
   ASSESSMENT_CATEGORIES,
@@ -91,7 +93,7 @@ export function ShieldHeroCarousel() {
       </View>
 
       {/* Carousel card */}
-      <Animated.View
+      <StyledAnimatedView
         key={cat.code}
         entering={SlideInRight.springify().stiffness(260).damping(26)}
         exiting={SlideOutLeft.springify().stiffness(260).damping(26)}
@@ -99,9 +101,9 @@ export function ShieldHeroCarousel() {
       >
         <View className="flex-row gap-3 items-start">
           {/* Illustration */}
-          <Animated.View entering={FadeIn.delay(150).duration(500)}>
+          <StyledAnimatedView entering={FadeIn.delay(150).duration(500)}>
             <Illustration size={90} />
-          </Animated.View>
+          </StyledAnimatedView>
 
           {/* Text content */}
           <View className="flex-1">
@@ -119,24 +121,24 @@ export function ShieldHeroCarousel() {
             </View>
 
             {/* Short def */}
-            <Animated.Text
+            <StyledAnimatedText
               entering={FadeIn.delay(180).duration(350)}
               className="text-xs font-semibold text-white/70 mb-1"
             >
               {cat.heroShortDef}
-            </Animated.Text>
+            </StyledAnimatedText>
 
             {/* Full description */}
-            <Animated.Text
+            <StyledAnimatedText
               entering={FadeIn.delay(240).duration(350)}
               className="text-[11px] leading-4 text-white/50 mb-1.5"
               numberOfLines={3}
             >
               {cat.fullDescription}
-            </Animated.Text>
+            </StyledAnimatedText>
 
             {/* Verified-by */}
-            <Animated.Text
+            <StyledAnimatedText
               entering={FadeIn.delay(300).duration(300)}
               className="text-[9px] uppercase tracking-wider text-white/30"
             >
@@ -148,12 +150,12 @@ export function ShieldHeroCarousel() {
                     ? 'Independent SME Panel'
                     : 'WealthSpot Team'}
               </Text>
-            </Animated.Text>
+            </StyledAnimatedText>
           </View>
         </View>
 
         {/* Sub-item chips */}
-        <Animated.View
+        <StyledAnimatedView
           entering={FadeIn.delay(350).duration(350)}
           className="flex-row flex-wrap gap-1.5 mt-2.5"
         >
@@ -168,8 +170,8 @@ export function ShieldHeroCarousel() {
               </Text>
             </View>
           ))}
-        </Animated.View>
-      </Animated.View>
+        </StyledAnimatedView>
+      </StyledAnimatedView>
 
       {/* Dot indicators */}
       <View className="flex-row items-center justify-center gap-1.5 mt-3">

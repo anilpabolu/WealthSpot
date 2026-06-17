@@ -26,16 +26,20 @@ export type UnitCfg = {
   available_units?: number
   total_units?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 
 export type PlotCfg = {
-  type: string
+  type?: string
   area_sqft?: number
   area_sqyd?: number
   area_guntha?: number
   total_plots?: number
   available_plots?: number
   price_per_sqft?: number
+  price?: number
+  investment_amount?: number
 }
 
 interface Props {
@@ -58,8 +62,19 @@ function getUnitLabel(cfg: UnitCfg): string {
 }
 
 function computeUnitTotal(cfg: UnitCfg): number | null {
+  if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
+  if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
   if (cfg.carpet_area_sqft != null && cfg.price_per_sqft != null) {
-    return cfg.carpet_area_sqft * cfg.price_per_sqft
+    return Number(cfg.carpet_area_sqft) * Number(cfg.price_per_sqft)
+  }
+  return null
+}
+
+function computePlotTotal(cfg: PlotCfg): number | null {
+  if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
+  if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
+  if (cfg.area_sqft != null && cfg.price_per_sqft != null) {
+    return Number(cfg.area_sqft) * Number(cfg.price_per_sqft)
   }
   return null
 }
@@ -216,8 +231,7 @@ function PlotCard({
   selected: boolean
   onSelect: () => void
 }) {
-  const total =
-    cfg.area_sqft != null && cfg.price_per_sqft != null ? cfg.area_sqft * cfg.price_per_sqft : null
+  const total = computePlotTotal(cfg)
 
   return (
     <Pressable
@@ -320,16 +334,12 @@ export default function ExpressInterestSheet({
   // Computed investment: from selected config or fallback
   const computedInvestment: number = (() => {
     if (selectedConfig && 'carpet_area_sqft' in selectedConfig) {
-      const u = selectedConfig as UnitCfg
-      if (u.carpet_area_sqft != null && u.price_per_sqft != null) {
-        return u.carpet_area_sqft * u.price_per_sqft
-      }
+      const uTotal = computeUnitTotal(selectedConfig as UnitCfg)
+      if (uTotal != null) return uTotal
     }
     if (selectedConfig && 'area_sqft' in selectedConfig) {
-      const p = selectedConfig as PlotCfg
-      if (p.area_sqft != null && p.price_per_sqft != null) {
-        return p.area_sqft * p.price_per_sqft
-      }
+      const pTotal = computePlotTotal(selectedConfig as PlotCfg)
+      if (pTotal != null) return pTotal
     }
     return minInvestment
   })()
