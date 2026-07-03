@@ -23,13 +23,12 @@ export default function AuthGateModal() {
   const returnUrl = window.location.pathname + window.location.search
 
   return (
-    /* Fixed overlay — backdrop click is a deliberate no-op */
+    /* Fixed overlay — allows scroll-through so users can still browse the page */
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm px-4 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm px-4 animate-fade-in pointer-events-none"
     >
-      {/* Modal card */}
-      <div className="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 flex">
+      {/* Modal card — re-enable pointer events on the card itself */}
+      <div className="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 flex pointer-events-auto">
 
         {/* ── Left decorative panel (desktop only) ── */}
         <div className="hidden md:flex flex-col justify-between w-2/5 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-8">
