@@ -68,10 +68,10 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
       )}
 
       {/* ── Dark gradient overlays to ensure text legibility ────────── */}
-      {/* Top-down gradient for branding area */}
+      {/* Top-down gradient for branding area — extra opaque to hide image text */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 200,
-        background: 'linear-gradient(to bottom, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 60%, transparent 100%)',
+        position: 'absolute', top: 0, left: 0, right: 0, height: 260,
+        background: 'linear-gradient(to bottom, rgba(15,23,42,0.97) 0%, rgba(15,23,42,0.92) 35%, rgba(15,23,42,0.6) 70%, transparent 100%)',
         pointerEvents: 'none',
       }} />
       {/* Bottom-up gradient for content area */}
@@ -221,7 +221,6 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
             fontWeight: 800,
             lineHeight: 1.2,
             color: '#ffffff',
-            marginBottom: 20,
             textShadow: '0 2px 8px rgba(0,0,0,0.5)',
             overflow: 'hidden',
             display: '-webkit-box',
@@ -229,58 +228,6 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
             WebkitBoxOrient: 'vertical',
           }}>
             {title}
-          </div>
-
-          {/* Metrics row */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 28,
-            backgroundColor: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 10,
-            padding: '14px 24px',
-          }}>
-            {/* Tenure */}
-            <div>
-              <div style={{
-                fontSize: 9,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                color: '#D4AF37',
-                marginBottom: 2,
-              }}>Tenure</div>
-              <div style={{
-                fontSize: 26,
-                fontWeight: 800,
-                color: '#ffffff',
-              }}>{tenure ?? 'TBD'}</div>
-            </div>
-
-            {/* Divider */}
-            <div style={{
-              width: 1,
-              height: 40,
-              background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.3), transparent)',
-            }} />
-
-            {/* Min Entry */}
-            <div>
-              <div style={{
-                fontSize: 9,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                color: '#D4AF37',
-                marginBottom: 2,
-              }}>Min. Entry</div>
-              <div style={{
-                fontSize: 26,
-                fontWeight: 800,
-                color: '#ffffff',
-              }}>{minEntry ?? 'TBD'}</div>
-            </div>
           </div>
         </div>
 
