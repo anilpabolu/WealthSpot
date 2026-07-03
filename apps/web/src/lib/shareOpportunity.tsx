@@ -45,10 +45,26 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
           url={url}
         />
       );
-      // Double rAF keeps execution within the browser's frame pipeline,
-      // which is less likely to expire the user-gesture token than setTimeout.
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      // Wait for React to render + images to load before snapshotting.
+      // The double-rAF ensures the DOM is painted, and the 500ms timeout
+      // gives cross-origin images (via wsrv.nl proxy) time to fully decode.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setTimeout(() => resolve(), 500);
+      }));
     });
+
+    // Additionally, wait for any <img> elements to finish loading
+    const images = container.querySelectorAll('img');
+    await Promise.all(
+      Array.from(images).map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((res) => {
+              img.onload = () => res();
+              img.onerror = () => res(); // don't block on broken images
+            })
+      )
+    );
 
     // 3. Find the exact DOM element to snapshot
     const element = container.firstElementChild as HTMLElement;

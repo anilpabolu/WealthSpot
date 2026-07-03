@@ -1,7 +1,5 @@
 import { forwardRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Building2 } from 'lucide-react';
-import WLogo3D from '@/components/ui/WLogo3D';
 
 interface SharePostcardProps {
   title: string;
@@ -12,98 +10,319 @@ interface SharePostcardProps {
   url: string;
 }
 
+/**
+ * SharePostcard — generates a 1200×630 postcard image for sharing.
+ *
+ * IMPORTANT: This component is rendered into a **detached off-screen DOM node**
+ * and snapshotted by html-to-image. CSS container-query units (cqi) and
+ * Tailwind utility classes are unreliable in that context. All sizing is
+ * therefore done with inline styles using fixed pixel values.
+ *
+ * Layout (top → bottom):
+ *   ┌──────────────────────────────────────────────┐
+ *   │  STATIC: Gold border + brand logo + tagline  │
+ *   │                                              │
+ *   │        (property cover image fills bg)       │
+ *   │                                              │
+ *   │  DYNAMIC: title · city · tenure · minEntry   │
+ *   │                              QR code ──────► │
+ *   └──────────────────────────────────────────────┘
+ */
 export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
   title, tenure, minEntry, coverImage, city, url
 }, ref) => {
+  // Resolve image URL — use wsrv.nl proxy only for absolute http(s) URLs
+  const imgSrc = coverImage
+    ? coverImage.startsWith('http')
+      ? `https://wsrv.nl/?url=${encodeURIComponent(coverImage)}&w=1200&h=630&fit=cover&output=jpg`
+      : coverImage
+    : null;
+
   return (
-    // Fluid responsive wrapper using container queries
-    <div 
+    <div
       ref={ref}
-      className="relative flex flex-col justify-end bg-slate-950 text-white overflow-hidden w-full aspect-[1200/630] @container"
+      style={{
+        position: 'relative',
+        width: 1200,
+        height: 630,
+        overflow: 'hidden',
+        backgroundColor: '#0f172a',
+        fontFamily: '"Plus Jakarta Sans", "Inter", system-ui, sans-serif',
+        color: '#ffffff',
+      }}
     >
-      {/* Outer Border wrapper to hide edges */}
-      <div className="absolute inset-0 border-[0.66cqi] border-slate-950 z-[60] pointer-events-none" />
-      
-      {/* Inner Elegant Gold Border */}
-      <div className="absolute inset-[0.66cqi] border-[0.16cqi] border-[#D4AF37]/80 z-50 rounded-[0.3cqi] shadow-[inset_0_0_2.5cqi_rgba(212,175,55,0.15)] pointer-events-none" />
+      {/* ── Background Image ─────────────────────────────────────────── */}
+      {imgSrc && (
+        <img
+          src={imgSrc}
+          alt=""
+          crossOrigin="anonymous"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: 1200,
+            height: 630,
+            objectFit: 'cover',
+          }}
+        />
+      )}
 
-      {/* Background Image with slight scale to fit inside borders nicely */}
-      <div className="absolute inset-[0.66cqi] overflow-hidden rounded-[0.3cqi] bg-slate-900">
-        {coverImage ? (
-          <img src={coverImage.startsWith('http') ? `https://wsrv.nl/?url=${encodeURIComponent(coverImage)}` : coverImage} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-900 text-slate-500">
-             <Building2 className="w-[16cqi] h-[16cqi] opacity-20" />
+      {/* ── Dark gradient overlays to ensure text legibility ────────── */}
+      {/* Top-down gradient for branding area */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 200,
+        background: 'linear-gradient(to bottom, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 60%, transparent 100%)',
+        pointerEvents: 'none',
+      }} />
+      {/* Bottom-up gradient for content area */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 420,
+        background: 'linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.8) 50%, transparent 100%)',
+        pointerEvents: 'none',
+      }} />
+      {/* Subtle overall dark wash */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundColor: 'rgba(15,23,42,0.25)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── Gold Border (decorative) ─────────────────────────────────── */}
+      <div style={{
+        position: 'absolute',
+        top: 8, left: 8, right: 8, bottom: 8,
+        border: '2px solid rgba(212,175,55,0.7)',
+        borderRadius: 4,
+        pointerEvents: 'none',
+        zIndex: 60,
+      }} />
+
+      {/* ── STATIC: Top Branding Bar ──────────────────────────────────── */}
+      <div style={{
+        position: 'absolute',
+        top: 28,
+        left: 40,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+      }}>
+        {/* Brand logo */}
+        <img
+          src="/wealthspot-logo-light.png"
+          alt="WealthSpot"
+          crossOrigin="anonymous"
+          style={{ width: 56, height: 56, objectFit: 'contain' }}
+        />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{
+            fontSize: 28,
+            fontWeight: 800,
+            lineHeight: 1,
+            letterSpacing: '0.02em',
+            color: '#ffffff',
+          }}>
+            Wealth<span style={{ color: '#D4AF37' }}>Spot</span>
           </div>
-        )}
-        
-        {/* Dark elegant gradients - Stronger at the bottom to prevent text overlap */}
-        <div className="absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent opacity-100 pointer-events-none" />
-        <div className="absolute inset-0 bg-slate-950/20 pointer-events-none" />
-        {/* Subtle gold radial glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(212,175,55,0.15),_transparent_40%)] pointer-events-none" />
-      </div>
-
-      {/* Top Branding */}
-      <div className="absolute top-[4cqi] left-[4.66cqi] z-50 flex items-center gap-[0.66cqi]">
-        <div className="w-[6.66cqi] h-[6.66cqi] flex items-center justify-center">
-          <WLogo3D size="100%" light={true} />
-        </div>
-        <div className="flex flex-col">
-          <p className="text-white font-serif font-bold text-[3.33cqi] leading-none tracking-wide">
-            Wealth<span className="text-[#D4AF37]">Spot</span>
-          </p>
-          <p className="text-white/70 text-[1.08cqi] font-semibold tracking-[0.2em] leading-none mt-[0.3cqi]">
-            Research. Evaluate. Invest.
-          </p>
-          <div className="h-px w-[4cqi] bg-[#D4AF37]/50 mt-[0.8cqi]" />
+          <div style={{
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.25em',
+            color: 'rgba(255,255,255,0.65)',
+            marginTop: 4,
+            textTransform: 'uppercase',
+          }}>
+            Research · Evaluate · Invest
+          </div>
+          <div style={{
+            width: 48,
+            height: 1,
+            backgroundColor: 'rgba(212,175,55,0.5)',
+            marginTop: 6,
+          }} />
         </div>
       </div>
 
-      {/* Shield Certified Badge */}
-      <div className="absolute top-[4cqi] right-[4.66cqi] z-50 flex items-center gap-[0.66cqi] bg-slate-900/80 border border-[#D4AF37]/40 px-[1.33cqi] py-[0.66cqi] rounded-full backdrop-blur-md shadow-[0_0_1.25cqi_rgba(212,175,55,0.2)]">
-        <div className="w-[0.66cqi] h-[0.66cqi] rounded-full bg-[#D4AF37] shadow-[0_0_0.66cqi_rgba(212,175,55,0.8)]" />
-        <span className="text-[#D4AF37] text-[1cqi] font-bold uppercase tracking-widest">Shield Certified</span>
+      {/* ── STATIC: Shield Certified Badge ────────────────────────────── */}
+      <div style={{
+        position: 'absolute',
+        top: 38,
+        right: 40,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(15,23,42,0.7)',
+        border: '1px solid rgba(212,175,55,0.4)',
+        borderRadius: 999,
+        padding: '6px 16px',
+        backdropFilter: 'blur(8px)',
+      }}>
+        <div style={{
+          width: 7, height: 7, borderRadius: '50%',
+          backgroundColor: '#D4AF37',
+          boxShadow: '0 0 6px rgba(212,175,55,0.8)',
+        }} />
+        <span style={{
+          color: '#D4AF37',
+          fontSize: 10,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
+        }}>
+          Shield Certified
+        </span>
       </div>
 
-      {/* Bottom Content Area */}
-      <div className="relative z-50 mx-[3.33cqi] mb-[3.33cqi] p-[3.33cqi] flex items-end justify-between w-[calc(100%-6.66cqi)] bg-slate-950/70 backdrop-blur-2xl border border-white/10 rounded-[1.33cqi] shadow-[0_1.33cqi_4cqi_rgba(0,0,0,0.5)]">
-        <div className="flex-1 pr-[4cqi] max-w-[70cqi]">
+      {/* ── DYNAMIC: Bottom Content Overlay ──────────────────────────── */}
+      <div style={{
+        position: 'absolute',
+        bottom: 32,
+        left: 32,
+        right: 32,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        gap: 32,
+        backgroundColor: 'rgba(15,23,42,0.6)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 16,
+        padding: 32,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+      }}>
+        {/* Left side: city, title, metrics */}
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
+          {/* City badge */}
           {city && (
-            <div className="flex items-center gap-[0.83cqi] mb-[1.33cqi]">
-              <div className="w-[2.66cqi] h-px bg-[#D4AF37]" />
-              <div className="text-[#D4AF37] font-bold tracking-widest uppercase text-[1.16cqi] drop-shadow-md">{city}</div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 12,
+            }}>
+              <div style={{ width: 28, height: 1, backgroundColor: '#D4AF37' }} />
+              <span style={{
+                color: '#D4AF37',
+                fontSize: 13,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+              }}>
+                {city}
+              </span>
             </div>
           )}
-          <h1 className="text-[5.5cqi] font-display font-bold leading-tight mb-[3.33cqi] text-white drop-shadow-[0_0.33cqi_0.66cqi_rgba(0,0,0,0.6)]" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>
-            {title}
-          </h1>
 
-          {/* Metrics Grid */}
-          <div className="flex items-center gap-[4cqi] bg-white/5 p-[2cqi] rounded-[0.9cqi] border border-white/10 relative overflow-hidden inline-flex">
-            <div className="relative z-10">
-              <p className="text-[0.9cqi] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-[0.33cqi] opacity-90">Tenure</p>
-              <p className="font-display text-[3.33cqi] font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{tenure ?? 'TBD'}</p>
+          {/* Title */}
+          <div style={{
+            fontSize: 32,
+            fontWeight: 800,
+            lineHeight: 1.2,
+            color: '#ffffff',
+            marginBottom: 20,
+            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+          }}>
+            {title}
+          </div>
+
+          {/* Metrics row */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 28,
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 10,
+            padding: '14px 24px',
+          }}>
+            {/* Tenure */}
+            <div>
+              <div style={{
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: '#D4AF37',
+                marginBottom: 2,
+              }}>Tenure</div>
+              <div style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: '#ffffff',
+              }}>{tenure ?? 'TBD'}</div>
             </div>
 
-            <div className="w-px h-[4cqi] bg-gradient-to-b from-transparent via-[#D4AF37]/30 to-transparent relative z-10"></div>
+            {/* Divider */}
+            <div style={{
+              width: 1,
+              height: 40,
+              background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.3), transparent)',
+            }} />
 
-            <div className="relative z-10">
-              <p className="text-[0.9cqi] font-bold uppercase tracking-[0.15em] text-[#D4AF37] mb-[0.33cqi] opacity-90">Min. Entry</p>
-              <p className="font-display text-[3.33cqi] font-bold text-white drop-shadow-md" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>{minEntry ?? 'TBD'}</p>
+            {/* Min Entry */}
+            <div>
+              <div style={{
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: '#D4AF37',
+                marginBottom: 2,
+              }}>Min. Entry</div>
+              <div style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: '#ffffff',
+              }}>{minEntry ?? 'TBD'}</div>
             </div>
           </div>
         </div>
 
-        {/* QR Code Section */}
-        <div className="flex flex-col items-center bg-white/95 p-[1.33cqi] rounded-[0.9cqi] shadow-[0_1.66cqi_3.33cqi_rgba(0,0,0,0.6)] border-[0.25cqi] border-[#D4AF37] shrink-0 relative z-50">
-          <div className="w-[10cqi] h-[10cqi]">
-            <QRCodeSVG value={url} style={{ width: '100%', height: '100%' }} level="H" includeMargin={false} fgColor="#0f172a" />
+        {/* Right side: QR Code */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderRadius: 10,
+          padding: 14,
+          border: '3px solid #D4AF37',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+          flexShrink: 0,
+        }}>
+          <div style={{ width: 110, height: 110 }}>
+            <QRCodeSVG
+              value={url}
+              style={{ width: '100%', height: '100%' }}
+              level="H"
+              includeMargin={false}
+              fgColor="#0f172a"
+            />
           </div>
-          <div className="w-full h-px bg-slate-200 mt-[1cqi] mb-[0.66cqi]" />
-          <p className="text-slate-900 text-[0.75cqi] font-bold uppercase tracking-[0.2em] text-center w-full">
-            Scan to View<br/>Investment
-          </p>
+          <div style={{
+            width: '100%',
+            height: 1,
+            backgroundColor: '#e2e8f0',
+            marginTop: 10,
+            marginBottom: 6,
+          }} />
+          <div style={{
+            color: '#0f172a',
+            fontSize: 8,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+            textAlign: 'center',
+            lineHeight: 1.5,
+          }}>
+            Scan to View<br />Investment
+          </div>
         </div>
       </div>
     </div>
@@ -111,4 +330,3 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
 });
 
 SharePostcard.displayName = 'SharePostcard';
-
