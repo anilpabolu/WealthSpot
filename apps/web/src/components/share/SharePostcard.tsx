@@ -29,7 +29,7 @@ interface SharePostcardProps {
  *   └──────────────────────────────────────────────┘
  */
 export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
-  title, tenure, minEntry, coverImage, city, url
+  title, coverImage, city, url
 }, ref) => {
   // Resolve image URL — use wsrv.nl proxy only for absolute http(s) URLs
   const imgSrc = coverImage
