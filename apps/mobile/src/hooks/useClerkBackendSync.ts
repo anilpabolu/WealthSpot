@@ -1,5 +1,5 @@
 /**
- * useClerkBackendSync – bridges Clerk identity with the WealthSpot backend on mobile.
+ * useClerkBackendSync – bridges Clerk identity with the Netegron backend on mobile.
  *
  * Flow (mirrors web's useBackendSync):
  *  1. Clerk signs the user in (email/OTP or social).

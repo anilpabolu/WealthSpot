@@ -124,7 +124,7 @@ export default function PageLoader() {
 
       {/* Brand text */}
       <Text style={[styles.brand, { color: isDark ? '#f1f5f9' : '#111827' }]}>
-        Wealth<Text style={styles.brandAccent}>Spot</Text>
+        Netegron
       </Text>
 
       {/* Rotating message */}

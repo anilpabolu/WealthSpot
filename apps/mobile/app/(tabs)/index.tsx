@@ -79,7 +79,7 @@ export default function HomeScreen() {
         <View className="flex-row items-center justify-between mb-4">
           <View>
             <Text className="text-white/60 text-xs font-bold uppercase tracking-widest" style={{ fontFamily: 'PlusJakartaSans' }}>Welcome to</Text>
-            <Text className="text-white text-2xl font-bold tracking-tight" style={{ fontFamily: 'BricolageGrotesque' }}>WealthSpot</Text>
+            <Text className="text-white text-2xl font-bold tracking-tight" style={{ fontFamily: 'BricolageGrotesque' }}>Netegron</Text>
           </View>
           <Pressable className="bg-white/15 rounded-2xl p-2.5">
             <Ionicons name="notifications-outline" size={22} color="white" />

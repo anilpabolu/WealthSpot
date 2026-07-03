@@ -18,7 +18,7 @@ export default function TabLayout() {
   const isInvestor = user?.role === 'investor'
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
   const hasAnyDna = overall
-    ? Object.values(overall.vaults).some((v) => v.isComplete)
+    ? Object.values(overall.vaults).some((v: any) => v?.isComplete)
     : false
   const showPortfolio = isAdmin || (isInvestor && hasAnyDna)
 

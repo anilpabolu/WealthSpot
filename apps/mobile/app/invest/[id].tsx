@@ -67,18 +67,18 @@ export default function InvestScreen() {
       if (Platform.OS !== 'web' && RazorpayCheckout) {
         const options = {
           description: `Investment in ${property.title}`,
-          image: property.coverImage || 'https://wealthspot.in/logo.png',
+          image: property.coverImage || 'https://netegron.in/logo.png',
           currency: order.currency || 'INR',
           key: order.key,
           amount: Math.round(order.amount * 100), // convert to paise if not already
-          name: 'WealthSpot',
+          name: 'Netegron',
           order_id: order.razorpayOrderId,
           prefill: {
             email: user?.email || '',
             contact: user?.phone || '',
             name: user?.name || '',
           },
-          theme: { color: '#0f172a' } // WealthSpot primary theme
+          theme: { color: '#0f172a' } // Netegron primary theme
         }
         
         try {

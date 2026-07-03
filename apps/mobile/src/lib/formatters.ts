@@ -1,5 +1,5 @@
 /**
- * WealthSpot Mobile – Formatting utilities (mirrors web's formatters.ts).
+ * Netegron Mobile – Formatting utilities (mirrors web's formatters.ts).
  */
 
 import Decimal from 'decimal.js'

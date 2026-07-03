@@ -60,7 +60,7 @@ export default function PropertyDetailScreen() {
     trackShare.mutate(property.id)
     try {
       await Share.share({
-        message: `Check out ${property.title} on WealthSpot!\nhttps://wealthspot.in/property/${property.slug}`,
+        message: `Check out ${property.title} on Netegron!\nhttps://netegron.in/property/${property.slug}`,
       })
     } catch { /* user cancelled */ }
   }, [property, trackShare])
@@ -85,7 +85,7 @@ export default function PropertyDetailScreen() {
       ? property.propertyAmenities
       : (oppData?.propertyAmenities && oppData.propertyAmenities.length > 0)
         ? oppData.propertyAmenities
-        : property.amenities
+        : property.amenities.sort((a: string, b: string) => a.localeCompare(b)).slice(0, 5)
   const effectiveSafeVaultData = (oppData?.safeVaultData ?? null) as Record<string, unknown> | null
 
   // Extract unit / plot configs from property specs for EOI sheet
@@ -473,7 +473,7 @@ export default function PropertyDetailScreen() {
             )
           })()}
 
-          {/* WealthSpot Shield */}
+          {/* Netegron Shield */}
           <View className="mt-3">
             <ShieldSection opportunityId={property.id} />
           </View>

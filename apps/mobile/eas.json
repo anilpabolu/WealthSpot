@@ -19,21 +19,21 @@
       "android": { "buildType": "apk" },
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://staging-api.wealthspot.in/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://staging-api.netegron.in/api/v1"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.wealthspot.in/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.netegron.in/api/v1"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "release@wealthspot.in",
+        "appleId": "release@netegron.in",
         "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID",
         "appleTeamId": "REPLACE_WITH_APPLE_TEAM_ID"
       },

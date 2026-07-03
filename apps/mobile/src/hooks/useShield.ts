@@ -1,5 +1,5 @@
 /**
- * WealthSpot Shield — mobile React Query hooks.
+ * Netegron Shield — mobile React Query hooks.
  *
  * Mirrors apps/web/src/hooks/useShield.ts so both surfaces talk to the
  * same API with identical key shapes.

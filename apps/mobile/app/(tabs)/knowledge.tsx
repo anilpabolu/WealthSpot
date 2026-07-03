@@ -38,7 +38,7 @@ function ArticleModal({ slug, onClose }: { slug: string; onClose: () => void }) 
               {article.assets?.length > 0 && (
                 <View className="mt-8">
                   <Text className="font-bold text-sm text-gray-900 mb-3">Attachments</Text>
-                  {article.assets.map((asset) => (
+                  {article.assets.map((asset: any) => (
                     <View key={asset.id} className="flex-row items-center gap-3 p-3 bg-gray-50 rounded-xl mb-2">
                       <Ionicons
                         name={asset.assetType === 'pdf' ? 'document-text' : asset.assetType === 'video' ? 'play-circle' : 'image'}
@@ -69,7 +69,7 @@ export default function KnowledgeHubScreen() {
       {/* Header */}
       <View className="px-5 pt-12 pb-4 bg-primary">
         <Text className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] mb-1">
-          WealthSpot Knowledge
+          Netegron Knowledge
         </Text>
         <Text className="font-bold text-2xl text-white">Knowledge Hub</Text>
         <Text className="text-white/70 text-sm mt-1">
@@ -89,7 +89,7 @@ export default function KnowledgeHubScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20 }} className="flex-1">
-          {articles.map((article) => (
+          {articles.map((article: any) => (
             <Pressable
               key={article.id}
               onPress={() => setActiveSlug(article.slug)}

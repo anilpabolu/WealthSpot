@@ -1,7 +1,7 @@
 /**
  * WLogo3D — mobile version.
  *
- * Renders the WealthSpot "W" logo with a 3D-flip rotation illusion using:
+ * Renders the Netegron "W" logo with a 3D-flip rotation illusion using:
  *  - react-native-reanimated (withRepeat + withTiming + useAnimatedStyle)
  *  - react-native-svg for the gold gradient fallback W path
  *  - expo-linear-gradient for a surrounding gold ambient glow
@@ -23,6 +23,7 @@ import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient'
 interface WLogo3DProps {
   size?: number
   spin?: boolean
+  light?: boolean
 }
 
 /** Premium medallion W fallback (SVG) */
@@ -113,7 +114,7 @@ export default function WLogo3D({ size = 40, spin = true }: WLogo3DProps) {
         ) : (
           <Image
             // eslint-disable-next-line @typescript-eslint/no-require-imports
-            source={require('../../../assets/wealthspot-w-logo.png')}
+            source={require('../../../assets/netegron-mark.png')}
             style={{ width: size, height: size }}
             resizeMode="contain"
             onError={() => setImgFailed(true)}

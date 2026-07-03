@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 interface WLogo3DProps {
-  size?: number
+  size?: number | string
   spin?: boolean
   light?: boolean
   className?: string

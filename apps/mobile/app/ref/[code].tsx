@@ -2,8 +2,8 @@
  * Referral deep-link handler.
  *
  * Inbound URLs:
- *   wealthspot://ref/<code>
- *   https://wealthspot.in/ref/<code>
+ *   netegron://ref/<code>
+ *   https://netegron.in/ref/<code>
  *
  * Stores the code in SecureStore and bounces to the marketplace tab so
  * sign-up / first-investment can claim the referral. The store key

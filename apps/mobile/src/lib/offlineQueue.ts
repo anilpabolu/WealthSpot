@@ -1,5 +1,5 @@
 /**
- * Offline mutation queue for WealthSpot mobile.
+ * Offline mutation queue for Netegron mobile.
  *
  * When the device is offline, mutations (POST/PATCH/DELETE) are captured in a
  * persisted MMKV queue. When connectivity returns, React Query's onlineManager

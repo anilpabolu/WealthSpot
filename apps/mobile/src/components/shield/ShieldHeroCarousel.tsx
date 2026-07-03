@@ -148,7 +148,7 @@ export function ShieldHeroCarousel() {
                   ? 'Empanelled Law Firm'
                   : cat.performedBy === 'sme'
                     ? 'Independent SME Panel'
-                    : 'WealthSpot Team'}
+                    : 'Netegron Team'}
               </Text>
             </StyledAnimatedText>
           </View>
@@ -159,7 +159,7 @@ export function ShieldHeroCarousel() {
           entering={FadeIn.delay(350).duration(350)}
           className="flex-row flex-wrap gap-1.5 mt-2.5"
         >
-          {cat.subItems.slice(0, 4).map((s) => (
+          {cat.subItems.slice(0, 4).map((s: any) => (
             <View
               key={s.code}
               className="flex-row items-center gap-1 px-2.5 py-1 rounded-full border border-white/10 bg-white/5"
@@ -175,7 +175,7 @@ export function ShieldHeroCarousel() {
 
       {/* Dot indicators */}
       <View className="flex-row items-center justify-center gap-1.5 mt-3">
-        {ASSESSMENT_CATEGORIES.map((c, idx) => {
+        {ASSESSMENT_CATEGORIES.map((c: any, idx: number) => {
           const isActive = idx === activeIndex
           const dotHex = hexFor(c.accentColor)
           return (

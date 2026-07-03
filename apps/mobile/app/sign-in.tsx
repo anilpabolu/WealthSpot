@@ -1,5 +1,5 @@
 /**
- * Sign-in screen — WealthSpot Mobile.
+ * Sign-in screen — Netegron Mobile.
  *
  * Uses @clerk/clerk-expo for identity management. The Clerk sign-in flow:
  *  1. User enters email → Clerk sends a one-time-code (OTP).
@@ -154,7 +154,7 @@ export default function SignInScreen() {
                     }}
                   >
                     <Text style={{ color: 'rgba(212,175,55,0.7)', fontSize: 10, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase' }}>
-                      WealthSpot Club
+                      Netegron Club
                     </Text>
                     <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: '800', textAlign: 'center', lineHeight: 28 }}>
                       Secure tomorrow&apos;s{`\n`}value today.
@@ -166,7 +166,7 @@ export default function SignInScreen() {
                 ) : (
                   <Image
                     // eslint-disable-next-line @typescript-eslint/no-require-imports
-                    source={require('../assets/wealthspot-club-banner.jpg')}
+                    source={require('../assets/netegron-club-banner.jpg')}
                     style={{ width: screenWidth - 56, aspectRatio: 1.78 }}
                     resizeMode="cover"
                     onError={() => setBannerError(true)}
@@ -191,7 +191,7 @@ export default function SignInScreen() {
               marginBottom: 2,
             }}
           >
-            WealthSpot
+            Netegron
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
             Fractional real-estate investing
@@ -336,7 +336,7 @@ export default function SignInScreen() {
         </View>
 
         <Text style={{ color: colors.textSecondary }} className="text-xs text-center mt-6 px-4 leading-5">
-          By signing in you agree to WealthSpot&apos;s Terms of Service and Privacy Policy.
+          By signing in you agree to Netegron&apos;s Terms of Service and Privacy Policy.
           SEBI-registered investment advisor.
         </Text>
       </ScrollView>

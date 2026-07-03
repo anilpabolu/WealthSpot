@@ -117,7 +117,7 @@ export default function Navbar(_props?: NavbarProps) {
         transform: !navVisible ? 'translateY(-100%)' : 'translateY(0)',
       }}
     >
-      <nav className="w-full px-8 sm:px-12" aria-label="Main navigation">
+      <nav className="w-full px-4 sm:px-8 lg:px-12" aria-label="Main navigation">
         <div className="flex h-[72px] md:h-20 items-center justify-between">
           {/* Logo */}
           <Link to="/vaults" className="flex items-center gap-1.5 shrink-0" aria-label="WealthSpot Home">
@@ -128,7 +128,7 @@ export default function Navbar(_props?: NavbarProps) {
               >
                 Wealth<span className="text-[#D4AF37]">Spot</span>
               </span>
-              <span className={cn('text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] leading-none mt-1', onDark ? 'text-white/70' : 'text-slate-500')}>
+              <span className={cn('whitespace-nowrap text-[8.5px] sm:text-[11px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] leading-none mt-1', onDark ? 'text-white/70' : 'text-slate-500')}>
                 Research. Evaluate. Invest.
               </span>
             </div>

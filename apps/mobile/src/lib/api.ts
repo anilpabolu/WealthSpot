@@ -1,5 +1,5 @@
 /**
- * WealthSpot Mobile – API client.
+ * Netegron Mobile – API client.
  * Uses the shared @wealthspot/api-client; only token storage and the auth-failure
  * callback are wired in here. Mobile-specific token keys (`ws-token`) live in SecureStore.
  */
@@ -20,7 +20,7 @@ const { api, apiGet, apiPost, apiPut, apiPatch, apiDelete } = createApiClient({
   storage: {
     getAccessToken: () => SecureStore.getItemAsync('ws-token'),
     getRefreshToken: () => SecureStore.getItemAsync('ws-refresh-token'),
-    setTokens: async (access, refresh) => {
+    setTokens: async (access: string, refresh: string) => {
       await SecureStore.setItemAsync('ws-token', access)
       await SecureStore.setItemAsync('ws-refresh-token', refresh)
     },

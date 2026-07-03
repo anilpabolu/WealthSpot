@@ -68,7 +68,7 @@ export default function SettingsScreen() {
         <Pressable onPress={handleLogout} className="p-4 mt-6 mx-4 rounded-xl items-center" style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEE2E2' }}>
           <Text className="font-bold" style={{ color: '#EF4444' }}>Sign Out</Text>
         </Pressable>
-        <Text className="text-center text-xs mt-6" style={{ color: colors.textTertiary }}>WealthSpot v1.0.0</Text>
+        <Text className="text-center text-xs mt-6" style={{ color: colors.textTertiary }}>Netegron v1.0.0</Text>
       </ScrollView>
     </View>
   )

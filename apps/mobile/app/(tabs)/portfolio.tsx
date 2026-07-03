@@ -25,7 +25,7 @@ export default function PortfolioScreen() {
 
   const isInvestor = user?.role === 'investor'
   const hasAnyDna = overall
-    ? Object.values(overall.vaults).some((v) => v.isComplete)
+    ? Object.values(overall.vaults).some((v: any) => v?.isComplete)
     : false
 
   if (summaryLoading || progressLoading) {

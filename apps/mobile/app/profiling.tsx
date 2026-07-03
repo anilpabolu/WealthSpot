@@ -470,7 +470,7 @@ export default function VaultProfilingScreen() {
   }, [progress])
 
   const sorted = useMemo(
-    () => (questions ?? []).slice().sort((a, b) => a.displayOrder - b.displayOrder),
+    () => (questions ?? []).slice().sort((a: any, b: any) => a.displayOrder - b.displayOrder),
     [questions],
   )
 

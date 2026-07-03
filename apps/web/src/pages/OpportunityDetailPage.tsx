@@ -775,7 +775,7 @@ export default function OpportunityDetailPage() {
                 <Home className="h-5 w-5" />
               </button>
               <div>
-                <h1 className="font-display text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
+                <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
                   {opp.title}
                 </h1>
                 {opp.tagline && <p className="text-white/70 text-lg max-w-2xl font-light">{opp.tagline}</p>}
@@ -814,7 +814,7 @@ export default function OpportunityDetailPage() {
 
           {/* Quick-stats strip at the bottom of hero */}
           {((opp.minInvestment != null || opp.propertySpecs || opp.property_specs) || opp.closingDate) && (
-            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-10">
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-6 sm:gap-10">
               {(opp.minInvestment != null || opp.propertySpecs || opp.property_specs) && (
                 <div>
                   <p className="text-white/40 text-[10px] uppercase tracking-[0.15em] mb-1">Investment</p>

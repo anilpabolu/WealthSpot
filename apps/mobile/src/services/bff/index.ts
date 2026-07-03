@@ -1,5 +1,5 @@
 /**
- * WealthSpot Mobile – BFF Service Layer
+ * Netegron Mobile – BFF Service Layer
  *
  * Same BFF pattern as web, but optimised for mobile:
  *   - Lighter payloads (fewer fields per response)

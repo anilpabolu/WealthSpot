@@ -56,7 +56,7 @@ export interface BiometricGateResult {
  * biometric and we couldn't verify them.
  */
 export async function biometricGate(
-  promptMessage = 'Unlock WealthSpot',
+  promptMessage = 'Unlock Netegron',
 ): Promise<BiometricGateResult> {
   const required = await isBiometricRequired()
   if (!required) {

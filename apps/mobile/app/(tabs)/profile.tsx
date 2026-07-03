@@ -21,7 +21,7 @@ const MENU_ITEMS = [
   { icon: 'people-outline' as const, label: 'Refer & Earn', route: '/referral' },
   { icon: 'notifications-outline' as const, label: 'Notifications', route: '/settings' },
   { icon: 'help-circle-outline' as const, label: 'Help & Support', route: '/settings' },
-  { icon: 'information-circle-outline' as const, label: 'About WealthSpot', route: '/settings' },
+  { icon: 'information-circle-outline' as const, label: 'About Netegron', route: '/settings' },
 ]
 
 export default function ProfileScreen() {
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
             <Text style={{ color: colors.textPrimary }} className="font-bold text-lg">
               {user?.fullName || 'Investor'}
             </Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm">{user?.email || 'investor@wealthspot.in'}</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm">{user?.email || 'investor@netegron.in'}</Text>
           </View>
           <Pressable style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }} className="rounded-full p-2">
             <Ionicons name="create-outline" size={18} color={isDark ? colors.gold : '#5B4FCF'} />
@@ -155,7 +155,7 @@ export default function ProfileScreen() {
       </Pressable>
 
       {/* Version */}
-      <Text style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#D1D5DB' }} className="text-center text-xs mb-8">WealthSpot v1.0.0</Text>
+      <Text style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#D1D5DB' }} className="text-center text-xs mb-8">Netegron v1.0.0</Text>
     </ScrollView>
   )
 }

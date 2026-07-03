@@ -42,7 +42,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
       <View className="flex-row items-center gap-2 mb-3">
         <ShieldCheck size={18} color={data.certified ? '#10b981' : '#94a3b8'} />
         <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
-          WealthSpot Shield
+          Netegron Shield
         </Text>
         {data.certified && (
           <View className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
@@ -56,7 +56,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
         {data.passedCount} of {data.totalCount} checks passed across all 7 layers.
       </Text>
 
-      {data.categories.map((catRead) => {
+      {data.categories.map((catRead: any) => {
         const cat = findCategory(catRead.code)
         if (!cat) return null
         const Icon = iconForCategory(cat.icon)
@@ -94,7 +94,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
               )}
             </TouchableOpacity>
             {open &&
-              catRead.subItems.map((sub) => (
+              catRead.subItems.map((sub: any) => (
                 <SubItemRow key={sub.code} sub={sub} isDark={isDark} />
               ))}
           </View>
@@ -109,7 +109,7 @@ export function ShieldSection({ opportunityId }: ShieldSectionProps) {
               Risks you should know
             </Text>
           </View>
-          {data.risks.map((r) => (
+          {data.risks.map((r: any) => (
             <View key={r.id} className="mt-1">
               <Text className="text-xs" style={{ color: colors.textPrimary }}>
                 <Text className="font-semibold">{r.label}</Text>
@@ -147,7 +147,7 @@ function SubItemRow({ sub, isDark }: { sub: AssessmentSubItemRead; isDark: boole
       )}
       {sub.documents.length > 0 && (
         <View className="mt-2">
-          {sub.documents.map((d) => (
+          {sub.documents.map((d: any) => (
             <View
               key={d.id}
               className="flex-row items-center gap-2 mt-1 px-2 py-1.5 rounded-lg"

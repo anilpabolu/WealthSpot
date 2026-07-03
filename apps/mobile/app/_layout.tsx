@@ -8,6 +8,7 @@
  *  - Push notification handler — registers token after auth; deep-links notification taps
  */
 
+import '../global.css'
 import { Stack, router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -120,7 +121,7 @@ function InnerLayout() {
 
   // ── Biometric gate on foreground resume ──────────────────────────────────
   const runBiometricGate = useCallback(async () => {
-    const result = await biometricGate('Unlock WealthSpot')
+    const result = await biometricGate('Unlock Netegron')
     if (!result.ok) {
       // User cancelled or failed biometric — sign them out for safety.
       await logout()

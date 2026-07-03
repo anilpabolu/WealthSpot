@@ -31,7 +31,7 @@ export default function ReferralScreen() {
   const colors = getThemeColors(isDark)
 
   const referralCode = stats?.referralCode ?? '—'
-  const referralLink = stats?.referralLink ?? `https://wealthspot.in/ref/${referralCode}`
+  const referralLink = stats?.referralLink ?? `https://netegron.in/ref/${referralCode}`
 
   const handleCopy = (type: 'code' | 'link') => {
     const text = type === 'code' ? referralCode : referralLink
@@ -43,9 +43,9 @@ export default function ReferralScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Join WealthSpot and start investing in premium real estate! Use my referral code ${referralCode}: ${referralLink}`,
+        message: `Join Netegron and start investing in premium real estate! Use my referral code ${referralCode}: ${referralLink}`,
         url: referralLink,
-        title: 'Invest with WealthSpot',
+        title: 'Invest with Netegron',
       })
     } catch {
       // user dismissed

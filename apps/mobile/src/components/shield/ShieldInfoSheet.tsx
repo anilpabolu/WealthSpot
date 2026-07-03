@@ -44,7 +44,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
               <View className="flex-row items-center gap-1.5 mb-1">
                 <ShieldCheck size={16} color="#10b981" />
                 <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                  WealthSpot Shield
+                  Netegron Shield
                 </Text>
               </View>
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -62,7 +62,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
 
         {/* Infographic layers */}
         <ScrollView className="flex-1 px-5 py-4">
-          {ASSESSMENT_CATEGORIES.map((cat, idx) => {
+          {ASSESSMENT_CATEGORIES.map((cat: any, idx: number) => {
             const Icon = iconForCategory(cat.icon)
             const hex = ACCENT_HEX[cat.accentColor] ?? '#6b7280'
             const isLeft = idx % 2 === 0
@@ -103,7 +103,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
                           ? 'Law Firm'
                           : cat.performedBy === 'sme'
                             ? 'SME Panel'
-                            : 'WealthSpot'}
+                            : 'Netegron'}
                       </Text>
                     </View>
                   </View>
@@ -115,7 +115,7 @@ export function ShieldInfoSheet({ visible, onClose, initialCategory }: ShieldInf
 
                   {/* Sub-item chips */}
                   <View className={`flex-row flex-wrap gap-1.5 mt-2.5 ${isLeft ? '' : 'justify-end'}`}>
-                    {cat.subItems.map((s) => (
+                    {cat.subItems.map((s: any) => (
                       <View
                         key={s.code}
                         className="flex-row items-center gap-1 px-2 py-0.5 rounded-full"

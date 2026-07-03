@@ -1,24 +1,24 @@
 {
   "expo": {
-    "name": "WealthSpot",
-    "slug": "wealthspot",
+    "name": "Netegron",
+    "slug": "netegron",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/netegron-mark.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "wealthspot",
+    "scheme": "netegron",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/netegron-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#5B4FCF"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "in.wealthspot.app",
+      "bundleIdentifier": "in.netegron.app",
       "associatedDomains": [
-        "applinks:wealthspot.in",
-        "applinks:www.wealthspot.in"
+        "applinks:netegron.in",
+        "applinks:www.netegron.in"
       ]
     },
     "android": {
@@ -26,26 +26,26 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#5B4FCF"
       },
-      "package": "in.wealthspot.app",
+      "package": "in.netegron.app",
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "wealthspot.in" },
-            { "scheme": "https", "host": "www.wealthspot.in" }
+            { "scheme": "https", "host": "netegron.in" },
+            { "scheme": "https", "host": "www.netegron.in" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         },
         {
           "action": "VIEW",
-          "data": [{ "scheme": "wealthspot" }],
+          "data": [{ "scheme": "netegron" }],
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/netegron-mark.png",
       "bundler": "metro"
     },
     "plugins": [
