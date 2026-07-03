@@ -27,6 +27,8 @@ export async function shareOpportunityDynamic(data: ShareData): Promise<void> {
     container.style.position = 'fixed';
     container.style.top = '-9999px';
     container.style.left = '-9999px';
+    container.style.width = '1200px';
+    container.style.height = '630px';
     document.body.appendChild(container);
 
     // 2. Render the postcard into the node

@@ -30,7 +30,7 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
       {/* Background Image with slight scale to fit inside borders nicely */}
       <div className="absolute inset-[0.66cqi] overflow-hidden rounded-[0.3cqi] bg-slate-900">
         {coverImage ? (
-          <img src={`https://wsrv.nl/?url=${encodeURIComponent(coverImage)}`} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={coverImage.startsWith('http') ? `https://wsrv.nl/?url=${encodeURIComponent(coverImage)}` : coverImage} alt={title} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-900 text-slate-500">
              <Building2 className="w-[16cqi] h-[16cqi] opacity-20" />
@@ -75,7 +75,7 @@ export const SharePostcard = forwardRef<HTMLDivElement, SharePostcardProps>(({
               <div className="text-[#D4AF37] font-bold tracking-widest uppercase text-[1.16cqi] drop-shadow-md">{city}</div>
             </div>
           )}
-          <h1 className="text-[5.5cqi] font-display font-bold leading-tight mb-[3.33cqi] text-white drop-shadow-[0_0.33cqi_0.66cqi_rgba(0,0,0,0.6)] line-clamp-2" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>
+          <h1 className="text-[5.5cqi] font-display font-bold leading-tight mb-[3.33cqi] text-white drop-shadow-[0_0.33cqi_0.66cqi_rgba(0,0,0,0.6)]" style={{ fontFamily: '"Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif' }}>
             {title}
           </h1>
 
