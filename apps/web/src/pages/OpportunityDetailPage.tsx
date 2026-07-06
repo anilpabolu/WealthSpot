@@ -68,10 +68,18 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
   }, [sections])
 
   // Keep the active pill in view when the nav row overflows and scrolls horizontally.
+  // IMPORTANT: Do NOT use btn.scrollIntoView() here — when the sticky nav bar is
+  // hidden off-screen (via translateY), scrollIntoView scrolls the entire page
+  // vertically to reveal the button, snapping the user back to the top.
+  // Instead, manually scroll only the horizontal container.
   useEffect(() => {
     const btn = btnRefs.current[activeId]
-    if (btn) {
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    const container = scrollRef.current
+    if (btn && container) {
+      const btnRect = btn.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
+      const scrollLeft = btn.offsetLeft - container.offsetLeft - (containerRect.width / 2) + (btnRect.width / 2)
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
     }
   }, [activeId])
 
