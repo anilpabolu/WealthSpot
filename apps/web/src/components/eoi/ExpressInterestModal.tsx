@@ -185,7 +185,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
       }
     })
     return opts
-  }, [sortedUnitConfigs, plotConfigs, minInvestment])
+  }, [sortedUnitConfigs, plotConfigs, minInvestment, projectPricePerSqft])
 
   const [selectedConfigValue, setSelectedConfigValue] = useState<string>('')
   

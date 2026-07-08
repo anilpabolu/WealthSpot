@@ -236,13 +236,6 @@ function FilterSidebar({ vaultParam }: { vaultParam?: string }) {
   )
 }
 
-/** Format number as compact INR (e.g. ₹2.5 Cr, ₹1.2 L) */
-function formatINR(num: number): string {
-  if (num >= 1e7) return `₹${(num / 1e7).toFixed(1).replace(/\.0$/, '')} Cr`
-  if (num >= 1e5) return `₹${(num / 1e5).toFixed(1).replace(/\.0$/, '')} L`
-  if (num >= 1e3) return `₹${(num / 1e3).toFixed(1).replace(/\.0$/, '')} K`
-  return `₹${num.toLocaleString('en-IN')}`
-}
 
 export default function MarketplacePage() {
   const navigate = useNavigate()
