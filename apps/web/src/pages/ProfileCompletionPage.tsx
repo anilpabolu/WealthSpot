@@ -125,9 +125,9 @@ function Step1({ data, onChange }: StepProps) {
             onChange={e => onChange({ ...data, full_name: e.target.value })} />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-white mb-1.5">Date of Birth</label>
-          <Input type="date" value={(data.date_of_birth as string) || ''}
-            onChange={e => onChange({ ...data, date_of_birth: e.target.value })} />
+          <label className="block text-sm font-semibold text-white mb-1.5">Occupation</label>
+          <Input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
+            onChange={e => onChange({ ...data, occupation: e.target.value })} />
         </div>
       </div>
 
@@ -136,10 +136,17 @@ function Step1({ data, onChange }: StepProps) {
         <ChipSelect options={GENDER_OPTIONS} selected={data.gender ? [data.gender as string] : []} onChange={v => onChange({ ...data, gender: v[0] ?? null })} multiple={false} />
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-white mb-1.5">Occupation</label>
-          <Input type="text" value={(data.occupation as string) || ''} placeholder="e.g. Software Engineer, Business Owner"
-            onChange={e => onChange({ ...data, occupation: e.target.value })} />
+      <div className="flex items-start gap-3 bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
+        <input 
+          type="checkbox" 
+          id="age-consent"
+          checked={!!data.age_consent}
+          onChange={e => onChange({ ...data, age_consent: e.target.checked })}
+          className="mt-0.5 w-5 h-5 rounded border-white/20 bg-transparent text-[#D4AF37] focus:ring-[#D4AF37]/50"
+        />
+        <label htmlFor="age-consent" className="text-sm text-white/90 leading-snug cursor-pointer">
+          I confirm that I am 18 years of age or older, as required for real estate investments in India.
+        </label>
       </div>
     </div>
   )
@@ -465,7 +472,7 @@ export default function ProfileCompletionPage() {
     if (!profile) return
     setFormData({
       full_name: profile.fullName,
-      date_of_birth: profile.dateOfBirth,
+      age_consent: !!profile.dateOfBirth || profile.kycStatus === 'verified',
       gender: profile.gender,
       occupation: profile.occupation,
       interests: profile.interests,
@@ -500,12 +507,16 @@ export default function ProfileCompletionPage() {
   }, [step, formData, updateS1, updateS2, updateS3])
 
   const handleNext = useCallback(async () => {
+    if (step === 1 && !formData.age_consent) {
+      alert("Please confirm you are of legal age to proceed.")
+      return
+    }
     if (step <= 3) await saveCurrentStep()
     if (step < 4) {
       setStep(s => s + 1)
       contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
-  }, [step, saveCurrentStep])
+  }, [step, formData.age_consent, saveCurrentStep])
 
   const handlePrev = useCallback(() => {
     if (step > 1) {
@@ -637,10 +648,10 @@ export default function ProfileCompletionPage() {
                 {isSaving ? 'Saving...' : 'Save & Continue'} <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={handleFinish} disabled={!completion?.emailVerified || !completion?.phoneVerified}
+              <Button onClick={handleFinish} disabled={!completion?.phoneVerified}
                 className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200">
                 <ShieldCheck className="h-4 w-4" />
-                {completion?.emailVerified && completion?.phoneVerified ? 'Complete Profile 🎉' : 'Verify to Continue'}
+                {completion?.phoneVerified ? 'Complete Profile 🎉' : 'Verify Phone to Continue'}
               </Button>
             )}
           </div>

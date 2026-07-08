@@ -246,10 +246,10 @@ function CompanyInfoModal({ company, onClose }: { company: CompanyData; onClose:
   )
 }
 
-function getOpportunityInvestmentDisplay(
+function getRawMinInvestment(
   minInvestment: number | null | undefined,
   propertySpecs: Record<string, unknown> | null | undefined
-): string {
+): number[] {
   const prices: number[] = []
   if (minInvestment != null && minInvestment > 0) {
     prices.push(minInvestment)
@@ -277,6 +277,14 @@ function getOpportunityInvestmentDisplay(
       prices.push(specs.price_per_sqft * specs.total_project_area_sqft)
     }
   }
+  return prices
+}
+
+function getOpportunityInvestmentDisplay(
+  minInvestment: number | null | undefined,
+  propertySpecs: Record<string, unknown> | null | undefined
+): string {
+  const prices = getRawMinInvestment(minInvestment, propertySpecs)
 
   if (prices.length > 0) {
     const uniquePrices = Array.from(new Set(prices)).sort((a, b) => a - b)
@@ -623,7 +631,14 @@ function InterestPanel({ opportunity }: { opportunity: { id: string; title: stri
         <ExpressInterestModal
           opportunityId={opportunity.id}
           opportunityTitle={opportunity.title}
-          minInvestment={opportunity.minInvestment ?? 0}
+          minInvestment={(() => {
+            const prices = getRawMinInvestment(opportunity.minInvestment, opportunity.propertySpecs || opportunity.property_specs)
+            if (prices.length > 0) {
+              const uniquePrices = Array.from(new Set(prices)).sort((a, b) => a - b)
+              return uniquePrices[0] ?? opportunity.minInvestment ?? 0
+            }
+            return opportunity.minInvestment ?? 0
+          })()}
           propertyType={opportunity.propertyType ?? opportunity.property_type ?? undefined}
           unitConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.configurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unitConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unit_configurations) as unknown[]) ?? undefined}
           plotConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.plotConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.plot_configurations) as unknown[]) ?? undefined}

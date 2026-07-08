@@ -177,7 +177,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
 
   const [selectedConfigValue, setSelectedConfigValue] = useState<string>('')
   
-  const activeConfigOption = configOptions.find(o => o.value === selectedConfigValue)
+  const activeConfigOption = configOptions.length === 1 ? configOptions[0] : configOptions.find(o => o.value === selectedConfigValue)
   const selectedConfig = activeConfigOption ? activeConfigOption.cfg : null
 
   // Show confirmation step if user already has EOIs for this property

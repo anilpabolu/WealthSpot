@@ -525,14 +525,14 @@ async def save_ledger_overlay(
                 opportunity_id=inv.opportunity_id,
             )
     elif body.source_type == "property":
-        inv = await db.get(Investment, body.source_id)
-        if not inv or inv.user_id != user.id:
+        leg_inv = await db.get(Investment, body.source_id)
+        if not leg_inv or leg_inv.user_id != user.id:
             raise HTTPException(status_code=404, detail="Investment not found")
         existing_r = await db.execute(
             select(InvestmentLedgerEntry)
             .where(
                 InvestmentLedgerEntry.user_id == user.id,
-                InvestmentLedgerEntry.legacy_investment_id == inv.id,
+                InvestmentLedgerEntry.legacy_investment_id == leg_inv.id,
             )
             .options(
                 selectinload(InvestmentLedgerEntry.collateral),
@@ -544,8 +544,8 @@ async def save_ledger_overlay(
         if entry is None:
             entry = InvestmentLedgerEntry(
                 user_id=user.id,
-                legacy_investment_id=inv.id,
-                property_id=inv.property_id,
+                legacy_investment_id=leg_inv.id,
+                property_id=leg_inv.property_id,
             )
     else:
         raise HTTPException(status_code=422, detail="Invalid source_type")

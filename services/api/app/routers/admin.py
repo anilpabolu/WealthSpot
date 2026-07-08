@@ -158,10 +158,10 @@ async def list_user_visits(
         property_name = None
 
         if log.source_type == "opportunity":
-            opp = opp_map.get(log.source_id)
-            if opp:
-                property_name = opp.title
-                vault_name = opp.vault_type.value.capitalize() if opp.vault_type else None
+            log_opp = opp_map.get(log.source_id)
+            if log_opp:
+                property_name = log_opp.title
+                vault_name = log_opp.vault_type.value.capitalize() if log_opp.vault_type else None
 
         items.append(
             UserVisitLogRead(
