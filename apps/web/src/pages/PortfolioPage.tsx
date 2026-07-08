@@ -34,7 +34,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  Loader2,
   Heart,
   Share2,
   FileCheck,

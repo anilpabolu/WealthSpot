@@ -7,7 +7,6 @@ import {
   TrendingUp,
   Wallet,
   IndianRupee,
-  Loader2,
   Clock,
   ArrowUpRight,
 } from 'lucide-react'

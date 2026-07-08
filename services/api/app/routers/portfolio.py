@@ -429,9 +429,9 @@ async def portfolio_property_detail(
         PropertyAppreciationItem(
             id=e.id,
             mode=e.mode,
-            input_value=float(e.input_value),
-            old_valuation=float(e.old_valuation),
-            new_valuation=float(e.new_valuation),
+            input_value=e.input_value,
+            old_valuation=e.old_valuation,
+            new_valuation=e.new_valuation,
             note=e.note,
             created_at=e.created_at,
         )

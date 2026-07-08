@@ -37,7 +37,7 @@ def _derive_prop_code(prop: Property) -> str:
     return f"PROP-{str(prop.id)[:8].upper()}"
 
 
-def _coalesce(saved: object | None, default: object | None) -> object | None:
+def _coalesce[T](saved: T | None, default: T | None) -> T | None:
     return saved if saved is not None else default
 
 
