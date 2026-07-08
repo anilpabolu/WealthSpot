@@ -340,7 +340,8 @@ export default function OpportunityDetailPage() {
             </div>
           </div>
 
-          {/* Quick-stats strip at the bottom of hero */}
+          {/* Quick-stats strip at the bottom of hero - commented out as it is redundant with the side tile */}
+          {/* 
           {((opp.minInvestment != null || opp.propertySpecs || opp.property_specs) || opp.closingDate) && (
             <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-6 sm:gap-10">
               {(opp.minInvestment != null || opp.propertySpecs || opp.property_specs) && (
@@ -366,7 +367,8 @@ export default function OpportunityDetailPage() {
                 </div>
               ) : null}
             </div>
-          )}
+          )} 
+          */}
         </div>
       </section>
 
