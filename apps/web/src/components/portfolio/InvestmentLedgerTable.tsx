@@ -37,28 +37,30 @@ function CollateralSubTable({ entry }: { entry: LedgerEntry }) {
   return (
     <div className="px-4 py-3 bg-[#160C34]/60 border-t border-[#D4AF37]/10">
       <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold mb-2">Collateral</p>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-[#CDBFF4]">
-            <th className="text-left font-medium py-1 pr-4">Project</th>
-            <th className="text-left font-medium py-1 pr-4">Unit No</th>
-            <th className="text-left font-medium py-1 pr-4">Configuration</th>
-            <th className="text-right font-medium py-1 pr-4">SBUA</th>
-            <th className="text-right font-medium py-1">Unit Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entry.collateral.map((c) => (
-            <tr key={c.id} className="text-[#F8F5FF] border-t border-[#D4AF37]/10">
-              <td className="py-1.5 pr-4">{c.project ?? '—'}</td>
-              <td className="py-1.5 pr-4">{c.unitNo ?? '—'}</td>
-              <td className="py-1.5 pr-4">{c.configuration ?? '—'}</td>
-              <td className="py-1.5 pr-4 text-right">{c.sbua != null ? c.sbua.toLocaleString('en-IN') : '—'}</td>
-              <td className="py-1.5 text-right">{formatINR(c.unitCost)}</td>
+      <div className="overflow-x-auto">
+        <table className="w-auto min-w-[600px] text-xs">
+          <thead>
+            <tr className="text-[#CDBFF4]">
+              <th className="text-left font-medium py-1.5 pr-8">Project</th>
+              <th className="text-left font-medium py-1.5 pr-8">Unit No</th>
+              <th className="text-left font-medium py-1.5 pr-8">Configuration</th>
+              <th className="text-right font-medium py-1.5 pr-8">SBUA</th>
+              <th className="text-right font-medium py-1.5 pr-4">Unit Cost</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entry.collateral.map((c) => (
+              <tr key={c.id} className="text-[#F8F5FF] border-t border-[#D4AF37]/10 hover:bg-[#CDBFF4]/5">
+                <td className="py-2.5 pr-8">{c.project ?? '—'}</td>
+                <td className="py-2.5 pr-8">{c.unitNo ?? '—'}</td>
+                <td className="py-2.5 pr-8">{c.configuration ?? '—'}</td>
+                <td className="py-2.5 pr-8 text-right">{c.sbua != null ? c.sbua.toLocaleString('en-IN') : '—'}</td>
+                <td className="py-2.5 pr-4 text-right">{formatINR(c.unitCost)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -110,10 +112,10 @@ export function InvestmentLedgerTable() {
         </div>
       ) : (
         <div
-          className="overflow-x-auto rounded-xl"
+          className="overflow-x-auto rounded-xl shadow-xl"
           style={{ background: 'linear-gradient(160deg, #2A1753 0%, #1F1243 55%, #160C34 100%)', border: '1px solid #D4AF37' }}
         >
-          <table className="w-full text-sm min-w-[1600px]">
+          <table className="w-full text-sm min-w-max">
             <thead className="border-b border-[#D4AF37]/30">
               <tr>
                 <th className={`${th} text-left sticky left-0 z-10`} style={{ background: '#23134A' }}>Registered Name</th>
