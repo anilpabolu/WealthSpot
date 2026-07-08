@@ -30,32 +30,32 @@ function formatINR(n: number | null): string {
 }
 
 const th =
-  'px-3 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold whitespace-nowrap'
-const td = 'px-3 py-3 text-xs text-[#F8F5FF] whitespace-nowrap'
+  'px-2 py-3 text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold whitespace-nowrap'
+const td = 'px-2 py-3 text-xs text-[#F8F5FF] whitespace-nowrap'
 
 function CollateralSubTable({ entry }: { entry: LedgerEntry }) {
   return (
     <div className="px-4 py-3 bg-[#160C34]/60 border-t border-[#D4AF37]/10">
       <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold mb-2">Collateral</p>
       <div className="overflow-x-auto">
-        <table className="w-auto min-w-[600px] text-xs">
+        <table className="w-full text-xs">
           <thead>
             <tr className="text-[#CDBFF4]">
-              <th className="text-left font-medium py-1.5 pr-8">Project</th>
-              <th className="text-left font-medium py-1.5 pr-8">Unit No</th>
-              <th className="text-left font-medium py-1.5 pr-8">Configuration</th>
-              <th className="text-right font-medium py-1.5 pr-8">SBUA</th>
-              <th className="text-right font-medium py-1.5 pr-4">Unit Cost</th>
+              <th className="text-left font-medium py-1.5 px-3">Project</th>
+              <th className="text-left font-medium py-1.5 px-3">Unit No</th>
+              <th className="text-left font-medium py-1.5 px-3">Configuration</th>
+              <th className="text-right font-medium py-1.5 px-3">SBUA</th>
+              <th className="text-right font-medium py-1.5 px-3">Unit Cost</th>
             </tr>
           </thead>
           <tbody>
             {entry.collateral.map((c) => (
               <tr key={c.id} className="text-[#F8F5FF] border-t border-[#D4AF37]/10 hover:bg-[#CDBFF4]/5">
-                <td className="py-2.5 pr-8">{c.project ?? '—'}</td>
-                <td className="py-2.5 pr-8">{c.unitNo ?? '—'}</td>
-                <td className="py-2.5 pr-8">{c.configuration ?? '—'}</td>
-                <td className="py-2.5 pr-8 text-right">{c.sbua != null ? c.sbua.toLocaleString('en-IN') : '—'}</td>
-                <td className="py-2.5 pr-4 text-right">{formatINR(c.unitCost)}</td>
+                <td className="py-2.5 px-3">{c.project ?? '—'}</td>
+                <td className="py-2.5 px-3">{c.unitNo ?? '—'}</td>
+                <td className="py-2.5 px-3">{c.configuration ?? '—'}</td>
+                <td className="py-2.5 px-3 text-right">{c.sbua != null ? c.sbua.toLocaleString('en-IN') : '—'}</td>
+                <td className="py-2.5 px-3 text-right">{formatINR(c.unitCost)}</td>
               </tr>
             ))}
           </tbody>

@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 """
@@ -147,6 +148,7 @@ async def _ocr_acknowledgement(file_bytes: bytes, content_type: str) -> Any:
             json.loads(content)
             return content
     except Exception:
+        logging.getLogger(__name__).warning("OCR call failed for holding upload", exc_info=True)
         return None
 
 
@@ -277,7 +279,7 @@ async def upload_acknowledgement(
                         str(ocr_data["amount"]).replace(",", "").replace("₹", "").strip()
                     )
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).debug("OCR amount parse failed", exc_info=True)
             if ocr_data.get("date"):
                 try:
                     # Try ISO format first, then common Indian formats
@@ -289,10 +291,10 @@ async def upload_acknowledgement(
                         except ValueError:
                             continue
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).debug("OCR date parse failed", exc_info=True)
             reference_number = ocr_data.get("reference_number")
         except Exception:
-            pass
+            logging.getLogger(__name__).debug("OCR JSON parse failed", exc_info=True)
 
     rec = InvestmentTransactionRecord(
         user_id=user.id,

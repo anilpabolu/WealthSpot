@@ -5,6 +5,7 @@ All endpoints query materialized views for fast aggregation.
 Falls back to direct queries if views don't exist yet.
 """
 
+import logging
 from decimal import Decimal
 from typing import Any
 
@@ -34,6 +35,7 @@ from app.schemas.analytics import (
 )
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
+logger = logging.getLogger(__name__)
 
 
 # ── Helper: safe materialized-view query with direct-query fallback ──────────
@@ -50,6 +52,7 @@ async def _safe_mv_query(db: AsyncSession, mv_sql: str, fallback_sql: str) -> li
         result = await db.execute(text(mv_sql))
         await db.execute(text("RELEASE SAVEPOINT _mv_q"))
     except Exception:
+        logger.warning("MV query failed, falling back to direct SQL", exc_info=True)
         await db.execute(text("ROLLBACK TO SAVEPOINT _mv_q"))
         result = await db.execute(text(fallback_sql))
     rows = result.mappings().all()
@@ -448,6 +451,7 @@ async def top_opportunities(
     try:
         result = await db.execute(text(TOP_OPP_MV), {"lim": limit})
     except Exception:
+        logger.warning("MV query TOP_OPP_MV failed, falling back to TOP_OPP_DIRECT", exc_info=True)
         await db.rollback()
         result = await db.execute(text(TOP_OPP_DIRECT), {"lim": limit})
 

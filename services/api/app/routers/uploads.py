@@ -71,7 +71,9 @@ async def upload_user_avatar(
         try:
             await delete_file(user.avatar_s3_key)
         except Exception:
-            pass  # Best-effort deletion
+            logger.warning(
+                "Best-effort S3 deletion failed for avatar %s", user.avatar_s3_key, exc_info=True
+            )
 
     file_obj = io.BytesIO(content)
     try:
@@ -105,7 +107,9 @@ async def delete_user_avatar(
         try:
             await delete_file(user.avatar_s3_key)
         except Exception:
-            pass  # Best-effort deletion
+            logger.warning(
+                "Best-effort S3 deletion failed for avatar %s", user.avatar_s3_key, exc_info=True
+            )
 
     user.avatar_url = None
     user.avatar_s3_key = None
@@ -272,7 +276,9 @@ async def delete_opportunity_media(
         try:
             await delete_file(media.s3_key)
         except Exception:
-            pass  # S3 deletion is best-effort
+            logger.warning(
+                "Best-effort S3 deletion failed for media %s", media.s3_key, exc_info=True
+            )
 
     await db.delete(media)
     await db.flush()

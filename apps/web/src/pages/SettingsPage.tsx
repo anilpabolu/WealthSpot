@@ -27,7 +27,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Select, Toggle, Badge, EmptyState, Input, Textarea } from '@/components/ui'
 import { useUser } from '@clerk/react'
-import { useUserProfile, useUploadAvatar, useDeleteAvatar } from '@/hooks/useUserProfile'
+import { useUserProfile, useUploadAvatar, useDeleteAvatar, useUpdateProfile } from '@/hooks/useUserProfile'
 import { useReferralStats, useReferralHistory } from '@/hooks/useReferrals'
 import {
   useKycStatus,
@@ -140,14 +140,37 @@ function ProfileTab() {
   const { data: profile, isLoading } = useUserProfile()
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
+  const updateProfile = useUpdateProfile()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showAvatarModal, setShowAvatarModal] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
-  const displayName = profile?.fullName ?? clerkUser?.fullName ?? '—'
+  const serverName = profile?.fullName ?? clerkUser?.fullName ?? ''
+  const serverPhone = profile?.phone ?? clerkUser?.primaryPhoneNumber?.phoneNumber ?? ''
   const displayEmail = clerkUser?.primaryEmailAddress?.emailAddress ?? profile?.email ?? '—'
-  const displayPhone = profile?.phone ?? clerkUser?.primaryPhoneNumber?.phoneNumber ?? ''
+
+  const [editName, setEditName] = useState(serverName)
+  const [editPhone, setEditPhone] = useState(serverPhone)
+
+  // Sync controlled state when profile data loads
+  useEffect(() => {
+    if (profile?.fullName) setEditName(profile.fullName)
+    if (profile?.phone) setEditPhone(profile.phone)
+  }, [profile?.fullName, profile?.phone])
+
+  const displayName = editName || serverName || '—'
   const displayInitial = (displayName[0] ?? 'U').toUpperCase()
   const avatarUrl = profile?.avatarUrl
+  const isDirty = editName !== serverName || editPhone !== serverPhone
+
+  const handleSave = () => {
+    if (!isDirty) return
+    setSaveSuccess(false)
+    updateProfile.mutate(
+      { fullName: editName || undefined, phone: editPhone || undefined },
+      { onSuccess: () => { setSaveSuccess(true); setTimeout(() => setSaveSuccess(false), 3000) } },
+    )
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -240,7 +263,7 @@ function ProfileTab() {
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-theme-primary mb-1">Full Name</label>
-          <input type="text" defaultValue={displayName} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
         </div>
         <div>
           <label className="block text-sm font-medium text-theme-primary mb-1">Email</label>
@@ -248,7 +271,7 @@ function ProfileTab() {
         </div>
         <div>
           <label className="block text-sm font-medium text-theme-primary mb-1">Phone</label>
-          <input type="tel" defaultValue={displayPhone} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+          <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
         </div>
         <div>
           <label className="block text-sm font-medium text-theme-primary mb-1">Role</label>
@@ -256,8 +279,23 @@ function ProfileTab() {
         </div>
       </div>
 
+      {updateProfile.isError && (
+        <p className="mt-3 text-sm text-red-500">{(updateProfile.error as Error)?.message ?? 'Save failed. Please try again.'}</p>
+      )}
+      {saveSuccess && (
+        <p className="mt-3 text-sm text-emerald-500 flex items-center gap-1.5">
+          <CheckCircle2 className="h-4 w-4" /> Profile updated successfully.
+        </p>
+      )}
+
       <div className="mt-6 flex justify-end">
-        <button className="btn-primary text-sm px-6">Save Changes</button>
+        <button
+          onClick={handleSave}
+          disabled={!isDirty || updateProfile.isPending}
+          className="btn-primary text-sm px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {updateProfile.isPending ? 'Saving…' : 'Save Changes'}
+        </button>
       </div>
     </div>
   )
@@ -367,16 +405,31 @@ function NotificationsTab() {
 }
 
 function SecurityTab() {
+  const { user: clerkUser } = useUser()
+
+  const handleManagePassword = () => {
+    // Clerk manages authentication — redirect to Clerk's user management
+    if (clerkUser) {
+      // Open Clerk's user profile modal for security settings
+      window.open('https://accounts.wealthspot.in/user', '_blank')
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="card p-6">
-        <h2 className="section-title text-lg mb-4">Change Password</h2>
-        <div className="space-y-3 max-w-sm">
-          {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
-            <Input key={label} label={label} type="password" placeholder="••••••••" />
-          ))}
-          <button className="btn-primary text-sm px-6 mt-2">Update Password</button>
-        </div>
+        <h2 className="section-title text-lg mb-2">Password Management</h2>
+        <p className="text-sm text-theme-secondary mb-4">
+          Your account is secured through Clerk authentication. To change your password, manage your security settings in your Clerk account portal.
+        </p>
+        <button
+          onClick={handleManagePassword}
+          className="btn-primary text-sm px-6 inline-flex items-center gap-2"
+        >
+          <Lock className="h-4 w-4" />
+          Manage Password
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
 
       <div className="card p-6">
@@ -384,11 +437,13 @@ function SecurityTab() {
         <p className="text-sm text-theme-secondary mb-4">
           Add an extra layer of security to your account.
         </p>
-        <button className="btn-ghost text-sm flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Enable 2FA
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl">
+          <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Coming Soon</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400/80">Two-factor authentication will be available in an upcoming release.</p>
+          </div>
+        </div>
       </div>
     </div>
   )

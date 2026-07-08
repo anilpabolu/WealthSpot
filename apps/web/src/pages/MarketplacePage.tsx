@@ -10,6 +10,7 @@ import { useContent } from '@/hooks/useSiteContent'
 import { VaultComingSoonBanner } from '@/components/VaultComingSoonOverlay'
 import { ASSET_TYPES, INDIAN_CITIES } from '@/lib/constants'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getOpportunityInvestmentDisplay } from '@/utils/opportunity'
 import { Search, SlidersHorizontal, Grid3X3, List, X, Building2, MapPin, AlertCircle, Trash2, Gift, Edit2, ChevronRight, Plus, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Select } from '@/components/ui'
@@ -554,7 +555,7 @@ export default function MarketplacePage() {
                                <div>
                                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-0.5">Min. Entry</p>
                                  <p className="font-display text-sm font-bold text-gray-900">
-                                   {opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD'}
+                                   {getOpportunityInvestmentDisplay(opp.minInvestment, opp.propertySpecs)}
                                  </p>
                                </div>
                             </div>
@@ -571,7 +572,7 @@ export default function MarketplacePage() {
                                    shareOpportunityDynamic({
                                      title: opp.title,
                                      tenure: (opp as any).tenure ?? '3 yr',
-                                     minEntry: opp.minInvestment != null ? formatINR(opp.minInvestment) : 'TBD',
+                                     minEntry: getOpportunityInvestmentDisplay(opp.minInvestment, opp.propertySpecs),
                                      coverImage: coverUrl,
                                      city: opp.city || undefined,
                                      slug: opp.slug,

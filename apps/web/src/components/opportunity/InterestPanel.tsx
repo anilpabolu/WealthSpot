@@ -128,6 +128,7 @@ export function InterestPanel({ opportunity }: { opportunity: { id: string; titl
           propertyType={opportunity.propertyType ?? opportunity.property_type ?? undefined}
           unitConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.configurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unitConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.unit_configurations) as unknown[]) ?? undefined}
           plotConfigs={(((opportunity.propertySpecs ?? opportunity.property_specs)?.plotConfigurations ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.plot_configurations) as unknown[]) ?? undefined}
+          projectPricePerSqft={(opportunity.propertySpecs ?? opportunity.property_specs)?.current_price_per_sqft ?? (opportunity.propertySpecs ?? opportunity.property_specs)?.price_per_sqft ?? undefined}
           onClose={() => setShowEOI(false)}
         />
       )}

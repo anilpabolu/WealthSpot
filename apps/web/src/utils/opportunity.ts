@@ -15,18 +15,22 @@ export function getRawMinInvestment(
     const unitConfigs = specs.configurations as { price?: number; investment_amount?: number; price_per_sqft?: number; super_built_up_sqft?: number; carpet_area_sqft?: number }[] | undefined
     const plotConfigs = specs.plot_configurations as { price?: number; investment_amount?: number; price_per_sqft?: number; area_sqft?: number }[] | undefined
 
+    const fallbackPriceSqft = (specs.current_price_per_sqft as number) || (specs.price_per_sqft as number) || (specs.launch_price_per_sqft as number) || 0
+
     if (unitConfigs?.length) {
       unitConfigs.forEach(u => {
+        const pSqft = u.price_per_sqft || fallbackPriceSqft
         if (u.price != null && u.price > 0) prices.push(u.price)
         else if (u.investment_amount != null && u.investment_amount > 0) prices.push(u.investment_amount)
-        else if (u.price_per_sqft && u.super_built_up_sqft) prices.push(u.price_per_sqft * u.super_built_up_sqft)
-        else if (u.price_per_sqft && u.carpet_area_sqft) prices.push(u.price_per_sqft * u.carpet_area_sqft)
+        else if (pSqft && u.super_built_up_sqft) prices.push(pSqft * u.super_built_up_sqft)
+        else if (pSqft && u.carpet_area_sqft) prices.push(pSqft * u.carpet_area_sqft)
       })
     } else if (plotConfigs?.length) {
       plotConfigs.forEach(p => {
+        const pSqft = p.price_per_sqft || fallbackPriceSqft
         if (p.price != null && p.price > 0) prices.push(p.price)
         else if (p.investment_amount != null && p.investment_amount > 0) prices.push(p.investment_amount)
-        else if (p.price_per_sqft && p.area_sqft) prices.push(p.price_per_sqft * p.area_sqft)
+        else if (pSqft && p.area_sqft) prices.push(pSqft * p.area_sqft)
       })
     } else if (typeof specs.price_per_sqft === 'number' && typeof specs.total_project_area_sqft === 'number') {
       prices.push(specs.price_per_sqft * specs.total_project_area_sqft)

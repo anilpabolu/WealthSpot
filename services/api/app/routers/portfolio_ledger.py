@@ -15,6 +15,7 @@ Document attachments reuse the S3 helpers and conventions from
 """
 
 import io
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -580,7 +581,9 @@ async def delete_ledger_document(
     try:
         await delete_file(s3_key)
     except Exception:
-        pass
+        logging.getLogger(__name__).warning(
+            "Failed to delete S3 object %s for ledger doc %s", s3_key, doc_id, exc_info=True
+        )
 
 
 # ── Asset options for the back-entry picker ──────────────────────────────────

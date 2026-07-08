@@ -66,3 +66,24 @@ export function useDeleteAvatar() {
     },
   })
 }
+
+export interface ProfileUpdatePayload {
+  fullName?: string
+  phone?: string
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient()
+  return useMutation<UserProfile, Error, ProfileUpdatePayload>({
+    mutationFn: async (data: ProfileUpdatePayload) => {
+      const res = await api.put<UserProfile>('/auth/me', {
+        full_name: data.fullName,
+        phone: data.phone,
+      })
+      return res.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user', 'me'] })
+    },
+  })
+}

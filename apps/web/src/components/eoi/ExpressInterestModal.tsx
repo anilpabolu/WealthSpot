@@ -48,25 +48,29 @@ function getUnitLabel(cfg: UnitCfg): string {
   return cfg.type || 'Unit'
 }
 
-function computeUnitTotal(cfg: UnitCfg): number | null {
+function computeUnitTotal(cfg: UnitCfg, fallbackPriceSqft: number = 0): number | null {
   if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
   if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
-  if (cfg.super_built_up_sqft != null && cfg.price_per_sqft != null) {
-    const val = Number(cfg.super_built_up_sqft) * Number(cfg.price_per_sqft)
+  
+  const pSqft = cfg.price_per_sqft || fallbackPriceSqft
+  if (cfg.super_built_up_sqft != null && pSqft > 0) {
+    const val = Number(cfg.super_built_up_sqft) * Number(pSqft)
     if (val > 0) return val
   }
-  if (cfg.carpet_area_sqft != null && cfg.price_per_sqft != null) {
-    const val = Number(cfg.carpet_area_sqft) * Number(cfg.price_per_sqft)
+  if (cfg.carpet_area_sqft != null && pSqft > 0) {
+    const val = Number(cfg.carpet_area_sqft) * Number(pSqft)
     if (val > 0) return val
   }
   return null
 }
 
-function computePlotTotal(cfg: PlotCfg): number | null {
+function computePlotTotal(cfg: PlotCfg, fallbackPriceSqft: number = 0): number | null {
   if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
   if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
-  if (cfg.area_sqft != null && cfg.price_per_sqft != null) {
-    const val = Number(cfg.area_sqft) * Number(cfg.price_per_sqft)
+  
+  const pSqft = cfg.price_per_sqft || fallbackPriceSqft
+  if (cfg.area_sqft != null && pSqft > 0) {
+    const val = Number(cfg.area_sqft) * Number(pSqft)
     if (val > 0) return val
   }
   return null
@@ -128,12 +132,13 @@ interface Props {
   propertyType?: string
   unitConfigs?: unknown[]
   plotConfigs?: unknown[]
+  projectPricePerSqft?: number
   onClose: () => void
 }
 
 type Step = 'confirm' | 'consent' | 'form' | 'success'
 
-export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, propertyType: _propertyType, unitConfigs: rawUnitConfigs, plotConfigs: rawPlotConfigs, onClose }: Props) {
+export default function ExpressInterestModal({ opportunityId, opportunityTitle, minInvestment, propertyType: _propertyType, unitConfigs: rawUnitConfigs, plotConfigs: rawPlotConfigs, projectPricePerSqft, onClose }: Props) {
   const { data: existingEOIs, isLoading: eoisLoading } = useEOIs({ opportunityId })
   const hasExistingInvestment = (existingEOIs?.items?.length ?? 0) > 0
 
@@ -154,7 +159,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     const opts: { value: string; label: string; amount: number; cfg: UnitCfg | PlotCfg; detailLabel: string }[] = []
     
     sortedUnitConfigs.forEach((u, i) => {
-      const total = computeUnitTotal(u)
+      const total = computeUnitTotal(u, projectPricePerSqft)
       const amt = total ?? minInvestment
       const uLabel = getUnitLabel(u)
       opts.push({
@@ -167,7 +172,7 @@ export default function ExpressInterestModal({ opportunityId, opportunityTitle, 
     })
     
     plotConfigs.forEach((p, i) => {
-      const total = computePlotTotal(p)
+      const total = computePlotTotal(p, projectPricePerSqft)
       const amt = total ?? minInvestment
       if (amt && amt > 0) {
         opts.push({
