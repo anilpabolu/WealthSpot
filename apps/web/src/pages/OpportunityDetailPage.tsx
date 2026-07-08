@@ -745,8 +745,10 @@ export default function OpportunityDetailPage() {
               minInvestment: opp.minInvestment,
               investorCount: opp.investorCount,
               closingDate: opp.closingDate,
-              property_type: opp.property_type,
-              property_specs: opp.property_specs,
+              property_type: opp.propertyType || opp.property_type,
+              property_specs: opp.propertySpecs || opp.property_specs,
+              propertyType: opp.propertyType || opp.property_type,
+              propertySpecs: opp.propertySpecs || opp.property_specs,
             }} />
 
             <ProjectUspPanel usps={opp.locationUsps} />
