@@ -18,11 +18,17 @@ function TrustBadge({ icon: Icon, label }: { icon: React.FC<{ className?: string
   )
 }
 
-export function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null; propertyType?: string | null; propertySpecs?: Record<string, unknown> | null } }) {
+export function InterestPanel({ opportunity }: { opportunity: { id: string; title: string; status: string; raisedAmount: number; targetAmount: number | null; minInvestment: number | null; investorCount: number; closingDate: string | null; fundingOpenAt?: string | null; property_type?: string | null; property_specs?: Record<string, unknown> | null; propertyType?: string | null; propertySpecs?: Record<string, unknown> | null } }) {
   const [showEOI, setShowEOI] = useState(false)
   const daysLeft = opportunity.closingDate ? daysRemaining(opportunity.closingDate) : 0
-  const isClosed = opportunity.status === 'closed' || (opportunity.closingDate && daysLeft <= 0)
-  const isUrgent = daysLeft > 0 && daysLeft <= 10
+  const now = Date.now()
+  const closingDateMs = opportunity.closingDate ? new Date(opportunity.closingDate).getTime() : null
+  const fundingOpenAtMs = opportunity.fundingOpenAt ? new Date(opportunity.fundingOpenAt).getTime() : null
+  
+  const isClosed = opportunity.status === 'closed' || (closingDateMs && now >= closingDateMs)
+  const isComingSoon = !isClosed && (opportunity.status === 'coming_soon' || (fundingOpenAtMs && now < fundingOpenAtMs))
+  const daysUntilOpen = fundingOpenAtMs ? Math.max(0, Math.ceil((fundingOpenAtMs - now) / 86400000)) : 0
+  const isUrgent = !isClosed && !isComingSoon && daysLeft > 0 && daysLeft <= 10
 
   return (
     <>
@@ -36,7 +42,11 @@ export function InterestPanel({ opportunity }: { opportunity: { id: string; titl
             style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)' }} />
           <div className="relative z-10">
             <div className="flex items-center justify-end mb-4">
-              {daysLeft > 0 && !isClosed ? (
+              {isComingSoon ? (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  <Clock className="h-3.5 w-3.5" /> Starts in {daysUntilOpen} days
+                </span>
+              ) : daysLeft > 0 && !isClosed ? (
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
                   isUrgent
                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
@@ -65,7 +75,7 @@ export function InterestPanel({ opportunity }: { opportunity: { id: string; titl
 
         {/* Card body */}
         <div className="bg-[var(--bg-card)] px-5 pt-4 pb-5">
-          {!isClosed ? (
+          {!isClosed && !isComingSoon ? (
             <button
               onClick={() => setShowEOI(true)}
               className="w-full py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg"
@@ -77,6 +87,10 @@ export function InterestPanel({ opportunity }: { opportunity: { id: string; titl
             >
               <HandCoins className="h-5 w-5" />
               Express Interest
+            </button>
+          ) : isComingSoon ? (
+            <button disabled className="w-full py-3.5 rounded-xl bg-indigo-500/10 text-indigo-400 font-semibold cursor-not-allowed text-base border border-indigo-500/20">
+              Coming Soon {daysUntilOpen > 0 ? `(${daysUntilOpen} days)` : ''}
             </button>
           ) : (
             <button disabled className="w-full py-3.5 rounded-xl bg-[var(--bg-surface-hover)] text-theme-secondary font-semibold cursor-not-allowed text-base">

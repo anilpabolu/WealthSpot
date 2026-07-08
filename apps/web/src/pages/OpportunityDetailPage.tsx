@@ -5,8 +5,7 @@ import SEOHead from '@/components/SEOHead'
 import { useOpportunityBySlug } from '@/hooks/useOpportunities'
 import { useLikeStatus, useToggleLike, useTrackShare, usePropertyReferralCode } from '@/hooks/useOpportunityActions'
 import ShareModal from '@/components/share/ShareModal'
-import { formatINRCompact, daysRemaining } from '@/lib/formatters'
-import { getOpportunityInvestmentDisplay } from '@/utils/opportunity'
+import { formatINRCompact } from '@/lib/formatters'
 import {
   MapPin, ChevronRight, Heart, Share2,
   Sparkles, FileText, Camera, Home,
@@ -129,19 +128,24 @@ function OpportunityNavigation({ sections }: { sections: Array<{ id: string, lab
 /* ── Interest Panel Extracted ─────────────────────────────────────────── */
 
 /** Derive lifecycle ribbon from status + dates + funding */
-function getLifecycleRibbon(opp: { status: string; closingDate: string | null; raisedAmount: number; targetAmount: number | null }) {  if (opp.status === 'closed') return { label: 'CLOSED', color: 'bg-red-600' }
-
-  const closingDate = opp.closingDate ? new Date(opp.closingDate) : null
-  const daysLeft = closingDate ? Math.ceil((closingDate.getTime() - Date.now()) / 86400000) : null
+function getLifecycleRibbon(opp: { status: string; closingDate: string | null; fundingOpenAt?: string | null; raisedAmount: number; targetAmount: number | null }) {
+  const now = Date.now()
+  const closingDateMs = opp.closingDate ? new Date(opp.closingDate).getTime() : null
+  const fundingOpenAtMs = opp.fundingOpenAt ? new Date(opp.fundingOpenAt).getTime() : null
+  
+  const daysLeft = closingDateMs ? Math.ceil((closingDateMs - now) / 86400000) : null
   const fundedPct = opp.targetAmount ? (opp.raisedAmount / opp.targetAmount) * 100 : 0
 
-  if (opp.status === 'closed' || (daysLeft !== null && daysLeft <= 0))
+  if (opp.status === 'closed' || (closingDateMs && now >= closingDateMs))
     return { label: 'CLOSED', color: 'bg-red-600' }
+
+  if (opp.status === 'coming_soon' || (fundingOpenAtMs && now < fundingOpenAtMs))
+    return { label: 'COMING SOON', color: 'bg-indigo-500' }
 
   if ((daysLeft !== null && daysLeft <= 7 && daysLeft > 0) || fundedPct >= 90)
     return { label: 'CLOSING SOON', color: 'bg-orange-500' }
 
-  if (['active', 'funding', 'live'].includes(opp.status) && (daysLeft === null || daysLeft > 0))
+  if (['active', 'funding', 'live', 'open', 'published'].includes(opp.status) || (fundingOpenAtMs && now >= fundingOpenAtMs))
     return { label: 'LIVE', color: 'bg-green-600' }
 
   if (['approved', 'pending_approval', 'upcoming'].includes(opp.status))
