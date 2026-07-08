@@ -17,11 +17,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<CardVariant, string> = {
-  default: 'bg-white/5 border border-white/10 rounded-2xl',
-  elevated: 'bg-white/[0.08] border border-white/15 rounded-2xl shadow-xl shadow-black/20',
-  flat: 'bg-white/5 rounded-xl',
-  glass:
-    'bg-white/5 backdrop-blur-sm border border-white/15 rounded-2xl',
+  default: 'bg-white/5 border border-white/10 rounded-2xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]',
+  elevated: 'bg-white/[0.08] border border-white/15 rounded-2xl shadow-xl shadow-black/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 hover:border-white/25',
+  flat: 'bg-white/5 rounded-xl transition-all duration-200 hover:bg-white/10',
+  glass: 'bg-white/5 backdrop-blur-glass border border-white/15 rounded-2xl shadow-card-glass transition-all duration-300 hover:border-white/25 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(255,255,255,0.05)]',
 };
 
 const paddingClasses: Record<CardPadding, string> = {

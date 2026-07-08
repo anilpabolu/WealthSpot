@@ -684,8 +684,20 @@ function UnifiedActivityRow({
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center py-20">
-      <Loader2 className="h-8 w-8 text-primary animate-spin" />
+    <div className="space-y-10 animate-fade-in w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="skeleton h-28 rounded-2xl" />
+        <div className="skeleton h-28 rounded-2xl" />
+        <div className="skeleton h-28 rounded-2xl" />
+      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="skeleton h-64 rounded-2xl" />
+        <div className="skeleton h-64 rounded-2xl" />
+      </div>
+      <div className="space-y-4">
+        <div className="skeleton h-8 w-48 rounded-md" />
+        <div className="skeleton h-48 w-full rounded-2xl" />
+      </div>
     </div>
   )
 }

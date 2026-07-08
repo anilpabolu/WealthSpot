@@ -8,7 +8,6 @@ from app.services.matching import (
     determine_archetype,
     determine_compatibility_label,
     _compute_answer_score,
-    COMPATIBILITY_LABELS,
 )
 
 

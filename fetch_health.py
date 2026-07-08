@@ -1,6 +1,5 @@
 import urllib.request
 import urllib.error
-import json
 
 try:
     res = urllib.request.urlopen('https://api.wealthspot.in/health')

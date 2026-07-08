@@ -17,7 +17,7 @@ from httpx import AsyncClient
 from sqlalchemy import select, text
 
 from app.models.approval import ApprovalRequest, ApprovalStatus
-from app.models.community import Loan, Referral
+from app.models.community import Loan
 from app.models.platform_config import PlatformConfig
 from app.models.property import AssetType, Builder, Property, PropertyStatus
 from app.models.user import KycStatus, User, UserRole

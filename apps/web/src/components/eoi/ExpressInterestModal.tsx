@@ -19,6 +19,7 @@ import { convertKeysToSnake } from '@wealthspot/api-client'
 export type UnitCfg = {
   type?: string
   super_built_up_sqft?: number
+  carpet_area_sqft?: number
   price_per_sqft?: number
   price?: number
   investment_amount?: number
@@ -44,14 +45,19 @@ function formatLakhs(amount: number): string {
 }
 
 function getUnitLabel(cfg: UnitCfg): string {
-  return cfg.type ?? 'Unit'
+  return cfg.type || 'Unit'
 }
 
 function computeUnitTotal(cfg: UnitCfg): number | null {
   if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
   if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
   if (cfg.super_built_up_sqft != null && cfg.price_per_sqft != null) {
-    return Number(cfg.super_built_up_sqft) * Number(cfg.price_per_sqft)
+    const val = Number(cfg.super_built_up_sqft) * Number(cfg.price_per_sqft)
+    if (val > 0) return val
+  }
+  if (cfg.carpet_area_sqft != null && cfg.price_per_sqft != null) {
+    const val = Number(cfg.carpet_area_sqft) * Number(cfg.price_per_sqft)
+    if (val > 0) return val
   }
   return null
 }
@@ -60,7 +66,8 @@ function computePlotTotal(cfg: PlotCfg): number | null {
   if (cfg.price != null && Number(cfg.price) > 0) return Number(cfg.price)
   if (cfg.investment_amount != null && Number(cfg.investment_amount) > 0) return Number(cfg.investment_amount)
   if (cfg.area_sqft != null && cfg.price_per_sqft != null) {
-    return Number(cfg.area_sqft) * Number(cfg.price_per_sqft)
+    const val = Number(cfg.area_sqft) * Number(cfg.price_per_sqft)
+    if (val > 0) return val
   }
   return null
 }

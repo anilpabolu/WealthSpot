@@ -8,8 +8,7 @@ Or with UI:
   locust -f tests/performance/locustfile.py --host http://localhost:8000
 """
 import os
-import json
-from locust import HttpUser, task, between, events
+from locust import HttpUser, task, between
 
 
 # Auth token for test user — set via env var or hardcode for local testing

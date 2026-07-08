@@ -1,6 +1,6 @@
 """Unit tests for notification service."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
@@ -21,7 +21,7 @@ class TestCreateNotification:
     @pytest.mark.asyncio
     async def test_creates_notification(self, mock_db):
         user_id = uuid4()
-        result = await notif_mod.create_notification(
+        await notif_mod.create_notification(
             mock_db,
             user_id=user_id,
             type="test_type",
@@ -37,7 +37,7 @@ class TestCreateNotification:
 
     @pytest.mark.asyncio
     async def test_custom_channel(self, mock_db):
-        result = await notif_mod.create_notification(
+        await notif_mod.create_notification(
             mock_db,
             user_id=uuid4(),
             type="info",

@@ -38,7 +38,7 @@ class TestSendOtpEmail:
     @pytest.mark.asyncio
     async def test_returns_true_on_success(self, smtp_settings):
         with patch.object(email_mod, "get_settings", return_value=smtp_settings):
-            with patch.object(email_mod, "_send_smtp") as mock_send:
+            with patch.object(email_mod, "_send_smtp"):
                 with patch.object(email_mod.anyio.to_thread, "run_sync", new_callable=AsyncMock) as mock_run:
                     mock_run.return_value = None
                     result = await email_mod.send_otp_email("user@example.com", "654321")

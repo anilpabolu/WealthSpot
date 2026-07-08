@@ -7,6 +7,7 @@ import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -825,7 +826,7 @@ class SnapshotConfigBody(BaseModel):
 async def get_snapshot_config(
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(get_current_user),
-) -> dict:
+) -> dict[str, Any]:
     """Return the admin-configured list of sections to show in the holding snapshot popup."""
     result = await db.execute(
         select(PlatformConfig).where(
@@ -836,7 +837,7 @@ async def get_snapshot_config(
     )
     cfg = result.scalars().first()
     if cfg and cfg.value and isinstance(cfg.value, dict):
-        return cfg.value
+        return dict(cfg.value)
     return {"sections": _SNAPSHOT_DEFAULT_SECTIONS}
 
 

@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import AsyncClient
 
-from app.models.user import KycStatus, User
-from tests.conftest import TestSessionFactory, auth_headers
+from app.models.user import User
+from tests.conftest import auth_headers
 
 KYC_PREFIX = "/api/v1/kyc"
 BANK_PREFIX = "/api/v1/bank"
@@ -32,7 +32,7 @@ def _fake_presigned(key: str, **kwargs):
 # Generate a real Fernet key for tests
 os.environ.setdefault("ENCRYPTION_KEY", "dGVzdC1lbmNyeXB0aW9uLWtleS0xMjM0NTY3ODkwYWJj")
 # Use proper Fernet key
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet  # noqa: E402
 _test_fernet_key = Fernet.generate_key().decode()
 os.environ["ENCRYPTION_KEY"] = _test_fernet_key
 

@@ -41,8 +41,22 @@ export default function PropertyPortfolioDetailPage() {
             </button>
 
             {isLoading && (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <div className="space-y-6">
+                <div>
+                  <div className="skeleton h-8 w-64 mb-2 rounded-md" />
+                  <div className="skeleton h-4 w-32 rounded-md" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="skeleton h-32 rounded-2xl" />
+                  <div className="skeleton h-32 rounded-2xl" />
+                  <div className="skeleton h-32 rounded-2xl" />
+                  <div className="skeleton h-32 rounded-2xl" />
+                </div>
+                <div className="space-y-3">
+                  <div className="skeleton h-6 w-48 mb-3 rounded-md" />
+                  <div className="skeleton h-16 w-full rounded-xl" />
+                  <div className="skeleton h-16 w-full rounded-xl" />
+                </div>
               </div>
             )}
 

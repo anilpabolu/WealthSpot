@@ -22,3 +22,4 @@ export {
   type CardHeaderProps,
 } from './Card';
 export { Dialog, type DialogSize, type DialogProps } from './Dialog';
+export { Skeleton } from './Skeleton';

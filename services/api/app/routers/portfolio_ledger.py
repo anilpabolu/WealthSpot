@@ -16,7 +16,6 @@ Document attachments reuse the S3 helpers and conventions from
 
 import io
 import uuid
-from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel
@@ -26,17 +25,28 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user
-from app.models.investment import Investment, InvestmentStatus
+from app.models.investment import Investment
 from app.models.investment_ledger import (
     InvestmentLedgerCollateral,
     InvestmentLedgerDocument,
     InvestmentLedgerEntry,
 )
-from app.models.opportunity import Opportunity, OpportunityStatus
-from app.models.opportunity_investment import OppInvestmentStatus, OpportunityInvestment
-from app.models.property import Property, PropertyStatus
+from app.models.opportunity import Opportunity
+from app.models.opportunity_investment import OpportunityInvestment
+from app.models.property import Property
 from app.models.user import User
 from app.routers.portfolio import _extract_specs
+from app.services.portfolio_ledger_service import (
+    _coalesce,
+    _derive_opp_code,
+    _derive_prop_code,
+    _f,
+    apply_ledger_fields,
+    get_asset_options,
+    get_merged_ledger_rows,
+    get_owned_ledger_entry,
+    rebuild_ledger_collateral,
+)
 from app.services.s3 import delete_file, generate_presigned_url, upload_file
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio-ledger"])
@@ -147,27 +157,6 @@ class AssetOptionsOut(BaseModel):
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
-def _dec(v: float | None) -> Decimal | None:
-    if v is None:
-        return None
-    try:
-        return Decimal(str(v))
-    except (InvalidOperation, ValueError):
-        return None
-
-
-def _f(v: Decimal | None) -> float | None:
-    return float(v) if v is not None else None
-
-
-def _derive_opp_code(opp: Opportunity) -> str:
-    return f"OPP-{str(opp.id)[:8].upper()}"
-
-
-def _derive_prop_code(prop: Property) -> str:
-    return f"PROP-{str(prop.id)[:8].upper()}"
-
-
 def _collateral_out(c: InvestmentLedgerCollateral) -> CollateralOut:
     return CollateralOut(
         id=c.id,
@@ -187,10 +176,6 @@ def _document_out(d: InvestmentLedgerDocument) -> DocumentOut:
         size_bytes=d.size_bytes,
         created_at=d.created_at.isoformat(),
     )
-
-
-def _coalesce(saved: object | None, default: object | None) -> object | None:
-    return saved if saved is not None else default
 
 
 def _entry_out_manual(entry: InvestmentLedgerEntry) -> LedgerEntryOut:
@@ -223,37 +208,6 @@ def _entry_out_manual(entry: InvestmentLedgerEntry) -> LedgerEntryOut:
     )
 
 
-def _apply_fields(entry: InvestmentLedgerEntry, fields: LedgerEntryFields) -> None:
-    entry.registered_name = fields.registered_name
-    entry.opportunity_code = fields.opportunity_code
-    entry.status = fields.status
-    entry.configuration = fields.configuration
-    entry.base_value = _dec(fields.base_value)
-    entry.gst = _dec(fields.gst)
-    entry.gst_paid = fields.gst_paid
-    entry.total_value = _dec(fields.total_value)
-    entry.referred_by = fields.referred_by
-    entry.type_of_investment = fields.type_of_investment
-    entry.extra_sqft = _dec(fields.extra_sqft)
-    entry.sweep_on_oc_loan = _dec(fields.sweep_on_oc_loan)
-    entry.latest_updates = fields.latest_updates
-
-
-def _rebuild_collateral(entry: InvestmentLedgerEntry, rows: list[CollateralIn]) -> None:
-    entry.collateral.clear()
-    for idx, c in enumerate(rows):
-        entry.collateral.append(
-            InvestmentLedgerCollateral(
-                project=c.project,
-                unit_no=c.unit_no,
-                configuration=c.configuration,
-                sbua=_dec(c.sbua),
-                unit_cost=_dec(c.unit_cost),
-                sort_order=idx,
-            )
-        )
-
-
 # ── GET ledger ───────────────────────────────────────────────────────────────
 
 
@@ -263,41 +217,18 @@ async def list_ledger(
     user: User = Depends(get_current_user),
 ) -> list[LedgerEntryOut]:
     """Merged ledger: derived rows (overlaid with saved edits) + manual back-entries."""
-    # Load all of the user's ledger entries with children eager-loaded.
-    entries_r = await db.execute(
-        select(InvestmentLedgerEntry)
-        .where(InvestmentLedgerEntry.user_id == user.id)
-        .options(
-            selectinload(InvestmentLedgerEntry.collateral),
-            selectinload(InvestmentLedgerEntry.documents),
-        )
-    )
-    entries = list(entries_r.scalars().all())
-    overlay_by_opp: dict[uuid.UUID, InvestmentLedgerEntry] = {}
-    overlay_by_leg: dict[uuid.UUID, InvestmentLedgerEntry] = {}
-    manual_entries: list[InvestmentLedgerEntry] = []
-    for e in entries:
-        if e.opportunity_investment_id is not None:
-            overlay_by_opp[e.opportunity_investment_id] = e
-        elif e.legacy_investment_id is not None:
-            overlay_by_leg[e.legacy_investment_id] = e
-        else:
-            manual_entries.append(e)
+    data = await get_merged_ledger_rows(user.id, db)
+    overlay_by_opp = data["overlay_by_opp"]
+    overlay_by_leg = data["overlay_by_leg"]
+    manual_entries = data["manual_entries"]
+    opp_rows = data["opp_rows"]
+    leg_rows = data["leg_rows"]
+    opp_titles = data["opp_titles"]
+    prop_titles = data["prop_titles"]
 
     rows: list[LedgerEntryOut] = []
 
     # ── Derived: opportunity investments ────────────────────────────────────
-    opp_rows = (
-        await db.execute(
-            select(OpportunityInvestment, Opportunity)
-            .join(Opportunity, Opportunity.id == OpportunityInvestment.opportunity_id)
-            .where(
-                OpportunityInvestment.user_id == user.id,
-                OpportunityInvestment.status == OppInvestmentStatus.CONFIRMED,
-            )
-            .order_by(OpportunityInvestment.invested_at.desc())
-        )
-    ).all()
     for inv, opp in opp_rows:
         overlay = overlay_by_opp.get(inv.id)
         _, flat_cfgs = _extract_specs(opp.property_specs)
@@ -349,17 +280,6 @@ async def list_ledger(
         )
 
     # ── Derived: legacy property investments ─────────────────────────────────
-    leg_rows = (
-        await db.execute(
-            select(Investment, Property)
-            .join(Property, Property.id == Investment.property_id)
-            .where(
-                Investment.user_id == user.id,
-                Investment.status == InvestmentStatus.CONFIRMED,
-            )
-            .order_by(Investment.created_at.desc())
-        )
-    ).all()
     for inv, prop in leg_rows:
         overlay = overlay_by_leg.get(inv.id)
         _, flat_cfgs = _extract_specs(prop.property_specs)
@@ -408,20 +328,6 @@ async def list_ledger(
         )
 
     # ── Manual back-entries ──────────────────────────────────────────────────
-    manual_opp_ids = {e.opportunity_id for e in manual_entries if e.opportunity_id}
-    manual_prop_ids = {e.property_id for e in manual_entries if e.property_id}
-    opp_titles: dict[uuid.UUID, str] = {}
-    prop_titles: dict[uuid.UUID, str] = {}
-    if manual_opp_ids:
-        r = await db.execute(
-            select(Opportunity.id, Opportunity.title).where(Opportunity.id.in_(manual_opp_ids))
-        )
-        opp_titles = {row.id: row.title for row in r.all()}
-    if manual_prop_ids:
-        r = await db.execute(
-            select(Property.id, Property.title).where(Property.id.in_(manual_prop_ids))
-        )
-        prop_titles = {row.id: row.title for row in r.all()}
     for e in manual_entries:
         out = _entry_out_manual(e)
         if e.opportunity_id:
@@ -443,6 +349,7 @@ async def create_ledger_entry(
     user: User = Depends(get_current_user),
 ) -> LedgerEntryOut:
     """Add a manual back-entry. Must reference a listed opportunity or property."""
+
     if body.opportunity_id is None and body.property_id is None:
         raise HTTPException(status_code=422, detail="An opportunity or property must be selected")
     project_name: str | None = None
@@ -462,8 +369,8 @@ async def create_ledger_entry(
         opportunity_id=body.opportunity_id,
         property_id=body.property_id,
     )
-    _apply_fields(entry, body)
-    _rebuild_collateral(entry, body.collateral)
+    apply_ledger_fields(entry, body)
+    rebuild_ledger_collateral(entry, body.collateral)
     db.add(entry)
     await db.commit()
     await db.refresh(entry, attribute_names=["collateral", "documents"])
@@ -483,9 +390,11 @@ async def update_ledger_entry(
     user: User = Depends(get_current_user),
 ) -> LedgerEntryOut:
     """Update an existing ledger entry (manual or overlay)."""
-    entry = await _get_owned_entry(entry_id, user.id, db)
-    _apply_fields(entry, body)
-    _rebuild_collateral(entry, body.collateral)
+    entry = await get_owned_ledger_entry(entry_id, user.id, db)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Ledger entry not found")
+    apply_ledger_fields(entry, body)
+    rebuild_ledger_collateral(entry, body.collateral)
     await db.commit()
     await db.refresh(entry, attribute_names=["collateral", "documents"])
     return _entry_out_manual(entry)
@@ -501,6 +410,9 @@ async def save_ledger_overlay(
     user: User = Depends(get_current_user),
 ) -> LedgerEntryOut:
     """Create or update the overlay entry that stores edits for a derived holding."""
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
     if body.source_type == "opportunity":
         inv = await db.get(OpportunityInvestment, body.source_id)
         if not inv or inv.user_id != user.id:
@@ -550,8 +462,8 @@ async def save_ledger_overlay(
     else:
         raise HTTPException(status_code=422, detail="Invalid source_type")
 
-    _apply_fields(entry, body)
-    _rebuild_collateral(entry, body.collateral)
+    apply_ledger_fields(entry, body)
+    rebuild_ledger_collateral(entry, body.collateral)
     if is_new:
         db.add(entry)
     await db.commit()
@@ -575,7 +487,9 @@ async def delete_ledger_entry(
     user: User = Depends(get_current_user),
 ) -> None:
     """Delete a manual back-entry. Derived rows cannot be deleted."""
-    entry = await _get_owned_entry(entry_id, user.id, db)
+    entry = await get_owned_ledger_entry(entry_id, user.id, db)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Ledger entry not found")
     if entry.opportunity_investment_id is not None or entry.legacy_investment_id is not None:
         raise HTTPException(status_code=400, detail="Derived rows cannot be deleted")
     await db.delete(entry)
@@ -597,7 +511,9 @@ async def upload_ledger_document(
     user: User = Depends(get_current_user),
 ) -> DocumentOut:
     """Attach a document to a ledger entry."""
-    entry = await _get_owned_entry(entry_id, user.id, db)
+    entry = await get_owned_ledger_entry(entry_id, user.id, db)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Ledger entry not found")
     content_type = file.content_type or "application/octet-stream"
     if content_type not in _ALLOWED_MIME:
         raise HTTPException(status_code=415, detail="Unsupported file type")
@@ -634,7 +550,9 @@ async def get_ledger_document_url(
     user: User = Depends(get_current_user),
 ) -> dict:
     """Get a 5-minute presigned URL to view a ledger document."""
-    await _get_owned_entry(entry_id, user.id, db)
+    entry = await get_owned_ledger_entry(entry_id, user.id, db)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Ledger entry not found")
     doc = await db.get(InvestmentLedgerDocument, doc_id)
     if not doc or doc.entry_id != entry_id:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -650,7 +568,9 @@ async def delete_ledger_document(
     user: User = Depends(get_current_user),
 ) -> None:
     """Delete a ledger document (and best-effort remove the S3 object)."""
-    await _get_owned_entry(entry_id, user.id, db)
+    entry = await get_owned_ledger_entry(entry_id, user.id, db)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Ledger entry not found")
     doc = await db.get(InvestmentLedgerDocument, doc_id)
     if not doc or doc.entry_id != entry_id:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -672,29 +592,15 @@ async def ledger_asset_options(
     _user: User = Depends(get_current_user),
 ) -> AssetOptionsOut:
     """List opportunities and properties the user can back-enter against."""
-    opp_r = await db.execute(
-        select(Opportunity)
-        .where(Opportunity.status.notin_([OpportunityStatus.DRAFT, OpportunityStatus.REJECTED]))
-        .order_by(Opportunity.created_at.desc())
-        .limit(500)
+    opportunities, properties = await get_asset_options(db)
+    return AssetOptionsOut(
+        opportunities=[
+            AssetOption(id=o.id, title=o.title, code=_derive_opp_code(o)) for o in opportunities
+        ],
+        properties=[
+            AssetOption(id=p.id, title=p.title, code=_derive_prop_code(p)) for p in properties
+        ],
     )
-    opportunities = [
-        AssetOption(id=o.id, title=o.title, code=_derive_opp_code(o)) for o in opp_r.scalars().all()
-    ]
-    prop_r = await db.execute(
-        select(Property)
-        .where(Property.status != PropertyStatus.ARCHIVED)
-        .order_by(Property.created_at.desc())
-        .limit(500)
-    )
-    properties = [
-        AssetOption(id=p.id, title=p.title, code=_derive_prop_code(p))
-        for p in prop_r.scalars().all()
-    ]
-    return AssetOptionsOut(opportunities=opportunities, properties=properties)
-
-
-# ── shared ───────────────────────────────────────────────────────────────────
 
 
 async def _get_owned_entry(
